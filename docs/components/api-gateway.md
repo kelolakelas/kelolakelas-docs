@@ -1,0 +1,9 @@
+# API gateway (`kelolakelas-api-gateway`)
+
+**Implemented:** Gin service on `:8000` by default. It registers recovery, restrictive origin matching CORS, Redis-backed rate limiting, health, local Swagger shell, service Swagger proxies, public routes, and a JWT-protected route group. Evidence: `cmd/server/main.go:18-51`, `internal/delivery/http/router.go:19-142`.
+
+It builds a standard Go single-host reverse proxy per service. Route paths are retained: a caller of `/api/v1/classes` is forwarded as `/api/v1/classes`; request headers/body are otherwise retained. For academic/billing it adds `X-Tenant-ID` from validated gateway claims when present. It does not translate authentication, enforce roles, retry downstream failures, or define a proxy error handler. Evidence: `internal/delivery/http/handler/proxy_handler.go:39-86`.
+
+Rate limiting keys use client IP, method, exact path and fixed time window. Redis failure is explicitly fail-open. Login limit defaults to 5/window, registration 10/window, normal protected path 120/window, and the exposed webhook path has a dedicated default limit of 120/window. The proxy route itself is public; callback authenticity is delegated to billing.
+
+The gateway does not own a database. `APP_URL` must be an exact HTTP(S) origin to receive CORS response headers; a nonempty unmatched `Origin` yields 403. If `APP_URL` is empty any nonempty Origin is rejected, even though non-browser/no-Origin requests continue (`middleware/cors_middleware.go`).

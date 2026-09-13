@@ -1,0 +1,45 @@
+# Environment-variable inventory
+
+Safe examples deliberately contain placeholders only. “Required” means the loader refuses startup; it does not mean an external environment must set it because some loaders have a source fallback. Evidence throughout is the named service `internal/config/config.go`; web evidence is the listed app files.
+
+| Variable | Consumer | Required / default | Purpose / safe example | Sensitive | Evidence |
+|---|---|---|---|---|---|
+| `NEXT_PUBLIC_API_URL` | web | optional; defaults to web `http://localhost:3000` | gateway base, `https://api.example.test` | no | web auth/dashboard actions |
+| `NEXT_PUBLIC_APP_URL` | web | optional; local/production page-specific defaults | canonical metadata, `https://app.example.test` | no | web login/register/public pages |
+| `AUTH_COOKIE_NAME` | web | optional; `auth_token` | browser JWT cookie key | no | `proxy.ts`, web actions |
+| `TENANT_ID_COOKIE_NAME` | web | optional; `tenant_id` | optional tenant header cookie key | no | tenant action/query files |
+| `NODE_ENV` | web | runtime default | enables secure cookie only when `production` | no | web auth actions |
+| `PORT` | gateway/identity/academic/billing | optional; 8000/8080/8081/8082 | HTTP listener, `8080` | no | each config |
+| `JWT_SECRET` | gateway/identity/academic/billing | billing required; other three have insecure fallback | shared HS256 signing/validation key, `<strong-random-secret>` | yes | each config; identity `pkg/jwt/jwt.go` |
+| `APP_URL` | gateway/identity | gateway optional; identity defaults localhost:3000 | CORS origin/invitation app base, `https://app.example.test` | no | gateway/identity config |
+| `IDENTITY_SERVICE_URL` | gateway | optional; localhost:8080 | proxy target, `http://identity:8080` | no | gateway config |
+| `ACADEMIC_SERVICE_URL` | gateway/billing | optional; localhost:8081 | proxy/internal academic target, `http://academic:8081` | no | gateway/billing config |
+| `BILLING_SERVICE_URL` | gateway/academic | optional; localhost:8082 | proxy/internal billing target, `http://billing:8082` | no | gateway/academic config |
+| `IDENTITY_GRPC_HOST` | academic | optional; localhost:50051 | identity gRPC target, `identity:50051` | no | academic config |
+| `INTERNAL_SERVICE_CREDENTIAL` | academic/billing | **required** | service-to-service Bearer value, `<random-service-secret>` | yes | academic/billing config |
+| `DATABASE_URL` | identity/academic/billing | optional | PostgreSQL URL fills unset DB fields, `postgresql://user:<redacted>@db:5432/name?sslmode=require` | yes | each stateful config |
+| `DB_HOST` / `DB_PORT` | identity/academic/billing | optional; localhost/5432 | PostgreSQL network target | no | each stateful config |
+| `DB_USER` / `DB_PASSWORD` / `DB_NAME` | identity/academic/billing | optional local fallbacks | PostgreSQL credentials/database | password yes | each stateful config |
+| `DB_SSLMODE` | identity/academic/billing | optional; `disable` | PostgreSQL SSL mode, `require` | no | each stateful config |
+| `DB_CHANNEL_BINDING` | identity/academic/billing | optional; `disable` | PostgreSQL binding: disable/prefer/require | no | each stateful config |
+| `REDIS_HOST` / `REDIS_PORT` | gateway/identity | optional; localhost/6379 | Redis target | no | gateway/identity config |
+| `REDIS_USERNAME` | gateway/identity | optional; `default` | Redis username | no | gateway/identity config |
+| `REDIS_PASSWORD` | gateway/identity | optional; empty | Redis password, `<redacted>` | yes | gateway/identity config |
+| `REDIS_TLS` / `REDIS_DB` | gateway/identity | optional; false/0 | TLS flag and non-negative DB, `true`, `0` | no | gateway/identity config |
+| `RATE_LIMIT_REQUESTS` / `RATE_LIMIT_WINDOW_SECONDS` | gateway | optional; 60/60 | general fallback requests/window | no | gateway config |
+| `RATE_LIMIT_PUBLIC_REQUESTS` / `RATE_LIMIT_PROTECTED_REQUESTS` | gateway | optional; 60/120 | public/protected caps | no | gateway config/middleware |
+| `RATE_LIMIT_LOGIN_REQUESTS` / `RATE_LIMIT_REGISTER_REQUESTS` | gateway | optional; 5/10 | sensitive endpoint caps | no | gateway config/middleware |
+| `RATE_LIMIT_WEBHOOK_REQUESTS` / `RATE_LIMIT_WEBHOOK_WINDOW_SECONDS` | gateway | optional; 120/general window | callback cap/window | no | gateway config/middleware |
+| `RESEND_API_KEY` | identity/billing | optional at loader; needed to deliver email | Resend credential, `<redacted>` | yes | identity/billing config/email packages |
+| `RESEND_FROM_EMAIL` | identity/billing | optional at loader | sender, `noreply@example.test` | no | identity/billing config/email packages |
+| `GOOGLE_MAPS_API_KEY` | identity | optional | Maps API key, `<redacted>` | yes | identity config/maps client |
+| `GOOGLE_MAPS_GEOCODING_ENABLED` / `GOOGLE_MAPS_TIMEOUT_SECONDS` | identity | optional; false/5 | opt-in geocode and HTTP timeout | no | identity config/maps client |
+| `DUITKU_API_BASE_URL` | billing | optional; sandbox base | Duitku base, `https://sandbox.duitku.com/...` | no | billing config |
+| `DUITKU_API_KEY` / `DUITKU_MERCHANT_CODE` | billing | optional loader; needed to create invoice | provider credentials, `<redacted>` | yes | billing config/duitku client |
+| `DUITKU_CALLBACK_URL` / `DUITKU_RETURN_URL` | billing | optional; callback defaults local service path, return defaults callback | provider callback/return, `https://api.example.test/api/v1/billing/webhooks/duitku` | no | billing config |
+| `SUBSCRIPTION_WORKER_ENABLED` | billing | optional; false | starts worker when true | no | billing config/main |
+| `SUBSCRIPTION_WORKER_INTERVAL_MINUTES` | billing | optional; 1440 | worker polling interval | no | billing config |
+| `SUBSCRIPTION_PAYMENT_REMINDER_INTERVAL_DAYS` | billing | optional; 3 | reminder cadence | no | billing config |
+| `SUBSCRIPTION_PAYMENT_EXPIRY_PERIOD_DAYS` | billing | optional; 14 | invoice expiry duration | no | billing config |
+
+The literal fallback credential values are intentionally not reproduced. See the confirmed security finding in [known gaps and risks](../08-known-gaps-and-risks.md).

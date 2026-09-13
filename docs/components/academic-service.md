@@ -1,0 +1,9 @@
+# Academic service (`kelolakelas-academic-service`)
+
+**Implemented:** Gin HTTP server default `:8081`, GORM/PostgreSQL store and public catalog routes. Protected HTTP routes cover categories, classes, schedules/sessions, students, attendance, reports and enrollment queries. An internal credential-protected endpoint activates enrollment after billing payment. Evidence: `cmd/server/main.go:92-154`.
+
+The service dials identity gRPC using `IDENTITY_GRPC_HOST`; use cases validate tenant status before category/class operations (`pkg/grpcclient/tenant_client.go`, `internal/usecase/category_usecase.go:77`, `class_creation_usecase.go:48`). Its catalog use case obtains public tenant information via gRPC. It also makes an internal HTTP payment-initiation call to billing when marketplace catalog enrollment needs payment (`pkg/billing/client.go:45-75`, `internal/usecase/enrollment_usecase.go`).
+
+Academic migrations own categories, classes, schedules, sessions, students, enrollments, attendance, student notes, reports and tenant-location snapshots. They use soft-delete columns where supplied; many identity IDs are UUID values without cross-database foreign keys.
+
+Role-based permissions are not applied by route middleware. The JWT middleware supplies claims to handlers, and resource use cases scope many queries by tenant; individual handler/use-case evidence should be reviewed before granting a role access. See [academic API](../api/academic.md).
