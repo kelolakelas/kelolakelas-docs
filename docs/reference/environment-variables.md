@@ -1,6 +1,6 @@
 # Environment-variable inventory
 
-Safe examples deliberately contain placeholders only. “Required” means the loader refuses startup; it does not mean an external environment must set it because some loaders have a source fallback. Evidence throughout is the named service `internal/config/config.go`; web evidence is the listed app files.
+Safe examples deliberately contain placeholders only. “Required” means the loader refuses startup. Evidence throughout is the named service `internal/config/config.go`; web evidence is the listed app files.
 
 | Variable | Consumer | Required / default | Purpose / safe example | Sensitive | Evidence |
 |---|---|---|---|---|---|
@@ -10,7 +10,7 @@ Safe examples deliberately contain placeholders only. “Required” means the l
 | `TENANT_ID_COOKIE_NAME` | web | optional; `tenant_id` | optional tenant header cookie key | no | tenant action/query files |
 | `NODE_ENV` | web | runtime default | enables secure cookie only when `production` | no | web auth actions |
 | `PORT` | gateway/identity/academic/billing | optional; 8000/8080/8081/8082 | HTTP listener, `8080` | no | each config |
-| `JWT_SECRET` | gateway/identity/academic/billing | billing required; other three have insecure fallback | shared HS256 signing/validation key, `<strong-random-secret>` | yes | each config; identity `pkg/jwt/jwt.go` |
+| `JWT_SECRET` | gateway/identity/academic/billing | **required; rejects blank/whitespace** | shared HS256 signing/validation key; configure the same `<strong-random-secret>` at every JWT boundary | yes | each config; identity `pkg/jwt/jwt.go` |
 | `APP_URL` | gateway/identity | gateway optional; identity defaults localhost:3000 | CORS origin/invitation app base, `https://app.example.test` | no | gateway/identity config |
 | `IDENTITY_SERVICE_URL` | gateway | optional; localhost:8080 | proxy target, `http://identity:8080` | no | gateway config |
 | `ACADEMIC_SERVICE_URL` | gateway/billing | optional; localhost:8081 | proxy/internal academic target, `http://academic:8081` | no | gateway/billing config |
@@ -42,4 +42,4 @@ Safe examples deliberately contain placeholders only. “Required” means the l
 | `SUBSCRIPTION_PAYMENT_REMINDER_INTERVAL_DAYS` | billing | optional; 3 | reminder cadence | no | billing config |
 | `SUBSCRIPTION_PAYMENT_EXPIRY_PERIOD_DAYS` | billing | optional; 14 | invoice expiry duration | no | billing config |
 
-The literal fallback credential values are intentionally not reproduced. See the confirmed security finding in [known gaps and risks](../08-known-gaps-and-risks.md).
+Do not place a JWT secret in committed environment files. Generate and distribute it through the deployment secret manager; every JWT boundary must receive the identical nonblank value.

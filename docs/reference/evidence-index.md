@@ -16,7 +16,7 @@ Source paths are repository-relative to `/home/faridzam/workspace/kelolakelas`. 
 | Billing/Duitku/worker | `billing/internal/delivery/http/handler/transaction_handler.go`; `pkg/duitku/client.go`; `internal/usecase/subscription_worker.go` |
 | Email/maps/Redis | identity `pkg/email/resend.go`, `pkg/maps/client.go`, `pkg/database/redis.go`; billing `pkg/email/resend.go` |
 | Schema | each service `migrations/*.up.sql`, summarized under `docs/data/` |
-| Config/defaults | each service `internal/config/config.go`; web `process.env` uses identified in component docs |
+| Config/defaults and JWT secret validation | each service `internal/config/config.go` and `internal/config/config_test.go`; web `process.env` uses identified in component docs |
 | Tests/build tooling | each Go `Makefile`, `*_test.go`, web `package.json` |
 
 Generated service Swagger (`docs/swagger.json`) was consulted as contract corroboration. It is not sole evidence because route registration/handlers are executable current-state authority. Generated Go protobuf files corroborate the gRPC service methods; no `.proto` source was found.

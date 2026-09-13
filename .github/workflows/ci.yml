@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check whitespace errors
+        run: git diff --check HEAD^ HEAD
+
+      - name: Reject empty Markdown files
+        run: test -z "$(find . -type f -name '*.md' -empty -print -quit)"
