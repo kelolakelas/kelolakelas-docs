@@ -6,11 +6,11 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `eafb01bcc2ff355d35d8cdf2d1c01c19d0f81be4` | clean |
-| `kelolakelas-api-gateway` | `main` | `c093ae1717c371238ebf132df70520c4c0aaf6e8` | clean |
-| `kelolakelas-identity-service` | `main` | `cd3a215e4d53e3079d4190b45ed268ca725d1e14` | clean |
-| `kelolakelas-academic-service` | `main` | `d974e46ff6bbebcbdcfbf0ed0643fb3a82908b5c` | clean |
-| `kelolakelas-billing-service` | `main` | `33f32202b20d0cafedd2f13fdbaa765341ff92f0` | clean |
+| `kelolakelas-web` | `main` | `d16f5896223ff45f76c1a8b4ec0108c30c769167` | clean |
+| `kelolakelas-api-gateway` | `main` | `5327d10eb9b2f5351b268b0363552d7ca1ab5a78` | clean |
+| `kelolakelas-identity-service` | `main` | `cff601ebcd0524b5e97c0db8505650e526ebd934` | clean |
+| `kelolakelas-academic-service` | `main` | `c6549eed04550875ba63d237e9768e6ef06afdcd` | clean |
+| `kelolakelas-billing-service` | `main` | `573f39392ee1f00ed3c4f894239d4a1304ac3ee8` | clean |
 
 **Implemented:** KelolaKelas is a Next.js App Router UI, a Gin reverse-proxy gateway, and separate identity, academic, and billing Go services. The code configures PostgreSQL per stateful service, Redis for gateway rate limiting and identity permission caching, identity gRPC on `:50051`, Duitku payment requests, Resend email, and optional Google Maps geocoding. See [architecture](docs/02-architecture.md).
 

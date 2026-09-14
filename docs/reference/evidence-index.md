@@ -5,13 +5,13 @@ Source paths are repository-relative to `/home/faridzam/workspace/kelolakelas`. 
 | Claim area | Primary evidence |
 |---|---|
 | Revisions/state | `git -C kelolakelas-{web,api-gateway,identity-service,academic-service,billing-service} branch --show-current`, `rev-parse HEAD`, `status --short` recorded in root README |
-| Web routes/server actions/cookies/auth routing | `kelolakelas-web/app/**/page.tsx`, `app/(auth)/*/_actions/actions.ts`, `lib/auth-routing.ts`, `proxy.ts`, `proxy.test.ts` |
+| Web routes/server actions/cookies/auth routing | `kelolakelas-web/app/**/page.tsx`, `app/(auth)/*/_actions/actions.ts`, `app/(dashboard)/dashboard/parent/students/**`, `lib/auth-routing.ts`, `lib/auth-session.ts`, `proxy.ts`, `proxy.test.ts` |
 | Gateway public/protected routes | `kelolakelas-api-gateway/internal/delivery/http/router.go:29-142` |
 | Gateway proxy, CORS/rate limiting | `internal/delivery/http/handler/proxy_handler.go:39-86`; `middleware/cors_middleware.go`; `middleware/rate_limit_middleware.go:15-121` |
 | JWT and identity startup | `kelolakelas-identity-service/pkg/jwt/jwt.go:17-75`; `cmd/server/main.go:33-158` |
 | Identity HTTP behavior/RBAC/invites | `internal/delivery/http/handler/*.go`; `internal/usecase/{auth,tenant,invitation,member,role}_usecase.go` |
 | Identity gRPC | `internal/delivery/grpc/tenant_handler.go`; `pkg/proto/tenant/tenant_grpc.pb.go` |
-| Academic HTTP/contracts | `kelolakelas-academic-service/cmd/server/main.go:92-154`; `internal/delivery/http/handler/*.go`; `internal/domain/*.go` |
+| Academic HTTP/contracts | `kelolakelas-academic-service/cmd/server/main.go:92-154`; `internal/delivery/http/handler/*.go`; `internal/domain/*.go`; student ownership/delete guard in `student_handler.go` and `student_usecase.go` |
 | Enrollment and inter-service billing | `academic/internal/usecase/enrollment_usecase.go`; `academic/pkg/billing/client.go`; `billing/internal/usecase/transaction_usecase.go`; `billing/pkg/academic/client.go` |
 | Billing/Duitku/worker | `billing/internal/delivery/http/handler/transaction_handler.go`; `pkg/duitku/client.go`; `internal/usecase/subscription_worker.go` |
 | Email/maps/Redis | identity `pkg/email/resend.go`, `pkg/maps/client.go`, `pkg/database/redis.go`; billing `pkg/email/resend.go` |

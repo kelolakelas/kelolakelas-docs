@@ -26,3 +26,29 @@ The public catalog reads only `is_published`/open catalog data and enriches tena
 **Initiator:** a JWT caller uses tenant enrollment or catalog enrollment. **Rules:** parent catalog enrollment requires a parent claim and `Idempotency-Key`; it verifies student ownership, class publication/enrollment status, capacity, and repeated-key compatibility. **Writes:** a pending academic enrollment, then payment transaction ID/checkout URL after billing reply. **Side effect:** academic calls billing `POST /internal/billing/transactions` with the internal credential. Evidence: `internal/delivery/http/handler/enrollment_handler.go:80-175`, `internal/usecase/enrollment_usecase.go`, `pkg/billing/client.go:45-75`.
 
 Failures include missing key (400), forbidden non-parent catalog use (403), absent student/class (404), idempotency conflict/capacity/state conflict (409), and unenrollable class/student ownership (422), where explicitly mapped by the handler. A billing call failure can leave an existing pending enrollment; retry behavior uses idempotency logic.
+
+## Parent student profile flow
+
+```mermaid
+sequenceDiagram
+  participant P as Parent browser
+  participant W as Next.js parent page/actions
+  participant G as Gateway
+  participant A as Academic
+  participant DB as Academic DB
+  P->>W: Open /dashboard/parent/students
+  W->>G: GET /api/v1/students + Bearer JWT
+  G->>A: Forward authenticated request
+  A->>DB: List by authenticated parent user_id
+  DB-->>A: Owned students only
+  A-->>W: Student list or 401/403/5xx
+  W-->>P: List, empty, forbidden, or API-error state
+  P->>W: Create/update/delete student
+  W->>G: POST/PATCH/DELETE /api/v1/students
+  G->>A: Forward request
+  A->>DB: Enforce ownership; reject active-enrollment delete with 409
+  A-->>W: Success or validation/forbidden/conflict error
+  W-->>P: Revalidated list and explicit action result
+```
+
+The parent route is also rejected by the web proxy for a valid non-parent session. The academic service remains the authorization authority; the web decodes only the session `user_id` claim to populate the create request required by the current API, while the service verifies that claim against the authenticated request.
