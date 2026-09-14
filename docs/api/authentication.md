@@ -22,7 +22,7 @@ sequenceDiagram
   Service->>Service: validates HS256 JWT
 ```
 
-There is no implemented refresh endpoint or logout endpoint. The web proxy checks only cookie existence, not signature/expiry. Role records and permissions exist, but most HTTP routes only require a valid token; handlers explicitly check role in only selected member-role logic. This is an observed authorization limitation, not a claim that every resource lacks tenant scoping.
+There is no implemented refresh endpoint or logout endpoint. The web proxy checks only cookie existence, not signature/expiry. Identity enforces permission checks for member role mutation and tenant administration: invitation creation requires `member:invite`, tenant settings/location mutation requires `tenant:update`, and custom-role mutation requires `role:create`, `role:update`, or `role:delete`. The service looks up the current persisted role permission at each protected mutation, so a valid token without a `role_id` or the required assignment receives 403. Other HTTP routes may still only require a valid token; this is an observed authorization limitation, not a claim that every resource lacks tenant scoping.
 
 ## Internal service credential
 
