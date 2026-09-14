@@ -41,5 +41,8 @@ Safe examples deliberately contain placeholders only. “Required” means the l
 | `SUBSCRIPTION_WORKER_INTERVAL_MINUTES` | billing | optional; 1440 | worker polling interval | no | billing config |
 | `SUBSCRIPTION_PAYMENT_REMINDER_INTERVAL_DAYS` | billing | optional; 3 | reminder cadence | no | billing config |
 | `SUBSCRIPTION_PAYMENT_EXPIRY_PERIOD_DAYS` | billing | optional; 14 | invoice expiry duration | no | billing config |
+| `PAYMENT_RECONCILIATION_WORKER_ENABLED` | billing | optional; true | enables durable paid-enrollment activation retries | no | billing config |
+| `PAYMENT_RECONCILIATION_WORKER_INTERVAL_MINUTES` | billing | optional; 1 | reconciliation worker poll interval | no | billing config |
+| `PAYMENT_RECONCILIATION_MAX_ATTEMPTS` | billing | optional; 10 | attempts before terminal reconciliation failure | no | billing config |
 
 Do not place a JWT secret in committed environment files. Generate and distribute it through the deployment secret manager; every JWT boundary must receive the identical nonblank value.

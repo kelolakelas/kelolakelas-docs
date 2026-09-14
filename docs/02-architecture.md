@@ -20,6 +20,7 @@ flowchart LR
   Gateway -->|reverse proxy; adds X-Tenant-ID if claim| Billing
   Academic -->|POST /internal/billing/transactions; internal credential| Billing
   Billing -->|PUT /internal/enrollments/:id/activate; internal credential| Academic
+  Billing -->|durable retry state| Billing
 ```
 
 **Implemented:** service identity is split by data store; migration foreign keys only refer to tables in the same database. IDs such as `tenant_id` and `parent_id` are application-level UUID references across stores, not database foreign keys. See [data overview](data/overview.md).
