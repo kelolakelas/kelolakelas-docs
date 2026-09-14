@@ -5,7 +5,7 @@ Source paths are repository-relative to `/home/faridzam/workspace/kelolakelas`. 
 | Claim area | Primary evidence |
 |---|---|
 | Revisions/state | `git -C kelolakelas-{web,api-gateway,identity-service,academic-service,billing-service} branch --show-current`, `rev-parse HEAD`, `status --short` recorded in root README |
-| Web routes/server actions/cookies | `kelolakelas-web/app/**/page.tsx`, `app/(auth)/*/_actions/actions.ts`, `proxy.ts` |
+| Web routes/server actions/cookies/auth routing | `kelolakelas-web/app/**/page.tsx`, `app/(auth)/*/_actions/actions.ts`, `lib/auth-routing.ts`, `proxy.ts`, `proxy.test.ts` |
 | Gateway public/protected routes | `kelolakelas-api-gateway/internal/delivery/http/router.go:29-142` |
 | Gateway proxy, CORS/rate limiting | `internal/delivery/http/handler/proxy_handler.go:39-86`; `middleware/cors_middleware.go`; `middleware/rate_limit_middleware.go:15-121` |
 | JWT and identity startup | `kelolakelas-identity-service/pkg/jwt/jwt.go:17-75`; `cmd/server/main.go:33-158` |
