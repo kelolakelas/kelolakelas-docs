@@ -4,7 +4,7 @@ Safe examples deliberately contain placeholders only. “Required” means the l
 
 | Variable | Consumer | Required / default | Purpose / safe example | Sensitive | Evidence |
 |---|---|---|---|---|---|
-| `NEXT_PUBLIC_API_URL` | web | optional; defaults to web `http://localhost:3000` | gateway base, `https://api.example.test` | no | web auth/dashboard actions |
+| `GATEWAY_API_URL` | web | **required; rejects blank, non-HTTP(S), or path-bearing values** | server-side gateway origin, `https://api.example.test` | no | `kelolakelas-web/.env.example`, `lib/gateway.ts`; web auth/dashboard actions and queries |
 | `NEXT_PUBLIC_APP_URL` | web | optional; local/production page-specific defaults | canonical metadata, `https://app.example.test` | no | web login/register/public pages |
 | `AUTH_COOKIE_NAME` | web | optional; `auth_token` | browser JWT cookie key | no | `proxy.ts`, web actions |
 | `TENANT_ID_COOKIE_NAME` | web | optional; `tenant_id` | optional tenant header cookie key | no | tenant action/query files |
