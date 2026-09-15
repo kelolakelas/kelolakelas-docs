@@ -12,6 +12,7 @@ Source paths are repository-relative to `/home/faridzam/workspace/kelolakelas`. 
 | Identity HTTP behavior/RBAC/invites | `internal/delivery/http/handler/*.go`; `internal/usecase/{auth,tenant,invitation,member,role}_usecase.go` |
 | Identity gRPC | `internal/delivery/grpc/tenant_handler.go`; `pkg/proto/tenant/tenant_grpc.pb.go` |
 | Academic HTTP/contracts | `kelolakelas-academic-service/cmd/server/main.go:92-154`; `internal/delivery/http/handler/*.go`; `internal/domain/*.go`; student ownership/delete guard in `student_handler.go` and `student_usecase.go` |
+| Academic catalog authorization | `kelolakelas-academic-service/internal/delivery/http/middleware/permission_middleware.go`; `pkg/grpcclient/permission_client.go`; route mapping in `cmd/server/main.go`; identity `internal/delivery/grpc/permission_service.go` |
 | Enrollment and inter-service billing | `academic/internal/usecase/enrollment_usecase.go`; `academic/pkg/billing/client.go`; `billing/internal/usecase/transaction_usecase.go`; `billing/pkg/academic/client.go` |
 | Billing/Duitku/worker | `billing/internal/delivery/http/handler/transaction_handler.go`; `pkg/duitku/client.go`; `internal/usecase/subscription_worker.go` |
 | Durable payment reconciliation | `billing/internal/domain/payment_reconciliation.go`; `internal/repository/payment_reconciliation_repository.go`; `internal/usecase/reconciliation_worker.go`; `migrations/20260915000000_payment_reconciliations.up.sql`; ADR [0001](../adr/0001-durable-payment-reconciliation.md) |
