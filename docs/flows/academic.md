@@ -55,7 +55,7 @@ sequenceDiagram
   W-->>P: Redirect to validated checkout URL
 ```
 
-The browser never supplies the authoritative price, tenant, parent ID, or billing transaction endpoint. The Server Action reads the HTTP-only session cookie, and the academic service remains the authorization and enrollment authority. A retry of the mounted form reuses its same idempotency key; a fresh detail-page render starts a new intent.
+The browser never supplies the authoritative price, tenant, parent ID, or billing transaction endpoint. The Server Action reads the HTTP-only session cookie, and the academic service remains the authorization and enrollment authority. Group enrollment requires a selected schedule; the academic service validates that the schedule belongs to the class and rechecks capacity transactionally. A retry of the mounted form reuses its same idempotency key; a fresh detail-page render starts a new intent.
 
 ## Parent student profile flow
 
