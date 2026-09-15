@@ -8,8 +8,8 @@ This is an evidence-based onboarding and operations guide for the implementation
 |---|---|---|---|
 | `kelolakelas-web` | `main` | `c9c1ff22c7782738cd66ef530d7346cc212fa1f3` | clean |
 | `kelolakelas-api-gateway` | `main` | `5327d10eb9b2f5351b268b0363552d7ca1ab5a78` | clean |
-| `kelolakelas-identity-service` | `main` | `cff601ebcd0524b5e97c0db8505650e526ebd934` | clean |
-| `kelolakelas-academic-service` | `main` | `c6549eed04550875ba63d237e9768e6ef06afdcd` | clean |
+| `kelolakelas-identity-service` | `main` | `0b2301827342b542ece395ec0a8a316279342e2d` | clean |
+| `kelolakelas-academic-service` | `main` | `74e01fa666788c5404ee46bb6cf30be1c081038a` | clean |
 | `kelolakelas-billing-service` | `main` | `f25a3fbb73e46469e180981f5f7d3a663547efde` | clean before KEL-8 |
 
 **Implemented:** KelolaKelas is a Next.js App Router UI, a Gin reverse-proxy gateway, and separate identity, academic, and billing Go services. The code configures PostgreSQL per stateful service, Redis for gateway rate limiting and identity permission caching, identity gRPC on `:50051`, Duitku payment requests, Resend email, and optional Google Maps geocoding. Parent enrollment now uses the public catalog detail page to select an owned student and schedule before redirecting to the backend-provided checkout URL. See [architecture](docs/02-architecture.md).
