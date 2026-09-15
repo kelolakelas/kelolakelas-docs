@@ -8,3 +8,5 @@
 | `POST /internal/billing/transactions` | internal bearer credential | internal invoice request → transaction ID/checkout URL | `cmd/server/main.go:92-94` |
 
 Invoice creation is available only at `POST /internal/billing/transactions`, after academic has verified the enrollment and supplied the internal bearer credential. `DuitkuCallbackPayload` requires merchant code, amount, merchant order ID, result code, reference, and signature according to `internal/domain/payment_gateway.go`. The handler rejects a failed signature before business processing. Full processing and response outcomes are in [payment callback flow](../flows/payment-callback.md).
+
+For paid transactions, the list/detail response also exposes `reconciliation_status`, `reconciliation_attempts`, `reconciliation_next_attempt_at`, and `reconciliation_last_error`. `active` means Academic activation succeeded, `reconciling` means durable retry is pending/in progress, and `terminal_failed` means the configured retry limit was reached.

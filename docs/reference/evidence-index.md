@@ -14,6 +14,7 @@ Source paths are repository-relative to `/home/faridzam/workspace/kelolakelas`. 
 | Academic HTTP/contracts | `kelolakelas-academic-service/cmd/server/main.go:92-154`; `internal/delivery/http/handler/*.go`; `internal/domain/*.go`; student ownership/delete guard in `student_handler.go` and `student_usecase.go` |
 | Enrollment and inter-service billing | `academic/internal/usecase/enrollment_usecase.go`; `academic/pkg/billing/client.go`; `billing/internal/usecase/transaction_usecase.go`; `billing/pkg/academic/client.go` |
 | Billing/Duitku/worker | `billing/internal/delivery/http/handler/transaction_handler.go`; `pkg/duitku/client.go`; `internal/usecase/subscription_worker.go` |
+| Durable payment reconciliation | `billing/internal/domain/payment_reconciliation.go`; `internal/repository/payment_reconciliation_repository.go`; `internal/usecase/reconciliation_worker.go`; `migrations/20260915000000_payment_reconciliations.up.sql`; ADR [0001](../adr/0001-durable-payment-reconciliation.md) |
 | Email/maps/Redis | identity `pkg/email/resend.go`, `pkg/maps/client.go`, `pkg/database/redis.go`; billing `pkg/email/resend.go` |
 | Schema | each service `migrations/*.up.sql`, summarized under `docs/data/` |
 | Config/defaults and JWT secret validation | each service `internal/config/config.go` and `internal/config/config_test.go`; web `process.env` uses identified in component docs |

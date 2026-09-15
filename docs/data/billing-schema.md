@@ -16,6 +16,7 @@ erDiagram
 | `wallets`, `bank_accounts`, `ledger_entries`, `withdrawals` | wallet unique tenant; ledger uniqueness for payment event; bank account FK for withdrawal |
 | `subscriptions` | unique enrollment ID; renewal migration adds tenant/parent/student/contact/class/amount fields |
 | `transactions` | unique merchant order; stores amounts/status/provider/payment URL; unique enrollment index introduced by `000002`, then dropped in `000003` in favor of partial subscription-period uniqueness |
+| `payment_reconciliations` | one durable Academic activation job per paid transaction; tracks attempts, lease, next retry, latest error, and terminal completion |
 | `seed_versions` | seed tracking |
 
 Foreign keys only connect voucher/subscription/wallet/bank-account tables locally. Enrollment, tenant, parent, and student UUIDs are not cross-database FKs.
