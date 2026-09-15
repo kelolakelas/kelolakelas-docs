@@ -27,6 +27,36 @@ The public catalog reads only `is_published`/open catalog data and enriches tena
 
 Failures include missing key (400), forbidden non-parent catalog use (403), absent student/class (404), idempotency conflict/capacity/state conflict (409), and unenrollable class/student ownership (422), where explicitly mapped by the handler. A billing call failure can leave an existing pending enrollment; retry behavior uses idempotency logic.
 
+### Parent checkout from the public catalog
+
+```mermaid
+sequenceDiagram
+  participant P as Parent browser
+  participant W as Next.js class detail
+  participant G as Gateway
+  participant A as Academic
+  participant B as Billing
+  participant D as Duitku
+  P->>W: Open /kelas/{class_id}
+  W->>G: GET catalog detail
+  G-->>W: Public class and schedule availability
+  W->>G: GET students + parent Bearer JWT
+  G->>A: Forward scoped student query
+  A-->>W: Owned students only
+  P->>W: Select student, schedule, billing cycle
+  W->>G: POST catalog enrollment + stable Idempotency-Key
+  G->>A: Forward parent Bearer JWT
+  A->>A: Verify parent, ownership, class state, capacity, key
+  A->>B: POST internal billing transaction
+  B->>D: Create/reuse Duitku invoice
+  D-->>B: Checkout URL
+  B-->>A: Transaction ID and checkout URL
+  A-->>W: Pending enrollment and payment data
+  W-->>P: Redirect to validated checkout URL
+```
+
+The browser never supplies the authoritative price, tenant, parent ID, or billing transaction endpoint. The Server Action reads the HTTP-only session cookie, and the academic service remains the authorization and enrollment authority. Group enrollment requires a selected schedule; the academic service validates that the schedule belongs to the class and rechecks capacity transactionally. A retry of the mounted form reuses its same idempotency key; a fresh detail-page render starts a new intent.
+
 ## Parent student profile flow
 
 ```mermaid
