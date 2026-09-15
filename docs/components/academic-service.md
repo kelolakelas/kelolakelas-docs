@@ -6,4 +6,4 @@ The service dials identity gRPC using `IDENTITY_GRPC_HOST`; use cases validate t
 
 Academic migrations own categories, classes, schedules, sessions, students, enrollments, attendance, student notes, reports and tenant-location snapshots. They use soft-delete columns where supplied; many identity IDs are UUID values without cross-database foreign keys.
 
-Role-based permissions are not applied by route middleware. The JWT middleware supplies claims to handlers, and resource use cases scope many queries by tenant; individual handler/use-case evidence should be reviewed before granting a role access. See [academic API](../api/academic.md).
+Catalog and schedule mutation routes apply the persisted role-permission check described above before invoking handlers. Other academic domains still rely on JWT authentication plus their existing handler/use-case checks; individual evidence should be reviewed before granting a role access. See [academic API](../api/academic.md).
