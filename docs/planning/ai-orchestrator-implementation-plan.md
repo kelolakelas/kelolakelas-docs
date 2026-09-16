@@ -25,15 +25,16 @@ The first usable release is intentionally narrower than a fully autonomous deliv
 |---|---|---|---|
 | Configuration validation | **Implemented** | `kelolakelas-ai-orchestrator/src/index.ts`, `src/config/config.ts`, `src/config/schema.ts` | Startup rejects malformed YAML, invalid timezones, missing model tiers, and heartbeat intervals longer than half the lease. |
 | Planning contract and local validator | **Implemented** | `src/intake/planning-contract.ts`, `src/intake/validate.ts` | Planning payloads can be checked before publication. |
-| State machine, scheduling policy, routing, and retries | **Implemented** | `src/orchestrator/state-machine.ts`, `src/scheduling/operating-hours.ts`, `src/scheduling/stage-gate.ts`, `src/routing/*`, `src/orchestrator/retry-policy.ts` | The scheduler applies the state machine and stage gates. Routing and retry policies wait for Phase 5 stage handlers. |
+| State machine, scheduling policy, routing, and retries | **Implemented** | `src/orchestrator/state-machine.ts`, `src/scheduling/operating-hours.ts`, `src/scheduling/stage-gate.ts`, `src/routing/*`, `src/orchestrator/retry-policy.ts` | The scheduler applies the state machine and stage gates. Phase 5 stages use the escalation route and bounded attempt limits. |
 | Task and transition schema | **Implemented** | `src/db/schema.ts`, `migrations/0002_blue_tyrannus.sql` | Parent tasks persist contracts, leases, dependencies, work units, attempts, checkpoints, and external operations. |
 | Transactional queue claim | **Implemented** | `src/repositories/task.repository.ts` | Claim and transition validate state, respect blockers, maintain leases, and append history in one transaction. |
 | Multi-repository execution model | **Implemented for persistence** | `src/db/schema.ts`, `src/repositories/task.repository.ts`, ADR 0003 | One parent task owns repository-specific work units; worktree execution remains a later phase. |
 | Linear intake adapter | **Implemented** (read-only) | `src/providers/linear.ts`, `src/intake/linear-discovery.ts` | Eligible issues are persisted idempotently. |
-| Repository registry and worktree preparation | **Implemented and verified locally** (opt-in) | `src/workspaces/*`, `migrations/0005_phase4_workspace_identity.sql`, ADR 0005 | With `orchestrator.execution.prepareWorkspaces`, claimed tasks receive isolated worktrees and park in `BLOCKED` until an analyzer exists. Disabled by default. |
-| GitHub, agent, quality, and CI adapters | **Not found** | Repository source inventory and README | No task advances beyond workspace preparation. |
+| Repository registry and worktree preparation | **Implemented and verified locally** (opt-in) | `src/workspaces/*`, `migrations/0005_phase4_workspace_identity.sql`, ADR 0005 | With `orchestrator.execution.prepareWorkspaces`, claimed tasks receive isolated worktrees. Disabled by default. |
+| Agent runner, quality gates, diff policy, and review | **Implemented and verified locally and in GitHub CI** (opt-in) | `src/execution/*`, `migrations/0006_phase5_agent_attempts.sql`, ADR 0006 | With `orchestrator.execution.runAgents`, tasks are analyzed, implemented, gated, fixed, and reviewed, then park in `BLOCKED` with a committed local branch. Disabled by default. |
+| GitHub delivery and CI observation adapters | **Not found** | Repository source inventory and README | No branch is pushed and no pull request is created. |
 | Long-running scheduler, crash recovery, and operator controls | **Implemented and verified locally** | `src/orchestrator/scheduler.ts`, `src/orchestrator/stage-handler.ts`, `src/http/server.ts`, `src/repositories/operator.repository.ts`, `migrations/0004_phase3_scheduler_controls.sql`, ADR 0004 | The worker runs continuously as an intake auditor with lease recovery and operator controls. Stage execution begins when later phases register handlers. |
-| Repository CI | **Configured** | `.github/workflows/ci.yml` | Runs migrations, PostgreSQL integration tests, build, lint, and unit tests on pull requests. GitHub execution and branch protection are not yet verified. |
+| Repository CI | **Implemented and verified in GitHub** | `.github/workflows/ci.yml`, `main` branch protection | The `gate` job runs a schema-drift check, migrations, PostgreSQL integration tests, build, lint, and unit tests on pull requests and pushes to `main`. Branch protection requires a pull request and a passing, up-to-date `gate` check, includes administrators, and blocks force pushes and deletion. On 2026-09-16 a pending `gate` check reported the pull request as `BLOCKED`, and a passing one as `CLEAN`. |
 
 The original migration consistency defect, where `migrations/0001_add_task_complexity_enum.sql` was absent from `migrations/meta/_journal.json`, was resolved in Phase 0. The clean-install and upgrade paths through `0004_phase3_scheduler_controls` were verified on PostgreSQL 16 on 2026-09-16.
 
@@ -76,7 +77,9 @@ Each transition must be atomic with its history record. Long operations use a le
 
 Goal: make Phase 1 reproducible and establish a reliable merge gate.
 
-Implementation status (2026-09-15): **Implemented locally; GitHub CI verification pending.** Drizzle metadata now registers migration `0001`, startup validation rejects invalid IANA timezones and missing analyzer/reviewer tiers, and Pino redaction is covered by unit tests. The migration upgrade test requires `MIGRATION_TEST_DATABASE_URL`; it is skipped locally when that variable is absent and is configured to run against PostgreSQL 16 in GitHub Actions.
+Implementation status (2026-09-16): **Implemented; GitHub CI and branch protection verified.** The CI job was renamed to `gate`, the required status check, and gained a guard that fails when `src/db/schema.ts` has no committed migration. Branch protection on `main` matches the other KelolaKelas repositories.
+
+Earlier status (2026-09-15): Drizzle metadata now registers migration `0001`, startup validation rejects invalid IANA timezones and missing analyzer/reviewer tiers, and Pino redaction is covered by unit tests. The migration upgrade test requires `MIGRATION_TEST_DATABASE_URL`; it is skipped locally when that variable is absent and is configured to run against PostgreSQL 16 in GitHub Actions.
 
 Deliverables:
 
@@ -155,7 +158,7 @@ Implementation status (2026-09-16): **Implemented and verified locally on Postgr
 - **Shutdown.** `SIGTERM`/`SIGINT` stop claims, abort stages, park stages that stop within the grace period, and close the HTTP server and pool.
 - **HTTP.** `/healthz`, `/readyz` (PostgreSQL ping and last Linear poll), and `/status` are exposed. Bearer-token operator endpoints cover pause/resume of new work, the schedule override, retry, cancel (new terminal `CANCELLED` state), and manual intervention, each written with an `operator_actions` audit row.
 - **Tests.** PostgreSQL integration tests cover: cross-process concurrency with three workers; graceful shutdown and resume from a checkpoint; forced termination with expired-lease recovery, a discarded late result, and operator retry; startup recovery with a stable worker identity; schedule pause and resume; mechanical stages outside hours; usage-limit resume; cancellation through the heartbeat; pause-new-work; and stage failure. A smoke run of the service against a stub Linear endpoint verified the endpoints, an operator action, readiness failure when Linear is unreachable, clean `SIGTERM` shutdown, and the absence of the API key in logs.
-- **Not included.** No stage handlers are registered, so the service does not claim or execute tasks yet. GitHub CI execution of the new tests has not been observed.
+- **Not included.** No stage handlers are registered, so the service does not claim or execute tasks yet. The new tests passed in GitHub CI on orchestrator pull request #1.
 
 Deliverables:
 
@@ -199,7 +202,7 @@ Implementation status (2026-09-16): **Implemented and verified locally on Postgr
 - **Git execution.** Git runs as a fixed executable with argument arrays, hooks disabled, a timeout, bounded output, and an environment allowlist that excludes provider credentials.
 - **Tests.** Real-Git tests cover remote-base creation, local fast-forward, restart and crash reuse, ambiguous identities, user-owned branches and paths, foreign tasks, remote branches, remote URL mismatch, unreachable remotes, hook suppression, disk capacity, concurrent preparation, and release rules. PostgreSQL integration tests cover the scheduler path for multi-repository preparation, retry reuse, dependency and ownership blocks, remote-unavailable pause and resume, janitor release after cancellation, unique identity constraints, and cross-connection repository locks.
 - **End-to-end run.** The built service ran against a stub Linear issue and disposable repositories. It prepared both worktrees, parked the task, released them after an operator cancellation, and shut down cleanly with no credential in logs.
-- **Not included.** No analyzer, implementer, commit, or push exists. GitHub CI execution of the new tests has not been observed.
+- **Not included.** No analyzer, implementer, commit, or push exists. The new tests passed in GitHub CI on orchestrator pull request #2.
 
 Exit criteria:
 
@@ -212,6 +215,49 @@ Exit criteria:
 ### Phase 5: bounded agent execution and quality gates
 
 Goal: analyze, implement, test, and review changes within explicit trust boundaries.
+
+Implementation status (2026-09-16): **Implemented and verified locally on PostgreSQL 16 with real Git repositories, and in GitHub CI.** ADR 0006 records the trust-boundary and bounded-cycle decisions.
+
+- **Enablement.** `orchestrator.execution.runAgents` (default `false`) requires `prepareWorkspaces`, an `agents` section, every routed model tier, and quality checks for every repository. A reviewed task parks in `BLOCKED` with the reason `Reviewed local branch ready; delivery is not enabled` and no manual-intervention flag.
+- **Stages.**
+  - `ANALYZING`: workspace preparation, then a read-only analyzer.
+  - `READY`: trusted setup commands.
+  - `IMPLEMENTING`: a workspace-write implementer, then verification and a local commit.
+  - `TESTING`: trusted setup and checks.
+  - `FIXING`: a workspace-write fixer for failing gates or review findings.
+  - `REVIEWING`: a read-only reviewer.
+
+  `IMPLEMENTING -> READY` was added so a rejected attempt retries through the schedule gate.
+- **Results.** Strict versioned schemas `kelolakelas.agent.{analysis,implementation,fix,review}/v1` reject unknown keys. Semantic checks require plans to cover exactly the contract repositories with safe paths, and an approval with blocking findings counts as a change request.
+- **Runner.** The Codex CLI adapter sits behind an `AgentRunner` port. Runs ignore user configuration, rules, and session persistence and start in a task directory that contains only the declared worktrees.
+  - The analyzer and reviewer run `read-only`. The implementer and fixer run `workspace-write` with no network, `/tmp` excluded, and a private per-run `TMPDIR`.
+  - The runner gets an allowlisted environment.
+  - Every run has a timeout, cancellation, event and result size limits, process-group termination, and token usage accounting.
+  - Models come only from deterministic routing, and fixes reuse the latest implementation route.
+- **Quality gates.** Named argument-array commands come from `repositories.<name>.quality` and run without a shell or credentials, with timeouts, bounded and redacted output, and process-group termination.
+- **Before commit.** The worktree's Git directory, branch, ownership markers, lock, ancestry, and HEAD are re-verified. The diff policy then rejects:
+  - unchanged or unexpectedly broad diffs;
+  - protected configuration and generated paths;
+  - binaries, symbolic links, and submodules;
+  - credential patterns and literal orchestrator credentials.
+
+  A rejected attempt is discarded. The orchestrator commits locally with a fixed author and trailers.
+- **Bounds.** Implementation attempts, quality fixes, and review cycles increment atomically with their transitions. Exhausting any of them fails the task. Usage and rate limits pause the task without consuming attempts. An operator retry of a `FAILED` task resets the counters.
+- **Persistence.** `task_attempts` gained `input` (prompt digest, template version, model, commits), `evidence` (redacted), and `usage`. Checkpoints tie plans, setup, commits, gate passes, fixes, and approvals to exact commits, so retries reuse finished work. `GET /operator/tasks/:id` returns attempts, counters, and the selected tier.
+- **Tests.** Scheduler + PostgreSQL + real Git scenarios cover:
+  - multi-repository delivery to a reviewed local branch, and a retry with no new agent calls;
+  - quality and review fix cycles;
+  - quality-fix exhaustion and an operator retry;
+  - malformed output, clarification requests, and an agent that commits;
+  - timeout, forbidden path, secret, and unchanged diffs with model escalation and exhaustion;
+  - usage-limit and rate-limit pause and resume;
+  - operator cancellation mid-run with workspace release;
+  - a quality command that cannot start.
+
+  Unit tests cover schemas, diff policy, secret detection, Git parsers, quality commands, configuration, worktree tampering, and the runner against a fake executable: arguments, environment, invalid output, limits, timeout, cancellation, output flood, and process-group termination. CI ran these suites on the pull request.
+- **Real runner check.** Codex CLI 0.154.0 accepted the generated strict schemas and reported usage. The first run showed that `workspace-write` let a model-issued command write to `/tmp`, which led to the explicit exclusion. After the fix, the agent could write inside the task directory, and writes to `/tmp` and to the home directory failed with a read-only file system error.
+- **Not included.** Push, pull requests, CI and merge observation, and Linear updates are not included.
+- **Residual risks.** Quality commands execute agent-written code outside the Codex sandbox with the service user's permissions. The read-only sandbox limits writes but not reads. Both block write-enabled delivery until stronger isolation is evaluated.
 
 Deliverables:
 
@@ -292,9 +338,9 @@ Each slice should be independently reviewable and should leave tests passing.
 | 6 | Dry-run scheduler (**Implemented**) | 5 | Eligibility and schedule decisions run continuously |
 | 7 | Operator controls and health (**Implemented**) | 6 | Worker can be paused, inspected, and shut down safely |
 | 8 | Repository registry and worktrees (**Implemented**) | 7 | Declared repositories are prepared in isolation |
-| 9 | Structured analyzer | 8 | A persisted implementation plan is produced |
-| 10 | Implementer plus trusted quality gates | 9 | A bounded, tested local change is produced |
-| 11 | Structured reviewer and fix cycle | 10 | A reviewed local branch reaches delivery readiness |
+| 9 | Structured analyzer (**Implemented**) | 8 | A persisted implementation plan is produced |
+| 10 | Implementer plus trusted quality gates (**Implemented**) | 9 | A bounded, tested local change is produced |
+| 11 | Structured reviewer and fix cycle (**Implemented**) | 10 | A reviewed local branch reaches delivery readiness |
 | 12 | GitHub PR and CI observer | 11 | One idempotent PR per repository reaches human review |
 | 13 | Merge observer and Linear completion | 12 | Completion reflects remote `main`, not an authored claim |
 | 14 | Production hardening | 13 | Operations meet recovery, security, and scale criteria |
@@ -317,9 +363,9 @@ Record durable choices as ADRs rather than hiding them in implementation details
 The write-enabled milestone is blocked until all items below have test evidence:
 
 - [ ] Repository allowlist and path canonicalization prevent traversal or undeclared access.
-- [ ] Shell execution uses argument arrays where possible, fixed executables, trusted command definitions, timeouts, and output limits.
-- [ ] Prompts identify Linear text and repository text as untrusted data, never as control instructions.
-- [ ] Provider and model responses are schema-validated before state changes.
+- [x] Shell execution uses argument arrays where possible, fixed executables, trusted command definitions, timeouts, and output limits. Evidence: Phase 4 Git runner tests and Phase 5 runner and quality-gate tests.
+- [x] Prompts identify Linear text and repository text as untrusted data, never as control instructions. Evidence: Phase 5 prompt builders and the agent execution integration test.
+- [x] Provider and model responses are schema-validated before state changes. Evidence: Linear provider contract tests and Phase 5 result-schema, runner, and malformed-output integration tests.
 - [ ] Tokens are least privilege, redacted, never persisted in task artifacts, and never passed to model context.
 - [ ] Git writes verify expected remote, base commit, branch owner, and changed paths.
 - [ ] Every side effect has an idempotency strategy and a test that restarts immediately after the effect.
@@ -372,5 +418,7 @@ Phases that alter persistence must additionally prove clean migration, upgrade m
 - `kelolakelas-ai-orchestrator/migrations/*`
 - `kelolakelas-ai-orchestrator/systemd/*`
 - `kelolakelas-ai-orchestrator/tests/*`
+- `kelolakelas-ai-orchestrator/src/execution/*`
+- `kelolakelas-ai-orchestrator/.github/workflows/ci.yml` and GitHub branch protection for `main`
 
-This was a static planning review. No provider, model, GitHub, systemd, or end-to-end runtime behavior was verified.
+This was originally a static planning review; phase status notes record the verification performed for each implemented phase.
