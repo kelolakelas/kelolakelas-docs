@@ -20,5 +20,6 @@ Source paths are repository-relative to `/home/faridzam/workspace/kelolakelas`. 
 | Schema | each service `migrations/*.up.sql`, summarized under `docs/data/` |
 | Config/defaults and JWT secret validation | each service `internal/config/config.go` and `internal/config/config_test.go`; web `process.env` uses identified in component docs |
 | Tests/build tooling | each Go `Makefile`, `*_test.go`, web `package.json` |
+| AI orchestrator planning baseline | `kelolakelas-ai-orchestrator/README.md`, `package.json`, `orchestrator.config.example.yaml`, `src/**`, `migrations/**`, `systemd/**`, `tests/**`; roadmap and phase status in [AI orchestrator implementation plan](../planning/ai-orchestrator-implementation-plan.md); decisions in [ADR 0003](../adr/0003-ai-orchestrator-task-work-units.md) and [ADR 0004](../adr/0004-ai-orchestrator-scheduler-leases-and-operator-controls.md) |
 
 Generated service Swagger (`docs/swagger.json`) was consulted as contract corroboration. It is not sole evidence because route registration/handlers are executable current-state authority. Generated Go protobuf files corroborate the gRPC service methods; no `.proto` source was found.

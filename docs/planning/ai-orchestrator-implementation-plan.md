@@ -1,0 +1,362 @@
+# AI orchestrator implementation plan
+
+Status: **Proposed**  
+Last reviewed: 2026-09-16  
+Target repository: `kelolakelas-ai-orchestrator`
+
+This document is a staged delivery plan, not a description of implemented behavior. Claims about the current state use the documentation status vocabulary; target behavior is marked **Proposed**.
+
+## Outcome
+
+The target outcome is a long-running worker that can safely take a validated `ai-ready` Linear Issue, execute one bounded software-engineering workflow in the correct KelolaKelas repositories, open a pull request, observe required CI and review gates, and leave durable, auditable state for operators.
+
+The first usable release is intentionally narrower than a fully autonomous delivery system:
+
+- one orchestrator instance and one task at a time;
+- repositories from an explicit allowlist;
+- human approval remains required for merge;
+- no production deployment or automatic Linear completion;
+- no arbitrary shell commands proposed by an issue or model;
+- every external side effect is idempotent and recoverable after restart.
+
+## Current-state baseline
+
+| Capability | Status | Evidence | Consequence |
+|---|---|---|---|
+| Configuration validation | **Implemented** | `kelolakelas-ai-orchestrator/src/index.ts`, `src/config/config.ts`, `src/config/schema.ts` | Startup rejects malformed YAML, invalid timezones, missing model tiers, and heartbeat intervals longer than half the lease. |
+| Planning contract and local validator | **Implemented** | `src/intake/planning-contract.ts`, `src/intake/validate.ts` | Planning payloads can be checked before publication. |
+| State machine, scheduling policy, routing, and retries | **Implemented** | `src/orchestrator/state-machine.ts`, `src/scheduling/operating-hours.ts`, `src/scheduling/stage-gate.ts`, `src/routing/*`, `src/orchestrator/retry-policy.ts` | The scheduler applies the state machine and stage gates. Routing and retry policies wait for Phase 5 stage handlers. |
+| Task and transition schema | **Implemented** | `src/db/schema.ts`, `migrations/0002_blue_tyrannus.sql` | Parent tasks persist contracts, leases, dependencies, work units, attempts, checkpoints, and external operations. |
+| Transactional queue claim | **Implemented** | `src/repositories/task.repository.ts` | Claim and transition validate state, respect blockers, maintain leases, and append history in one transaction. |
+| Multi-repository execution model | **Implemented for persistence** | `src/db/schema.ts`, `src/repositories/task.repository.ts`, ADR 0003 | One parent task owns repository-specific work units; worktree execution remains a later phase. |
+| Linear intake adapter | **Implemented** (read-only) | `src/providers/linear.ts`, `src/intake/linear-discovery.ts` | Eligible issues are persisted idempotently. |
+| GitHub, worktree, agent, quality, and CI adapters | **Not found** | Repository source inventory and README | No stage handler is registered, so no task is claimed or executed. |
+| Long-running scheduler, crash recovery, and operator controls | **Implemented and verified locally** | `src/orchestrator/scheduler.ts`, `src/orchestrator/stage-handler.ts`, `src/http/server.ts`, `src/repositories/operator.repository.ts`, `migrations/0004_phase3_scheduler_controls.sql`, ADR 0004 | The worker runs continuously as an intake auditor with lease recovery and operator controls. Stage execution begins when later phases register handlers. |
+| Repository CI | **Configured** | `.github/workflows/ci.yml` | Runs migrations, PostgreSQL integration tests, build, lint, and unit tests on pull requests. GitHub execution and branch protection are not yet verified. |
+
+The original migration consistency defect, where `migrations/0001_add_task_complexity_enum.sql` was absent from `migrations/meta/_journal.json`, was resolved in Phase 0. The clean-install and upgrade paths through `0004_phase3_scheduler_controls` were verified on PostgreSQL 16 on 2026-09-16.
+
+## Target workflow
+
+```mermaid
+stateDiagram-v2
+    [*] --> Discovered
+    Discovered --> Blocked: contract or dependency invalid
+    Discovered --> Queued: validated and idempotently persisted
+    Queued --> Analyzing: lease acquired
+    Analyzing --> Ready: structured plan accepted
+    Ready --> Implementing: schedule permits
+    Implementing --> Testing: bounded change produced
+    Testing --> Fixing: quality gate failed within retry limit
+    Fixing --> Testing
+    Testing --> Reviewing: quality gates passed
+    Reviewing --> Fixing: review requests bounded changes
+    Reviewing --> PRCreated: review accepted
+    PRCreated --> WaitingCI
+    WaitingCI --> HumanReview: required checks passed
+    HumanReview --> Completed: merge observed
+```
+
+Each transition must be atomic with its history record. Long operations use a lease and checkpoint so another process cannot duplicate work and a restarted process can continue from the last durable stage.
+
+## Delivery principles
+
+1. Treat Linear bodies, repository contents, tool output, and model output as untrusted input.
+2. Keep workflow decisions deterministic; models return versioned structured results and cannot select credentials, repositories, commands, merge policy, or model IDs.
+3. Separate read-only discovery from write-enabled execution. Prove dry-run behavior before enabling Git, Linear, or GitHub writes.
+4. Make every external write idempotent using stable task, stage, branch, and pull-request identities.
+5. Use one database transaction for state validation, task mutation, and transition history.
+6. Require repository-local quality commands from trusted configuration. Never execute commands sourced from Linear or model prose.
+7. Prefer manual recovery for an ambiguous side effect rather than retrying it blindly.
+
+## Phased roadmap
+
+### Phase 0: repair and protect the foundation
+
+Goal: make Phase 1 reproducible and establish a reliable merge gate.
+
+Implementation status (2026-09-15): **Implemented locally; GitHub CI verification pending.** Drizzle metadata now registers migration `0001`, startup validation rejects invalid IANA timezones and missing analyzer/reviewer tiers, and Pino redaction is covered by unit tests. The migration upgrade test requires `MIGRATION_TEST_DATABASE_URL`; it is skipped locally when that variable is absent and is configured to run against PostgreSQL 16 in GitHub Actions.
+
+Deliverables:
+
+- repair Drizzle migration metadata and verify clean-install plus upgrade paths;
+- add GitHub Actions for build, lint, tests, and migration validation on pull requests to `main`;
+- validate IANA timezone names and references to configured model tiers;
+- document supported Node.js and PostgreSQL versions;
+- replace generated or checked-in build output with an explicit release-artifact policy;
+- add structured logging with secret redaction and correlation fields (`taskId`, `linearIdentifier`, `stage`, `attempt`).
+
+Exit criteria:
+
+- an empty PostgreSQL database migrates to the schema represented by TypeScript;
+- upgrading a Phase 1 database preserves tasks and yields the same schema;
+- malformed timezone or missing model-tier references fail startup;
+- every pull request triggers required CI checks;
+- logs contain no token or environment-secret values in automated redaction tests.
+
+### Phase 1: durable workflow core
+
+Goal: make state, dependency, and recovery semantics correct before adding providers.
+
+Implementation status (2026-09-15): **Implemented and verified locally on PostgreSQL 16.** ADR 0003 records the parent-task/per-repository-work-unit model. Database integration tests verify migration upgrade, concurrent claims, dependency readiness, atomic transition history, checkpoint upsert, idempotent external-operation records, and conservative stale-lease recovery. Scheduler composition and automatic resume remain out of scope until Phase 3.
+
+Deliverables:
+
+- decide and record an ADR for multi-repository execution: one parent task with per-repository work units is the recommended model;
+- persist issue-contract snapshots, blockers, repository work units, attempts, stage checkpoints, and external-operation records;
+- add task lease owner, lease expiry, and heartbeat fields;
+- implement one atomic repository operation that validates a transition, updates task state, and appends transition history;
+- make queue claiming use that operation and respect unresolved blockers;
+- define stale-lease recovery and explicit terminal/manual-intervention outcomes;
+- add database integration tests for concurrent claims, transition history, dependency readiness, and restart recovery.
+
+Exit criteria:
+
+- two workers cannot own the same task or repository work unit concurrently;
+- every state change has exactly one corresponding history record;
+- a killed worker can be restarted without repeating a completed checkpoint;
+- cyclic, unresolved, or incomplete blocker graphs never enter `QUEUED`;
+- multi-repository task state can identify the branch, workspace, and outcome for every repository.
+
+### Phase 2: read-only Linear intake
+
+Goal: discover executable work without producing external side effects.
+
+Implementation status (2026-09-15): **Implemented and verified locally on PostgreSQL 16.** The read-only GraphQL provider, pagination, bounded retry, issue filtering, contract extraction/hydration, graph validation, dry-run startup, and eligible/quarantined/ignored log report are implemented. Normal intake performs idempotent task upsert, dependency synchronization, and durable quarantine. Unit and PostgreSQL integration tests cover repeated polling, changed contracts, malformed candidates, and dependency persistence.
+
+Deliverables:
+
+- define a `LinearProvider` port and an API adapter with pagination, timeout, retry/backoff, and rate-limit handling;
+- discover Issues by team plus required/excluded labels;
+- parse the `AI Orchestrator Contract`, hydrate actual Linear source metadata, and validate the complete project/issue dependency graph;
+- verify repository labels and native `blockedBy` relations against the contract;
+- upsert discovered tasks idempotently and quarantine malformed or changed contracts with actionable reasons;
+- implement `ORCHESTRATOR_DRY_RUN` so discovery and eligibility decisions are visible without writes to Linear or GitHub.
+
+Exit criteria:
+
+- repeated polling creates no duplicate task;
+- malformed contracts, label mismatches, cycles, and unresolved dependencies are rejected deterministically;
+- completed/cancelled or no-longer-`ai-ready` Issues cannot start;
+- provider contract tests cover pagination, 429 responses, transient failures, and contract changes;
+- a dry-run report explains why every candidate is queued, blocked, or ignored.
+
+Milestone: after Phase 2, the service is usable as a **read-only queue auditor**, but not as a coding worker.
+
+### Phase 3: scheduler and operator controls
+
+Goal: run a durable, bounded worker loop over persisted tasks.
+
+Implementation status (2026-09-16): **Implemented and verified locally on PostgreSQL 16.** ADR 0004 records the lease, recovery, and operator-control decisions.
+
+- **Scheduler.** `src/index.ts` composes PostgreSQL, the Linear provider, the task and operator repositories, the scheduler, and the HTTP server. Ticks are spaced by the polling interval after the previous tick completes. Claims run under an advisory lock that counts all leased tasks.
+- **Stages.** Each stage runs through a `StageHandler` port. Heartbeats never overlap. Operating-hours gates, operator controls, cancellation, and manual intervention are checked at every stage boundary, and schedule and usage-limit pauses persist `resumeState`.
+- **Shutdown.** `SIGTERM`/`SIGINT` stop claims, abort stages, park stages that stop within the grace period, and close the HTTP server and pool.
+- **HTTP.** `/healthz`, `/readyz` (PostgreSQL ping and last Linear poll), and `/status` are exposed. Bearer-token operator endpoints cover pause/resume of new work, the schedule override, retry, cancel (new terminal `CANCELLED` state), and manual intervention, each written with an `operator_actions` audit row.
+- **Tests.** PostgreSQL integration tests cover: cross-process concurrency with three workers; graceful shutdown and resume from a checkpoint; forced termination with expired-lease recovery, a discarded late result, and operator retry; startup recovery with a stable worker identity; schedule pause and resume; mechanical stages outside hours; usage-limit resume; cancellation through the heartbeat; pause-new-work; and stage failure. A smoke run of the service against a stub Linear endpoint verified the endpoints, an operator action, readiness failure when Linear is unreachable, clean `SIGTERM` shutdown, and the absence of the API key in logs.
+- **Not included.** No stage handlers are registered, so the service does not claim or execute tasks yet. GitHub CI execution of the new tests has not been observed.
+
+Deliverables:
+
+- compose database, providers, policy modules, and repositories in `src/index.ts`;
+- poll on the configured interval with database-backed concurrency enforcement;
+- apply operating-hours guards at stage boundaries and use persisted `resumeState` for pauses;
+- heartbeat leases during long operations and recover stale leases on startup;
+- handle `SIGTERM`/`SIGINT`: stop claims, checkpoint the current stage, release or expire leases safely, and close dependencies;
+- expose liveness, readiness, and operator-visible queue/task status without exposing secrets;
+- add explicit pause-new-work, resume, retry, cancel, and manual-intervention controls with audit records.
+
+Exit criteria:
+
+- the worker runs continuously without busy polling;
+- schedule closure pauses new AI work while permitted mechanical checks follow configuration;
+- concurrency never exceeds `maxConcurrentTasks` across processes;
+- graceful shutdown and forced termination both have automated recovery tests;
+- readiness fails when PostgreSQL or required provider access is unavailable.
+
+### Phase 4: isolated repository preparation
+
+Goal: prepare deterministic, confined workspaces without invoking an AI runner.
+
+Deliverables:
+
+- define repository registry configuration mapping contract labels to local path and GitHub repository;
+- fetch and fast-forward local `main`, and block when the work depends on an unmerged task unless an explicit stacked-PR contract exists;
+- create deterministic per-task branches and worktrees with repository locking;
+- verify clean baseline, remote reachability, allowed path, disk capacity, and branch ownership;
+- persist worktree and base-commit identity before the next stage;
+- clean up only orchestrator-owned worktrees after terminal outcomes.
+
+Exit criteria:
+
+- an allowed task creates isolated worktrees from current remote `main` in every declared repository;
+- repositories not declared by the validated contract cannot be opened or modified;
+- restart reuses the same valid worktree or blocks for manual recovery if identity is ambiguous;
+- concurrent tasks cannot mutate the same branch or workspace;
+- cleanup never removes a user-owned worktree or uncommitted user changes.
+
+### Phase 5: bounded agent execution and quality gates
+
+Goal: analyze, implement, test, and review changes within explicit trust boundaries.
+
+Deliverables:
+
+- define versioned schemas for analyzer, implementer, fixer, and reviewer results;
+- implement runner adapters with model routing, bounded retries, timeouts, cancellation, output-size limits, and usage accounting;
+- provide agents only the contract, approved documentation, and declared repository worktrees;
+- enforce filesystem confinement and a trusted command allowlist per repository;
+- run formatter, lint, typecheck/build, and tests from repository-owned configuration;
+- inspect changed paths, diff size, binary additions, secrets, generated files, and forbidden configuration before commit;
+- persist stage inputs, normalized results, validation evidence, attempt counts, and failure categories without storing secrets.
+
+Exit criteria:
+
+- malformed model output cannot advance state or select a tool/command/model;
+- no process can write outside declared worktrees or execute a command absent from trusted configuration;
+- failed quality gates enter bounded fix cycles and then a deterministic terminal/manual state;
+- unchanged or unexpectedly broad diffs are rejected;
+- integration tests cover timeout, rate limit, invalid output, command failure, cancellation, and usage-limit pause/resume.
+
+Milestone: after Phase 5, the service is usable as a **supervised coding worker** that leaves a reviewed local branch. Keep push and PR creation disabled until this milestone is stable.
+
+### Phase 6: GitHub delivery and Linear synchronization
+
+Goal: deliver verified branches to human review without bypassing repository policy.
+
+Deliverables:
+
+- define a `GitHubProvider` port for repository metadata, branch push, pull requests, checks, reviews, merge state, and commit reachability;
+- create commits and pushes idempotently, then create or recover exactly one PR per repository work unit;
+- link PRs and task status to Linear using idempotent comments or attachments;
+- poll required checks and approvals; treat missing, skipped, cancelled, pending, or failing required checks as non-success;
+- observe merge rather than performing it in the first usable release;
+- mark the task complete only after every repository work unit is merged and the merge commits are reachable from remote `main`;
+- retain a manual-intervention path for force-push, closed PR, base-branch drift, or conflicting external edits.
+
+Exit criteria:
+
+- retries cannot create duplicate commits, pushes, PRs, or Linear updates;
+- required GitHub checks and approvals are derived from current repository policy, not issue claims;
+- a failed or missing required check never reaches the human-ready success state;
+- multi-repository tasks report partial delivery without falsely completing the parent task;
+- sandbox end-to-end tests cover PR creation, CI success/failure, approval, closure, merge, and restart between side effects.
+
+Milestone: after Phase 6, the worker meets the **first usable release** definition.
+
+### Phase 7: production hardening and controlled scale
+
+Goal: operate reliably beyond a single supervised task.
+
+Deliverables:
+
+- dashboards and alerts for queue age, stage duration, failures, retries, stale leases, provider limits, model usage/cost, and CI wait time;
+- retention, backup, restore, and disaster-recovery procedures for PostgreSQL and task artifacts;
+- least-privilege credentials, rotation procedure, environment-file permissions, and hardened systemd sandboxing;
+- resource limits, per-repository concurrency, backpressure, and provider circuit breakers;
+- canary rollout, kill switch, incident runbook, and periodic recovery exercises;
+- evaluate automated merge only as a separate, approved capability after sufficient operational evidence.
+
+Exit criteria:
+
+- operators can detect, diagnose, pause, and recover a stuck workflow using documented procedures;
+- backup restoration and stale-task recovery are exercised in a non-production environment;
+- credential scopes and rotation are verified;
+- load tests establish safe concurrency and polling limits;
+- no automatic merge or production deployment is enabled implicitly.
+
+## Recommended implementation slices
+
+Each slice should be independently reviewable and should leave tests passing.
+
+| Order | Slice | Depends on | Observable result |
+|---|---|---|---|
+| 1 | Repair migration chain and add CI | None | Reproducible database and enforced PR checks |
+| 2 | Atomic transition repository | 1 | State and history cannot diverge |
+| 3 | Lease and checkpoint recovery | 2 | Restart does not duplicate a completed stage |
+| 4 | Multi-repository work units and blockers | 2 | Planning contract can be persisted faithfully |
+| 5 | Read-only Linear provider | 3, 4 | Valid Issues are discovered idempotently |
+| 6 | Dry-run scheduler (**Implemented**) | 5 | Eligibility and schedule decisions run continuously |
+| 7 | Operator controls and health (**Implemented**) | 6 | Worker can be paused, inspected, and shut down safely |
+| 8 | Repository registry and worktrees | 7 | Declared repositories are prepared in isolation |
+| 9 | Structured analyzer | 8 | A persisted implementation plan is produced |
+| 10 | Implementer plus trusted quality gates | 9 | A bounded, tested local change is produced |
+| 11 | Structured reviewer and fix cycle | 10 | A reviewed local branch reaches delivery readiness |
+| 12 | GitHub PR and CI observer | 11 | One idempotent PR per repository reaches human review |
+| 13 | Merge observer and Linear completion | 12 | Completion reflects remote `main`, not an authored claim |
+| 14 | Production hardening | 13 | Operations meet recovery, security, and scale criteria |
+
+## Decisions required before Phase 1 closes
+
+Record durable choices as ADRs rather than hiding them in implementation details:
+
+- parent-task/per-repository-work-unit data model and partial-failure semantics;
+- lease duration, heartbeat cadence, and stale-owner recovery rules;
+- checkpoint granularity and which external effects require idempotency records;
+- runner isolation boundary: dedicated user/process at minimum, with container or stronger sandbox evaluated before write-enabled use;
+- trusted repository command configuration and ownership;
+- artifact retention, redaction, and operator access;
+- Linear status/comment policy and GitHub authentication model;
+- handling of stacked PRs and cross-repository dependencies.
+
+## Security and failure checklist
+
+The write-enabled milestone is blocked until all items below have test evidence:
+
+- [ ] Repository allowlist and path canonicalization prevent traversal or undeclared access.
+- [ ] Shell execution uses argument arrays where possible, fixed executables, trusted command definitions, timeouts, and output limits.
+- [ ] Prompts identify Linear text and repository text as untrusted data, never as control instructions.
+- [ ] Provider and model responses are schema-validated before state changes.
+- [ ] Tokens are least privilege, redacted, never persisted in task artifacts, and never passed to model context.
+- [ ] Git writes verify expected remote, base commit, branch owner, and changed paths.
+- [ ] Every side effect has an idempotency strategy and a test that restarts immediately after the effect.
+- [ ] Required CI and approval state is fetched from GitHub and cannot be supplied by issue content.
+- [ ] Operator cancellation and kill switch are audited and leave recoverable state.
+
+## Validation strategy
+
+Use four layers, expanding as capabilities are added:
+
+1. Pure unit tests for state, routing, schedules, retries, contract parsing, and policy decisions.
+2. PostgreSQL integration tests for migrations, claims, leases, transitions, blockers, checkpoints, and recovery.
+3. Provider contract tests against deterministic Linear, GitHub, and runner fakes, including rate limits and ambiguous failures.
+4. Sandbox end-to-end tests using disposable repositories and a test project from discovery through observed merge.
+
+Before each phase is considered complete, run at least:
+
+```sh
+npm --prefix kelolakelas-ai-orchestrator run build
+npm --prefix kelolakelas-ai-orchestrator run lint
+npm --prefix kelolakelas-ai-orchestrator test
+```
+
+Phases that alter persistence must additionally prove clean migration, upgrade migration, rollback or forward-recovery policy, and restart behavior. Phases that add external writes must run failure injection immediately before and after each side effect.
+
+## Explicit non-goals for the first usable release
+
+- automatic merge, release, or production deployment;
+- arbitrary repositories outside the KelolaKelas registry;
+- executing issue-authored or model-authored shell commands;
+- replacing GitHub branch protection or human approval;
+- resolving ambiguous product or architectural decisions autonomously;
+- silently repairing malformed Linear contracts;
+- parallel execution before single-task recovery is proven.
+
+## Evidence used
+
+- `kelolakelas-ai-orchestrator/README.md`
+- `kelolakelas-ai-orchestrator/package.json`
+- `kelolakelas-ai-orchestrator/orchestrator.config.example.yaml`
+- `kelolakelas-ai-orchestrator/src/index.ts`
+- `kelolakelas-ai-orchestrator/src/config/*`
+- `kelolakelas-ai-orchestrator/src/db/*`
+- `kelolakelas-ai-orchestrator/src/intake/*`
+- `kelolakelas-ai-orchestrator/src/orchestrator/*`
+- `kelolakelas-ai-orchestrator/src/repositories/*`
+- `kelolakelas-ai-orchestrator/src/routing/*`
+- `kelolakelas-ai-orchestrator/src/scheduling/*`
+- `kelolakelas-ai-orchestrator/src/types/*`
+- `kelolakelas-ai-orchestrator/migrations/*`
+- `kelolakelas-ai-orchestrator/systemd/*`
+- `kelolakelas-ai-orchestrator/tests/*`
+
+This was a static planning review. No provider, model, GitHub, systemd, or end-to-end runtime behavior was verified.
