@@ -1,7 +1,7 @@
 # AI orchestrator implementation plan
 
-Status: **Proposed**  
-Last reviewed: 2026-09-16  
+Status: **Proposed**\
+Last reviewed: 2026-09-16\
 Target repository: `kelolakelas-ai-orchestrator`
 
 This document is a staged delivery plan, not a description of implemented behavior. Claims about the current state use the documentation status vocabulary; target behavior is marked **Proposed**.
