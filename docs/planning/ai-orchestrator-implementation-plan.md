@@ -1,7 +1,7 @@
 # AI orchestrator implementation plan
 
 Status: **Proposed**\
-Last reviewed: 2026-09-16\
+Last reviewed: 2026-09-17\
 Target repository: `kelolakelas-ai-orchestrator`
 
 This document is a staged delivery plan, not a description of implemented behavior. Claims about the current state use the documentation status vocabulary; target behavior is marked **Proposed**.
@@ -34,6 +34,7 @@ The first usable release is intentionally narrower than a fully autonomous deliv
 | Agent runner, quality gates, diff policy, and review | **Implemented and verified locally and in GitHub CI** (opt-in) | `src/execution/*`, `migrations/0006_phase5_agent_attempts.sql`, ADR 0006 | With `orchestrator.execution.runAgents`, tasks are analyzed, implemented, gated, fixed, and reviewed. Without delivery they park in `BLOCKED` with a committed local branch. Disabled by default. |
 | GitHub delivery, CI and merge observation, and Linear synchronization | **Implemented and verified locally and in GitHub CI** (opt-in) | `src/delivery/*`, `src/providers/github.ts`, `src/providers/linear.ts`, `migrations/0007_phase6_delivery.sql`, ADR 0007 | With `orchestrator.execution.deliver`, reviewed branches are pushed, one pull request per repository is observed through required checks and merge, and the task completes when every merge is reachable from `main`. Disabled by default; production enablement is gated on credential isolation. |
 | Long-running scheduler, crash recovery, and operator controls | **Implemented and verified locally** | `src/orchestrator/scheduler.ts`, `src/orchestrator/stage-handler.ts`, `src/http/server.ts`, `src/repositories/operator.repository.ts`, `migrations/0004_phase3_scheduler_controls.sql`, ADR 0004 | The worker runs continuously as an intake auditor with lease recovery and operator controls. Stage execution begins when later phases register handlers. |
+| Credential isolation, kill switch, claim limits, circuit breakers, metrics, retention, and backup tooling | **Implemented and verified locally** (credential isolation opt-in) | `src/execution/sandbox.ts`, `src/security/credential-exposure.ts`, `src/workspaces/git.ts`, `src/providers/circuit-breaker.ts`, `src/observability/*`, `src/operations/retention.ts`, `src/ops/*`, `ops/**`, `systemd/*`, `migrations/0008_phase7_operations.sql`, ADR 0008 | Delivery can be enabled in production once the startup credential-exposure audit reports no findings. The live sandbox delivery run is not yet performed. |
 | Repository CI | **Implemented and verified in GitHub** | `.github/workflows/ci.yml`, `main` branch protection | The `gate` job runs a schema-drift check, migrations, PostgreSQL integration tests, build, lint, and unit tests on pull requests and pushes to `main`. Branch protection requires a pull request and a passing, up-to-date `gate` check, includes administrators, and blocks force pushes and deletion. On 2026-09-16 a pending `gate` check reported the pull request as `BLOCKED`, and a passing one as `CLEAN`. |
 
 The original migration consistency defect, where `migrations/0001_add_task_complexity_enum.sql` was absent from `migrations/meta/_journal.json`, was resolved in Phase 0. The clean-install and upgrade paths through `0004_phase3_scheduler_controls` were verified on PostgreSQL 16 on 2026-09-16.
@@ -339,11 +340,45 @@ Exit criteria:
 - multi-repository tasks report partial delivery without falsely completing the parent task;
 - sandbox end-to-end tests cover PR creation, CI success/failure, approval, closure, merge, and restart between side effects.
 
-Milestone: after Phase 6, the worker meets the **first usable release** workflow. Enabling it in production additionally requires the credential isolation described under Phase 6's residual risk.
+Milestone: after Phase 6, the worker meets the **first usable release** workflow. Enabling it in production additionally requires the credential isolation described under Phase 6's residual risk, which Phase 7 implements.
 
 ### Phase 7: production hardening and controlled scale
 
 Goal: operate reliably beyond a single supervised task.
+
+Implementation status (2026-09-17): **Implemented and verified locally on PostgreSQL 16 with real bubblewrap and Git; the live sandbox delivery run is not yet performed.** [ADR 0008](../adr/0008-ai-orchestrator-production-hardening.md) records the decisions, and the [operations runbook](../runbooks/ai-orchestrator-operations.md) the procedures.
+
+- **Credential isolation.**
+  - `sandbox.kind: bubblewrap` runs quality commands in unprivileged user, PID, IPC, UTS, cgroup, and (for checks) network namespaces with a fresh `/proc`, allowlisted read-only mounts, the worktree as the only writable repository path, and no home.
+  - `workspace.gitAuthentication: github-token` authenticates Git through environment-only configuration, clears host credential helpers, and refuses SSH.
+  - A startup credential-exposure audit stops delivery on any finding: disabled sandbox, host Git authentication, readable credential files, password-less `DATABASE_URL`, or writable configuration.
+  - Codex is not wrapped again: bubblewrap cannot nest, and Codex already runs model-issued commands in a PID-namespaced sandbox.
+- **Controls.**
+  - An audited kill switch (`POST /operator/kill-switch`, or `ORCHESTRATOR_KILL_SWITCH=true`) parks running stages with state and checkpoints unchanged and stops claims and maintenance.
+  - Canary rollout limits (`orchestrator.rollout.repositories`, `maxNewTasksPerDay`) apply to new tasks only.
+- **Scale.**
+  - `repositories.<name>.maxConcurrentTasks` limits leased execution tasks per repository across workers.
+  - GitHub and Linear circuit breakers; an open GitHub circuit holds delivery claims, and runner limits hold execution claims.
+  - Each claim lane refills for at most one polling interval per tick. The load test found that the delivery lane could otherwise refill forever with many waiting pull requests, starving execution and intake; this was present since Phase 6.
+- **Observability.** `GET /metrics` exports queue size and age, stage duration and outcomes, CI wait, attempts by failure category, stale leases, provider calls and circuit state, model tokens and estimated cost, and control state, without identifiers. `ops/prometheus/alerts.yml` (18 rules with promtool tests) and a Grafana dashboard are tested against the exported names and runbook anchors.
+- **Data.**
+  - Retention removes evidence and checkpoints of old terminal tasks, stale quarantines, and runner scratch directories; the audit record is kept.
+  - `backup.js` writes checksummed dumps with a manifest on a 6-hour systemd timer. `restore.js` restores only into an empty database, in one transaction, and verifies row counts and migrations.
+- **Operations tooling.** `check-credentials.js` (read-only scope, expiry, and access checks), `load:scheduler`, the sandbox run configuration and evidence collector, and a hardened systemd unit (`systemd-analyze security` exposure 8.8 to 5.0, using only options verified to keep the sandbox working).
+- **Tests.**
+  - PostgreSQL integration: kill switch through heartbeat, immediate refresh, and environment override; per-repository limits across workers; rollout repositories and daily cap; the lane-refill regression (hangs without the fix); runner backpressure; the metrics snapshot; retention.
+  - Recovery drill: back up in-flight work, refuse a tampered dump and a non-empty target, restore, recover the stale lease to manual intervention with checkpoints kept, and resume after an operator retry.
+  - Unit: real bubblewrap confinement (orchestrator environment, other processes, home, and masked files invisible; loopback-only network; SIGTERM-ignoring descendants killed), Git token authentication never reading stored host credentials, the audit, circuit breakers, metrics, HTTP endpoints, the credential check, and artifact drift.
+  - Mutation checks confirmed that removing the PID namespace, a claim limit, the boundary kill switch, the lane hold, or the retention state filter fails a test.
+  - GitHub CI makes the sandbox and recovery drill tests mandatory and validates alert rules and systemd units.
+- **Evidence runs.**
+  - Load test: 4 workers with 5,000 queued tasks and 500 waiting pull requests, and 8 workers with 10,000 and 1,000. Both had no limit violations; tick p95 was 4.4 s at a 2 s interval, and the metrics snapshot p95 18.5 ms.
+  - Smoke run of the built service: readiness, metrics, and the kill switch through the API; clean `SIGTERM`; delivery refused with audit findings; environment override reported; no credential in logs.
+  - The sandbox tests passed under the hardened unit's properties in a transient user unit.
+- **Not included.**
+  - The live delivery run against real GitHub and Linear sandbox repositories (prepared in `ops/sandbox/`).
+  - Credential scopes verified against real tokens, and recovery exercises on a non-production host. The runbook schedules both.
+  - Automatic merge: evaluated in ADR 0008 and not enabled.
 
 Deliverables:
 
@@ -362,6 +397,17 @@ Exit criteria:
 - credential scopes and rotation are verified;
 - load tests establish safe concurrency and polling limits;
 - no automatic merge or production deployment is enabled implicitly.
+
+Exit status (2026-09-17):
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| Detect, diagnose, pause, and recover a stuck workflow | **Implemented** | Metrics, alerts with runbook anchors, kill switch, and the runbook's stuck-workflow and manual-intervention procedures |
+| Backup restoration and stale-task recovery exercised | **Implemented** in automated tests; host exercise **Not yet performed** | `tests/backup-restore.integration.test.ts` in CI; quarterly exercise in the runbook |
+| Credential scopes and rotation verified | **Partial** | `check-credentials.js` and its contract tests, the startup audit, and the rotation procedure; not yet run against production tokens |
+| Load tests establish safe concurrency and polling limits | **Implemented** for the database and scheduler; provider budgets **Inferred** | `src/ops/load-test.ts` results and the runbook's capacity section |
+| No automatic merge or deployment enabled implicitly | **Implemented** | No merge or deployment code path; ADR 0008 |
+| Delivery run against real GitHub and Linear sandbox repositories | **Not yet performed** | `ops/sandbox/orchestrator.sandbox.yaml`, `src/ops/sandbox-evidence.ts`, runbook procedure |
 
 ## Recommended implementation slices
 
@@ -382,7 +428,7 @@ Each slice should be independently reviewable and should leave tests passing.
 | 11 | Structured reviewer and fix cycle (**Implemented**) | 10 | A reviewed local branch reaches delivery readiness |
 | 12 | GitHub PR and CI observer (**Implemented**) | 11 | One idempotent PR per repository reaches human review |
 | 13 | Merge observer and Linear completion (**Implemented**) | 12 | Completion reflects remote `main`, not an authored claim |
-| 14 | Production hardening | 13 | Operations meet recovery, security, and scale criteria |
+| 14 | Production hardening (**Implemented**; live sandbox run pending) | 13 | Operations meet recovery, security, and scale criteria |
 
 ## Decisions required before Phase 1 closes
 
@@ -405,11 +451,11 @@ The write-enabled milestone is blocked until all items below have test evidence:
 - [x] Shell execution uses argument arrays where possible, fixed executables, trusted command definitions, timeouts, and output limits. Evidence: Phase 4 Git runner tests and Phase 5 runner and quality-gate tests.
 - [x] Prompts identify Linear text and repository text as untrusted data, never as control instructions. Evidence: Phase 5 prompt builders and the agent execution integration test.
 - [x] Provider and model responses are schema-validated before state changes. Evidence: Linear provider contract tests and Phase 5 result-schema, runner, and malformed-output integration tests.
-- [ ] Tokens are least privilege, redacted, never persisted in task artifacts, and never passed to model context. Partial: tokens are withheld from agent and command environments, redacted, and absent from logs in smoke runs, but same-user processes can still read the orchestrator's environment (ADR 0007).
+- [x] Tokens are least privilege, redacted, never persisted in task artifacts, and never passed to model context. Evidence: environment allowlists and redaction (Phase 5 and 6), Phase 7 sandbox confinement tests showing the orchestrator environment and masked credential files are invisible to quality commands, token-only Git authentication tests, the startup credential-exposure audit, and `check-credentials.js` scope checks. Remaining: the runner's own model credential is readable by model-issued commands (ADR 0008).
 - [x] Git writes verify expected remote, base commit, branch owner, and changed paths. Evidence: Phase 4 workspace ownership tests, Phase 5 pre-commit verification, and the Phase 6 pre-push verification and foreign-commit integration test.
 - [x] Every side effect has an idempotency strategy and a test that restarts immediately after the effect. Evidence: Phase 4 crash-reuse tests and the Phase 6 delivery integration test, which injects failures immediately after the push, pull request creation, and a Linear comment.
 - [x] Required CI and approval state is fetched from GitHub and cannot be supplied by issue content. Evidence: Phase 6 required-check evaluation, GitHub provider contract, and delivery integration tests.
-- [ ] Operator cancellation and kill switch are audited and leave recoverable state.
+- [x] Operator cancellation and kill switch are audited and leave recoverable state. Evidence: Phase 3 cancellation tests and the Phase 7 kill-switch integration tests (state, checkpoints, and leases recoverable; `ENGAGE_KILL_SWITCH` and `RELEASE_KILL_SWITCH` audit rows).
 
 ## Validation strategy
 
@@ -460,6 +506,8 @@ Phases that alter persistence must additionally prove clean migration, upgrade m
 - `kelolakelas-ai-orchestrator/src/execution/*`
 - `kelolakelas-ai-orchestrator/src/delivery/*`
 - `kelolakelas-ai-orchestrator/src/providers/*`
+- `kelolakelas-ai-orchestrator/src/security/*`, `src/operations/*`, `src/ops/*`, and `src/observability/*`
+- `kelolakelas-ai-orchestrator/ops/**`
 - `kelolakelas-ai-orchestrator/.github/workflows/ci.yml` and GitHub branch protection for `main`
 
 This was originally a static planning review; phase status notes record the verification performed for each implemented phase.
