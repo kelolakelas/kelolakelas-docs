@@ -31,8 +31,8 @@ The first usable release is intentionally narrower than a fully autonomous deliv
 | Multi-repository execution model | **Implemented for persistence** | `src/db/schema.ts`, `src/repositories/task.repository.ts`, ADR 0003 | One parent task owns repository-specific work units; worktree execution remains a later phase. |
 | Linear intake adapter | **Implemented** (read-only) | `src/providers/linear.ts`, `src/intake/linear-discovery.ts` | Eligible issues are persisted idempotently. |
 | Repository registry and worktree preparation | **Implemented and verified locally** (opt-in) | `src/workspaces/*`, `migrations/0005_phase4_workspace_identity.sql`, ADR 0005 | With `orchestrator.execution.prepareWorkspaces`, claimed tasks receive isolated worktrees. Disabled by default. |
-| Agent runner, quality gates, diff policy, and review | **Implemented and verified locally and in GitHub CI** (opt-in) | `src/execution/*`, `migrations/0006_phase5_agent_attempts.sql`, ADR 0006 | With `orchestrator.execution.runAgents`, tasks are analyzed, implemented, gated, fixed, and reviewed, then park in `BLOCKED` with a committed local branch. Disabled by default. |
-| GitHub delivery and CI observation adapters | **Not found** | Repository source inventory and README | No branch is pushed and no pull request is created. |
+| Agent runner, quality gates, diff policy, and review | **Implemented and verified locally and in GitHub CI** (opt-in) | `src/execution/*`, `migrations/0006_phase5_agent_attempts.sql`, ADR 0006 | With `orchestrator.execution.runAgents`, tasks are analyzed, implemented, gated, fixed, and reviewed. Without delivery they park in `BLOCKED` with a committed local branch. Disabled by default. |
+| GitHub delivery, CI and merge observation, and Linear synchronization | **Implemented and verified locally and in GitHub CI** (opt-in) | `src/delivery/*`, `src/providers/github.ts`, `src/providers/linear.ts`, `migrations/0007_phase6_delivery.sql`, ADR 0007 | With `orchestrator.execution.deliver`, reviewed branches are pushed, one pull request per repository is observed through required checks and merge, and the task completes when every merge is reachable from `main`. Disabled by default; production enablement is gated on credential isolation. |
 | Long-running scheduler, crash recovery, and operator controls | **Implemented and verified locally** | `src/orchestrator/scheduler.ts`, `src/orchestrator/stage-handler.ts`, `src/http/server.ts`, `src/repositories/operator.repository.ts`, `migrations/0004_phase3_scheduler_controls.sql`, ADR 0004 | The worker runs continuously as an intake auditor with lease recovery and operator controls. Stage execution begins when later phases register handlers. |
 | Repository CI | **Implemented and verified in GitHub** | `.github/workflows/ci.yml`, `main` branch protection | The `gate` job runs a schema-drift check, migrations, PostgreSQL integration tests, build, lint, and unit tests on pull requests and pushes to `main`. Branch protection requires a pull request and a passing, up-to-date `gate` check, includes administrators, and blocks force pushes and deletion. On 2026-09-16 a pending `gate` check reported the pull request as `BLOCKED`, and a passing one as `CLEAN`. |
 
@@ -56,7 +56,8 @@ stateDiagram-v2
     Reviewing --> PRCreated: review accepted
     PRCreated --> WaitingCI
     WaitingCI --> HumanReview: required checks passed
-    HumanReview --> Completed: merge observed
+    HumanReview --> WaitingCI: pull request head moved
+    HumanReview --> Completed: every merge observed on main
 ```
 
 Each transition must be atomic with its history record. Long operations use a lease and checkpoint so another process cannot duplicate work and a restarted process can continue from the last durable stage.
@@ -283,6 +284,43 @@ Milestone: after Phase 5, the service is usable as a **supervised coding worker*
 
 Goal: deliver verified branches to human review without bypassing repository policy.
 
+Implementation status (2026-09-16): **Implemented and verified locally on PostgreSQL 16 with real Git remotes, and in GitHub CI.** ADR 0007 records the delivery, idempotency, observation, and Linear decisions.
+
+- **Enablement.** `orchestrator.execution.deliver` (default `false`) requires `runAgents`, a `delivery` section, and `GITHUB_TOKEN`. A review approval then moves the task to `PR_CREATED` instead of parking it.
+- **Stages.**
+  - `PR_CREATED` re-verifies and pushes each repository's reviewed branch without force, creates or recovers exactly one pull request per work unit, and attaches it to the Linear issue.
+  - `WAITING_CI` and `READY_FOR_HUMAN_REVIEW` observe required checks, reviews, merges, and merge-commit reachability. `READY_FOR_HUMAN_REVIEW -> WAITING_CI` re-observes a head that moved forward, and `READY_FOR_HUMAN_REVIEW -> BLOCKED` was added.
+- **Before a push.** The worktree ownership, registered remote, and review and quality checkpoints for the exact commits are re-verified. Every base-to-head commit must be a single-parent orchestrator commit with this task's trailer, and the cumulative diff must pass the diff policy's content rules.
+- **Policy from GitHub.** Required checks come from branch protection and rulesets on every observation. Only an explicit `success` counts, and app-pinned requirements match only that app. These block:
+  - missing required checks past `requiredChecksTimeoutMinutes`;
+  - a failed, skipped, cancelled, or neutral required check;
+  - a base branch without required checks.
+
+  Approvals are observed and reported.
+- **Completion.** The orchestrator never merges. Each work unit records its delivery state, pull request, merge commit, and latest observation, and the parent task completes only when every pull request is merged and its merge commit is reachable from the remote base branch. Force-pushes, closed or retargeted pull requests, conflicts, and unreachable merges block for manual intervention.
+- **Idempotency.** Every side effect records an `external_operations` intent and reconciles before acting:
+  - a push reads the remote branch;
+  - a pull request is found by head branch;
+  - a Linear comment carries its key;
+  - a Linear attachment is keyed by URL.
+
+  Adapters retry reads only.
+- **Waiting.** A `wait` stage outcome releases the lease and sets `resume_after` without a transition. Delivery states use a separate claim lane (`maxConcurrentDeliveryTasks`), so waiting pull requests never hold execution slots.
+- **Linear.** Pull request attachments, plus milestone comments for opened, checks passed, blocked, and merged. Issue status is never changed.
+- **Tests.**
+  - PostgreSQL integration scenarios use a fake GitHub backed by real bare Git remotes and a fake Linear. They cover:
+    - two-repository delivery with partial merge reporting and completion;
+    - crashes and lost responses immediately after the push, pull request creation, and a Linear comment, with no duplicates;
+    - GitHub rate limits;
+    - failed, skipped, app-spoofed, never-reported, and unconfigured required checks, with recovery by operator retry;
+    - an updated branch returning to CI;
+    - force-pushes, closed pull requests, unreachable merge commits, and a foreign commit that is never pushed.
+  - Unit and contract tests cover the GitHub REST adapter (pagination confined to the API origin, read-only retries, rate-limit and authentication classification, response validation), check and review evaluation, text neutralization, configuration, the Linear writer, and scheduler lanes.
+  - Mutation checks confirmed that weakening check evaluation, reconciliation, `resume_after`, force-push detection, or reachability fails a test.
+- **Smoke run.** The built service refused to start with `deliver` enabled and no `GITHUB_TOKEN`, started with one, shut down cleanly, and logged no credential.
+- **Not included.** No run against real GitHub or Linear sandbox repositories; the end-to-end tests use fakes on real Git remotes. Automatic merge, deployment, and Linear status changes are out of scope by design.
+- **Residual risk.** Quality commands run agent-written code as the service user. That code can read the orchestrator's initial environment, including `GITHUB_TOKEN`, and use the user's Git credentials. Production enablement of `deliver` stays gated on running agents and quality commands without those credentials (Phase 7), or on explicit acceptance of the exposure.
+
 Deliverables:
 
 - define a `GitHubProvider` port for repository metadata, branch push, pull requests, checks, reviews, merge state, and commit reachability;
@@ -301,7 +339,7 @@ Exit criteria:
 - multi-repository tasks report partial delivery without falsely completing the parent task;
 - sandbox end-to-end tests cover PR creation, CI success/failure, approval, closure, merge, and restart between side effects.
 
-Milestone: after Phase 6, the worker meets the **first usable release** definition.
+Milestone: after Phase 6, the worker meets the **first usable release** workflow. Enabling it in production additionally requires the credential isolation described under Phase 6's residual risk.
 
 ### Phase 7: production hardening and controlled scale
 
@@ -311,7 +349,8 @@ Deliverables:
 
 - dashboards and alerts for queue age, stage duration, failures, retries, stale leases, provider limits, model usage/cost, and CI wait time;
 - retention, backup, restore, and disaster-recovery procedures for PostgreSQL and task artifacts;
-- least-privilege credentials, rotation procedure, environment-file permissions, and hardened systemd sandboxing;
+- least-privilege credentials, rotation procedure, environment-file permissions, and hardened systemd sandboxing, including running agents and quality commands under an identity that cannot read orchestrator credentials;
+- a delivery run against real GitHub and Linear sandbox repositories;
 - resource limits, per-repository concurrency, backpressure, and provider circuit breakers;
 - canary rollout, kill switch, incident runbook, and periodic recovery exercises;
 - evaluate automated merge only as a separate, approved capability after sufficient operational evidence.
@@ -341,8 +380,8 @@ Each slice should be independently reviewable and should leave tests passing.
 | 9 | Structured analyzer (**Implemented**) | 8 | A persisted implementation plan is produced |
 | 10 | Implementer plus trusted quality gates (**Implemented**) | 9 | A bounded, tested local change is produced |
 | 11 | Structured reviewer and fix cycle (**Implemented**) | 10 | A reviewed local branch reaches delivery readiness |
-| 12 | GitHub PR and CI observer | 11 | One idempotent PR per repository reaches human review |
-| 13 | Merge observer and Linear completion | 12 | Completion reflects remote `main`, not an authored claim |
+| 12 | GitHub PR and CI observer (**Implemented**) | 11 | One idempotent PR per repository reaches human review |
+| 13 | Merge observer and Linear completion (**Implemented**) | 12 | Completion reflects remote `main`, not an authored claim |
 | 14 | Production hardening | 13 | Operations meet recovery, security, and scale criteria |
 
 ## Decisions required before Phase 1 closes
@@ -366,10 +405,10 @@ The write-enabled milestone is blocked until all items below have test evidence:
 - [x] Shell execution uses argument arrays where possible, fixed executables, trusted command definitions, timeouts, and output limits. Evidence: Phase 4 Git runner tests and Phase 5 runner and quality-gate tests.
 - [x] Prompts identify Linear text and repository text as untrusted data, never as control instructions. Evidence: Phase 5 prompt builders and the agent execution integration test.
 - [x] Provider and model responses are schema-validated before state changes. Evidence: Linear provider contract tests and Phase 5 result-schema, runner, and malformed-output integration tests.
-- [ ] Tokens are least privilege, redacted, never persisted in task artifacts, and never passed to model context.
-- [ ] Git writes verify expected remote, base commit, branch owner, and changed paths.
-- [ ] Every side effect has an idempotency strategy and a test that restarts immediately after the effect.
-- [ ] Required CI and approval state is fetched from GitHub and cannot be supplied by issue content.
+- [ ] Tokens are least privilege, redacted, never persisted in task artifacts, and never passed to model context. Partial: tokens are withheld from agent and command environments, redacted, and absent from logs in smoke runs, but same-user processes can still read the orchestrator's environment (ADR 0007).
+- [x] Git writes verify expected remote, base commit, branch owner, and changed paths. Evidence: Phase 4 workspace ownership tests, Phase 5 pre-commit verification, and the Phase 6 pre-push verification and foreign-commit integration test.
+- [x] Every side effect has an idempotency strategy and a test that restarts immediately after the effect. Evidence: Phase 4 crash-reuse tests and the Phase 6 delivery integration test, which injects failures immediately after the push, pull request creation, and a Linear comment.
+- [x] Required CI and approval state is fetched from GitHub and cannot be supplied by issue content. Evidence: Phase 6 required-check evaluation, GitHub provider contract, and delivery integration tests.
 - [ ] Operator cancellation and kill switch are audited and leave recoverable state.
 
 ## Validation strategy
@@ -419,6 +458,8 @@ Phases that alter persistence must additionally prove clean migration, upgrade m
 - `kelolakelas-ai-orchestrator/systemd/*`
 - `kelolakelas-ai-orchestrator/tests/*`
 - `kelolakelas-ai-orchestrator/src/execution/*`
+- `kelolakelas-ai-orchestrator/src/delivery/*`
+- `kelolakelas-ai-orchestrator/src/providers/*`
 - `kelolakelas-ai-orchestrator/.github/workflows/ci.yml` and GitHub branch protection for `main`
 
 This was originally a static planning review; phase status notes record the verification performed for each implemented phase.
