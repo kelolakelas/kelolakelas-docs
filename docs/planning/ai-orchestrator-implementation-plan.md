@@ -30,7 +30,8 @@ The first usable release is intentionally narrower than a fully autonomous deliv
 | Transactional queue claim | **Implemented** | `src/repositories/task.repository.ts` | Claim and transition validate state, respect blockers, maintain leases, and append history in one transaction. |
 | Multi-repository execution model | **Implemented for persistence** | `src/db/schema.ts`, `src/repositories/task.repository.ts`, ADR 0003 | One parent task owns repository-specific work units; worktree execution remains a later phase. |
 | Linear intake adapter | **Implemented** (read-only) | `src/providers/linear.ts`, `src/intake/linear-discovery.ts` | Eligible issues are persisted idempotently. |
-| GitHub, worktree, agent, quality, and CI adapters | **Not found** | Repository source inventory and README | No stage handler is registered, so no task is claimed or executed. |
+| Repository registry and worktree preparation | **Implemented and verified locally** (opt-in) | `src/workspaces/*`, `migrations/0005_phase4_workspace_identity.sql`, ADR 0005 | With `orchestrator.execution.prepareWorkspaces`, claimed tasks receive isolated worktrees and park in `BLOCKED` until an analyzer exists. Disabled by default. |
+| GitHub, agent, quality, and CI adapters | **Not found** | Repository source inventory and README | No task advances beyond workspace preparation. |
 | Long-running scheduler, crash recovery, and operator controls | **Implemented and verified locally** | `src/orchestrator/scheduler.ts`, `src/orchestrator/stage-handler.ts`, `src/http/server.ts`, `src/repositories/operator.repository.ts`, `migrations/0004_phase3_scheduler_controls.sql`, ADR 0004 | The worker runs continuously as an intake auditor with lease recovery and operator controls. Stage execution begins when later phases register handlers. |
 | Repository CI | **Configured** | `.github/workflows/ci.yml` | Runs migrations, PostgreSQL integration tests, build, lint, and unit tests on pull requests. GitHub execution and branch protection are not yet verified. |
 
@@ -187,6 +188,19 @@ Deliverables:
 - persist worktree and base-commit identity before the next stage;
 - clean up only orchestrator-owned worktrees after terminal outcomes.
 
+Implementation status (2026-09-16): **Implemented and verified locally on PostgreSQL 16 with real Git repositories.** ADR 0005 records the ownership, locking, and recovery decisions.
+
+- **Registry.** YAML `repositories` maps contract repository names to canonical local clones and `owner/name` GitHub repositories. `workspace` sets the root, free-disk minimum, Git timeout, lock timeout, and remote retry interval.
+- **Enablement.** `orchestrator.execution.prepareWorkspaces` (default `false`) registers an `ANALYZING` preparation handler. Until the Phase 5 analyzer exists, prepared tasks move to `BLOCKED` with an explicit reason, and an operator retry reuses their worktrees.
+- **Preparation.** Under a per-repository PostgreSQL advisory lock, the worker verifies the clone's top level and configured remote. It then requires the Linear branch to be absent remotely, fetches the base branch, fast-forwards local `main` when safe, checks disk space, writes branch ownership markers, and creates a locked worktree at `<root>/<taskId>/<repository>` from the fetched commit. The worktree must be clean and inside the root. Identity is persisted on the work unit while the lease is held; unique indexes reject a duplicate branch or path.
+- **Recovery.** A worktree locked by the orchestrator, with matching markers and descending from its recorded base, is reused, including after a crash before the database write. Every other mismatch blocks for manual intervention. An unreachable remote pauses the task as `PAUSED_LIMIT` (`REMOTE_UNAVAILABLE`).
+- **Dependencies.** Unmerged dependencies always block: the planning contract has no stacked-PR field.
+- **Cleanup.** A scheduler maintenance hook releases worktrees of `COMPLETED` and `CANCELLED` tasks only when they are clean and orchestrator-owned, never with `--force`, and keeps branches. Otherwise it records `workspace_cleanup_blocked_reason`.
+- **Git execution.** Git runs as a fixed executable with argument arrays, hooks disabled, a timeout, bounded output, and an environment allowlist that excludes provider credentials.
+- **Tests.** Real-Git tests cover remote-base creation, local fast-forward, restart and crash reuse, ambiguous identities, user-owned branches and paths, foreign tasks, remote branches, remote URL mismatch, unreachable remotes, hook suppression, disk capacity, concurrent preparation, and release rules. PostgreSQL integration tests cover the scheduler path for multi-repository preparation, retry reuse, dependency and ownership blocks, remote-unavailable pause and resume, janitor release after cancellation, unique identity constraints, and cross-connection repository locks.
+- **End-to-end run.** The built service ran against a stub Linear issue and disposable repositories. It prepared both worktrees, parked the task, released them after an operator cancellation, and shut down cleanly with no credential in logs.
+- **Not included.** No analyzer, implementer, commit, or push exists. GitHub CI execution of the new tests has not been observed.
+
 Exit criteria:
 
 - an allowed task creates isolated worktrees from current remote `main` in every declared repository;
@@ -277,7 +291,7 @@ Each slice should be independently reviewable and should leave tests passing.
 | 5 | Read-only Linear provider | 3, 4 | Valid Issues are discovered idempotently |
 | 6 | Dry-run scheduler (**Implemented**) | 5 | Eligibility and schedule decisions run continuously |
 | 7 | Operator controls and health (**Implemented**) | 6 | Worker can be paused, inspected, and shut down safely |
-| 8 | Repository registry and worktrees | 7 | Declared repositories are prepared in isolation |
+| 8 | Repository registry and worktrees (**Implemented**) | 7 | Declared repositories are prepared in isolation |
 | 9 | Structured analyzer | 8 | A persisted implementation plan is produced |
 | 10 | Implementer plus trusted quality gates | 9 | A bounded, tested local change is produced |
 | 11 | Structured reviewer and fix cycle | 10 | A reviewed local branch reaches delivery readiness |
