@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted and implemented in AI orchestrator Phase 6.
+Accepted and implemented in AI orchestrator Phase 6. Partly superseded by [ADR 0008](0008-ai-orchestrator-production-hardening.md): pushes may authenticate with `GITHUB_TOKEN`, and the execution lane is now claimed before the delivery lane.
 
 ## Context
 
