@@ -16,8 +16,8 @@ flowchart LR
     Web -->|HTTP JSON / Authorization Bearer| Gateway
   end
   Gateway -->|reverse proxy; unchanged /api/v1 path| Identity
-  Gateway -->|reverse proxy; adds X-Tenant-ID if claim| Academic
-  Gateway -->|reverse proxy; adds X-Tenant-ID if claim| Billing
+  Gateway -->|reverse proxy; replaces X-Tenant-ID when claim present| Academic
+  Gateway -->|reverse proxy; replaces X-Tenant-ID when claim present| Billing
   Academic -->|POST /internal/billing/transactions; internal credential| Billing
   Billing -->|PUT /internal/enrollments/:id/activate; internal credential| Academic
   Billing -->|durable retry state| Billing

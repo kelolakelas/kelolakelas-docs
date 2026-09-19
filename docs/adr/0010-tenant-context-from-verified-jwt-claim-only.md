@@ -1,0 +1,111 @@
+# ADR 0010: Tenant context comes from the verified JWT claim only
+
+## Status
+
+Accepted and implemented in KEL-19.
+
+## Context
+
+The gateway terminates authentication and normally forwards a caller's
+`X-Tenant-ID` header to the downstream service, replacing it with the tenant
+value taken from the validated JWT when the token carries one
+(`kelolakelas-api-gateway/internal/delivery/http/handler/proxy_handler.go:67-70,88-91`).
+The replacement is conditional: `if tenantID != ""`. When the token has no
+tenant claim, the gateway leaves whatever `X-Tenant-ID` the caller sent in
+place and forwards it untouched.
+
+Several academic handlers treated that header as a tenant source of truth. The
+category, class, list, and schedule handlers resolved the request tenant with
+`c.GetHeader("X-Tenant-ID")` and only failed when the result was empty or not a
+UUID. A parent token — which by design carries no `tenant_id`, because
+`AuthMiddleware` accepts a parent with an empty tenant claim — could therefore
+name an arbitrary tenant by setting the header itself and read or mutate that
+tenant's categories, classes, and schedules.
+
+The header is not an authorization artifact. Nothing about it is signed,
+audience-bound, or verified by the service that acts on it, and the gateway
+cannot distinguish an injected value from a caller-supplied one. Trusting it
+made the header an alternative, unauthenticated path to tenant scoping next to
+the JWT that the same request had already been validated against.
+
+## Decision
+
+Academic derives tenant context exclusively from the validated JWT claim.
+
+A single helper, `tenantIDFromContext` in
+`internal/delivery/http/handler/tenant_context.go`, is the only way handlers
+obtain a tenant. It reads the `tenant_id` value that `AuthMiddleware` stored in
+the Gin context from the verified token. It never reads a request header. An
+empty claim is reported as missing and a claim that is not a parseable,
+non-nil UUID is reported as invalid; both are distinct sentinel errors so that
+status mapping stays explicit.
+
+The category, class, list, and schedule handlers drop their header fallback in
+favour of the helper. `list_handler.go` keeps its `tenantID` wrapper as a thin
+indirection onto the same helper so its call sites are unchanged. Handlers that
+already read the context value only — students, attendance, reports, sessions,
+enrollment queries — are unaffected and now share the same resolution path.
+
+Status codes are chosen so that a caller cannot use them to probe tenant
+existence:
+
+- A missing tenant claim is **403**. A parent calling a route that requires
+  tenant context is authenticated but not authorised for that context. It is
+  deliberately not 400, because the request is well formed, and not 500,
+  because nothing failed internally.
+- An unparseable or nil claim is **401**. The token was accepted by the
+  middleware but does not carry a usable tenant, which makes the presented
+  credential inadequate for the requested operation.
+
+Enrollment is tenant-scoped by path rather than by header. A non-parent caller
+of `POST /api/v1/tenants/:tenant_id/enrollments` must present a claim that
+equals the `:tenant_id` path segment; a mismatch is 403 and no use case runs.
+A parent caller keeps the pre-existing public catalog flow, which is already
+scoped by student ownership instead of by tenant.
+
+Handlers still fail closed: `writeTenantError` maps any unrecognised tenant
+error to 403 rather than defaulting to allow.
+
+## Alternatives considered
+
+- **Keep the header fallback but validate the header against the claim.** This
+  only adds a comparison to a value that is already available in a verified
+  form. It preserves a second, redundant tenant source that must be kept
+  consistent, and it still leaves the header meaningful when the claim is
+  absent.
+- **Reject requests that carry `X-Tenant-ID` at all.** Breaks the web client,
+  which sends the header from a `tenant_id` cookie alongside the bearer token
+  (`kelolakelas-web/app/(dashboard)/dashboard/tenant/**/_actions/*.ts`,
+  `_queries/*.ts`). The header is harmless once nothing reads it as
+  authorization, and rejecting it would turn a compatible client into a
+  failing one.
+- **Strip or overwrite `X-Tenant-ID` at the gateway for every request.** This is
+  a gateway change and was explicitly out of scope for KEL-19 (KEL-18 covers
+  gateway work). It also would not have helped a caller reaching the academic
+  service directly, which is the deployment the service must not assume away.
+- **Move the check into `AuthMiddleware` and reject tenantless tokens for all
+  protected routes.** Too broad: parent catalog enrollment and parent student
+  routes legitimately operate without a tenant claim, so the requirement is
+  per-route and belongs with the handler that needs the tenant.
+
+## Consequences
+
+The gateway keeps its current proxy behaviour, including the conditional header
+replacement; the fix is on the consuming side, so no gateway deployment is
+coupled to this change. Direct callers of the academic service also lose the
+header shortcut, which is intentional.
+
+`X-Tenant-ID` remains in requests as an inert header. The generated Swagger for
+the academic service no longer documents it as a parameter, so the published
+contract no longer advertises a tenant input that has no effect.
+
+Behaviour that previously succeeded now returns 403: any request that relied on
+a header to supply a tenant the token did not carry. Legitimate web traffic is
+not affected, because the web client reads its tenant cookie from the login
+response's `user.tenant_id`, which is derived from the same identity record
+that signs the token's `tenant_id` claim.
+
+Residual risk is unchanged and outside this decision: routes that do not accept
+a tenant at all — session and schedule mutations — still perform their own
+scoping, and authorization beyond authentication plus the persisted
+catalog/schedule permission check remains a separate task.
