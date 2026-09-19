@@ -16,6 +16,7 @@ Source paths are repository-relative to `/home/faridzam/workspace/kelolakelas`. 
 | Enrollment and inter-service billing | `academic/internal/usecase/enrollment_usecase.go`; `academic/pkg/billing/client.go`; `billing/internal/usecase/transaction_usecase.go`; `billing/pkg/academic/client.go` |
 | Billing/Duitku/worker | `billing/internal/delivery/http/handler/transaction_handler.go`; `pkg/duitku/client.go`; `internal/usecase/subscription_worker.go` |
 | Durable payment reconciliation | `billing/internal/domain/payment_reconciliation.go`; `internal/repository/payment_reconciliation_repository.go`; `internal/usecase/reconciliation_worker.go`; `migrations/20260915000000_payment_reconciliations.up.sql`; ADR [0001](../adr/0001-durable-payment-reconciliation.md) |
+| Invoice expiry and late-paid callback handling | `billing/internal/usecase/transaction_expiry_worker.go`; `internal/usecase/transaction_usecase.go:384-602`; `internal/repository/transaction_repository.go:125-166`; `internal/domain/transaction.go`; `migrations/20260920000000_transaction_invoice_expiry.up.sql`; ADR [0009](../adr/0009-local-invoice-expiry-without-losing-late-payments.md) |
 | Email/maps/Redis | identity `pkg/email/resend.go`, `pkg/maps/client.go`, `pkg/database/redis.go`; billing `pkg/email/resend.go` |
 | Schema | each service `migrations/*.up.sql`, summarized under `docs/data/` |
 | Config/defaults and JWT secret validation | each service `internal/config/config.go` and `internal/config/config_test.go`; web `process.env` uses identified in component docs |

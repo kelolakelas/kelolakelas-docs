@@ -63,4 +63,4 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | Method/path | Target authentication | Purpose / evidence |
 |---|---|---|
 | PUT `/internal/enrollments/:id/activate` | internal credential | Billing activates a paid pending enrollment; `kelolakelas-academic-service/cmd/server/main.go:152-154` |
-| POST `/internal/billing/transactions` | internal credential | Academic creates a billing invoice; `kelolakelas-billing-service/cmd/server/main.go:92-94` |
+| POST `/internal/billing/transactions` | internal credential | Academic creates a billing invoice; `kelolakelas-billing-service/cmd/server/main.go:100-102` |
