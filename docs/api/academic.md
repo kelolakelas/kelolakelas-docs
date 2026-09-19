@@ -1,6 +1,6 @@
 # Academic API
 
-Routes registered in `kelolakelas-academic-service/cmd/server/main.go:99-154` are the source of truth. `GET /api/v1/catalog/classes` and `GET /api/v1/catalog/classes/:id` are public; all other `/api/v1` routes require JWT. Internal activation is outside `/api/v1`.
+Routes registered in `kelolakelas-academic-service/cmd/server/main.go:98-160` are the source of truth. `GET /api/v1/catalog/classes` and `GET /api/v1/catalog/classes/:id` are public; all other `/api/v1` routes require JWT. Internal activation is outside `/api/v1`.
 
 | Area | Operations | Request/response source |
 |---|---|---|
@@ -16,6 +16,14 @@ The public catalog enrollment route is in the gateway’s protected group despit
 ## Catalog mutation authorization
 
 **Implemented:** authenticated category, class, schedule, and schedule-related session mutations call identity's persisted permission check before entering the handler. `category:create|delete`, `class:create|update|delete`, and `schedule:create|update|delete` are mapped at route registration. A parent token without `role_id` and a tenant member without the required assignment receive 403; an identity dependency failure receives 503. Public catalog list/detail reads remain unauthenticated. Tenant/resource ownership checks remain in the academic use cases. Evidence: `cmd/server/main.go`, `internal/delivery/http/middleware/permission_middleware.go`, and identity `internal/delivery/grpc/permission_service.go`.
+
+## Tenant context resolution
+
+**Implemented:** every tenant-scoped academic handler derives the tenant from the verified JWT claim. `tenantIDFromContext` reads only the `tenant_id` value `AuthMiddleware` stored from the token and never reads `X-Tenant-ID`; category, class, list, and schedule handlers call it directly, and `list_handler.go` keeps a `tenantID` wrapper onto the same helper. A request whose token carries no tenant claim receives 403, and a claim that is not a parseable non-nil UUID receives 401; unknown tenant errors fail closed to 403. Headers are inert for tenant resolution, so a caller cannot select a tenant the token does not carry. See [ADR 0010](../adr/0010-tenant-context-from-verified-jwt-claim-only.md). Evidence: `internal/delivery/http/handler/tenant_context.go`, `tenant_context_regression_test.go`, `internal/delivery/http/middleware/auth_middleware.go`.
+
+For `POST /api/v1/tenants/:tenant_id/enrollments`, a non-parent caller must present a claim equal to the `:tenant_id` path segment; a mismatch is 403 and no enrollment is created. A parent caller keeps the existing public catalog enrollment flow, which is scoped by student ownership rather than by tenant, and the path segment is still validated as a UUID (400 when malformed). Evidence: `internal/delivery/http/handler/enrollment_handler.go`.
+
+The academic Swagger document no longer declares `X-Tenant-ID` as a request parameter on any operation; the regenerated `docs/swagger.{json,yaml}` and `docs/docs.go` contain no occurrence of it.
 
 ## Student ownership and deletion guard
 

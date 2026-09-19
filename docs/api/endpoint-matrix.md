@@ -52,7 +52,7 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | GET | `/api/v1/enrollments` | Academic → same | JWT; tenant/parent scoped use case | filters → enrollment list | gateway:129; academic main:128 |
 | GET | `/api/v1/enrollments/:id` | Academic → same | JWT; tenant/parent scoped use case | UUID → enrollment | gateway:130; academic main:129 |
 | PATCH | `/api/v1/enrollments/:id/schedule` | Academic → same | JWT; parent required | schedule assignment DTO → enrollment; 403/409/422 | gateway:131; academic main:130 |
-| POST | `/api/v1/tenants/:tenant_id/enrollments` | Academic → same | JWT; parent changes behavior | enrollment DTO + `Idempotency-Key` → enrollment/payment | gateway:132; academic main:126 |
+| POST | `/api/v1/tenants/:tenant_id/enrollments` | Academic → same | JWT; parent takes public flow, else claim must equal path | enrollment DTO + `Idempotency-Key` → enrollment/payment; 400/403 | gateway:132; academic main:126 |
 | POST | `/api/v1/catalog/classes/:class_id/enrollments` | Academic → same | JWT; parent required | public enrollment DTO + `Idempotency-Key` → enrollment/payment; 403/409/422 | gateway:133; academic main:127 |
 | POST | `/api/v1/billing/transactions` | Billing → same | JWT; tenant/parent scope | payment DTO → checkout transaction; 400 | gateway:136; billing main:88 |
 | GET | `/api/v1/billing/transactions` | Billing → same | JWT; tenant/parent scope | query → transaction list | gateway:137; billing main:89 |
