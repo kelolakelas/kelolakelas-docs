@@ -21,6 +21,7 @@ act() { op -X POST "$OP/operator/$1" -d "{\"actor\":\"$USER\",\"reason\":\"$2\"$
 - [Alerts](#alerts)
 - [Kill switch operations](#kill-switch-operations)
 - [Backup and restore](#backup-and-restore)
+- [Model providers and routing](#model-providers-and-routing)
 - [Credential rotation](#credential-rotation)
 - [Canary rollout](#canary-rollout)
 - [Sandbox delivery run](#sandbox-delivery-run)
@@ -242,6 +243,17 @@ For host loss:
 
 Tasks in delivery states re-observe GitHub. Tasks earlier in the workflow block, and retrying re-runs analysis because their worktrees are gone.
 
+## Model providers and routing
+
+Which provider, model, and effort serve a stage is configuration. `models.providers.<alias>` names an executable and an adapter `kind`; `models.tiers.<tier>` pairs a model identifier with the alias that serves it; `models.routes`, `models.escalation`, `models.roles`, `models.analyzer`, and `models.reviewer` override the built-in defaults. See [ADR 0011](../adr/0011-ai-orchestrator-provider-agnostic-model-transport.md).
+
+1. **Change a model or effort:** edit `models.tiers.<tier>.model` and `models.roles.<role>.effort`, then restart. The canonical effort levels are `low`, `medium`, `high`, and `max`; each provider translates them to its own names, so `max` reaches the Codex CLI as `xhigh`.
+2. **Add a provider:** declare `models.providers.<alias>` with an `executable`, then make every reachable tier name it. With more than one provider configured, a tier that omits `provider` is a startup error rather than a guess. The executable must be present and executable or startup fails.
+3. **Know what a provider may serve:** each adapter kind declares whether it confines model-issued commands itself. Startup rejects a configuration that assigns the implementer or fixer to a provider whose commands would run unconfined, so an adapter that cannot confine can serve only the analyzer and reviewer. Fix the configuration or add an adapter; there is no override.
+4. **Finish or reverse a migration:** `agents.runner` still works and supplies one provider named after its `kind`, but startup logs `legacy_runner_configuration` for it. Because `agents.runner.executable` is required only while that block is the provider in force, declaring `models.providers` is what lets you delete the block. To reverse, remove `models.providers` and restore the executable; the block becomes the provider again.
+5. **Inspect which provider ran a stage:** `op $OP/operator/tasks/<id> | jq '.attempts[] | {stage, attempt, model: .input.model, failureCategory}'`. Every agent attempt records its provider, so evidence can be reproduced from configuration. Non-agent stages such as `READY` and `TESTING` run no model and record no selection.
+6. **Attribute usage and spend:** `orchestrator_model_tokens_total` carries `provider`, `model`, and `kind`; `orchestrator_model_cost_usd_total` carries `provider` and `model`. Attempts written before a provider was recorded show as `unknown` in those labels.
+
 ## Credential rotation
 
 Credentials:
@@ -250,7 +262,7 @@ Credentials:
 - `LINEAR_API_KEY`: a key of a dedicated Linear user with access only to the orchestrator team; comments and attachments need write access.
 - `ORCHESTRATOR_OPERATOR_TOKEN`: a random value of at least 32 bytes (`openssl rand -base64 32`).
 - The PostgreSQL password of the orchestrator role.
-- The runner credential under `CODEX_HOME`.
+- The runner credential under `CODEX_HOME`. When a different provider is declared in `models.providers`, rotate that provider's own credential instead; the legacy block is deprecated and supplies the Codex credential only while it is the provider in force.
 
 Rotate on schedule (every 90 days, or 14 days before the GitHub expiry that `credentials:check` warns about), and immediately after suspected exposure.
 

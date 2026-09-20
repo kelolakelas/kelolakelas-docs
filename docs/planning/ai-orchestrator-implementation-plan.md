@@ -236,6 +236,7 @@ Implementation status (2026-09-16): **Implemented and verified locally on Postgr
   - The runner gets an allowlisted environment.
   - Every run has a timeout, cancellation, event and result size limits, process-group termination, and token usage accounting.
   - Models come only from deterministic routing, and fixes reuse the latest implementation route.
+  - Phase 8 moved the transport behind a provider registry, so this stage layer now names a provider rather than a CLI. See [Phase 8](#phase-8-provider-agnostic-model-transport).
 - **Quality gates.** Named argument-array commands come from `repositories.<name>.quality` and run without a shell or credentials, with timeouts, bounded and redacted output, and process-group termination.
 - **Before commit.** The worktree's Git directory, branch, ownership markers, lock, ancestry, and HEAD are re-verified. The diff policy then rejects:
   - unchanged or unexpectedly broad diffs;
@@ -409,6 +410,27 @@ Exit status (2026-09-17):
 | No automatic merge or deployment enabled implicitly | **Implemented** | No merge or deployment code path; ADR 0008 |
 | Delivery run against real GitHub and Linear sandbox repositories | **Not yet performed** | `ops/sandbox/orchestrator.sandbox.yaml`, `src/ops/sandbox-evidence.ts`, runbook procedure |
 
+### Phase 8: provider-agnostic model transport
+
+Goal: let any model from any provider be routed to any agent role through configuration alone, without weakening the confinement, determinism, or evidence guarantees Phase 5 established. Decision record: [ADR 0011](../adr/0011-ai-orchestrator-provider-agnostic-model-transport.md).
+
+Implementation status: **M1 implemented and verified locally on PostgreSQL 16.** A declarative CLI adapter (M2) is planned and not implemented.
+
+- **Provider registry.** `models.providers` maps an alias to `{ kind, executable, environment, effort }`. A registry builds one adapter handle per alias by switching on `kind`, and a dispatching runner resolves the handle a model selection names. Execution stages depend only on the `AgentRunner` port, so a fence test fails the build if a stage imports an adapter, the registry, or the dispatching runner.
+- **Capability contract.** Adapter capabilities are declared in code beside each adapter (`ownConfinement`, `wrappable`, `effortMap`). Effective confinement is derived from the adapter's own guarantee and `sandbox.kind`. Configuration validation rejects a write-enabled role (`implementer`, `fixer`) whose provider would run with confinement `none`, so configuration can narrow a capability but never widen it. `codex-cli` is not wrappable: its own sandbox cannot be nested inside the orchestrator's.
+- **Routing as data.** `models.routes`, `models.escalation`, `models.roles`, `models.analyzer`, and `models.reviewer` override `src/routing/defaults.ts`. The canonical effort scale (`low`, `medium`, `high`, `max`) is translated per provider, so `max` reaches Codex as `xhigh`. Tier reachability is derived from the same fallback expression the router uses.
+- **Backwards compatibility.** A legacy `agents.runner` block is promoted to a single provider aliased by its `kind` and logs one `legacy_runner_configuration` warning. `agents.runner.executable` is required only while that block is the provider in force, so an operator can finish the migration by deleting it once providers are declared.
+- **Generalized evidence.** Every agent attempt records the provider that served it. `orchestrator_model_tokens_total` carries `provider` alongside `model` and `kind`, `orchestrator_model_cost_usd_total` carries `provider`, and `PauseReason` gained the neutral `USAGE_LIMIT` alongside the retained `CODEX_USAGE_LIMIT`.
+- **Regression fence.** `tests/provider-fence.test.ts` fails the build if Codex flags, `codex exec`, Codex event types, Codex environment variables, OpenAI usage field names, or `gpt-*` literals reappear outside the adapter directory, the credential module, the fixtures, the allowlisted tests, and the example configuration.
+- **Verification.** `tests/provider-registry.test.ts` covers registry resolution, confinement, and the migration off-ramp; `tests/agent-execution.integration.test.ts` runs a full analyzer, implementer, fixer, and reviewer cycle served by two distinct real spawned provider processes and asserts the per-role model, access, and effort each process received.
+
+Deliverables:
+
+- an adapter kind is added without changing stage code;
+- a role cannot be assigned to a provider that cannot confine the commands it runs;
+- existing configurations keep working, with a warning that names the replacement;
+- provider vocabulary does not leak outside adapter modules.
+
 ## Recommended implementation slices
 
 Each slice should be independently reviewable and should leave tests passing.
@@ -428,6 +450,7 @@ Each slice should be independently reviewable and should leave tests passing.
 | 11 | Structured reviewer and fix cycle (**Implemented**) | 10 | A reviewed local branch reaches delivery readiness |
 | 12 | GitHub PR and CI observer (**Implemented**) | 11 | One idempotent PR per repository reaches human review |
 | 13 | Merge observer and Linear completion (**Implemented**) | 12 | Completion reflects remote `main`, not an authored claim |
+| 14 | Provider-agnostic model transport (**M1 Implemented**, M2 planned) | 11 | A role's provider, model, and effort are configuration, and a provider without confinement can never write code |
 | 14 | Production hardening (**Implemented**; live sandbox run pending) | 13 | Operations meet recovery, security, and scale criteria |
 
 ## Decisions required before Phase 1 closes
