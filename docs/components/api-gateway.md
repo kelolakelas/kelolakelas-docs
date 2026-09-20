@@ -1,8 +1,8 @@
 # API gateway (`kelolakelas-api-gateway`)
 
-**Implemented:** Gin service on `:8000` by default. It registers request correlation, structured access logging, recovery, restrictive origin matching CORS, Redis-backed rate limiting, health, local Swagger shell, service Swagger proxies, public routes, and a JWT-protected route group. Evidence: `cmd/server/main.go:17-57`, `internal/delivery/http/router.go:21-153`.
+**Implemented:** Gin service on `:8000` by default. It registers request correlation, structured access logging, recovery, restrictive origin matching CORS, Redis-backed rate limiting, health, local Swagger shell, service Swagger proxies, public routes, and a JWT-protected route group. Evidence: `cmd/server/main.go`, `internal/delivery/http/router.go:26-35`.
 
-It builds a standard Go single-host reverse proxy per service. Route paths are retained: a caller of `/api/v1/classes` is forwarded as `/api/v1/classes`; request headers/body are otherwise retained, except for the two context headers the gateway owns (see [Context header trust boundary](#context-header-trust-boundary)). Downstream services do not treat a context header as authorization: academic and identity resolve tenant context from the verified JWT claim only (see [ADR 0010](../adr/0010-tenant-context-from-verified-jwt-claim-only.md), [ADR 0017](../adr/0017-gateway-context-header-trust-boundary.md)). It does not translate authentication, enforce roles, retry downstream failures, or define a proxy error handler. Evidence: `internal/delivery/http/handler/proxy_handler.go`, `internal/delivery/http/middleware/context_header_middleware.go`.
+It builds a standard Go single-host reverse proxy per service. Route paths are retained: a caller of `/api/v1/classes` is forwarded as `/api/v1/classes`; request headers/body are otherwise retained, except for the two context headers the gateway owns (see [Context header trust boundary](#context-header-trust-boundary)). Downstream services do not treat a context header as authorization: academic and identity resolve tenant context from the verified JWT claim only (see [ADR 0010](../adr/0010-tenant-context-from-verified-jwt-claim-only.md), [ADR 0017](../adr/0017-gateway-context-header-trust-boundary.md)). It does not translate authentication, enforce roles, or retry downstream failures. Evidence: `internal/delivery/http/handler/proxy_handler.go`, `internal/delivery/http/middleware/context_header_middleware.go`.
 
 Rate limiting keys use client IP, method, exact path and fixed time window. Redis failure is explicitly fail-open. Login limit defaults to 5/window, registration 10/window, normal protected path 120/window, and the exposed webhook path has a dedicated default limit of 120/window. The proxy route itself is public; callback authenticity is delegated to billing.
 
@@ -13,6 +13,26 @@ The gateway does not own a database. `APP_URL` must be an exact HTTP(S) origin t
 **Implemented:** `middleware/request_id_middleware.go` accepts an inbound `X-Request-ID` only when it is at most 64 characters and contains only `a-z`, `A-Z`, `0-9`, `-`, `_`, and `.`; any other value is discarded and replaced with a new identifier (16 `crypto/rand` bytes, hex encoded). The effective identifier is set on the forwarded request, returned on the response, and stored in the gin context. `middleware/access_log_middleware.go` emits exactly one JSON line per request with `request_id`, `method`, `path`, `status`, `latency_ms`, `client_ip`, and `target` (the downstream service name, or the target host for prefix-stripped proxies). Correlation middleware is registered first, so a request rejected by CORS or the rate limiter still carries an identifier and still produces one line.
 
 The logged `path` is `URL.Path` only: query strings are never logged, so the invitation `?token=…` accepted by the public verification route cannot reach the log, and neither `Authorization` nor the request body is logged. `client_ip` follows the existing `SetTrustedProxies(nil)` policy, under which Gin does not trust proxy headers and reports the direct peer address. The gateway previously logged one `slog.Info("Proxying request …")` line per service from inside each proxy `Director`; those four calls were replaced by the single access log. See [ADR 0015](../adr/0015-gateway-request-correlation-and-access-log.md).
+
+## Proxy resilience bounds
+
+**Implemented:** Every proxied request is bounded in time and in body size, and every proxy failure is answered with one JSON envelope of the shape `{"status":"error","message":…,"data":null}`. Evidence: `internal/delivery/http/handler/proxy_handler.go` (`handleProxyError`, `classifyProxyError`, `isTimeoutError`), `internal/delivery/http/middleware/error_response.go`, `internal/delivery/http/middleware/body_limit_middleware.go`, `internal/delivery/http/router_test.go`, `internal/delivery/http/middleware/body_limit_middleware_test.go`.
+
+| Failure | Status | Message |
+|---|---|---|
+| Downstream does not answer within the deadline | `504` | `Upstream service timed out` |
+| Downstream cannot be reached (refused, DNS, reset before headers) | `502` | `Upstream service is unavailable` |
+| Request body exceeds the configured limit | `413` | `Request body exceeds the configured limit` |
+
+No message, header, or body of a proxy error response contains the downstream host, path, or transport error text, so the failure surface does not disclose internal topology. The transport error itself is written to the access logger instead, carrying the request identifier from `middleware.RequestIDHeader`, so an operator can correlate a client-visible 502/504 with its cause.
+
+The upstream deadline is derived per request with `context.WithTimeout` on the request context rather than a transport-level `ResponseHeaderTimeout`. This matters because a single global response-header deadline would also cut legitimately slow responses, notably the enrollment endpoint's tailored response. The `http.Transport` is a clone of the default one, so connection reuse and TLS behaviour remain at the standard library defaults. Evidence: `internal/delivery/http/handler/proxy_handler.go` (`proxyRoute`, `newProxy`).
+
+Body limits are enforced in middleware before the request is forwarded. A body that declares a `Content-Length` over the limit is rejected before dispatch and never reaches a downstream. A body sent with chunked transfer encoding declares no length, so its size is only known while it is read; `http.MaxBytesReader` stops that read at the limit and the resulting read error is classified into the same `413` envelope. Evidence: `internal/delivery/http/middleware/body_limit_middleware.go` (`BodyLimitMiddleware`).
+
+A downstream that closes the connection after the response header has already been sent is a special case: the gateway aborts the exchange without appending a second response, because appending an envelope would corrupt the stream the client has already begun to receive. Evidence: `internal/delivery/http/router_test.go` (`TestDownstreamClosingConnectionAfterHeadersDoesNotAppendAnEnvelope`).
+
+`SERVER_WRITE_TIMEOUT_SECONDS` must be greater than `PROXY_UPSTREAM_TIMEOUT_SECONDS`. A configuration where it is not fails loading with an explanatory error instead of being silently clamped, so the operator sees the problem at startup. Evidence: `internal/config/config.go` (`LoadConfig`, the write-versus-upstream check).
 
 ## Context header trust boundary
 
