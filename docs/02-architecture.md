@@ -23,6 +23,8 @@ flowchart LR
   Billing -->|durable retry state| Billing
 ```
 
+The gateway replaces `X-Tenant-ID` when the token carries a tenant and forwards it unchanged otherwise, but no service treats that header as authorization: academic and identity both resolve the tenant from the verified JWT claim only, and billing reads the claim value from the middleware context (see [ADR 0010](adr/0010-tenant-context-from-verified-jwt-claim-only.md)).
+
 **Implemented:** service identity is split by data store; migration foreign keys only refer to tables in the same database. IDs such as `tenant_id` and `parent_id` are application-level UUID references across stores, not database foreign keys. See [data overview](data/overview.md).
 
 **Configured:** all Go services use Viper/godotenv. Explicit defaults are suitable for local development but do not establish a deployment design. See [configuration](04-configuration.md).

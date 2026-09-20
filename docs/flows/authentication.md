@@ -30,6 +30,8 @@ The web proxy performs an optimistic structural/expiry check to avoid treating m
 
 ## Invitations
 
+Every tenant-scoped identity route (members, tutors, roles, tenant settings, and tenant location) resolves its tenant from the `tenant_id` claim of the validated token only (`internal/delivery/http/handler/tenant_context.go`). A token that carries no tenant claim — which is the case for every parent, because login issues a nil `tenant_id` when there is no active membership — is refused with 403 before the use case runs, so a parent cannot read or mutate another tenant's members, roles, or settings even by sending `X-Tenant-ID` (KEL-16, [ADR 0010](../adr/0010-tenant-context-from-verified-jwt-claim-only.md)). There is no route for a user with several active memberships to choose among them; the token carries at most one `tenant_id`.
+
 Authenticated callers create a role-targeted invitation using the tenant claim. The use case checks membership, persists token/expiry, and sends Resend email; verification/register check absent, expired, or used tokens. Evidence: `invitation_handler.go`, `internal/usecase/invitation_usecase.go`, `pkg/email/resend.go`. Email delivery is an external side effect; delivery was not executed in this review.
 
 **Not found:** refresh token, logout, token denylist/revocation, password reset, email verification, OAuth, and multi-factor authentication routes.

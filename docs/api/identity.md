@@ -8,8 +8,25 @@ Implemented routes are registered in `kelolakelas-identity-service/cmd/server/ma
 | Login | `LoginPayload`: email, password | 200 token + user + tenant_id; 401 invalid credentials |
 | Tenant register | `RegisterTenantRequest` | 201 token/user/tenant; 409 name/email conflict |
 | Invitation create/verify/register | `CreateInvitationPayload`; token query; invited-user payload | creation requires `member:invite` and returns 403 when absent; validation handles absent/expired/used tokens |
-| Members / tutors | pagination/query filters; UUID path | tenant context from token; 400 malformed query/ID |
+| Members / tutors | pagination/query filters; UUID path | tenant context from the verified JWT claim only; 403 when the token carries no tenant claim, 401 when the claim is unusable, 400 malformed query/ID |
 | Roles / permissions | role DTOs | custom-role create/update/delete require `role:create`, `role:update`, and `role:delete`; tenant ownership and system-role restrictions are enforced in the role use case |
 | Tenant settings/location | update DTOs | settings and location mutation require `tenant:update` (403 when absent); optional geocode on address-only location update |
+
+Every tenant-scoped route resolves its tenant from the `tenant_id` claim of the
+validated access token (`internal/delivery/http/handler/tenant_context.go`,
+KEL-16). A caller whose token carries no tenant claim — all parents, and any
+user without an active membership — is rejected with **403 before the use case
+is invoked**, so no repository query runs and no other tenant's data is read or
+written. A `X-Tenant-ID` header is ignored entirely and is no longer part of any
+published operation in `docs/swagger.json`; sending the caller's own tenant in
+the header changes nothing, because the claim always wins.
+
+Status codes on these routes are deliberately distinct:
+
+- **403** — the token is valid but grants no tenant scope for this operation.
+- **401** — the token was accepted by the middleware but carries an unusable
+  (unparseable) tenant claim; a missing or nil claim is 403, not 401.
+- **400** — malformed request input such as an unparseable UUID in the path or
+  query, unchanged from before.
 
 All payload fields should be confirmed against current Go domain structs or `docs/swagger.json` before client generation. The in-web copied Swagger documents are stale `Tutorin` artifacts and should not be used as the primary contract.
