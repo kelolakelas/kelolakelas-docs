@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `ff8186453017517f8c2230e435f06bd578ad8c94` | clean |
+| `kelolakelas-web` | `main` | `407563532c18f19a7cda16376db0dcfff846c2e5` | clean after KEL-31 |
 | `kelolakelas-api-gateway` | `main` | `fcd0c6dc2c39c6df1f60748be18b7e82d7fcb58d` | clean after KEL-18 |
 | `kelolakelas-identity-service` | `main` | `77a521da869c3dde746174cd0ea29c16460694da` | clean after KEL-16 |
 | `kelolakelas-academic-service` | `main` | `2d3dd237d6bbbb62d3541c111f8db56ccbcfd906` | clean after KEL-27 |
