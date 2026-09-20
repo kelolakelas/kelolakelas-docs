@@ -3,7 +3,7 @@
 ## Status
 
 Accepted and implemented in KEL-8. Extended with a job kind in KEL-26 (see
-[ADR 0011](0011-release-enrollment-seat-on-failed-payment.md)).
+[ADR 0012](0012-release-enrollment-seat-on-failed-payment.md)).
 
 ## Context
 
@@ -45,7 +45,7 @@ constrains a transaction to at most one outstanding action at a time.
   calls when billing has more than one instance.
 - A second reconciliation table for seat release was rejected: it would allow a
   transaction to owe an activation and a release simultaneously, which has no
-  coherent resolution. See [ADR 0011](0011-release-enrollment-seat-on-failed-payment.md).
+  coherent resolution. See [ADR 0012](0012-release-enrollment-seat-on-failed-payment.md).
 
 ## Consequences
 

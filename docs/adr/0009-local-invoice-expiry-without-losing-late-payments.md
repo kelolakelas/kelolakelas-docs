@@ -82,5 +82,5 @@ Unpaid transactions now reach a terminal-looking state on their own, so any
 consumer that filters on `pending` must also consider `expired`. The expiry
 worker now also enqueues a durable seat release for the expired transaction in
 the same statement, which KEL-26 implemented on top of this decision; see
-[ADR 0011](0011-release-enrollment-seat-on-failed-payment.md). Expiry
+[ADR 0012](0012-release-enrollment-seat-on-failed-payment.md). Expiry
 notifications and parent-initiated cancellation remain out of scope.

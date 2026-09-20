@@ -1,4 +1,4 @@
-# ADR 0011: Releasing an enrollment seat when payment fails or expires
+# ADR 0012: Releasing an enrollment seat when payment fails or expires
 
 ## Status
 

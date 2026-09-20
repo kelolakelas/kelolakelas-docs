@@ -37,7 +37,7 @@ sequenceDiagram
 
 **Late payment after local expiry.** Billing records `transactions.invoice_expires_at` (the same window sent to Duitku) and `transactions.expired_at`. The expiry worker moves overdue `pending` rows to `expired` with a single conditional update guarded by `status = 'pending'` plus `FOR UPDATE SKIP LOCKED`, so it is idempotent and safe with several replicas. A `00` callback that arrives after that still wins: the transaction becomes `paid`, `expired_at` is retained as evidence, and subscription, wallet/ledger, and reconciliation side effects run normally. `01`/`02` cannot undo it. See [ADR 0009](../adr/0009-local-invoice-expiry-without-losing-late-payments.md). Evidence: `internal/repository/transaction_repository.go:125-166`, `internal/usecase/transaction_expiry_worker.go`, `internal/usecase/transaction_usecase.go:480-573`.
 
-**Seat release after a failed or expired payment.** An unpaid enrollment used to keep its schedule seat `pending` forever, because the academic capacity predicate counts `status IN ('pending','active')`. Billing now ends the hold as well as the invoice (KEL-26, [ADR 0011](../adr/0011-release-enrollment-seat-on-failed-payment.md)):
+**Seat release after a failed or expired payment.** An unpaid enrollment used to keep its schedule seat `pending` forever, because the academic capacity predicate counts `status IN ('pending','active')`. Billing now ends the hold as well as the invoice (KEL-26, [ADR 0012](../adr/0012-release-enrollment-seat-on-failed-payment.md)):
 
 ```mermaid
 sequenceDiagram
