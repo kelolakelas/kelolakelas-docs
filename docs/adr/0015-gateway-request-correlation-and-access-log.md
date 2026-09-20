@@ -27,8 +27,8 @@ diagnosis. Three problems compounded:
    formats.
 
 The access log also has to be safe by construction. Request paths in this system
-carry `?invitation_token=…` on the public invitation verification route, and every
-authenticated request carries `Authorization: Bearer …`. A naive access log that
+carry the invitation token as `?token=…` on the public invitation verification
+route, and every authenticated request carries `Authorization: Bearer …`. A naive access log that
 records `RequestURI` or dumps headers would write live credentials to disk, where
 they outlive their usefulness and bypass the JWT expiry that protects them
 everywhere else.
@@ -61,8 +61,8 @@ carrying: `request_id`, `method`, `path`, `status`, `latency_ms`, `client_ip`, a
 `target` when the request was proxied.
 
 **Redaction.** The middleware logs `c.Request.URL.Path`, never `RequestURI` or
-`Request.URL.String()`, so the query string — and therefore
-`?invitation_token=…` — can never appear. The `Authorization` header and the
+`Request.URL.String()`, so the query string — and therefore the invitation
+`?token=…` — can never appear. The `Authorization` header and the
 request body are not logged at all.
 
 **Encoding.** `main.go` installs `slog.NewJSONHandler(os.Stdout, nil)` as the
