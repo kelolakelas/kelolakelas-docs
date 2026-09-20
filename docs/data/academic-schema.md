@@ -19,7 +19,7 @@ erDiagram
 |---|---|
 | `categories`, `classes` | tenant IDs; class FK to category; soft deletes; catalog composite index |
 | `students` | parent ID, personal fields, soft delete |
-| `enrollments` | student/class FKs; schedule FK; unique non-null idempotency key; partial unique active/pending student/class |
+| `enrollments` | student/class FKs; schedule FK; unique non-null idempotency key; partial unique active/pending student/class. Status `dropped` is also what billing-driven seat release writes when a payment fails or expires, which frees the seat because the capacity predicate counts only `pending`/`active` (KEL-26, [ADR 0012](../adr/0012-release-enrollment-seat-on-failed-payment.md)) |
 | `class_schedules`, `class_sessions` | schedule capacity positive; class FK; schedule/session enrolment FKs added conditionally |
 | `attendances`, `student_notes`, `reports` | attendance unique `(session_id,enrollment_id)`; reports have enrollment FK and soft delete |
 | `tenant_location_snapshots`, `seed_versions` | public-catalog tenant-location cache; seed tracking |
