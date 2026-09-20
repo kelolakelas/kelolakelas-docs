@@ -43,6 +43,7 @@ Safe examples deliberately contain placeholders only. “Required” means the l
 | `SUBSCRIPTION_PAYMENT_EXPIRY_PERIOD_DAYS` | billing | optional; 14 | invoice validity in days; drives both the Duitku `expiryPeriod` and the stored `transactions.invoice_expires_at` | no | billing config, `internal/usecase/transaction_usecase.go`, `internal/usecase/subscription_worker.go` |
 | `TRANSACTION_EXPIRY_WORKER_ENABLED` | billing | optional; true | starts the local worker that marks overdue unpaid transactions `expired` | no | billing config/main |
 | `TRANSACTION_EXPIRY_WORKER_INTERVAL_MINUTES` | billing | optional; 5 | expiry worker poll interval | no | billing config |
+| `TRANSACTION_CLAIM_TIMEOUT_MINUTES` | billing | optional; 10 | how long an unowned invoice claim may stay unowned before another request may take it over | no | billing config, `internal/domain/transaction.go` |
 | `PAYMENT_RECONCILIATION_WORKER_ENABLED` | billing | optional; true | enables durable paid-enrollment activation retries | no | billing config |
 | `PAYMENT_RECONCILIATION_WORKER_INTERVAL_MINUTES` | billing | optional; 1 | reconciliation worker poll interval | no | billing config |
 | `PAYMENT_RECONCILIATION_MAX_ATTEMPTS` | billing | optional; 10 | attempts before terminal reconciliation failure | no | billing config |
