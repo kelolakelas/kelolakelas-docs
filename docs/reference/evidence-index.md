@@ -5,7 +5,7 @@ Source paths are repository-relative to `/home/faridzam/workspace/kelolakelas`. 
 | Claim area | Primary evidence |
 |---|---|
 | Revisions/state | `git -C kelolakelas-{web,api-gateway,identity-service,academic-service,billing-service} branch --show-current`, `rev-parse HEAD`, `status --short` recorded in root README |
-| Source revisions cited by title | `kelolakelas-academic-service` `7e1ade30858af0d365f61e0f13526c9a4c602d60` (KEL-19, PR #5); `kelolakelas-billing-service` `ea30a0a6c612dd8f00e93cc35d01b80856c5b3b6` (KEL-25, PR #4) |
+| Source revisions cited by title | `kelolakelas-academic-service` `7e1ade30858af0d365f61e0f13526c9a4c602d60` (KEL-19, PR #5); `kelolakelas-billing-service` `ea30a0a6c612dd8f00e93cc35d01b80856c5b3b6` (KEL-25, PR #4); `kelolakelas-identity-service` `77a521da869c3dde746174cd0ea29c16460694da` (KEL-16, PR #5) |
 | Web routes/server actions/cookies/auth routing | `kelolakelas-web/app/**/page.tsx`, `app/(auth)/*/_actions/actions.ts`, `app/(public)/kelas/[id]/_actions/actions.ts`, `app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx`, `app/(dashboard)/dashboard/parent/students/**`, `app/(dashboard)/dashboard/parent/enrollments/**`, `lib/auth-routing.ts`, `lib/auth-session.ts`, `lib/catalog.ts`, `lib/enrollment.ts`, `lib/payment-status.ts`, `proxy.ts`, `proxy.test.ts` |
 | Gateway public/protected routes | `kelolakelas-api-gateway/internal/delivery/http/router.go:29-142` |
 | Gateway proxy, CORS/rate limiting | `internal/delivery/http/handler/proxy_handler.go:39-86`; `middleware/cors_middleware.go`; `middleware/rate_limit_middleware.go:15-121` |
@@ -14,6 +14,7 @@ Source paths are repository-relative to `/home/faridzam/workspace/kelolakelas`. 
 | Identity gRPC | `internal/delivery/grpc/tenant_handler.go`; `pkg/proto/tenant/tenant_grpc.pb.go` |
 | Academic HTTP/contracts | `kelolakelas-academic-service/cmd/server/main.go:98-160`; `internal/delivery/http/handler/*.go`; `internal/domain/*.go`; student ownership/delete guard in `student_handler.go` and `student_usecase.go` |
 | Academic tenant context from verified JWT claim | `internal/delivery/http/handler/tenant_context.go`; `tenant_context_regression_test.go`; `class_publication_test.go`; `internal/delivery/http/middleware/auth_middleware.go`; ADR [0010](../adr/0010-tenant-context-from-verified-jwt-claim-only.md) |
+| Identity tenant context from verified JWT claim | `kelolakelas-identity-service/internal/delivery/http/handler/tenant_context.go`; `tenant_context_test.go`; `tenant_context_regression_test.go`; `internal/delivery/http/middleware/auth_middleware.go`; ADR [0010](../adr/0010-tenant-context-from-verified-jwt-claim-only.md) |
 | Academic catalog authorization | `kelolakelas-academic-service/internal/delivery/http/middleware/permission_middleware.go`; `pkg/grpcclient/permission_client.go`; route mapping in `cmd/server/main.go`; identity `internal/delivery/grpc/permission_service.go` |
 | Enrollment and inter-service billing | `academic/internal/usecase/enrollment_usecase.go`; `academic/pkg/billing/client.go`; `billing/internal/usecase/transaction_usecase.go`; `billing/pkg/academic/client.go` |
 | Billing/Duitku/worker | `billing/internal/delivery/http/handler/transaction_handler.go`; `pkg/duitku/client.go`; `internal/usecase/subscription_worker.go` |
