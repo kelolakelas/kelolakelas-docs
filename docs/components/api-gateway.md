@@ -1,6 +1,6 @@
 # API gateway (`kelolakelas-api-gateway`)
 
-**Implemented:** Gin service on `:8000` by default. It registers recovery, restrictive origin matching CORS, Redis-backed rate limiting, health, local Swagger shell, service Swagger proxies, public routes, and a JWT-protected route group. Evidence: `cmd/server/main.go:18-51`, `internal/delivery/http/router.go:19-142`.
+**Implemented:** Gin service on `:8000` by default. It registers recovery, restrictive origin matching CORS, Redis-backed rate limiting, health, local Swagger shell, service Swagger proxies, public routes, and a JWT-protected route group. Evidence: `cmd/server/main.go:18-51`, `internal/delivery/http/router.go:19-143`.
 
 It builds a standard Go single-host reverse proxy per service. Route paths are retained: a caller of `/api/v1/classes` is forwarded as `/api/v1/classes`; request headers/body are otherwise retained. For academic/billing it **replaces** `X-Tenant-ID` with the validated gateway claim when the token carries a tenant; when the token has no tenant claim, the condition is false and an inbound `X-Tenant-ID` is forwarded unchanged. Downstream services do not treat that header as authorization: academic resolves tenant context from the verified JWT claim only (see [ADR 0010](../adr/0010-tenant-context-from-verified-jwt-claim-only.md)). It does not translate authentication, enforce roles, retry downstream failures, or define a proxy error handler. Evidence: `internal/delivery/http/handler/proxy_handler.go:39-95`.
 

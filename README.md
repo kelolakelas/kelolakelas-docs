@@ -1,16 +1,16 @@
 # KelolaKelas current-state documentation
 
-This is an evidence-based onboarding and operations guide for the implementation found on 2026-09-15 (Asia/Jakarta). It describes code as it exists; it is not a design proposal or deployment runbook.
+This is an evidence-based onboarding and operations guide for the implementation found on 2026-09-20 (Asia/Jakarta). It describes code as it exists; it is not a design proposal or deployment runbook.
 
 ## Scope and snapshot
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
 | `kelolakelas-web` | `main` | `ff8186453017517f8c2230e435f06bd578ad8c94` | clean |
-| `kelolakelas-api-gateway` | `main` | `5327d10eb9b2f5351b268b0363552d7ca1ab5a78` | clean |
-| `kelolakelas-identity-service` | `main` | `0b2301827342b542ece395ec0a8a316279342e2d` | clean |
-| `kelolakelas-academic-service` | `main` | `7e1ade30858af0d365f61e0f13526c9a4c602d60` | clean after KEL-19 |
-| `kelolakelas-billing-service` | `main` | `ea30a0a6c612dd8f00e93cc35d01b80856c5b3b6` | clean after KEL-25 |
+| `kelolakelas-api-gateway` | `main` | `1c48d6315ebf64344663079e99f7c3ff8e81531b` | clean after KEL-30 |
+| `kelolakelas-identity-service` | `main` | `77a521da869c3dde746174cd0ea29c16460694da` | clean after KEL-16 |
+| `kelolakelas-academic-service` | `main` | `33f8a0dadce607cf8af302a30c4e629c6fcb9e83` | clean after KEL-30 |
+| `kelolakelas-billing-service` | `main` | `ca5698b5675195b42714cac5e56c405890a7cf7d` | clean after KEL-25 |
 
 **Implemented:** KelolaKelas is a Next.js App Router UI, a Gin reverse-proxy gateway, and separate identity, academic, and billing Go services. The code configures PostgreSQL per stateful service, Redis for gateway rate limiting and identity permission caching, identity gRPC on `:50051`, Duitku payment requests, Resend email, and optional Google Maps geocoding. Parent enrollment now uses the public catalog detail page to select an owned student and schedule before redirecting to the backend-provided checkout URL. See [architecture](docs/02-architecture.md).
 

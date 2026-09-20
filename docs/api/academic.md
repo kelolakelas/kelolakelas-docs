@@ -5,7 +5,7 @@ Routes registered in `kelolakelas-academic-service/cmd/server/main.go:98-169` ar
 | Area | Operations | Request/response source |
 |---|---|---|
 | Catalog | list/detail public classes | `catalog_handler.go`, `domain/catalog.go` |
-| Categories/classes | list/create/delete, create-with-category, publication toggle | `category_handler.go`, `class_handler.go`, `domain/category.go`, `domain/class.go` |
+| Categories/classes | list/create/delete, create-with-category, attribute update, publication toggle | `category_handler.go`, `class_handler.go`, `domain/category.go`, `domain/class.go` |
 | Schedules/sessions | create/list/delete, permanent/time or tutor changes, reschedule/substitute, attendees | `schedule_handler.go`, `session_handler.go`, `domain/schedule_dto.go` |
 | Students | list/create/get/update/delete; parent list/create/update/delete is ownership-scoped | `student_handler.go`, `domain/student.go`, web `app/(dashboard)/dashboard/parent/students/**` |
 | Attendance/reports | list/create/get/update (reports also delete) | respective handlers/domain files |
@@ -24,6 +24,10 @@ The public catalog enrollment route is in the gateway’s protected group despit
 For `POST /api/v1/tenants/:tenant_id/enrollments`, a non-parent caller must present a claim equal to the `:tenant_id` path segment; a mismatch is 403 and no enrollment is created. A parent caller keeps the existing public catalog enrollment flow, which is scoped by student ownership rather than by tenant, and the path segment is still validated as a UUID (400 when malformed). Evidence: `internal/delivery/http/handler/enrollment_handler.go`.
 
 The academic Swagger document no longer declares `X-Tenant-ID` as a request parameter on any operation; the regenerated `docs/swagger.{json,yaml}` and `docs/docs.go` contain no occurrence of it.
+
+## Class attribute update
+
+**Implemented:** `PATCH /api/v1/classes/:id` applies a partial update to a class owned by the caller’s tenant. The handler requires the `class:update` permission, derives the tenant from the verified JWT claim, and passes only the supplied fields; `category_id`, `name`, `description`, `price`, and `type` are the accepted fields, and an omitted field keeps its stored value. The use case loads the class tenant-scoped, reports a class owned by another tenant as 404 rather than 403 so the endpoint does not confirm the existence of foreign rows, and the repository write repeats `WHERE id = ? AND tenant_id = ?` so a zero row count becomes not found. A changed `category_id` is re-validated for existence and ownership; both a missing category and a foreign-tenant category are 422, so the endpoint is not an existence oracle for other tenants’ categories either. Changing `type` is rejected with 422 because schedules, sessions, and enrollments were created against the stored type. A blank `name` and a negative `price` are 422. Price changes are forward-only: each enrollment persists the price snapshot it was created with, so an existing enrollment keeps its stored gross amount and is never re-priced. See [ADR 0013](../adr/0013-tenant-scoped-class-update.md). Evidence: `internal/delivery/http/handler/class_handler.go`, `internal/usecase/class_usecase.go`, `internal/repository/class_repository.go`, `internal/domain/class.go`, `internal/delivery/http/handler/class_update_test.go`, `internal/usecase/class_update_test.go`.
 
 ## Student ownership and deletion guard
 

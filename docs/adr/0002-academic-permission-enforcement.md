@@ -27,7 +27,7 @@ Permission mapping:
 | Mutation | Permission |
 |---|---|
 | Category create/delete | `category:create` / `category:delete` |
-| Class create/delete/publication | `class:create` / `class:delete` / `class:update` |
+| Class create/delete/attribute update/publication | `class:create` / `class:delete` / `class:update` (see [ADR 0013](0013-tenant-scoped-class-update.md)) |
 | Schedule create/delete | `schedule:create` / `schedule:delete` |
 | Schedule and session changes | `schedule:update` |
 
