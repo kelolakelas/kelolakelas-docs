@@ -16,11 +16,18 @@ would also leave direct academic service exposure unprotected.
 
 Academic calls an internal `tenant.PermissionService/CheckPermission` gRPC method on
 identity before category, class, schedule, or schedule-related session mutations.
-The request contains `role_id` and `permission`; the response contains `allowed`.
-Identity reads `role_permissions` joined to `permissions` and returns the current
-persisted assignment. Missing role context and denied permissions return HTTP 403.
-Identity connectivity or lookup failures return HTTP 503 and the academic handler is
-not invoked.
+The request contains `role_id`, `permission`, and `tenant_id`; the response contains
+`allowed`. Identity reads `role_permissions` joined to `permissions` and returns the
+current persisted assignment. Missing role context and denied permissions return HTTP
+403. Identity connectivity or lookup failures return HTTP 503 and the academic handler
+is not invoked.
+
+The check is scoped to the tenant the caller is operating on, because a role identifier
+alone does not describe who the caller may act as. Identity counts an assignment only
+when the role belongs to that tenant or is a system role (`roles.tenant_id IS NULL`), so
+a role from another tenant never satisfies a check. Academic resolves the tenant from
+the same verified JWT claim the rest of the request uses — never from a request header —
+and rejects a caller whose claim carries no usable tenant before consulting identity.
 
 Permission mapping:
 
@@ -35,6 +42,28 @@ Public catalog list/detail routes remain unauthenticated and are not passed thro
 the permission middleware. Existing use-case tenant/resource ownership checks remain
 the second authorization layer.
 
+## Adding `tenant_id` to a live contract
+
+The `tenant_id` field is additive: `role_id` and `permission` keep their names and
+meaning, and the response shape is unchanged. An identity deployment that does not read
+`tenant_id` yet ignores the extra key, so academic may start sending it before identity
+enforces it. Because the two services are separate deployables, the documented order is:
+
+1. Deploy identity with `PERMISSION_REQUIRE_TENANT_ID=false`, which still answers requests
+   that omit `tenant_id` using the previous tenant-blind lookup.
+2. Deploy academic, which begins sending the tenant on every check.
+3. Set `PERMISSION_REQUIRE_TENANT_ID=true` and restart identity, after which a request
+   without a valid `tenant_id` is rejected as `InvalidArgument` instead of answered.
+
+Step 3 is the point at which scoping is guaranteed for every caller. It is deliberately a
+configuration change rather than part of step 1, so the rollout can be paused or rolled
+back without another deployment. Identity logs which mode it started in. The same tenant
+rule is applied by identity's own in-process checks, so invitation creation, tenant
+settings and location updates, custom-role mutations, and member role changes are not
+subject to the transition window: `CreateInvitation` additionally resolves the invited
+`role_id` and rejects one that is neither owned by the tenant nor a system role with a 400
+validation error before anything is persisted.
+
 ## Consequences
 
 Role permission changes take effect on the next mutation request even when a JWT is
@@ -42,6 +71,11 @@ still valid. Academic mutation availability now depends on identity gRPC; operat
 must keep that internal network path reachable. The gRPC connection remains plaintext
 and unauthenticated in the current deployment, so network restriction and a future
 mTLS/service-authentication change remain required hardening work.
+
+A role deleted after a token was issued yields no rows in the scoped lookup, so it is
+denied rather than treated as an error, and the caller learns nothing about whether the
+role still exists. System roles seeded with a null tenant remain usable by every tenant,
+which is what keeps the built-in `Creator` and `Teacher` roles working.
 
 ## Alternatives considered
 
@@ -51,3 +85,12 @@ mTLS/service-authentication change remain required hardening work.
   the gateway.
 - Query identity over public HTTP: rejected because the existing internal identity
   data boundary is gRPC and would add another service URL/credential contract.
+- Make `tenant_id` mandatory in the first identity release: rejected because academic
+  would then be broken during the window before it is redeployed, turning a security
+  fix into an outage; the flag keeps enforcement and deployment independently
+  controllable.
+- Derive the tenant from the resource being mutated instead of the caller's claim:
+  rejected because it would let a caller holding a role in tenant A act on tenant B
+  whenever they can name a resource there, and because the gateway already establishes
+  the claim as the only trusted tenant source (see
+  [ADR 0010](0010-tenant-context-from-verified-jwt-claim-only.md)).

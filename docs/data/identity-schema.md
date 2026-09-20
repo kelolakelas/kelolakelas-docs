@@ -17,7 +17,7 @@ erDiagram
 | Tables | Important constraints/indexes |
 |---|---|
 | `users`, `tenants` | unique email/name; soft delete; tenants validate latitude/longitude pairing and ranges |
-| `roles`, `permissions`, `role_permissions`, `tenant_members` | unique `(tenant_id,name)` and `(tenant_id,user_id)`; FKs to tenant/user/role/permission |
+| `roles`, `permissions`, `role_permissions`, `tenant_members` | unique `(tenant_id,name)` and `(tenant_id,user_id)`; FKs to tenant/user/role/permission. `roles.tenant_id` is nullable: a null row is a system role seeded for every tenant (the built-in `Creator` and `Teacher` roles), which is why a permission lookup counts an assignment only when `roles.tenant_id` equals the tenant being operated on or is null |
 | `tenant_invitations` | unique token; tenant/role FKs; used/expiry fields |
 | `tenant_wallets`, `user_wallets`, bank accounts, ledger entries, withdrawals | FK-backed identity financial tables; withdrawal status indexes |
 | `seed_versions` | records seeder filename/checksum/application time |

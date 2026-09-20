@@ -40,6 +40,7 @@ Safe examples deliberately contain placeholders only. “Required” means the l
 | `RESEND_FROM_EMAIL` | identity/billing | optional at loader | sender, `noreply@example.test` | no | identity/billing config/email packages |
 | `GOOGLE_MAPS_API_KEY` | identity | optional | Maps API key, `<redacted>` | yes | identity config/maps client |
 | `GOOGLE_MAPS_GEOCODING_ENABLED` / `GOOGLE_MAPS_TIMEOUT_SECONDS` | identity | optional; false/5 | opt-in geocode and HTTP timeout | no | identity config/maps client |
+| `PERMISSION_REQUIRE_TENANT_ID` | identity | optional; false | makes `tenant_id` mandatory on the internal `CheckPermission` request. Deploy identity with the default `false` first, then academic, then set `true` and restart so the tenant-scoped decision is guaranteed for every caller (see [ADR 0002](../adr/0002-academic-permission-enforcement.md)) | no | identity config, `internal/delivery/grpc/permission_service.go`, `cmd/server/main.go` |
 | `DUITKU_API_BASE_URL` | billing | optional; sandbox base | Duitku base, `https://sandbox.duitku.com/...` | no | billing config |
 | `DUITKU_API_KEY` / `DUITKU_MERCHANT_CODE` | billing | optional loader; needed to create invoice | provider credentials, `<redacted>` | yes | billing config/duitku client |
 | `DUITKU_CALLBACK_URL` / `DUITKU_RETURN_URL` | billing | optional; callback defaults local service path, return defaults callback | provider callback/return, `https://api.example.test/api/v1/billing/webhooks/duitku` | no | billing config |
