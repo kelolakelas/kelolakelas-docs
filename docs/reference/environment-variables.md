@@ -30,6 +30,12 @@ Safe examples deliberately contain placeholders only. “Required” means the l
 | `RATE_LIMIT_PUBLIC_REQUESTS` / `RATE_LIMIT_PROTECTED_REQUESTS` | gateway | optional; 60/120 | public/protected caps | no | gateway config/middleware |
 | `RATE_LIMIT_LOGIN_REQUESTS` / `RATE_LIMIT_REGISTER_REQUESTS` | gateway | optional; 5/10 | sensitive endpoint caps | no | gateway config/middleware |
 | `RATE_LIMIT_WEBHOOK_REQUESTS` / `RATE_LIMIT_WEBHOOK_WINDOW_SECONDS` | gateway | optional; 120/general window | callback cap/window | no | gateway config/middleware |
+| `PROXY_UPSTREAM_TIMEOUT_SECONDS` | gateway | optional; 30 | per-request deadline for one proxied call; expiry answers `504` `Upstream service timed out` | no | gateway config, `internal/delivery/http/handler/proxy_handler.go` |
+| `PROXY_MAX_BODY_BYTES` | gateway | optional; 1048576 (1 MiB) | request body cap enforced before forwarding; a larger body answers `413` `Request body exceeds the configured limit`. Must exceed the largest legitimate payload (the Duitku callback and the registration forms) | no | gateway config, `internal/delivery/http/middleware/body_limit_middleware.go` |
+| `SERVER_READ_HEADER_TIMEOUT_SECONDS` | gateway | optional; 5 | `http.Server.ReadHeaderTimeout`; bounds a client that opens a connection and stalls before sending headers | no | gateway config, `cmd/server/main.go` (`newHTTPServer`) |
+| `SERVER_READ_TIMEOUT_SECONDS` | gateway | optional; 30 | `http.Server.ReadTimeout`; bounds reading the whole request | no | gateway config, `cmd/server/main.go` (`newHTTPServer`) |
+| `SERVER_WRITE_TIMEOUT_SECONDS` | gateway | optional; 60 | `http.Server.WriteTimeout`; **must be greater than `PROXY_UPSTREAM_TIMEOUT_SECONDS`** or loading fails with an explanatory error rather than clamping | no | gateway config, `cmd/server/main.go` (`newHTTPServer`) |
+| `SERVER_IDLE_TIMEOUT_SECONDS` | gateway | optional; 120 | `http.Server.IdleTimeout` for kept-alive connections | no | gateway config, `cmd/server/main.go` (`newHTTPServer`) |
 | `RESEND_API_KEY` | identity/billing | optional at loader; needed to deliver email | Resend credential, `<redacted>` | yes | identity/billing config/email packages |
 | `RESEND_FROM_EMAIL` | identity/billing | optional at loader | sender, `noreply@example.test` | no | identity/billing config/email packages |
 | `GOOGLE_MAPS_API_KEY` | identity | optional | Maps API key, `<redacted>` | yes | identity config/maps client |

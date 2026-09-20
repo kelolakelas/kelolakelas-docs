@@ -1,10 +1,26 @@
 # Gateway surface
 
-**Implemented gateway-owned endpoints:** `GET /health`, `GET /swagger`, `GET /swagger/*any`, and prefixed service Swagger UIs. Every `/api/v1` business route is proxied; no response envelope is added. Route registration is the authority: `kelolakelas-api-gateway/internal/delivery/http/router.go:38-147`.
+**Implemented gateway-owned endpoints:** `GET /health`, `GET /swagger`, `GET /swagger/*any`, and prefixed service Swagger UIs. Every `/api/v1` business route is proxied; no successful response envelope is added. Route registration is the authority: `kelolakelas-api-gateway/internal/delivery/http/router.go:38-147`.
 
 The gateway’s public request paths and downstream paths are identical. It groups identity registration/invitations and academic catalog as public, and billing callback as public. All other listed paths receive gateway JWT validation before forwarding. This does not remove the downstream service’s own validation requirement.
 
 For a complete route-by-route list, including handler (`ProxyTo…Service`), downstream target, authentication, and code evidence, see the [endpoint matrix](endpoint-matrix.md).
+
+## Gateway-generated error envelope
+
+**Implemented:** the gateway adds no envelope to a successful proxied response, but it owns the response when a request never reaches a healthy downstream or when a body exceeds the configured limit. Those cases answer with the same envelope every other service uses:
+
+```json
+{ "status": "error", "message": "…", "data": null }
+```
+
+| Condition | Status | `message` |
+|---|---|---|
+| Downstream does not answer within `PROXY_UPSTREAM_TIMEOUT_SECONDS` | `504` | `Upstream service timed out` |
+| Downstream cannot be reached (refused, DNS failure, reset before the response header) | `502` | `Upstream service is unavailable` |
+| Request body exceeds `PROXY_MAX_BODY_BYTES` | `413` | `Request body exceeds the configured limit` |
+
+The `413` is produced before the request is forwarded when the client declares a `Content-Length` over the limit. A chunked body declares no length, so it can only be stopped while it is read; the read error is classified into the same envelope and still returns `413`. A `413`, `502`, or `504` response body never contains the downstream host, path, or transport error text, so the gateway's failure surface does not disclose internal topology. Evidence: `internal/delivery/http/handler/proxy_handler.go`, `internal/delivery/http/middleware/error_response.go`, `internal/delivery/http/middleware/body_limit_middleware.go`.
 
 ## Context headers
 
