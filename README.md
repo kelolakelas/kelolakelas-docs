@@ -1,6 +1,6 @@
 # KelolaKelas current-state documentation
 
-This is an evidence-based onboarding and operations guide for the implementation found on 2026-09-20 (Asia/Jakarta). It describes code as it exists; it is not a design proposal or deployment runbook.
+This is an evidence-based onboarding and operations guide for the implementation found on 2026-09-21 (Asia/Jakarta). It describes code as it exists; it is not a design proposal or deployment runbook.
 
 ## Scope and snapshot
 
@@ -10,7 +10,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 | `kelolakelas-api-gateway` | `main` | `fcd0c6dc2c39c6df1f60748be18b7e82d7fcb58d` | clean after KEL-18 |
 | `kelolakelas-identity-service` | `main` | `77a521da869c3dde746174cd0ea29c16460694da` | clean after KEL-16 |
 | `kelolakelas-academic-service` | `main` | `a47891d5aa183b9c6452ac5adc28e6bc947c1b22` | clean after KEL-17 |
-| `kelolakelas-billing-service` | `main` | `727fe560666f788d41b2b828b11c57ea19d8c637` | clean after KEL-27 |
+| `kelolakelas-billing-service` | `main` | `9772e10f47ca10cf2d45938a98a06ccf0590f3d8` | clean after KEL-24 |
 
 **Implemented:** KelolaKelas is a Next.js App Router UI, a Gin reverse-proxy gateway, and separate identity, academic, and billing Go services. The code configures PostgreSQL per stateful service, Redis for gateway rate limiting and identity permission caching, identity gRPC on `:50051`, Duitku payment requests, Resend email, and optional Google Maps geocoding. Parent enrollment now uses the public catalog detail page to select an owned student and schedule before redirecting to the backend-provided checkout URL, and a parent can cancel their own pending enrollment, which withdraws the invoice and returns the seat. The gateway strips the client-supplied `X-Tenant-ID` and `X-Internal-Service-Credential` from every inbound request and republishes the tenant header from the verified JWT claim on protected routes. Academic session and schedule mutations resolve the target resource through the caller's tenant in SQL, so a session or schedule owned by another tenant is reported as not found with no data change. See [architecture](docs/02-architecture.md).
 

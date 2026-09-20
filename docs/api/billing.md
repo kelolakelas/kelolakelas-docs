@@ -3,7 +3,7 @@
 | Method/path | Authentication | Request/response | Evidence |
 |---|---|---|---|
 | `POST /api/v1/billing/webhooks/duitku` | public; Duitku HMAC validation | `DuitkuCallbackPayload`; success/error envelope | `transaction_handler.go:239-283` |
-| `GET /api/v1/billing/transactions` | user JWT | filtered/list transaction response; `status` filter accepts `pending`, `paid`, `failed`, `expired`, `cancelled`, `refunded` | `transaction_handler.go:29-104` |
+| `GET /api/v1/billing/transactions` | user JWT | filtered/list transaction response; `status` filter accepts `pending`, `paid`, `failed`, `expired`, `cancelled`, `refunded`, `creating` | `transaction_handler.go:29-104` |
 | `GET /api/v1/billing/transactions/:id` | user JWT | transaction response | `transaction_handler.go:105-155` |
 | `POST /internal/billing/transactions` | internal bearer credential | internal invoice request → transaction ID/checkout URL | `cmd/server/main.go:102` |
 | `POST /internal/billing/transactions/cancel` | internal bearer credential | `CancelEnrollmentPaymentRequest` → cancelled transaction; 404 no transaction, 409 already settled | `transaction_handler.go:156-193`, `cmd/server/main.go:103` |
@@ -17,3 +17,7 @@ For paid transactions, the list/detail response also exposes `reconciliation_sta
 `reconciliation_kind` names the Academic action an outstanding job owes: `activation` confirms a paid seat, `release` gives the seat back after the payment failed or the invoice expired (KEL-26, [ADR 0012](../adr/0012-release-enrollment-seat-on-failed-payment.md)). It is omitted when no reconciliation row exists, so an operator can tell a payment that is still settling from a failed payment that freed the seat again.
 
 Every transaction response also exposes `invoice_expires_at` (the deadline sent to Duitku and enforced locally) and `expired_at` (set when the local expiry worker moved an unpaid transaction to `expired`). Both are omitted when unset. A transaction can legitimately be `paid` with a non-null `expired_at` when a valid payment callback arrived after the local deadline; see [ADR 0009](../adr/0009-local-invoice-expiry-without-losing-late-payments.md). Callback result codes outside `00`/`01`/`02` change nothing and are recorded as structured `WARN` logs.
+
+The `status` filter accepts exactly the statuses the code writes, including `creating`. The handler validates through `domain.IsTransactionStatusFilterValue` (`internal/domain/transaction.go:61`) instead of hand-listing values per call site, and an unknown status answers `400 Invalid transaction status`. `domain.TransactionStatusFilterValues` (`:45`) is the single accepted set; `internal/domain/transaction_status_test.go` parses `transaction.go` with `go/parser` and fails if the constants the code writes and that accepted set ever diverge, so a new status cannot be written without also being filterable.
+
+A transaction response also exposes `invoice_claimed_at` (when the in-flight attempt to create the invoice took exclusive ownership of the row) and `invoice_failure_reason` (why the last attempt failed). Both are omitted when unset. They are the durable evidence behind the recovery behaviour described in [billing and subscriptions](../flows/billing-and-subscriptions.md), and they are what makes a `creating` row diagnosable through the API instead of only visible in the database.
