@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted and implemented in KEL-8.
+Accepted and implemented in KEL-8. Extended with a job kind in KEL-26 (see
+[ADR 0011](0011-release-enrollment-seat-on-failed-payment.md)).
 
 ## Context
 
@@ -28,6 +29,12 @@ failure details. `active` means Academic acknowledged activation;
 `reconciling` means the activation remains pending or is being retried; and
 `terminal_failed` means the configured attempt limit was reached.
 
+The row carries a `kind` that names the Academic action it owes. `activation`
+confirms a paid seat and is the original behaviour; `release` gives the seat back
+after the payment failed or the invoice expired, which KEL-26 introduced on the
+same row and the same retry loop. The unique `transaction_id` therefore
+constrains a transaction to at most one outstanding action at a time.
+
 ## Alternatives considered
 
 - An external message broker would provide durable delivery but adds a new
@@ -36,6 +43,9 @@ failure details. `active` means Academic acknowledged activation;
   resend a callback.
 - A scheduled database query without a claim lease could duplicate activation
   calls when billing has more than one instance.
+- A second reconciliation table for seat release was rejected: it would allow a
+  transaction to owe an activation and a release simultaneously, which has no
+  coherent resolution. See [ADR 0011](0011-release-enrollment-seat-on-failed-payment.md).
 
 ## Consequences
 
