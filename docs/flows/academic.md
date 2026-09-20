@@ -8,7 +8,7 @@ sequenceDiagram
   participant I as Identity gRPC
   participant DB as Academic DB
   C->>G: create category/class + Bearer JWT
-  G->>A: proxy + Bearer (X-Tenant-ID replaced from claim when present)
+  G->>A: proxy + Bearer (X-Tenant-ID from claim, or absent)
   A->>A: tenant ID from verified JWT claim only
   A->>I: ValidateTenantStatus(tenant ID)
   I-->>A: active/inactive
