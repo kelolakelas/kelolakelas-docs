@@ -28,6 +28,19 @@ The public catalog reads only `is_published`/open catalog data and enriches tena
 
 Failures include missing key (400), forbidden non-parent catalog use (403), tenant-context mismatch or absent tenant claim (403), absent student/class (404), idempotency conflict/capacity/state conflict (409), and unenrollable class/student ownership (422), where explicitly mapped by the handler. A billing call failure can leave an existing pending enrollment; retry behavior uses idempotency logic.
 
+## Parent cancellation of a pending enrollment
+
+**Initiator:** a parent JWT caller uses `POST /api/v1/enrollments/:id/cancel` (KEL-27, [ADR 0016](../adr/0016-cancel-pending-enrollment.md)). **Rules:** the enrollment is loaded through the same parent-scoped access filter as the enrollment queries, so another parent's enrollment is reported as 404 rather than 403 and the parent learns nothing about its existence. An `active` or `completed` enrollment is refused with 409 before anything is written. **Writes:** academic first asks billing to withdraw the invoice at `POST /internal/billing/transactions/cancel`, then moves the enrollment `pending` → `dropped` under a row lock. **Side effect:** the seat returns to the catalog, because the capacity predicate counts only `pending`/`active` and `dropped` falls outside the unique partial index on `(student_id, class_id)`, so the same student can enroll again.
+
+The billing withdrawal is what makes the operation safe to retry and safe to refuse:
+
+- A transaction that can no longer be cancelled (already `paid`/`refunded`) makes the whole request 409 with the enrollment untouched, so a seat is never revoked for money the parent actually paid.
+- An enrollment with no transaction at all is still cancellable, so an enrollment whose invoice creation never completed does not hold a seat forever.
+- An unexpected billing failure is reported as 500 rather than treated as "no transaction", so a transient billing outage cannot drop a paid seat.
+- An already-`dropped` enrollment is answered with 409, the same as any other finished state. The withdrawal still runs first, because such an enrollment can hold an invoice that was paid after its seat was released, and that case must be refused on the invoice state instead of reported as cancelled.
+
+Failures mapped by the handler: malformed enrollment ID (400), missing parent identity or a non-parent caller (403), enrollment not found or owned by another parent (404), and any non-`pending` status or a settled invoice (409). Evidence: `internal/delivery/http/handler/enrollment_handler.go` (`Cancel`), `internal/usecase/enrollment_usecase.go` (`CancelPendingEnrollment`), `pkg/billing/client.go` (`CancelEnrollmentPayment`).
+
 ### Parent checkout from the public catalog
 
 ```mermaid
