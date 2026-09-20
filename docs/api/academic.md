@@ -6,7 +6,7 @@ Routes registered in `kelolakelas-academic-service/cmd/server/main.go:98-170` ar
 |---|---|---|
 | Catalog | list/detail public classes | `catalog_handler.go`, `domain/catalog.go` |
 | Categories/classes | list/create/delete, create-with-category, attribute update, publication toggle | `category_handler.go`, `class_handler.go`, `domain/category.go`, `domain/class.go` |
-| Schedules/sessions | create/list/delete, permanent/time or tutor changes, reschedule/substitute, attendees | `schedule_handler.go`, `session_handler.go`, `domain/schedule_dto.go` |
+| Schedules/sessions | create/list/delete, permanent/time or tutor changes, reschedule/substitute, attendees; mutations are tenant-scoped to the owning class, and a foreign resource is 404 | `schedule_handler.go`, `session_handler.go`, `domain/schedule_dto.go`; ADR [0019](../adr/0019-tenant-scoped-session-and-schedule-mutations.md) |
 | Students | list/create/get/update/delete; parent list/create/update/delete is ownership-scoped | `student_handler.go`, `domain/student.go`, web `app/(dashboard)/dashboard/parent/students/**` |
 | Attendance/reports | list/create/get/update (reports also delete) | respective handlers/domain files |
 | Enrollments | create tenant/catalog enrollment, list/get, schedule assignment, parent cancellation; internal activate and release | `enrollment_handler.go`, `domain/enrollment.go` |
