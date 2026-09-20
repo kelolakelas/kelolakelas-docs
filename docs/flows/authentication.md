@@ -16,6 +16,25 @@ sequenceDiagram
   W-->>U: parent register returns to login; login/tenant register set HTTP-only cookie
 ```
 
+## Logout
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant W as Web action
+  U->>W: logout form (tenant sidebar/drawer, parent headers, active-parent catalog)
+  W->>W: delete auth and tenant cookies, unconditionally
+  W->>W: revalidatePath purges the Client Cache
+  W-->>U: redirect /login
+  Note over U,W: No identity call. The JWT stays valid until its 24-hour expiry.
+```
+
+**Implemented:** the web app now ends the browser session through the `logoutAction` Server Action (`kelolakelas-web/app/(auth)/logout/_actions/actions.ts`). It deletes both session cookies, calls `revalidatePath('/', 'layout')`, and redirects to `/login`. The cookie names come from `sessionCookieNames` in `kelolakelas-web/lib/logout.ts`, which applies the same `AUTH_COOKIE_NAME`/`TENANT_ID_COOKIE_NAME` fallbacks that login and registration use to write them and collapses them when both variables name the same cookie. The control is the `LogoutButton` form (`_components/LogoutButton.tsx`), a plain form with a `useFormStatus` submit control, so signing out works without client JavaScript and the pending state prevents a double submit. It appears in the tenant sidebar footer and the tenant mobile drawer footer, in the parent student-management and enrollment-history headers, and on the public catalog `/kelas` only when a parent session is active — `/kelas` is a parent's post-login destination, so the session would otherwise be unreachable from there. Evidence: `app/(auth)/logout/_actions/actions.ts`, `_actions/actions.test.ts`, `_components/LogoutButton.tsx`, `lib/logout.ts`, `lib/logout.test.ts`, `app/(dashboard)/dashboard/tenant/_components/{TenantSidebar,MobileNav}.tsx`, `app/(dashboard)/dashboard/parent/students/_components/StudentsManager.tsx`, `app/(dashboard)/dashboard/parent/enrollments/page.tsx`, `app/(public)/kelas/page.tsx`, [ADR 0022](../adr/0022-web-logout-ends-browser-session-only.md).
+
+**Implemented behavior:** deletion is unconditional and idempotent. Upstream `ResponseCookies.delete` writes an already-expired cookie and tolerates a name that the request never carried, so signing out while already signed out — an expired cookie the proxy cleared, a second tab that signed out first, a stale back-button view — produces no error. `revalidatePath` runs before the redirect because otherwise the client router could serve a protected page it already cached and logout would appear to have failed until a hard reload. Logout adds no URL: `_actions` and `_components` are private Next.js folders and no `/logout` route is registered.
+
+**Not implemented:** the session is a self-contained HS256 JWT with a 24-hour expiry and identity exposes no revocation endpoint or denylist, so logout removes the browser's copy of the token only. A token copied before logout remains accepted until it expires, and a second open tab loses the session on its next navigation or reload rather than immediately. The action documents this limitation in its own docblock. Revocation, an account profile page, and logout from all devices are out of scope.
+
 ## Parent registration
 
 **Initiator/entry:** web `registerParent`, `POST /api/v1/auth/register`. It validates first/last name, email, password min 6, optional phone, and sends `is_parent:true` (`kelolakelas-web/app/(auth)/register/_schemas/schema.ts`, `_actions/actions.ts:25-83`). Identity binds the same essential fields, hashes password through its auth use case, and returns 201 user data without token (`kelolakelas-identity-service/internal/delivery/http/handler/auth_handler.go:24-91`).
@@ -36,4 +55,4 @@ Authenticated callers create a role-targeted invitation using the tenant claim. 
 
 **Implemented:** the invitation email link is now followed in the browser. The recipient opens `/invitations/verify?token=…` in `kelolakelas-web`, which loads on the public surface (neither protected nor redirected by `proxy.ts`). The page performs `GET /api/v1/invitations/verify` server-side with `cache: 'no-store'` before rendering, and the result is classified into exactly one state: `valid`, `missing_token`, `not_found`, `expired`, `used`, `unavailable`, or `invalid`. Identity answers an expired token and an already-used token with the same `400` status, so the web classifier distinguishes them by the backend message; anything it cannot interpret — a `5xx`, malformed JSON, a network failure, or an unconfigured `GATEWAY_API_URL` — becomes `unavailable` and never `invalid`, so an infrastructure failure is not reported to the invitee as a bad link. On the valid path the invitee sees the invited address and the invitation expiry (formatted for `Asia/Jakarta`) and submits first/last name plus password through the `registerInvitedUser` Server Action to the public `POST /api/v1/invitations/register`; the email is read-only and never submitted from the browser, because identity reads the address, tenant, and role from the invitation row inside `RegisterInvitedUserTx`. Success redirects to `/login?registered=1` without a session, consistent with parent registration. The invitation token is stripped from the normalised invitation data and cannot be rendered or logged; the gateway access log records `URL.Path` only, so the `?token=…` query string never appears there ([ADR 0015](../adr/0015-gateway-request-correlation-and-access-log.md)). **Not implemented:** the identity verify response exposes `tenant_id` and `role_id` without display names and no public endpoint resolves them, so the page shows a generic tenant heading when the public catalog does not already expose that tenant, and it does not render the invited role. Evidence: `kelolakelas-web/app/(auth)/invitations/verify/page.tsx`, `_actions/actions.ts`, `_components/InvitationRegisterForm.tsx`, `lib/invitation.ts`, `lib/invitation.test.ts`.
 
-**Not found:** refresh token, logout, token denylist/revocation, password reset, email verification, OAuth, and multi-factor authentication routes.
+**Not found:** refresh token, token denylist/revocation, password reset, email verification, OAuth, and multi-factor authentication routes. Logout is implemented in the web app only and is documented under [Logout](#logout) above; there is still no logout or revocation endpoint in identity.
