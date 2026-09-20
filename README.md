@@ -12,7 +12,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 | `kelolakelas-academic-service` | `main` | `33f8a0dadce607cf8af302a30c4e629c6fcb9e83` | clean after KEL-30 |
 | `kelolakelas-billing-service` | `main` | `ca5698b5675195b42714cac5e56c405890a7cf7d` | clean after KEL-25 |
 
-**Implemented:** KelolaKelas is a Next.js App Router UI, a Gin reverse-proxy gateway, and separate identity, academic, and billing Go services. The code configures PostgreSQL per stateful service, Redis for gateway rate limiting and identity permission caching, identity gRPC on `:50051`, Duitku payment requests, Resend email, and optional Google Maps geocoding. Parent enrollment now uses the public catalog detail page to select an owned student and schedule before redirecting to the backend-provided checkout URL. See [architecture](docs/02-architecture.md).
+**Implemented:** KelolaKelas is a Next.js App Router UI, a Gin reverse-proxy gateway, and separate identity, academic, and billing Go services. The code configures PostgreSQL per stateful service, Redis for gateway rate limiting and identity permission caching, identity gRPC on `:50051`, Duitku payment requests, Resend email, and optional Google Maps geocoding. Parent enrollment now uses the public catalog detail page to select an owned student and schedule before redirecting to the backend-provided checkout URL, and a parent can cancel their own pending enrollment, which withdraws the invoice and returns the seat. See [architecture](docs/02-architecture.md).
 
 ```mermaid
 flowchart LR

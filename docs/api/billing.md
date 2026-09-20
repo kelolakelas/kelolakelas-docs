@@ -2,12 +2,15 @@
 
 | Method/path | Authentication | Request/response | Evidence |
 |---|---|---|---|
-| `POST /api/v1/billing/webhooks/duitku` | public; Duitku HMAC validation | `DuitkuCallbackPayload`; success/error envelope | `transaction_handler.go:205-247` |
-| `GET /api/v1/billing/transactions` | user JWT | filtered/list transaction response; `status` filter accepts `expired` | `transaction_handler.go:29-103` |
-| `GET /api/v1/billing/transactions/:id` | user JWT | transaction response | `transaction_handler.go:105-158` |
-| `POST /internal/billing/transactions` | internal bearer credential | internal invoice request → transaction ID/checkout URL | `cmd/server/main.go:100-102` |
+| `POST /api/v1/billing/webhooks/duitku` | public; Duitku HMAC validation | `DuitkuCallbackPayload`; success/error envelope | `transaction_handler.go:239-283` |
+| `GET /api/v1/billing/transactions` | user JWT | filtered/list transaction response; `status` filter accepts `pending`, `paid`, `failed`, `expired`, `cancelled`, `refunded` | `transaction_handler.go:29-104` |
+| `GET /api/v1/billing/transactions/:id` | user JWT | transaction response | `transaction_handler.go:105-155` |
+| `POST /internal/billing/transactions` | internal bearer credential | internal invoice request → transaction ID/checkout URL | `cmd/server/main.go:102` |
+| `POST /internal/billing/transactions/cancel` | internal bearer credential | `CancelEnrollmentPaymentRequest` → cancelled transaction; 404 no transaction, 409 already settled | `transaction_handler.go:156-193`, `cmd/server/main.go:103` |
 
 Invoice creation is available only at `POST /internal/billing/transactions`, after academic has verified the enrollment and supplied the internal bearer credential. `DuitkuCallbackPayload` requires merchant code, amount, merchant order ID, result code, reference, and signature according to `internal/domain/payment_gateway.go`. The handler rejects a failed signature before business processing. Full processing and response outcomes are in [payment callback flow](../flows/payment-callback.md).
+
+`POST /internal/billing/transactions/cancel` is the withdrawal path a parent cancellation uses (KEL-27, [ADR 0016](../adr/0016-cancel-pending-enrollment.md)). It takes an `enrollment_id` and marks the enrollment's unpaid transaction `cancelled`, releasing the reserved seat through the existing release reconciliation. A `paid` or `refunded` transaction is never rewritten: it answers 409 so the caller knows the money is in, and an enrollment with no transaction at all answers 404 so a failed invoice creation does not strand a seat. Repeating the call for an already-`cancelled` transaction returns the current transaction, so a retried request is safe.
 
 For paid transactions, the list/detail response also exposes `reconciliation_status`, `reconciliation_attempts`, `reconciliation_next_attempt_at`, and `reconciliation_last_error`. `active` means Academic activation succeeded, `reconciling` means durable retry is pending/in progress, and `terminal_failed` means the configured retry limit was reached.
 

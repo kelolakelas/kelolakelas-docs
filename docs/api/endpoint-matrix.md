@@ -37,26 +37,27 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | GET/PATCH | `/api/v1/attendance/:id` | Academic → same | JWT | UUID / update DTO → item | gateway:104-101; academic main:126-127 |
 | GET/POST | `/api/v1/reports` | Academic → same | JWT | filters / report DTO → list/item | gateway:106-103; academic main:128-129 |
 | GET/PATCH/DELETE | `/api/v1/reports/:id` | Academic → same | JWT | UUID / update DTO → item/envelope | gateway:108-106; academic main:130-132 |
-| GET/POST | `/api/v1/schedules` | Academic → same | JWT | filters / initial schedules DTO → list/created schedules | gateway:113-110; academic main:118,140 |
-| DELETE | `/api/v1/schedules/:id` | Academic → same | JWT | UUID → envelope | gateway:115; academic main:141 |
-| PUT | `/api/v1/schedules/permanent` | Academic → same | JWT | permanent change DTO → schedules/sessions | gateway:116; academic main:142 |
-| PUT | `/api/v1/schedules/:id/permanent` | Academic → same | JWT | permanent change DTO → schedules/sessions | gateway:117; academic main:143 |
-| PATCH/PUT | `/api/v1/schedules/tutor-permanent` | Academic → same | JWT | permanent tutor DTO → schedules/sessions | gateway:118,116; academic main:144,146 |
-| PATCH/PUT | `/api/v1/schedules/:id/tutor-permanent` | Academic → same | JWT | permanent tutor DTO → schedules/sessions | gateway:119,117; academic main:145,147 |
-| GET | `/api/v1/sessions` | Academic → same | JWT | filters → session list | gateway:124; academic main:150 |
-| GET/DELETE | `/api/v1/sessions/:id` | Academic → same | JWT | UUID → session/envelope | gateway:125-122; academic main:151-152 |
-| GET | `/api/v1/sessions/:id/attendees` | Academic → same | JWT | UUID → attendees | gateway:127; academic main:157 |
-| POST | `/api/v1/sessions/reschedule` | Academic → same | JWT | reschedule DTO → changed session | gateway:128; academic main:153 |
-| POST | `/api/v1/sessions/:id/reschedule` | Academic → same | JWT | reschedule DTO → changed session | gateway:129; academic main:154 |
-| PATCH | `/api/v1/sessions/substitute-tutor` | Academic → same | JWT | substitute tutor DTO → changed session | gateway:130; academic main:155 |
-| PATCH | `/api/v1/sessions/:id/substitute-tutor` | Academic → same | JWT | substitute tutor DTO → changed session | gateway:131; academic main:156 |
-| GET | `/api/v1/enrollments` | Academic → same | JWT; tenant/parent scoped use case | filters → enrollment list | gateway:134; academic main:135 |
-| GET | `/api/v1/enrollments/:id` | Academic → same | JWT; tenant/parent scoped use case | UUID → enrollment | gateway:135; academic main:136 |
-| PATCH | `/api/v1/enrollments/:id/schedule` | Academic → same | JWT; parent required | schedule assignment DTO → enrollment; 403/409/422 | gateway:136; academic main:137 |
-| POST | `/api/v1/tenants/:tenant_id/enrollments` | Academic → same | JWT; parent takes public flow, else claim must equal path | enrollment DTO + `Idempotency-Key` → enrollment/payment; 400/403 | gateway:137; academic main:133 |
-| POST | `/api/v1/catalog/classes/:class_id/enrollments` | Academic → same | JWT; parent required | public enrollment DTO + `Idempotency-Key` → enrollment/payment; 403/409/422 | gateway:138; academic main:134 |
-| GET | `/api/v1/billing/transactions` | Billing → same | JWT; tenant/parent scope | query → transaction list | gateway:141; billing main:97 |
-| GET | `/api/v1/billing/transactions/:id` | Billing → same | JWT; tenant/parent scope | UUID → transaction; 404 | gateway:142; billing main:98 |
+| GET/POST | `/api/v1/schedules` | Academic → same | JWT | filters / initial schedules DTO → list/created schedules | gateway:113-110; academic main:118,141 |
+| DELETE | `/api/v1/schedules/:id` | Academic → same | JWT | UUID → envelope | gateway:115; academic main:142 |
+| PUT | `/api/v1/schedules/permanent` | Academic → same | JWT | permanent change DTO → schedules/sessions | gateway:116; academic main:143 |
+| PUT | `/api/v1/schedules/:id/permanent` | Academic → same | JWT | permanent change DTO → schedules/sessions | gateway:117; academic main:144 |
+| PATCH/PUT | `/api/v1/schedules/tutor-permanent` | Academic → same | JWT | permanent tutor DTO → schedules/sessions | gateway:118,116; academic main:145,147 |
+| PATCH/PUT | `/api/v1/schedules/:id/tutor-permanent` | Academic → same | JWT | permanent tutor DTO → schedules/sessions | gateway:119,117; academic main:146,148 |
+| GET | `/api/v1/sessions` | Academic → same | JWT | filters → session list | gateway:124; academic main:151 |
+| GET/DELETE | `/api/v1/sessions/:id` | Academic → same | JWT | UUID → session/envelope | gateway:125-122; academic main:152-153 |
+| GET | `/api/v1/sessions/:id/attendees` | Academic → same | JWT | UUID → attendees | gateway:127; academic main:158 |
+| POST | `/api/v1/sessions/reschedule` | Academic → same | JWT | reschedule DTO → changed session | gateway:128; academic main:154 |
+| POST | `/api/v1/sessions/:id/reschedule` | Academic → same | JWT | reschedule DTO → changed session | gateway:129; academic main:155 |
+| PATCH | `/api/v1/sessions/substitute-tutor` | Academic → same | JWT | substitute tutor DTO → changed session | gateway:130; academic main:156 |
+| PATCH | `/api/v1/sessions/:id/substitute-tutor` | Academic → same | JWT | substitute tutor DTO → changed session | gateway:131; academic main:157 |
+| GET | `/api/v1/enrollments` | Academic → same | JWT; tenant/parent scoped use case | filters → enrollment list | gateway:134; academic main:136 |
+| GET | `/api/v1/enrollments/:id` | Academic → same | JWT; tenant/parent scoped use case | UUID → enrollment | gateway:135; academic main:137 |
+| PATCH | `/api/v1/enrollments/:id/schedule` | Academic → same | JWT; parent required | schedule assignment DTO → enrollment; 403/409/422 | gateway:136; academic main:138 |
+| POST | `/api/v1/enrollments/:id/cancel` | Academic → same | JWT; parent required | none → cancelled enrollment; 403/404/409 | gateway:137; academic main:135 |
+| POST | `/api/v1/tenants/:tenant_id/enrollments` | Academic → same | JWT; parent takes public flow, else claim must equal path | enrollment DTO + `Idempotency-Key` → enrollment/payment; 400/403 | gateway:138; academic main:133 |
+| POST | `/api/v1/catalog/classes/:class_id/enrollments` | Academic → same | JWT; parent required | public enrollment DTO + `Idempotency-Key` → enrollment/payment; 403/409/422 | gateway:139; academic main:134 |
+| GET | `/api/v1/billing/transactions` | Billing → same | JWT; tenant/parent scope | query → transaction list | gateway:142; billing main:97 |
+| GET | `/api/v1/billing/transactions/:id` | Billing → same | JWT; tenant/parent scope | UUID → transaction; 404 | gateway:143; billing main:98 |
 
 There is no user-facing invoice-creation route. `POST /api/v1/billing/transactions` is **Not found** in the gateway: it was deliberately removed (commit `bdaa8797b05d7e5bc85d6d6fe3e043196d62ca60`, “block user-facing invoice creation”), and `kelolakelas-api-gateway/internal/delivery/http/router_test.go` (`TestUserFacingBillingTransactionCreationIsNotRouted`) asserts the path returns 404. Invoice creation exists only at `POST /internal/billing/transactions` below; see [billing API](billing.md) and [ADR 0014](../decisions/014-parent-enrollment-checkout.md).
 
@@ -64,6 +65,7 @@ There is no user-facing invoice-creation route. `POST /api/v1/billing/transactio
 
 | Method/path | Target authentication | Purpose / evidence |
 |---|---|---|
-| PUT `/internal/enrollments/:id/activate` | internal credential | Billing activates a paid pending enrollment; `kelolakelas-academic-service/cmd/server/main.go:161` |
-| PUT `/internal/enrollments/:id/release` | internal credential | Billing releases the seat of a pending enrollment whose payment failed or expired (KEL-26, [ADR 0012](../adr/0012-release-enrollment-seat-on-failed-payment.md)); idempotent, 409 for a non-releasable status; `kelolakelas-academic-service/cmd/server/main.go:162` |
-| POST `/internal/billing/transactions` | internal credential | Academic creates a billing invoice; `kelolakelas-billing-service/cmd/server/main.go:100-102` |
+| PUT `/internal/enrollments/:id/activate` | internal credential | Billing activates a paid pending enrollment; `kelolakelas-academic-service/cmd/server/main.go:162` |
+| PUT `/internal/enrollments/:id/release` | internal credential | Billing releases the seat of a pending enrollment whose payment failed or expired (KEL-26, [ADR 0012](../adr/0012-release-enrollment-seat-on-failed-payment.md)); idempotent, 409 for a non-releasable status; `kelolakelas-academic-service/cmd/server/main.go:163` |
+| POST `/internal/billing/transactions` | internal credential | Academic creates a billing invoice; `kelolakelas-billing-service/cmd/server/main.go:102` |
+| POST `/internal/billing/transactions/cancel` | internal credential | Academic withdraws the unpaid invoice of a cancelled enrollment (KEL-27, [ADR 0016](../adr/0016-cancel-pending-enrollment.md)); idempotent, 404 when no transaction exists, 409 once the transaction settled; `kelolakelas-billing-service/cmd/server/main.go:103` |

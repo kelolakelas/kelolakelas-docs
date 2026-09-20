@@ -1,6 +1,6 @@
 # Academic API
 
-Routes registered in `kelolakelas-academic-service/cmd/server/main.go:98-169` are the source of truth. `GET /api/v1/catalog/classes` and `GET /api/v1/catalog/classes/:id` are public; all other `/api/v1` routes require JWT. Internal activation and release are outside `/api/v1`.
+Routes registered in `kelolakelas-academic-service/cmd/server/main.go:98-170` are the source of truth. `GET /api/v1/catalog/classes` and `GET /api/v1/catalog/classes/:id` are public; all other `/api/v1` routes require JWT. Internal activation, release, and the billing cancel path are outside `/api/v1`.
 
 | Area | Operations | Request/response source |
 |---|---|---|
@@ -9,7 +9,7 @@ Routes registered in `kelolakelas-academic-service/cmd/server/main.go:98-169` ar
 | Schedules/sessions | create/list/delete, permanent/time or tutor changes, reschedule/substitute, attendees | `schedule_handler.go`, `session_handler.go`, `domain/schedule_dto.go` |
 | Students | list/create/get/update/delete; parent list/create/update/delete is ownership-scoped | `student_handler.go`, `domain/student.go`, web `app/(dashboard)/dashboard/parent/students/**` |
 | Attendance/reports | list/create/get/update (reports also delete) | respective handlers/domain files |
-| Enrollments | create tenant/catalog enrollment, list/get, schedule assignment; internal activate and release | `enrollment_handler.go`, `domain/enrollment.go` |
+| Enrollments | create tenant/catalog enrollment, list/get, schedule assignment, parent cancellation; internal activate and release | `enrollment_handler.go`, `domain/enrollment.go` |
 
 The public catalog enrollment route is in the gateway’s protected group despite its path beginning `/catalog`; callers need a JWT at the gateway. This is a route-policy distinction from public catalog reads. `POST /api/v1/catalog/classes/{class_id}/enrollments` requires a parent JWT and `Idempotency-Key`; the request body contains only `student_id`, `billing_cycle`, and optional `schedule_id`. Group classes require a schedule, and any supplied schedule must belong to the selected class; capacity is rechecked under a database lock. On success it returns a payment transaction ID and checkout URL. `ErrScheduleFull` and idempotency conflicts are HTTP 409; missing class/student is 404; ownership, schedule validation, or an unpublished/closed class is 422; provider or other unexpected failures are 500. Evidence: `internal/delivery/http/handler/enrollment_handler.go`, `internal/usecase/enrollment_usecase.go`, `internal/repository/enrollment_repository.go`, and the web enrollment action.
 

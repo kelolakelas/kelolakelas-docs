@@ -1,6 +1,6 @@
 # Billing service (`kelolakelas-billing-service`)
 
-**Implemented:** Gin HTTP server default `:8082`, GORM/PostgreSQL data store, Duitku client, Resend client, internal academic client, and optional subscription worker. Evidence: `cmd/server/main.go:31-114`.
+**Implemented:** Gin HTTP server default `:8082`, GORM/PostgreSQL data store, Duitku client, Resend client, internal academic client, and optional subscription worker. It exposes an internal cancellation path that withdraws the unpaid invoice of a cancelled enrollment (KEL-27). Evidence: `cmd/server/main.go:31-115`.
 
 Publicly reachable from the gateway are the callback `POST /api/v1/billing/webhooks/duitku` and JWT-protected transaction list/get routes. Invoice creation is only available at the internal credential-protected transaction endpoint for the academic enrollment flow. Callback signature checks happen in the handler before the use case; the use case validates state/amount, commits the paid side effects, enqueues a durable reconciliation, and attempts enrollment activation through academic (`internal/usecase/transaction_usecase.go`, `internal/usecase/reconciliation_worker.go`).
 
