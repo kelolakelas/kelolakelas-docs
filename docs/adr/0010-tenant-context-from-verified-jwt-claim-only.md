@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted and implemented in KEL-19.
+Accepted and implemented in KEL-19 (academic) and KEL-16 (identity).
 
 ## Context
 
@@ -22,6 +22,19 @@ UUID. A parent token — which by design carries no `tenant_id`, because
 name an arbitrary tenant by setting the header itself and read or mutate that
 tenant's categories, classes, and schedules.
 
+The same defect existed independently in the identity service. A single helper,
+`extractTenantID` (`internal/delivery/http/handler/role_handler.go:22-38`),
+resolved the tenant for the member, role, and tenant handlers and fell back to
+the caller-supplied header whenever the context value was absent, nil, or
+unparseable. `AuthUsecase.Login` leaves `tenantID` at its zero value when the
+user has no active membership (`internal/usecase/auth_usecase.go:77-84`), which
+includes every parent.
+An authenticated parent could therefore set `X-Tenant-ID` to any tenant and read
+`GET /members`, `GET /tutors`, `GET /roles`, `GET /tenant/settings`, and
+`GET /tenant/settings/location`, and reach the corresponding mutations whenever
+it also held a `role_id`. Only the invitation handler resolved the tenant
+strictly from the claim (`invitation_handler.go:55-73`).
+
 The header is not an authorization artifact. Nothing about it is signed,
 audience-bound, or verified by the service that acts on it, and the gateway
 cannot distinguish an injected value from a caller-supplied one. Trusting it
@@ -30,7 +43,11 @@ the JWT that the same request had already been validated against.
 
 ## Decision
 
-Academic derives tenant context exclusively from the validated JWT claim.
+Tenant context is derived exclusively from the validated JWT claim, in every
+service that acts on it. The identity service follows the same rule through the
+same helper shape (`tenantIDFromContext` in
+`internal/delivery/http/handler/tenant_context.go`), so both services resolve a
+tenant one way only.
 
 A single helper, `tenantIDFromContext` in
 `internal/delivery/http/handler/tenant_context.go`, is the only way handlers
@@ -45,6 +62,16 @@ favour of the helper. `list_handler.go` keeps its `tenantID` wrapper as a thin
 indirection onto the same helper so its call sites are unchanged. Handlers that
 already read the context value only — students, attendance, reports, sessions,
 enrollment queries — are unaffected and now share the same resolution path.
+
+In identity, `extractTenantID` is deleted and its ten call sites across the
+member (5), role (4), and tenant (1) handlers use the shared helper. `tenant_handler.go`
+keeps its `currentTenant` wrapper as a thin indirection, mirroring the academic
+`list_handler.go` treatment. An all-zero UUID is treated as "no tenant"
+whichever representation produced it — a nil `uuid.UUID` claim, an empty
+string, or the all-zeros string form — so the same logical condition always
+yields the same status code. Rejection happens in the handler, before the use
+case, so a rejected caller causes no repository query and no foreign tenant
+data is read or written.
 
 Status codes are chosen so that a caller cannot use them to probe tenant
 existence:
@@ -92,12 +119,13 @@ error to 403 rather than defaulting to allow.
 
 The gateway keeps its current proxy behaviour, including the conditional header
 replacement; the fix is on the consuming side, so no gateway deployment is
-coupled to this change. Direct callers of the academic service also lose the
-header shortcut, which is intentional.
+coupled to this change. Direct callers of the academic and identity services
+also lose the header shortcut, which is intentional.
 
 `X-Tenant-ID` remains in requests as an inert header. The generated Swagger for
-the academic service no longer documents it as a parameter, so the published
-contract no longer advertises a tenant input that has no effect.
+both the academic and the identity service no longer documents it as a
+parameter, so the published contracts no longer advertise a tenant input that
+has no effect.
 
 Behaviour that previously succeeded now returns 403: any request that relied on
 a header to supply a tenant the token did not carry. Legitimate web traffic is
@@ -108,4 +136,9 @@ that signs the token's `tenant_id` claim.
 Residual risk is unchanged and outside this decision: routes that do not accept
 a tenant at all — session and schedule mutations — still perform their own
 scoping, and authorization beyond authentication plus the persisted
-catalog/schedule permission check remains a separate task.
+catalog/schedule permission check remains a separate task. In identity,
+permission checks on the GET endpoints remain a separate concern as well: the
+member and role reads are scoped to the caller's tenant but are not gated by
+`member:read` or `tenant:read`. Selecting a tenant for a user with more than one
+active membership is likewise a separate decision, since a token currently
+carries at most one `tenant_id`.

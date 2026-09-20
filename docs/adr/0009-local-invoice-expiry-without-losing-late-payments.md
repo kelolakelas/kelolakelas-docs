@@ -79,6 +79,8 @@ non-null `expired_at` is a normal, expected combination and must be read as
 treat `expired_at` as chronological evidence rather than as a reason to refund.
 
 Unpaid transactions now reach a terminal-looking state on their own, so any
-consumer that filters on `pending` must also consider `expired`. Releasing
-academic seats on expiry, expiry notifications, and parent-initiated
-cancellation remain out of scope and are tracked separately.
+consumer that filters on `pending` must also consider `expired`. The expiry
+worker now also enqueues a durable seat release for the expired transaction in
+the same statement, which KEL-26 implemented on top of this decision; see
+[ADR 0012](0012-release-enrollment-seat-on-failed-payment.md). Expiry
+notifications and parent-initiated cancellation remain out of scope.

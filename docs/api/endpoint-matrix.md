@@ -13,16 +13,16 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | GET | `/api/v1/catalog/classes/:id` | Academic → same | public | UUID path → catalog class; 400/404 | gateway:55; academic main:100 |
 | POST | `/api/v1/billing/webhooks/duitku` | Billing → same | public, provider HMAC | `DuitkuCallbackPayload` → envelope; 400/404 | gateway:58; billing main:85 |
 | POST | `/api/v1/invitations` | Identity → same | JWT; endpoint role rule not found | create invitation → invitation; 400/409 | gateway:65; identity main:113 |
-| GET | `/api/v1/members` | Identity → same | JWT; tenant claim | pagination/filter → member list; 400 | gateway:66; identity main:114 |
-| GET | `/api/v1/tutors` | Identity → same | JWT; tenant claim | pagination/filter → tutor list; 400 | gateway:67; identity main:115 |
+| GET | `/api/v1/members` | Identity → same | JWT; tenant claim only | pagination/filter → member list; 400/403 | gateway:66; identity main:114 |
+| GET | `/api/v1/tutors` | Identity → same | JWT; tenant claim only | pagination/filter → tutor list; 400/403 | gateway:67; identity main:115 |
 | GET | `/api/v1/members/:id` | Identity → same | JWT; tenant scope | UUID → member; 400/404 | gateway:68; identity main:116 |
 | PUT | `/api/v1/members/:id/role` | Identity → same | JWT; caller role used | update role DTO → member; 400/403/404/409 | gateway:69; identity main:117 |
 | DELETE | `/api/v1/members/:id` | Identity → same | JWT; handler/use case scope | UUID → envelope; 400/403/404 | gateway:70; identity main:118 |
-| GET/PATCH | `/api/v1/tenant/settings` | Identity → same | JWT; tenant claim | none / settings DTO → tenant; 400/404 | gateway:71-72; identity main:119-120 |
+| GET/PATCH | `/api/v1/tenant/settings` | Identity → same | JWT; tenant claim only | none / settings DTO → tenant; 400/403/404 | gateway:71-72; identity main:119-120 |
 | GET/PATCH | `/api/v1/tenants/settings` | Identity → same | JWT; alias | same as singular settings path | gateway:73-74; identity main:121-122 |
-| GET/PUT | `/api/v1/tenant/settings/location` | Identity → same | JWT; tenant claim | none / location DTO → location; geocode may fail | gateway:75-76; identity main:123-124 |
+| GET/PUT | `/api/v1/tenant/settings/location` | Identity → same | JWT; tenant claim only | none / location DTO → location; geocode may fail; 403 without a tenant claim | gateway:75-76; identity main:123-124 |
 | GET | `/api/v1/permissions` | Identity → same | JWT; no role rule found | none → permission list | gateway:77; identity main:127 |
-| GET/POST | `/api/v1/roles` | Identity → same | JWT; tenant scope | none / create role DTO → roles/role; 400/409 | gateway:78-79; identity main:128-129 |
+| GET/POST | `/api/v1/roles` | Identity → same | JWT; tenant claim only | none / create role DTO → roles/role; 400/403/409 | gateway:78-79; identity main:128-129 |
 | PUT/DELETE | `/api/v1/roles/:id` | Identity → same | JWT; custom-role ownership | update DTO/none → role/envelope; 400/403/404/409 | gateway:80-81; identity main:130-131 |
 | GET/POST | `/api/v1/categories` | Academic → same | JWT; tenant claim | none / category DTO → list/category; 400 | gateway:84-85; academic main:103-104 |
 | DELETE | `/api/v1/categories/:id` | Academic → same | JWT; tenant scope | UUID → envelope; 400/404/409 | gateway:86; academic main:105 |
@@ -62,5 +62,6 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 
 | Method/path | Target authentication | Purpose / evidence |
 |---|---|---|
-| PUT `/internal/enrollments/:id/activate` | internal credential | Billing activates a paid pending enrollment; `kelolakelas-academic-service/cmd/server/main.go:152-154` |
+| PUT `/internal/enrollments/:id/activate` | internal credential | Billing activates a paid pending enrollment; `kelolakelas-academic-service/cmd/server/main.go:160` |
+| PUT `/internal/enrollments/:id/release` | internal credential | Billing releases the seat of a pending enrollment whose payment failed or expired (KEL-26, [ADR 0012](../adr/0012-release-enrollment-seat-on-failed-payment.md)); idempotent, 409 for a non-releasable status; `kelolakelas-academic-service/cmd/server/main.go:161` |
 | POST `/internal/billing/transactions` | internal credential | Academic creates a billing invoice; `kelolakelas-billing-service/cmd/server/main.go:100-102` |
