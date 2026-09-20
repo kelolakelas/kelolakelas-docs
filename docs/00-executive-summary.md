@@ -1,6 +1,6 @@
 # Executive summary
 
-**Implemented:** The system supports tenant/owner registration, parent registration, login, tenant members and RBAC records, categories/classes/schedules/students/enrollments/attendance/reports, and subscription-payment initiation/callback handling. The gateway exposes most public HTTP surface and forwards the original path to downstream Gin routers. Evidence: `kelolakelas-api-gateway/internal/delivery/http/router.go:45-138`, and the three service `cmd/server/main.go` route blocks.
+**Implemented:** The system supports tenant/owner registration, parent registration, login, tenant members and RBAC records, categories/classes/schedules/students/enrollments/attendance/reports, and subscription-payment initiation/callback handling. The gateway exposes most public HTTP surface and forwards the original path to downstream Gin routers. Evidence: `kelolakelas-api-gateway/internal/delivery/http/router.go:50-143`, and the three service `cmd/server/main.go` route blocks.
 
 The runtime is not a fully evidenced production topology: no Docker, Compose, Kubernetes, CI workflow, IaC, deployment manifest, tracing setup, or metrics endpoint was found. Local default ports and direct localhost URLs are implemented configuration defaults.
 

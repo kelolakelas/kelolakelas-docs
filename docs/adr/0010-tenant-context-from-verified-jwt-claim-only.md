@@ -2,17 +2,22 @@
 
 ## Status
 
-Accepted and implemented in KEL-19 (academic) and KEL-16 (identity).
+Accepted and implemented in KEL-19 (academic) and KEL-16 (identity). The
+gateway half of the same decision was completed separately in KEL-18
+([ADR 0017](0017-gateway-context-header-trust-boundary.md)).
 
 ## Context
 
-The gateway terminates authentication and normally forwards a caller's
-`X-Tenant-ID` header to the downstream service, replacing it with the tenant
-value taken from the validated JWT when the token carries one
-(`kelolakelas-api-gateway/internal/delivery/http/handler/proxy_handler.go:67-70,88-91`).
-The replacement is conditional: `if tenantID != ""`. When the token has no
-tenant claim, the gateway leaves whatever `X-Tenant-ID` the caller sent in
-place and forwards it untouched.
+The gateway terminates authentication and forwarded a caller's `X-Tenant-ID`
+header to the downstream service, replacing it with the tenant value taken from
+the validated JWT only when the token carried one
+(`kelolakelas-api-gateway/internal/delivery/http/handler/proxy_handler.go`, the
+`if tenantID != ""` guard). When the token had no tenant claim, the gateway left
+whatever `X-Tenant-ID` the caller sent in place and forwarded it untouched.
+That behaviour has since been replaced by an unconditional strip at the gateway
+boundary (KEL-18, [ADR 0017](0017-gateway-context-header-trust-boundary.md));
+the defect described below is what the consumer-side fix addressed while it was
+still in place.
 
 Several academic handlers treated that header as a tenant source of truth. The
 category, class, list, and schedule handlers resolved the request tenant with
@@ -110,6 +115,11 @@ error to 403 rather than defaulting to allow.
   a gateway change and was explicitly out of scope for KEL-19 (KEL-18 covers
   gateway work). It also would not have helped a caller reaching the academic
   service directly, which is the deployment the service must not assume away.
+  This option was later adopted on its own terms in KEL-18
+  ([ADR 0017](0017-gateway-context-header-trust-boundary.md)): the gateway now
+  strips the header on every route and republishes it from the verified claim,
+  as defence in depth alongside — not instead of — the consumer-side fix, which
+  remains what protects a direct caller.
 - **Move the check into `AuthMiddleware` and reject tenantless tokens for all
   protected routes.** Too broad: parent catalog enrollment and parent student
   routes legitimately operate without a tenant claim, so the requirement is
@@ -117,15 +127,20 @@ error to 403 rather than defaulting to allow.
 
 ## Consequences
 
-The gateway keeps its current proxy behaviour, including the conditional header
-replacement; the fix is on the consuming side, so no gateway deployment is
-coupled to this change. Direct callers of the academic and identity services
-also lose the header shortcut, which is intentional.
+The fix is on the consuming side, so the services do not depend on the gateway
+to enforce tenant context: a direct caller of the academic or identity service
+is subject to the same rule. The gateway was subsequently hardened as well
+(KEL-18, [ADR 0017](0017-gateway-context-header-trust-boundary.md)) — it now
+strips `X-Tenant-ID` and `X-Internal-Service-Credential` from every inbound
+request and republishes the tenant header from the verified claim on protected
+routes, so the conditional replacement described in the Context section no
+longer exists.
 
-`X-Tenant-ID` remains in requests as an inert header. The generated Swagger for
-both the academic and the identity service no longer documents it as a
-parameter, so the published contracts no longer advertise a tenant input that
-has no effect.
+`X-Tenant-ID` may still appear in a client's request, but it carries no
+authority: no service reads it, and the gateway replaces it with the claim value
+or removes it. The generated Swagger for both the academic and the identity
+service no longer documents it as a parameter, so the published contracts no
+longer advertise a tenant input that has no effect.
 
 Behaviour that previously succeeded now returns 403: any request that relied on
 a header to supply a tenant the token did not carry. Legitimate web traffic is

@@ -68,9 +68,12 @@ request body are not logged at all.
 **Encoding.** `main.go` installs `slog.NewJSONHandler(os.Stdout, nil)` as the
 default handler, matching the other three services.
 
-Deliberately unchanged: routing, the `SetTrustedProxies(nil)` policy, CORS
-behaviour, rate-limit behaviour and fail-open semantics, and `X-Tenant-ID`
-propagation.
+Deliberately unchanged by this decision: routing, the `SetTrustedProxies(nil)`
+policy, CORS behaviour, and rate-limit behaviour and fail-open semantics. Tenant
+header propagation was also untouched here and was changed separately in KEL-18,
+which strips `X-Tenant-ID` and `X-Internal-Service-Credential` at the gateway and
+republishes the tenant header from the verified claim
+([ADR 0017](0017-gateway-context-header-trust-boundary.md)).
 
 ## Alternatives considered
 

@@ -16,14 +16,14 @@ flowchart LR
     Web -->|HTTP JSON / Authorization Bearer| Gateway
   end
   Gateway -->|reverse proxy; unchanged /api/v1 path| Identity
-  Gateway -->|reverse proxy; replaces X-Tenant-ID when claim present| Academic
-  Gateway -->|reverse proxy; replaces X-Tenant-ID when claim present| Billing
+  Gateway -->|reverse proxy; X-Tenant-ID from verified claim| Academic
+  Gateway -->|reverse proxy; X-Tenant-ID from verified claim| Billing
   Academic -->|POST /internal/billing/transactions; internal credential| Billing
   Billing -->|PUT /internal/enrollments/:id/activate; internal credential| Academic
   Billing -->|durable retry state| Billing
 ```
 
-The gateway replaces `X-Tenant-ID` when the token carries a tenant and forwards it unchanged otherwise, but no service treats that header as authorization: academic and identity both resolve the tenant from the verified JWT claim only, and billing reads the claim value from the middleware context (see [ADR 0010](adr/0010-tenant-context-from-verified-jwt-claim-only.md)).
+The gateway strips `X-Tenant-ID` and `X-Internal-Service-Credential` from every inbound request, and republishes `X-Tenant-ID` on protected routes from the verified JWT tenant claim only, so a caller cannot present a tenant or a service credential of its own. No service treats the header as authorization: academic and identity both resolve the tenant from the verified JWT claim only, and billing reads the claim value from the middleware context (see [ADR 0010](adr/0010-tenant-context-from-verified-jwt-claim-only.md) and [ADR 0017](adr/0017-gateway-context-header-trust-boundary.md)).
 
 **Implemented:** service identity is split by data store; migration foreign keys only refer to tables in the same database. IDs such as `tenant_id` and `parent_id` are application-level UUID references across stores, not database foreign keys. See [data overview](data/overview.md).
 
