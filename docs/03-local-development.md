@@ -16,4 +16,4 @@ This is a code-derived local-start guide, not a verified end-to-end procedure. D
 
 `make test` maps to `go test ./...` in each Go repository. Migration helpers (`migrate-up`, `migrate-down`, `seed`) execute database mutations and are intentionally not validation steps. Evidence: each Go `Makefile`; web `package.json`.
 
-No `.env.example`, Compose file, or setup automation was found. Database requirements are inferred from `internal/config/config.go` and `pkg/database/db.go` in each service.
+Each repository ships a `.env.example` with placeholder-only values; copy it to `.env` and fill real credentials locally. No Compose file or setup automation exists. Database requirements are inferred from `internal/config/config.go` and `pkg/database/db.go` in each service.
