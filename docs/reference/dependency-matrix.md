@@ -5,7 +5,7 @@
 | Web | gateway | HTTP JSON, Bearer supplied by server actions | login, registration, tenant dashboard operations | Implemented: web `_actions`/`_queries` |
 | Gateway | identity/academic/billing | HTTP reverse proxy, service receives Bearer | public/protected API routing | Implemented: gateway router/proxy handler |
 | Academic | Identity | gRPC `:50051`, no app auth/TLS found | tenant status, public tenant info | Implemented: `pkg/grpcclient/tenant_client.go` |
-| Academic | Identity | gRPC `:50051`, `tenant.PermissionService/CheckPermission` carrying `role_id`, `permission`, and `tenant_id` | current persisted role permission before catalog mutations, evaluated inside the operating tenant | Implemented: `pkg/grpcclient/permission_client.go`; identity `internal/delivery/grpc/permission_service.go`; plaintext/auth hardening remains outstanding |
+| Academic | Identity | gRPC `:50051`, `tenant.PermissionService/CheckPermission` carrying `role_id`, `permission`, and `tenant_id` | current persisted role permission before catalog, student, and enrollment operations, evaluated inside the operating tenant | Implemented: `pkg/grpcclient/permission_client.go`; identity `internal/delivery/grpc/permission_service.go`; plaintext/auth hardening remains outstanding |
 | Academic | Billing | HTTP internal bearer | payment invoice creation for enrollment | Implemented: `pkg/billing/client.go` |
 | Billing | Academic | HTTP internal bearer | activate paid enrollment | Implemented: `pkg/academic/client.go` |
 | Identity | Redis | Redis TCP/TLS optional | cache role permission arrays | Implemented: `pkg/database/redis.go` |

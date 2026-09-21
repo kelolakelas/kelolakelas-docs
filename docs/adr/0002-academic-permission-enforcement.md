@@ -37,10 +37,40 @@ Permission mapping:
 | Class create/delete/attribute update/publication | `class:create` / `class:delete` / `class:update` (see [ADR 0013](0013-tenant-scoped-class-update.md)) |
 | Schedule create/delete | `schedule:create` / `schedule:delete` |
 | Schedule and session changes | `schedule:update` |
+| Student list/detail | `student:read` |
+| Student create/update/delete | `student:create` / `student:update` / `student:delete` |
+| Enrollment create (`POST /tenants/:tenant_id/enrollments`) | `enrollment:create` |
+| Enrollment list/detail | `enrollment:read` |
 
 Public catalog list/detail routes remain unauthenticated and are not passed through
 the permission middleware. Existing use-case tenant/resource ownership checks remain
 the second authorization layer.
+
+### Routes shared with parents
+
+Some student and enrollment routes are reached by tenant members and by parents. The
+parent token is verified by the same `AuthMiddleware` but carries ownership instead of a
+role, so it has no `role_id` and no `tenant_id`; the permission question therefore cannot
+be asked for it. These routes use a middleware variant that applies the persisted check
+only to non-parent callers:
+
+| Route | Caller | Decision |
+|---|---|---|
+| Student and enrollment routes above | non-parent | persisted permission check as mapped |
+| Student routes | parent | the handler's owned-resource rules only, with no identity lookup |
+| `POST /tenants/:tenant_id/enrollments` | parent | public enrollment flow, with no identity lookup |
+| `POST /catalog/classes/:class_id/enrollments` | parent only | handler rejects non-parents with 403; no permission check |
+| `POST /enrollments/:id/cancel`, `PATCH /enrollments/:id/schedule` | parent only | handler rejects non-parents; no permission check |
+
+Skipping the check for parents is deliberate rather than a gap: identity has no role to
+evaluate for such a token, and the alternative — denying parents— would break the
+ownership-based parent flows this service exists to serve. A parent token that also
+carries a tenant membership claim still counts as a parent, so the parent path stays
+authoritative and the permission table is not consulted for it.
+
+Because the check is skipped before any identity call, a parent request succeeds on these
+routes even while identity gRPC is unavailable. Non-parent callers keep the 503 behaviour
+described above.
 
 ## Adding `tenant_id` to a live contract
 
@@ -75,7 +105,13 @@ mTLS/service-authentication change remain required hardening work.
 A role deleted after a token was issued yields no rows in the scoped lookup, so it is
 denied rather than treated as an error, and the caller learns nothing about whether the
 role still exists. System roles seeded with a null tenant remain usable by every tenant,
-which is what keeps the built-in `Creator` and `Teacher` roles working.
+which is what keeps the built-in `Creator` and `Teacher` roles working. The `Teacher`
+role is deliberately seeded without the student and enrollment permissions, so it cannot
+read or mutate tenant students and enrollments through these routes.
+
+A tenant member whose verified token carries no `role_id` cannot be authorized and is
+denied with 403 before identity is consulted, matching the "missing role context" rule
+above.
 
 ## Alternatives considered
 
