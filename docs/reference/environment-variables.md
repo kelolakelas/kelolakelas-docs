@@ -54,5 +54,7 @@ Safe examples deliberately contain placeholders only — this includes every rep
 | `PAYMENT_RECONCILIATION_WORKER_ENABLED` | billing | optional; true | enables durable paid-enrollment activation retries | no | billing config |
 | `PAYMENT_RECONCILIATION_WORKER_INTERVAL_MINUTES` | billing | optional; 1 | reconciliation worker poll interval | no | billing config |
 | `PAYMENT_RECONCILIATION_MAX_ATTEMPTS` | billing | optional; 10 | attempts before terminal reconciliation failure | no | billing config |
+| `CATALOG_TENANT_INFO_TTL_MINUTES` | academic | optional; 5 | how long a catalog tenant snapshot may age before identity is asked again; a request inside the TTL performs neither a gRPC call nor a snapshot write | no | academic config, `internal/usecase/catalog_usecase.go` |
+| `CATALOG_TENANT_INFO_TIMEOUT_MS` | academic | optional; 2000 | per-call bound applied to identity gRPC requests issued by the catalog | no | academic config, `pkg/grpcclient/tenant_client.go` |
 
 Do not place a JWT secret in committed environment files. Generate and distribute it through the deployment secret manager; every JWT boundary must receive the identical nonblank value.
