@@ -1,6 +1,6 @@
 # Environment-variable inventory
 
-Safe examples deliberately contain placeholders only. “Required” means the loader refuses startup. Evidence throughout is the named service `internal/config/config.go`; web evidence is the listed app files.
+Safe examples deliberately contain placeholders only — this includes every repository `.env.example`: credential values there must stay recognizable placeholders (for example `JWT_SECRET=change-me-...`), never real or realistic secrets. “Required” means the loader refuses startup. Evidence throughout is the named service `internal/config/config.go`; web evidence is the listed app files.
 
 | Variable | Consumer | Required / default | Purpose / safe example | Sensitive | Evidence |
 |---|---|---|---|---|---|
