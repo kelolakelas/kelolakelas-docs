@@ -5,7 +5,7 @@ Safe examples deliberately contain placeholders only — this includes every rep
 | Variable | Consumer | Required / default | Purpose / safe example | Sensitive | Evidence |
 |---|---|---|---|---|---|
 | `GATEWAY_API_URL` | web | **required; rejects blank, non-HTTP(S), or path-bearing values** | server-side gateway origin, `https://api.example.test` | no | `kelolakelas-web/.env.example`, `lib/gateway.ts`; web auth/dashboard actions and queries |
-| `NEXT_PUBLIC_APP_URL` | web | optional; local/production page-specific defaults | canonical metadata, `https://app.example.test` | no | web login/register/public pages |
+| `NEXT_PUBLIC_APP_URL` | web | optional; `http://localhost:3000` (also used when the value is blank, not a URL, or not HTTP(S) in `lib/site-metadata.ts`) | public origin for canonical and Open Graph URLs and root `metadataBase`, `https://app.example.test` | no | `kelolakelas-web/.env.example`, `lib/site-metadata.ts` (`getAppUrl`), `app/layout.tsx`, `/kelas` pages, login/register/invitation pages |
 | `AUTH_COOKIE_NAME` | web | optional; `auth_token` | browser JWT cookie key | no | `proxy.ts`, web actions |
 | `TENANT_ID_COOKIE_NAME` | web | optional; `tenant_id` | optional tenant header cookie key | no | tenant action/query files |
 | `NODE_ENV` | web | runtime default | enables secure cookie only when `production` | no | web auth actions |
