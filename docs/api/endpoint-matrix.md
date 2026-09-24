@@ -56,8 +56,8 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | POST | `/api/v1/enrollments/:id/cancel` | Academic → same | JWT; parent required | none → cancelled enrollment; 403/404/409 | gateway:142; academic main:135 |
 | POST | `/api/v1/tenants/:tenant_id/enrollments` | Academic → same | JWT; parent takes public flow, else claim must equal path | enrollment DTO + `Idempotency-Key` → enrollment/payment; 400/403 | gateway:143; academic main:133 |
 | POST | `/api/v1/catalog/classes/:class_id/enrollments` | Academic → same | JWT; parent required | public enrollment DTO + `Idempotency-Key` → enrollment/payment; 403/409/422 | gateway:144; academic main:134 |
-| GET | `/api/v1/billing/transactions` | Billing → same | JWT; tenant/parent scope | query → transaction list | gateway:147; billing main:97 |
-| GET | `/api/v1/billing/transactions/:id` | Billing → same | JWT; tenant/parent scope | UUID → transaction; 404 | gateway:148; billing main:98 |
+| GET | `/api/v1/billing/transactions` | Billing → same | JWT; tenant members `billing:read` (identity `CheckPermission`), parents own scope | query → transaction list; 403/503 | gateway:147; billing `cmd/server/routes.go` |
+| GET | `/api/v1/billing/transactions/:id` | Billing → same | JWT; tenant members `billing:read`, parents own scope | UUID → transaction; 403/404/503 | gateway:148; billing `cmd/server/routes.go` |
 
 There is no user-facing invoice-creation route. `POST /api/v1/billing/transactions` is **Not found** in the gateway: it was deliberately removed (commit `bdaa8797b05d7e5bc85d6d6fe3e043196d62ca60`, “block user-facing invoice creation”), and `kelolakelas-api-gateway/internal/delivery/http/router_test.go` (`TestUserFacingBillingTransactionCreationIsNotRouted`) asserts the path returns 404. Invoice creation exists only at `POST /internal/billing/transactions` below; see [billing API](billing.md) and [ADR 0014](../decisions/014-parent-enrollment-checkout.md).
 

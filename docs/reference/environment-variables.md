@@ -15,7 +15,8 @@ Safe examples deliberately contain placeholders only — this includes every rep
 | `IDENTITY_SERVICE_URL` | gateway | optional; localhost:8080 | proxy target, `http://identity:8080` | no | gateway config |
 | `ACADEMIC_SERVICE_URL` | gateway/billing | optional; localhost:8081 | proxy/internal academic target, `http://academic:8081` | no | gateway/billing config |
 | `BILLING_SERVICE_URL` | gateway/academic | optional; localhost:8082 | proxy/internal billing target, `http://billing:8082` | no | gateway/academic config |
-| `IDENTITY_GRPC_HOST` | academic | optional; localhost:50051 | identity gRPC target, `identity:50051` | no | academic config |
+| `IDENTITY_GRPC_HOST` | academic/billing | optional; localhost:50051 (blank is treated as unset) | identity gRPC target, `identity:50051`; billing uses it only for the `billing:read` check on tenant transaction reads (KEL-57) | no | academic/billing config; billing `.env.example` |
+| `IDENTITY_PERMISSION_TIMEOUT_MS` | billing | optional; 3000 (non-positive uses the default) | upper bound of one `CheckPermission` call; past it the read answers 503, `3000` | no | billing `internal/config/config.go` |
 | `INTERNAL_SERVICE_CREDENTIAL` | academic/billing | **required** | service-to-service Bearer value, `<random-service-secret>` | yes | academic/billing config |
 | `DATABASE_URL` | identity/academic/billing | optional | PostgreSQL URL fills unset DB fields, `postgresql://user:<redacted>@db:5432/name?sslmode=require` | yes | each stateful config |
 | `DB_HOST` / `DB_PORT` | identity/academic/billing | optional; localhost/5432 | PostgreSQL network target | no | each stateful config |
