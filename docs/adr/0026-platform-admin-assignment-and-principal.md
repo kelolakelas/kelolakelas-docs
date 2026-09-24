@@ -1,0 +1,11 @@
+# ADR 0026: Separate platform-admin assignment and principal (KEL-93)
+
+Status: Implemented. Evidence: identity `migrations/000002_platform_admin.up.sql`, `cmd/platform-admin/main.go`, `internal/usecase/platform_auth.go`, `pkg/jwt/jwt.go`, `internal/delivery/http/handler/platform_handler.go`; gateway `internal/delivery/http/router.go`, `internal/delivery/http/middleware/principal_middleware.go`. Identity PR #9 (`89b88b92d6b179e8d1201ef724e64dc1b2490b22`), gateway PR #11 (`7e50d7408b7397a30ea3780e61f334a56469ef14`).
+
+## Context and decision
+
+Tenant Creator and custom roles are tenant-scoped; neither can imply platform authority. A platform assignment is a separate row keyed by an existing user UUID, with an `is_active` state. A database-authorized operator grants or restores that row using `cmd/platform-admin`, which checks the user and upserts transactionally. No public registration, role seed, or HTTP grant path can create this assignment. An ordinary login continues to issue a tenant/parent token; platform login checks credentials and the current assignment, then issues a distinct tenantless JWT carrying `is_platform_admin`. The protected `/platform/me` endpoint requires this signed claim and re-reads the assignment and user on every request. Gateway gates `/platform/me` by the claim, then identity remains the live authorization authority. Both gateway and identity reject a platform-only token on ordinary tenant routes. A dual-member account uses the appropriate login for each context.
+
+## Consequences and limits
+
+Apply migration 000002 before exposing platform routes. An operator can restore access after deactivation using the same command, but the deployment must control DB credentials and verify account ownership outside the API; see identity `PLATFORM_ADMIN.md`. Revocation removes access on the next `/platform/me` request even if the JWT remains cryptographically valid; no general JWT revocation or second factor is added. The gateway alone cannot know whether an assignment was revoked: any future platform endpoint must repeat the live assignment check in identity or an equivalent trusted boundary. A DB outage on the live check fails closed with 503, not a platform grant. No production assignment or deployment was verified by this code review.
