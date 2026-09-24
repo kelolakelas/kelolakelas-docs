@@ -75,6 +75,13 @@ point: the page exists to answer "who enrolled", and payment status is
 supplementary. Failing the whole screen because one billing lookup timed out
 would withhold the primary information over a detail.
 
+> **Superseded in part by [ADR 0024](0024-billing-read-permission-on-tenant-transaction-reads.md) (KEL-57):**
+> billing now requires `billing:read` on the transaction list, so a `403` from a
+> payment lookup is a real authorization result. The page marks that row
+> "Tidak tersedia untuk role Anda" instead of "Menunggu transaksi"; every other
+> lookup failure still degrades as described here, and the page-level forbidden
+> state is still driven only by the enrollment read.
+
 This is also why the forbidden state is driven exclusively by the enrollment
 read. Neither the schedule list nor the transaction list is permission-guarded,
 so neither can legitimately produce a `403`; treating a `403` from them as
