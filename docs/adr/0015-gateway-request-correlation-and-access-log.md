@@ -69,7 +69,8 @@ request body are not logged at all.
 default handler, matching the other three services.
 
 Deliberately unchanged by this decision: routing, the `SetTrustedProxies(nil)`
-policy, CORS behaviour, and rate-limit behaviour and fail-open semantics. Tenant
+policy (still the default; KEL-62 lets an operator opt into an explicit list, see
+[ADR 0025](0025-gateway-client-ip-from-explicit-trusted-proxies.md)), CORS behaviour, and rate-limit behaviour and fail-open semantics. Tenant
 header propagation was also untouched here and was changed separately in KEL-18,
 which strips `X-Tenant-ID` and `X-Internal-Service-Credential` at the gateway and
 republishes the tenant header from the verified claim
