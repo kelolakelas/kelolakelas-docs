@@ -27,6 +27,8 @@ That raises the question this ADR records: given that a truthful logout cannot
 revoke the token, what exactly does the logout control promise, and how is the
 remaining window described?
 
+> **Superseded in part by ADR 0030:** KEL-66 introduces a per-user session boundary checked by the gateway after password reset. The no-revocation statement below describes logout specifically: logout still does not advance this boundary and remains browser-only. Direct academic/billing JWT validation is unchanged.
+
 ## Decision
 
 **Logout is a web-only operation that deletes the browser's session cookies. It

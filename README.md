@@ -7,8 +7,8 @@ This is an evidence-based onboarding and operations guide for the implementation
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
 | `kelolakelas-web` | `main` | `7760f40973784b5889d381db433718b395a2566b` | KEL-85 merged; CI gate passed |
-| `kelolakelas-api-gateway` | `main` | `832cbd6acc629f5470452edd91e6dddf60eeec45` | KEL-95 merged; CI gate passed |
-| `kelolakelas-identity-service` | `main` | `b54610ff348996ea38d5f2bd82ac8d3da9bed71a` | KEL-95 merged; CI gate passed |
+| `kelolakelas-api-gateway` | `main` | `9d259ec3aa1b0d877bc9216150a4f1a72841ecb7` | KEL-66 merged; PR and post-merge CI gate passed |
+| `kelolakelas-identity-service` | `main` | `e5d5e2ba411c0b78b7e145aaaf9db3b838991dc8` | KEL-66 merged; PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `aff6d34292769ca4fadf386f1c591c2ea8203d89` | KEL-85 merged; PR and post-merge CI gate passed |
 | `kelolakelas-billing-service` | `main` | `3063f210eb96418a06bace16112f77434ca76d3e` | clean after KEL-29 |
 
