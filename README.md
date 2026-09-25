@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `c259903f4e94deeb368b7e5bd3e75033eb019fcd` | KEL-105 merged; platform admin second-factor browser flow (PR #28); PR CI gate passed |
+| `kelolakelas-web` | `main` | `0d4ae0cab1aaaad928a765a2e1298a54c74a4c4b` | KEL-53 merged; parent resume-payment link on the enrollment status screen (PR #29); PR CI gate passed |
 | `kelolakelas-api-gateway` | `main` | `bdbdee308c8c9dda722782d4c871b31876e4f9d7` | KEL-105 merged; platform factor version enforced, challenge/verify proxies (PR #19); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `5ca2ddb1aee4946143e8ecacd5c18e4648bb9ed9` | KEL-105 merged; TOTP second factor for platform admins (PR #19); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `da337f83d8eea994c46fcd62653f7b006f7d9dcc` | KEL-63 merged; PR and post-merge CI gate passed; govulncheck clean |
