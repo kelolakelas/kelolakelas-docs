@@ -2,7 +2,9 @@
 
 **Implemented gateway-owned endpoints:** `GET /health`, `GET /swagger`, `GET /swagger/*any`, and prefixed service Swagger UIs. Every `/api/v1` business route is proxied; no successful response envelope is added. Route registration is the authority: `kelolakelas-api-gateway/internal/delivery/http/router.go:38-147`.
 
-The gateway’s public request paths and downstream paths are identical. It groups identity registration/invitations and academic catalog as public, and billing callback as public. All other listed paths receive gateway JWT validation before forwarding. This does not remove the downstream service’s own validation requirement.
+The gateway’s public request paths and downstream paths are identical. Identity invitation verification and registration are public; invitation creation, listing, and revocation are protected tenant routes. Academic catalog and the billing callback remain public. All other listed paths receive gateway JWT validation before forwarding. This does not remove the downstream service’s own validation requirement.
+
+**Implemented (KEL-82):** `GET /api/v1/invitations` and `DELETE /api/v1/invitations/:id` are proxied in the protected group, after JWT and tenant checks. The gateway replaces a caller-supplied `X-Tenant-ID` with the verified tenant claim; identity independently checks `member:invite` and tenant scope. Evidence: gateway `internal/delivery/http/router.go`, `internal/delivery/http/invitation_route_test.go`; identity `cmd/server/main.go` and `internal/delivery/http/handler/invitation_handler.go`.
 
 For a complete route-by-route list, including handler (`ProxyTo…Service`), downstream target, authentication, and code evidence, see the [endpoint matrix](endpoint-matrix.md).
 

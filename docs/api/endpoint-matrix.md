@@ -12,7 +12,9 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | GET | `/api/v1/catalog/classes` | Academic → same | public | catalog filters → catalog list; 400 | gateway:63; academic main:105 |
 | GET | `/api/v1/catalog/classes/:id` | Academic → same | public | UUID path → catalog class; 400/404 | gateway:64; academic main:106 |
 | POST | `/api/v1/billing/webhooks/duitku` | Billing → same | public, provider HMAC | `DuitkuCallbackPayload` → envelope; 400/404 | gateway:67; billing main:94 |
-| POST | `/api/v1/invitations` | Identity → same | JWT; endpoint role rule not found | create invitation → invitation; 400/409 | gateway:74; identity main:113 |
+| POST | `/api/v1/invitations` | Identity → same | JWT tenant claim; `member:invite` | create/resend invitation → token-free response; 400/403/409 | gateway `router.go`; identity `main.go`, `invitation_handler.go` |
+| GET | `/api/v1/invitations` | Identity → same | JWT tenant claim; `member:invite` | unredeemed tenant invitations, token-free; 403 | gateway `router.go`; identity `main.go`, `invitation_handler.go` |
+| DELETE | `/api/v1/invitations/:id` | Identity → same | JWT tenant claim; `member:invite` | revoke pending invitation → 204; 400/403/404 | gateway `router.go`; identity `main.go`, `invitation_handler.go` |
 || GET/POST | `/api/v1/creator-requests` | Identity → same | JWT tenant claim; live active Creator in tenant | list/create pending Creator requests, never grants role; 400/403/409 | gateway router.go; identity main.go and creator_request_handler.go |
 || POST | `/api/v1/platform/creator-requests/:id/approve` and `/reject` | Identity → same | JWT `is_platform_admin`; identity rechecks live assignment in-transaction | decide a pending Creator request atomically with audit; approve grants once (member upgrade or email-bound invitation redeemed only on acceptance), reject stores reason; 400/403/404/409 | gateway router.go; identity main.go and creator_decision_handler.go |
 | GET | `/api/v1/members` | Identity → same | JWT; tenant claim only | pagination/filter → member list; 400/403 | gateway:75; identity main:114 |
