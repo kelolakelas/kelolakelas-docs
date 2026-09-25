@@ -13,6 +13,7 @@ Safe examples deliberately contain placeholders only — this includes every rep
 | `NODE_ENV` | web | runtime default | enables secure cookie only when `production` | no | web auth actions |
 | `PORT` | gateway/identity/academic/billing | optional; 8000/8080/8081/8082 | HTTP listener, `8080` | no | each config |
 | `JWT_SECRET` | gateway/identity/academic/billing | **required; rejects blank/whitespace** | shared HS256 signing/validation key; configure the same `<strong-random-secret>` at every JWT boundary | yes | each config; identity `pkg/jwt/jwt.go` |
+| `PLATFORM_FACTOR_KEY` | identity | **required; 64 hex chars = 32 bytes; identity exits at startup otherwise** | AES-256-GCM key that encrypts platform-admin TOTP seeds (KEL-105); independent of `JWT_SECRET`, retained across replicas/restarts, never logged | yes | identity `internal/config/config.go`, `cmd/server/main.go`, `internal/repository/platform_factor.go` |
 | `APP_URL` | gateway/identity | gateway optional; identity defaults localhost:3000 | CORS origin/invitation app base, `https://app.example.test` | no | gateway/identity config |
 | `IDENTITY_SERVICE_URL` | gateway | optional; localhost:8080 | proxy target, `http://identity:8080` | no | gateway config |
 | `ACADEMIC_SERVICE_URL` | gateway/billing | optional; localhost:8081 | proxy/internal academic target, `http://academic:8081` | no | gateway/billing config |
