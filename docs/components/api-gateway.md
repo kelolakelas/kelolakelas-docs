@@ -18,6 +18,8 @@ The logged `path` is `URL.Path` only: query strings are never logged, so the inv
 
 **Implemented (KEL-93):** `POST /api/v1/platform/auth/login` is a public proxy to identity; `GET /api/v1/platform/me` requires a signed `is_platform_admin` claim and identity rechecks the live assignment. The gateway's `RequireTenant` rejects tenantless platform tokens on its ordinary protected proxies; this claim is not a tenant role and does not grant tenant access. A platform-only login does not create tenant membership. See [ADR 0026](../adr/0026-platform-admin-assignment-and-principal.md). This gateway check does not constitute live assignment verification by itself; identity performs that check on the platform endpoint.
 
+**Implemented (KEL-96):** the same protected platform route group forwards configuration inventory, history, version requests, and record-only reports to identity. `RequirePlatform` checks the signed claim at the gateway and identity rechecks the active platform assignment before handling each request. No tenant or parent route can reach the control plane. See [ADR 0027](../adr/0027-configuration-control-plane-record-only.md) and `internal/delivery/http/router.go`.
+
 ## Proxy resilience bounds
 
 **Implemented:** Every proxied request is bounded in time and in body size, and every proxy failure is answered with one JSON envelope of the shape `{"status":"error","message":…,"data":null}`. Evidence: `internal/delivery/http/handler/proxy_handler.go` (`handleProxyError`, `classifyProxyError`, `isTimeoutError`), `internal/delivery/http/middleware/error_response.go`, `internal/delivery/http/middleware/body_limit_middleware.go`, `internal/delivery/http/router_test.go`, `internal/delivery/http/middleware/body_limit_middleware_test.go`.
