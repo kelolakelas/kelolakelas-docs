@@ -13,6 +13,7 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | GET | `/api/v1/catalog/classes/:id` | Academic → same | public | UUID path → catalog class; 400/404 | gateway:64; academic main:106 |
 | POST | `/api/v1/billing/webhooks/duitku` | Billing → same | public, provider HMAC | `DuitkuCallbackPayload` → envelope; 400/404 | gateway:67; billing main:94 |
 | POST | `/api/v1/invitations` | Identity → same | JWT; endpoint role rule not found | create invitation → invitation; 400/409 | gateway:74; identity main:113 |
+| GET/POST | `/api/v1/creator-requests` | Identity → same | JWT tenant claim; live active Creator in tenant | list/create pending Creator requests, never grants role; 400/403/409 | gateway router.go; identity main.go and creator_request_handler.go |
 | GET | `/api/v1/members` | Identity → same | JWT; tenant claim only | pagination/filter → member list; 400/403 | gateway:75; identity main:114 |
 | GET | `/api/v1/tutors` | Identity → same | JWT; tenant claim only | pagination/filter → tutor list; 400/403 | gateway:76; identity main:115 |
 | GET | `/api/v1/members/:id` | Identity → same | JWT; tenant scope | UUID → member; 400/404 | gateway:77; identity main:116 |
