@@ -3,6 +3,7 @@
 | Caller | Callee | Protocol / auth | Purpose | Status/evidence |
 |---|---|---|---|---|
 | Web | gateway | HTTP JSON, Bearer supplied by server actions | login, registration, tenant dashboard operations | Implemented: web `_actions`/`_queries` |
+| Web | Gateway | HTTP JSON server actions, pending JWT in Bearer during `/platform/auth/challenge`+`/verify`; verified JWT in Bearer on `/platform/me` | platform admin second-factor login flow (KEL-105): pending token can only start challenges, session cookie written only after verify 200 | Implemented (KEL-105): web `app/platform/login/actions.ts`, `app/platform/{page,challenge/page}.tsx` |
 | Gateway | identity/academic/billing | HTTP reverse proxy, service receives Bearer | public/protected API routing | Implemented: gateway router/proxy handler |
 | Gateway | Identity | Internal HTTP GET `/api/v1/internal/session/check`, caller's signed JWT in Bearer header; not publicly proxied | check per-user reset boundary before every protected gateway route; identity/DB failure returns 503 | Implemented (KEL-66): gateway `handler/proxy_handler.go` `CheckSession`, `middleware/auth_middleware.go`; identity `handler/session_handler.go` |
 | Academic | Identity | gRPC `:50051`, no app auth/TLS found | tenant status, public tenant info | Implemented: `pkg/grpcclient/tenant_client.go` |
