@@ -12,6 +12,8 @@ Identity provides `POST` and `GET /api/v1/creator-requests` for the tenant in th
 
 Apply identity migration `000004_creator_requests` before serving the routes. Concurrent duplicate inserts resolve through the unique constraint and return 409; invalid targets return 400 and unauthorized principals 403. Revoking an applicant's Creator membership removes their ability to create or list requests even with an unexpired JWT. Approval, rejection, actual grants, demotion and revocation are not implemented by KEL-94. The pending table contains no automatic transition or privilege assignment.
 
+> **Superseded in part by [ADR 0029](0029-platform-admin-creator-decision.md):** approval, rejection, and the once-only Creator grant are implemented by KEL-95. Demotion and revocation remain unimplemented.
+
 ## Evidence
 
 Identity PR [#11](https://github.com/kelolakelas/kelolakelas-identity-service/pull/11), merge `91c3cf10ad920078d5847c81f6c55a1db9f74556`: `internal/repository/creator_request_repository.go`, `internal/usecase/creator_request_usecase.go`, `internal/delivery/http/handler/creator_request_handler.go`, `internal/repository/{member,user}_repository.go`, `internal/usecase/invitation_usecase.go`, `migrations/000004_creator_requests.up.sql`, and matching tests. Gateway PR [#13](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/13), merge `f81fe8e0ef1c7c5d23bc07bf0f0f157a24f18189`: `internal/delivery/http/router.go` and route tests. Both PR and post-merge `gate` checks passed; a live PostgreSQL integration test was not run.
