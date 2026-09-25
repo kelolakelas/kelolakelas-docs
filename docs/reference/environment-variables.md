@@ -1,5 +1,7 @@
 # Environment-variable inventory
 
+**Implemented (KEL-96):** identity's read-only `internal/usecase/configuration_catalog.go` catalogs the keys read by web, gateway, identity, academic, and billing from source. Its owner/type/redacted default/sensitivity/validation/application-method/bootstrap-only metadata is operator guidance, not live environment discovery or runtime configuration. Non-secret requests are versioned but not applied automatically; secrets are never managed here. See [ADR 0027](../adr/0027-configuration-control-plane-record-only.md). Preserve the deployment environment as the effective value until a separately verified operator deployment; when identity is unavailable, services continue using their existing deployment configuration. Keep this inventory and the source catalog synchronized when readers change.
+
 Safe examples deliberately contain placeholders only — this includes every repository `.env.example`: credential values there must stay recognizable placeholders (for example `JWT_SECRET=change-me-...`), never real or realistic secrets. “Required” means the loader refuses startup. Evidence throughout is the named service `internal/config/config.go`; web evidence is the listed app files.
 
 | Variable | Consumer | Required / default | Purpose / safe example | Sensitive | Evidence |
