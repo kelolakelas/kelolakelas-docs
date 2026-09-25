@@ -20,6 +20,8 @@ The logged `path` is `URL.Path` only: query strings are never logged, so the inv
 
 **Implemented (KEL-96):** the same protected platform route group forwards configuration inventory, history, version requests, and record-only reports to identity. `RequirePlatform` checks the signed claim at the gateway and identity rechecks the active platform assignment before handling each request. No tenant or parent route can reach the control plane. See [ADR 0027](../adr/0027-configuration-control-plane-record-only.md) and `internal/delivery/http/router.go`.
 
+**Implemented (KEL-94):** authenticated tenant routes `POST` and `GET /api/v1/creator-requests` proxy unchanged to identity (`internal/delivery/http/router.go`). Gateway requires a tenant token but retains its existing parent forwarding behavior; identity enforces active Creator membership and tenant isolation. See [ADR 0028](../adr/0028-tenant-creator-request-without-direct-grant.md).
+
 ## Proxy resilience bounds
 
 **Implemented:** Every proxied request is bounded in time and in body size, and every proxy failure is answered with one JSON envelope of the shape `{"status":"error","message":…,"data":null}`. Evidence: `internal/delivery/http/handler/proxy_handler.go` (`handleProxyError`, `classifyProxyError`, `isTimeoutError`), `internal/delivery/http/middleware/error_response.go`, `internal/delivery/http/middleware/body_limit_middleware.go`, `internal/delivery/http/router_test.go`, `internal/delivery/http/middleware/body_limit_middleware_test.go`.
