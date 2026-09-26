@@ -24,8 +24,8 @@ is not invoked.
 
 > **Superseded in part by ADR 0034:** a request that also carries the optional `member_id`
 > is answered only for that active, non-deleted membership in the tenant that still holds
-> `role_id`; the role-only lookup above now applies only to requests without `member_id`
-> until academic and billing send it (KEL-80). See
+> `role_id`; the role-only lookup above now applies only to requests without `member_id`.
+> Since KEL-80 academic and billing send `member_id` on every tenant check. See
 > [ADR 0034](0034-permission-requires-active-membership.md).
 
 The check is scoped to the tenant the caller is operating on, because a role identifier
