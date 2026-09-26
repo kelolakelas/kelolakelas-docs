@@ -8,7 +8,7 @@ Routes registered in `kelolakelas-academic-service/cmd/server/main.go:98-170` ar
 | Categories/classes | list/create/delete, create-with-category, attribute update, publication toggle | `category_handler.go`, `class_handler.go`, `domain/category.go`, `domain/class.go` |
 | Schedules/sessions | create/list/delete, permanent/time or tutor changes, reschedule/substitute, attendees; mutations are tenant-scoped to the owning class, and a foreign resource is 404 | `schedule_handler.go`, `session_handler.go`, `domain/schedule_dto.go`; ADR [0019](../adr/0019-tenant-scoped-session-and-schedule-mutations.md) |
 | Students | list/create/get/update/delete; parent list/create/update/delete is ownership-scoped; non-parent callers need `student:read|create|update|delete` | `student_handler.go`, `domain/student.go`, web `app/(dashboard)/dashboard/parent/students/**` |
-| Attendance/reports | list/create/get/update (reports also delete) | respective handlers/domain files |
+| Attendance/reports | list/create/get/update (reports also delete); tenant members need the operation-specific permission below | `cmd/server/attendance_report_routes.go`, respective handlers/domain files |
 | Enrollments | create tenant/catalog enrollment, list/get, schedule assignment, parent cancellation; internal activate and release; non-parent callers need `enrollment:read|create` | `enrollment_handler.go`, `domain/enrollment.go` |
 
 The public catalog enrollment route is in the gateway’s protected group despite its path beginning `/catalog`; callers need a JWT at the gateway. This is a route-policy distinction from public catalog reads. `POST /api/v1/catalog/classes/{class_id}/enrollments` requires a parent JWT and `Idempotency-Key`; the request body contains only `student_id`, `billing_cycle`, and optional `schedule_id`. Group classes require a schedule, and any supplied schedule must belong to the selected class; capacity is rechecked under a database lock. On success it returns a payment transaction ID and checkout URL. `ErrScheduleFull`, idempotency conflicts and a duplicate pending/active enrollment (KEL-54, below) are HTTP 409; missing class/student is 404; ownership, schedule validation, or an unpublished/closed class is 422; provider or other unexpected failures are 500. Evidence: `internal/delivery/http/handler/enrollment_handler.go`, `internal/usecase/enrollment_usecase.go`, `internal/repository/enrollment_repository.go`, and the web enrollment action.
@@ -42,6 +42,34 @@ Catalog enrollment with an ended `schedule_id` returns HTTP 422 without creating
 ## Catalog mutation authorization
 
 **Implemented:** authenticated category, class, schedule, and schedule-related session mutations call identity's persisted permission check before entering the handler. `category:create|delete`, `class:create|update|delete`, and `schedule:create|update|delete` are mapped at route registration. The same check guards the tenant-side student and enrollment operations: `student:read` for student list/detail, `student:create|update|delete` for the student mutations, `enrollment:create` for `POST /api/v1/tenants/:tenant_id/enrollments`, and `enrollment:read` for enrollment list/detail. The request carries `tenant_id` next to `role_id` and `permission`, taken from the verified JWT claim and never from a header, and identity answers it against the role that belongs to that tenant or is a system role; a caller without a usable tenant claim is refused with 403 before identity is consulted, so a role lifted from another tenant cannot authorize the mutation. A tenant member without the required assignment — including the seeded `Teacher` role, which holds no student or enrollment permission — receives 403 with no data change, and a tenant member whose token carries no `role_id` is refused with 403 before identity is consulted. Since KEL-80 the request also carries the token's `member_id`, so identity denies a member who was removed, deactivated or moved to another role (403) with a still-valid token, and a tenant token without a UUID `member_id` is refused with 403 before identity is consulted; parents are unaffected. An identity dependency failure receives 503. The student and enrollment routes are also reachable by parents, whose token carries ownership instead of a role; for those callers the check is skipped and the handler's existing owned-resource rules remain the only authority, so a parent keeps managing its own students and creating catalog enrollments without a `role_id`, even while identity is unavailable. Public catalog list/detail reads remain unauthenticated. Tenant/resource ownership checks remain in the academic use cases. See [ADR 0002](../adr/0002-academic-permission-enforcement.md). Evidence: `cmd/server/main.go`, `internal/delivery/http/middleware/permission_middleware.go`, `pkg/grpcclient/permission_client.go`, `internal/delivery/http/handler/student_enrollment_permission_handler_test.go`, and identity `internal/delivery/grpc/permission_service.go`.
+
+## Attendance and report permissions (KEL-22)
+
+**Implemented:** for tenant members, the nine routes registered by
+`cmd/server/attendance_report_routes.go` require the following persisted permissions:
+
+| Route | Permission |
+|---|---|
+| `GET /api/v1/attendance`, `GET /api/v1/attendance/:id` | `attendance:read` |
+| `POST /api/v1/attendance` | `attendance:create` |
+| `PATCH /api/v1/attendance/:id` | `attendance:update` |
+| `GET /api/v1/reports`, `GET /api/v1/reports/:id` | `report:read` |
+| `POST /api/v1/reports` | `report:create` |
+| `PATCH /api/v1/reports/:id` | `report:update` |
+| `DELETE /api/v1/reports/:id` | `report:delete` |
+
+A denied permission returns 403 before the use case, and an identity check failure
+returns 503. The existing assigned-tutor checks still apply after authorization; a
+read-only custom role cannot create a report. Absent or malformed tenant claims on
+parent tokens retain the handler's 401 `Invalid tenant context` response without an
+identity call; a parent token with a valid tenant retains the existing handler path.
+This does not introduce parent access to child attendance or reports. Evidence:
+academic `cmd/server/attendance_report_routes.go`,
+`internal/delivery/http/middleware/permission_middleware.go`,
+`cmd/server/attendance_report_routes_test.go`,
+`internal/usecase/report_permission_test.go`; [ADR 0002](../adr/0002-academic-permission-enforcement.md),
+academic [PR #25](https://github.com/kelolakelas/kelolakelas-academic-service/pull/25),
+squash `b29cf94c6315294db595ad2c7947f900a93b6258`.
 
 ## Tenant context resolution
 
