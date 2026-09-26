@@ -22,6 +22,12 @@ current persisted assignment. Missing role context and denied permissions return
 403. Identity connectivity or lookup failures return HTTP 503 and the academic handler
 is not invoked.
 
+> **Superseded in part by ADR 0034:** a request that also carries the optional `member_id`
+> is answered only for that active, non-deleted membership in the tenant that still holds
+> `role_id`; the role-only lookup above now applies only to requests without `member_id`
+> until academic and billing send it (KEL-80). See
+> [ADR 0034](0034-permission-requires-active-membership.md).
+
 The check is scoped to the tenant the caller is operating on, because a role identifier
 alone does not describe who the caller may act as. Identity counts an assignment only
 when the role belongs to that tenant or is a system role (`roles.tenant_id IS NULL`), so
