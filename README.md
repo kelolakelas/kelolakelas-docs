@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `77f167f029d094f084d739f0e914ae5a0067345d` | KEL-84 pending invitations list, revoke and resend; Pending Invites from the invitation list (PR #38); PR CI gate passed |
+| `kelolakelas-web` | `main` | `6cd03abcd812fdd27de2d10b1cba1a223c3c8859` | KEL-91 full-repository CI lint and PR, merge-group, dispatch and main-push triggers (PR #39); PR and post-merge push `gate` passed |
 | `kelolakelas-api-gateway` | `main` | `a01bb4abb4152662ec3efa5f52b0dc7f29559524` | KEL-68 CI `gate` runs pinned `govulncheck@v1.8.0` (PR #22); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `fffd2c39644afbd167171b0fbdbd13a66eb1bb65` | KEL-68 CI `gate` runs pinned `govulncheck@v1.8.0` (PR #25); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `32536621559d1585b0b50c79747800d947280068` | KEL-68 CI `gate` runs pinned `govulncheck@v1.8.0` (PR #24); PR and post-merge CI gate passed |

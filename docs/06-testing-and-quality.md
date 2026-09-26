@@ -6,6 +6,10 @@ No tests were run for this documentation snapshot: doing so may compile with the
 
 Swagger JSON/YAML is generated and present for all three services. Treat it as a secondary contract: it can lag route/handler changes, as indicated by stale `Tutorin` copies under web `_docs/api`.
 
+## Web full-repository CI gate (KEL-91)
+
+**Implemented (KEL-91):** `kelolakelas-web`'s required `gate` job runs `npm run lint` across the whole repository, not just changed TypeScript files. It retains `npm ci`, the production dependency audit, tests, `tsc --noEmit`, and the production build. The workflow triggers on pull requests to `main`, pushes to `main`, `merge_group`, and manual `workflow_dispatch`; it no longer needs a base-ref diff or full-history checkout. A temporary violation in an untouched `proxy.ts` caused local lint to fail and was reverted before delivery. PR [#39](https://github.com/kelolakelas/kelolakelas-web/pull/39) passed `gate` ([PR run](https://github.com/kelolakelas/kelolakelas-web/actions/runs/36254989462)); its squash `6cd03abcd812fdd27de2d10b1cba1a223c3c8859` triggered a successful [push-to-main run](https://github.com/kelolakelas/kelolakelas-web/actions/runs/36255065233). `merge_group` is configured but was not exercised because no merge-queue event occurred. Previously the web workflow ran on PRs only and linted changed files; that description is now obsolete. No separate review session or workflow-specific unit/integration test ran for this YAML-only change.
+
 ## Dependency vulnerability gate (KEL-68)
 
 **Implemented (KEL-68):** the required `gate` check in every application repository fails when a dependency carries a known advisory. The job id and check name `gate` did not change, so branch protection needs no update; the new step only adds to the existing steps.
