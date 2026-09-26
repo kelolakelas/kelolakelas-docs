@@ -6,9 +6,9 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `21c3ba5087a640fa3346c62a9c151cc16a10a61a` | KEL-67 merged; forgot-password and reset-password pages against the KEL-66 endpoints (PR #32); PR CI gate passed |
-| `kelolakelas-api-gateway` | `main` | `3514762d40db44252c067a597f2ce6a67416fe4d` | KEL-98 merged; platform catalog-policy routes gated (PR #20); PR and post-merge CI gate passed |
-| `kelolakelas-identity-service` | `main` | `225292705dfff275897e4a49a899c79fb485e5c8` | KEL-98 merged; applied catalog policy and platform API (PR #23); PR and post-merge CI gate passed |
+| `kelolakelas-web` | `main` | `123e2c76d8796ca4f0381a4835171d62612e251b` | KEL-103 Creator request and platform decision screens (PR #33); PR CI gate passed |
+| `kelolakelas-api-gateway` | `main` | `7659e14a50083be8ddeee72ffaa7caa3f373800e` | KEL-103 platform queue proxy (PR #21); PR and post-merge CI gate passed |
+| `kelolakelas-identity-service` | `main` | `fd033ccac7649e34f3b0bce85eadd4321dce95f5` | KEL-103 pending cross-tenant Creator queue (PR #24); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `d4033c1c6999cfb00660e4a59c8b7c330a59a41b` | KEL-98 merged; shared fail-closed catalog policy gate (PR #21); PR and post-merge CI gate passed |
 | `kelolakelas-billing-service` | `main` | `9ee1dc233d08bcefa566fcde97cc62fd90cbdd0e` | KEL-80 merged; `billing:read` checks send the token's `member_id`, a tenant token without a usable `member_id` is 403 (PR #16); PR and post-merge CI gate passed |
 
