@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `7a4d4703890c6ee9baa3b4c39386c6315c728c87` | KEL-65 merged; opt-in validated client IP forwarding for rate-limited gateway calls (PR #31); PR CI gate passed |
+| `kelolakelas-web` | `main` | `21c3ba5087a640fa3346c62a9c151cc16a10a61a` | KEL-67 merged; forgot-password and reset-password pages against the KEL-66 endpoints (PR #32); PR CI gate passed |
 | `kelolakelas-api-gateway` | `main` | `bdbdee308c8c9dda722782d4c871b31876e4f9d7` | KEL-105 merged; platform factor version enforced, challenge/verify proxies (PR #19); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `70bc2410349117d094bf38e7d3bcfeef9f2ef07c` | KEL-61 merged; sanitized 500 responses (RegisterTenant, CreateInvitation, RegisterInvitedUser) (PR #20); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `65a885dd6d707a886f11557f575ba4e5393ac603` | KEL-64 merged; enumerated academic handler 500 errors redacted and logged without changing domain 4xx (PR #18); PR and post-merge CI gate passed |
