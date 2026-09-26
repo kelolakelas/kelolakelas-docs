@@ -47,6 +47,21 @@ Permission mapping:
 | Student create/update/delete | `student:create` / `student:update` / `student:delete` |
 | Enrollment create (`POST /tenants/:tenant_id/enrollments`) | `enrollment:create` |
 | Enrollment list/detail | `enrollment:read` |
+| Attendance list/detail, create, update | `attendance:read`, `attendance:create`, `attendance:update` respectively |
+| Report list/detail, create, update, delete | `report:read`, `report:create`, `report:update`, `report:delete` respectively |
+
+**Implemented (KEL-22):** the nine attendance/report routes now apply the mapped
+permission to tenant members before entering the handler. The existing assigned-tutor
+checks remain an additional use-case boundary; permission alone does not permit a tutor
+to write another session. For these routes, a parent token without a valid tenant retains
+the handler's `401 Invalid tenant context` response, without an identity call. A parent
+token with a valid tenant retains the previous handler path without a permission lookup;
+this change does not define parent access to a child's attendance or reports. Identity
+failure returns 503 for tenant-member checks. Evidence: academic
+`cmd/server/attendance_report_routes.go`,
+`internal/delivery/http/middleware/permission_middleware.go`,
+`cmd/server/attendance_report_routes_test.go`; [PR #25](https://github.com/kelolakelas/kelolakelas-academic-service/pull/25),
+squash `b29cf94c6315294db595ad2c7947f900a93b6258`.
 
 Public catalog list/detail routes remain unauthenticated and are not passed through
 the permission middleware. Existing use-case tenant/resource ownership checks remain
