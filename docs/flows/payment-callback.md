@@ -7,6 +7,7 @@ sequenceDiagram
   participant B as Billing
   participant DB as Billing DB
   participant A as Academic
+  participant E as Resend
   D->>G: POST /api/v1/billing/webhooks/duitku
   G->>B: unchanged request path
   B->>B: bind payload + validate HMAC
@@ -15,7 +16,9 @@ sequenceDiagram
   D-->>B: statusCode, merchantOrderId, reference, amount
   B->>DB: lock/read transaction, confirm status and amount, mark paid
   B->>DB: activate subscription / ledger where applicable
-  B->>DB: enqueue payment reconciliation
+  B->>DB: enqueue payment reconciliation and commit
+  B->>DB: claim paid email (if billing contact exists)
+  B->>E: send paid receipt (best effort)
   B->>A: PUT internal enrollment activation
   A-->>B: active enrollment
   B-->>D: success envelope
@@ -37,6 +40,8 @@ sequenceDiagram
 **Authentication:** the route is public by design; callback integrity comes from `DuitkuAdapter.ValidateCallbackSignature`. **Validation:** binding requires callback fields; signature failure is 401; use case loads/locks a transaction, treats paid callbacks as replay reconciliation, parses and compares amount, and handles result code `00` as paid. Evidence: `kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go:239-283`, `internal/usecase/transaction_usecase.go:606-781`, `pkg/duitku/client.go:96-104`.
 
 **Implemented (KEL-56):** A signed `00` callback is not sufficient evidence of settlement: before taking the row lock, billing reads the transaction and calls Duitku `POST /transactionStatus` once (except for an already-paid replay), using the configured bounded HTTP client. Inside the locked transaction, billing requires status `00`, matching merchant order, gross amount and nonempty reference (also matching the saved payment intent and callback reference where supplied). A pending/failed provider status, mismatch or unavailable status API returns a non-2xx callback response and leaves payment, wallet and ledger unchanged; a structured WARN is emitted for status rejection or provider call errors (an empty status response returns an error without a WARN). A later provider callback can retry. The row is rechecked under lock to keep concurrent callbacks idempotent; an already-paid replay does not query Duitku again. There is no polling or periodic status reconciliation. See [ADR 0033](../adr/0033-confirm-duitku-payment-status-before-settlement.md). Evidence: billing `pkg/duitku/client.go` (`TransactionStatus`), `internal/usecase/transaction_usecase.go` (`HandleDuitkuWebhook`, `handleDuitkuWebhookLocal`), `internal/usecase/transaction_status_confirmation_test.go`, `pkg/duitku/status_test.go`; PR #15 (`66597cdd5a5a0ee570534d34824c8e64b4bf5737`).
+
+**Implemented (KEL-28):** After a committed `00` or `01`/`02` callback, Billing conditionally claims the transaction's `paid_email_sent_at` or `failed_email_sent_at` timestamp and sends one Indonesian HTML message to its stored `billing_email` through the bounded-timeout Resend client. The paid receipt includes the stored class name, gross IDR amount, and merchant order ID; the failed notice offers the stored checkout link when available, otherwise directs the parent to reopen the billing page. Dynamic class, ID, and link values are HTML-escaped; older transactions without `class_name` show “kelas Anda”, and those without `billing_email` are skipped. A reported provider failure logs a warning and conditionally releases that claim so a callback replay can retry without repeating the transaction transition; delivery failure never changes the callback result. A timeout after provider acceptance is inherently ambiguous, so a retry can duplicate delivery; a successful claim prevents normal replay duplicates. Evidence: billing `internal/usecase/transaction_usecase.go` (`HandleDuitkuWebhook`, `sendOutcomeEmail`), `internal/repository/transaction_repository.go` (`ClaimOutcomeEmail`, `ReleaseOutcomeEmailClaim`), `migrations/20260927000000_transaction_outcome_emails.up.sql`, `internal/usecase/transaction_usecase_test.go`; [billing PR #18](https://github.com/kelolakelas/kelolakelas-billing-service/pull/18), squash `f273afeff419bcb77fd510e7d945206fb48f91ad`.
 
 **Result code handling.** Confirmed `00` marks the transaction `paid` and runs the paid side effects. `01`/`02` mark it `failed`, but only when the transaction is still `pending` or `creating`, so a callback can never downgrade a settled `paid` or `expired` row. A code outside `00`/`01`/`02` changes nothing: the service writes a structured `WARN` log with `merchant_order_id`, `transaction_id`, `enrollment_id`, `result_code`, `payment_code`, `reference`, and `transaction_status`, and still answers `200` so Duitku does not retry. Evidence: `internal/usecase/transaction_usecase.go:652-778`.
 
