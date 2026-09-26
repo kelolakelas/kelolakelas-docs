@@ -8,7 +8,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 |---|---|---|---|
 | `kelolakelas-web` | `main` | `6cd03abcd812fdd27de2d10b1cba1a223c3c8859` | KEL-91 full-repository CI lint and PR, merge-group, dispatch and main-push triggers (PR #39); PR and post-merge push `gate` passed |
 | `kelolakelas-api-gateway` | `main` | `a01bb4abb4152662ec3efa5f52b0dc7f29559524` | KEL-68 CI `gate` runs pinned `govulncheck@v1.8.0` (PR #22); PR and post-merge CI gate passed |
-| `kelolakelas-identity-service` | `main` | `fffd2c39644afbd167171b0fbdbd13a66eb1bb65` | KEL-68 CI `gate` runs pinned `govulncheck@v1.8.0` (PR #25); PR and post-merge CI gate passed |
+| `kelolakelas-identity-service` | `main` | `f04ba1d4ecc452a0324fc74b8f33494f2af8e221` | KEL-23 PostgreSQL-backed per-account login lockout and enumeration protection (PR #26); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `b29cf94c6315294db595ad2c7947f900a93b6258` | KEL-22 attendance/report tenant-member permission mapping (PR #25); PR and post-merge CI gate passed |
 | `kelolakelas-billing-service` | `main` | `bf4bdaadab649962e174a670a0f73b741fa06f24` | KEL-68 CI `gate` runs pinned `govulncheck@v1.8.0` (PR #17); PR and post-merge CI gate passed |
 
