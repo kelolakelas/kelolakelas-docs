@@ -76,7 +76,7 @@ There is no user-facing invoice-creation route. `POST /api/v1/billing/transactio
 | Downstream cannot be reached | `502` | `Upstream service is unavailable` |
 | Request body exceeds `PROXY_MAX_BODY_BYTES` (default 1 MiB) | `413` | `Request body exceeds the configured limit` |
 
-The `502`/`504` responses never name the downstream host, path, or transport error. `GET /health`, `GET /swagger`, the prefixed Swagger UIs, and `OPTIONS` preflight are not proxied and are unaffected. Evidence: gateway `internal/delivery/http/handler/proxy_handler.go`, `internal/delivery/http/middleware/error_response.go`, `internal/delivery/http/middleware/body_limit_middleware.go`; see [ADR 0021](../adr/0021-bounded-gateway-proxy-and-error-envelope.md).
+The `502`/`504` responses never name the downstream host, path, or transport error. `GET /health`, `GET /ready`, `GET /swagger`, the prefixed Swagger UIs, and `OPTIONS` preflight are not proxied and are unaffected. Evidence: gateway `internal/delivery/http/handler/proxy_handler.go`, `internal/delivery/http/middleware/error_response.go`, `internal/delivery/http/middleware/body_limit_middleware.go`; see [ADR 0021](../adr/0021-bounded-gateway-proxy-and-error-envelope.md).
 
 ## Internal, non-gateway endpoints
 

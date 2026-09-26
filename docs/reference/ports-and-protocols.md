@@ -11,4 +11,6 @@
 | PostgreSQL | `localhost:5432` | PostgreSQL | each stateful service config default |
 | Redis | `localhost:6379` | Redis; optional TLS config | identity/gateway config/main |
 
+KEL-40 health probes use the same HTTP binds above (`GET /health` for liveness and `GET /ready` for readiness). Gateway calls each downstream `/ready` on its configured service URL; academic checks identity's gRPC health service on the configured identity gRPC address. These probes add no listening port.
+
 External provider URLs are configuration values. Billing defaults the Duitku base URL to its sandbox API; Google Maps and Resend code use HTTPS endpoints. Deployment network routing and TLS termination are **Unknown**.
