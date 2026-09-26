@@ -1,6 +1,6 @@
 # Billing schema
 
-**Implemented migration authority:** `kelolakelas-billing-service/migrations/00000000000000_init_schema.up.sql` plus migrations `000002_payment_idempotency`, `000003_subscription_renewals`, `20260915000000_payment_reconciliations`, `20260920000000_transaction_invoice_expiry`, `20260921000000_reconciliation_kind`, and `20260922000000_invoice_claim_recovery`.
+**Implemented migration authority:** `kelolakelas-billing-service/migrations/00000000000000_init_schema.up.sql` plus migrations `000002_payment_idempotency`, `000003_subscription_renewals`, `20260915000000_payment_reconciliations`, `20260920000000_transaction_invoice_expiry`, `20260921000000_reconciliation_kind`, `20260922000000_invoice_claim_recovery`, and `20260927000000_transaction_outcome_emails`.
 
 ```mermaid
 erDiagram
@@ -15,7 +15,7 @@ erDiagram
 | `vouchers` | unique tenant/code, usage and validity fields, soft delete |
 | `wallets`, `bank_accounts`, `ledger_entries`, `withdrawals` | wallet unique tenant; ledger uniqueness for payment event; bank account FK for withdrawal |
 | `subscriptions` | unique enrollment ID; renewal migration adds tenant/parent/student/contact/class/amount fields |
-| `transactions` | unique merchant order; stores amounts/status/provider/payment URL; unique enrollment index introduced by `000002`, then dropped in `000003` in favor of partial subscription-period uniqueness; `invoice_expires_at` holds the invoice deadline sent to Duitku and `expired_at` records when the local expiry worker moved the row to `expired` (both nullable, retained as evidence when a late payment still succeeds); `invoice_claimed_at` records when a request took exclusive ownership of creating the invoice and `invoice_failure_reason` records why the last attempt failed (both nullable; see the invoice claim recovery note below) |
+| `transactions` | unique merchant order; stores amounts/status/provider/payment URL; unique enrollment index introduced by `000002`, then dropped in `000003` in favor of partial subscription-period uniqueness; `invoice_expires_at` holds the invoice deadline sent to Duitku and `expired_at` records when the local expiry worker moved the row to `expired` (both nullable, retained as evidence when a late payment still succeeds); `invoice_claimed_at` records when a request took exclusive ownership of creating the invoice and `invoice_failure_reason` records why the last attempt failed (both nullable; see the invoice claim recovery note below); `paid_email_sent_at` and `failed_email_sent_at` are nullable conditional delivery claims, while `class_name` is a non-null snapshot defaulting to empty for historical rows |
 | `payment_reconciliations` | one durable Academic job per transaction; `kind` is `activation` (confirm a paid seat, the default) or `release` (return the seat of a failed or expired payment, KEL-26); tracks attempts, lease, next retry, latest error, and terminal completion. `status` is one of `pending`, `processing`, `active`, or `terminal_failed`; KEL-29 added an internal endpoint that lists rows by any of those values and one that moves `terminal_failed` rows back to `pending`, so a job that exhausted `PAYMENT_RECONCILIATION_MAX_ATTEMPTS` can be retried without a provider callback |
 | `seed_versions` | seed tracking |
 
