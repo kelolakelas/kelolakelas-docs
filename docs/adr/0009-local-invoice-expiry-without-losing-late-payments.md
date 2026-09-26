@@ -39,7 +39,7 @@ matches `status = 'pending'` and is never expired.
 
 Local expiry is deliberately one-directional: it only moves rows **out of**
 `pending`. A `resultCode=00` callback for a transaction that is already `expired`
-is still honoured. It sets the transaction to `paid`, keeps `expired_at` as
+is still honoured when Duitku confirms its successful status; see [ADR 0033](0033-confirm-duitku-payment-status-before-settlement.md). This supersedes the earlier assumption that callback `resultCode` alone suffices. It sets the transaction to `paid`, keeps `expired_at` as
 evidence of the event order, and runs the ordinary subscription, wallet, ledger,
 and durable reconciliation side effects. Expiry is a local bookkeeping signal,
 not a verdict that the payment did not happen.

@@ -10,7 +10,10 @@ sequenceDiagram
   D->>G: POST /api/v1/billing/webhooks/duitku
   G->>B: unchanged request path
   B->>B: bind payload + validate HMAC
-  B->>DB: lock/read transaction, verify amount, mark paid
+  B->>DB: read transaction (without row lock)
+  B->>D: POST /transactionStatus (successful callback only)
+  D-->>B: statusCode, merchantOrderId, reference, amount
+  B->>DB: lock/read transaction, confirm status and amount, mark paid
   B->>DB: activate subscription / ledger where applicable
   B->>DB: enqueue payment reconciliation
   B->>A: PUT internal enrollment activation
@@ -33,7 +36,9 @@ sequenceDiagram
 
 **Authentication:** the route is public by design; callback integrity comes from `DuitkuAdapter.ValidateCallbackSignature`. **Validation:** binding requires callback fields; signature failure is 401; use case loads/locks a transaction, treats paid callbacks as replay reconciliation, parses and compares amount, and handles result code `00` as paid. Evidence: `kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go:239-283`, `internal/usecase/transaction_usecase.go:606-781`, `pkg/duitku/client.go:96-104`.
 
-**Result code handling.** `00` marks the transaction `paid` and runs the paid side effects. `01`/`02` mark it `failed`, but only when the transaction is still `pending` or `creating`, so a callback can never downgrade a settled `paid` or `expired` row. A code outside `00`/`01`/`02` changes nothing: the service writes a structured `WARN` log with `merchant_order_id`, `transaction_id`, `enrollment_id`, `result_code`, `payment_code`, `reference`, and `transaction_status`, and still answers `200` so Duitku does not retry. Evidence: `internal/usecase/transaction_usecase.go:652-778`.
+**Implemented (KEL-56):** A signed `00` callback is not sufficient evidence of settlement: before taking the row lock, billing reads the transaction and calls Duitku `POST /transactionStatus` once (except for an already-paid replay), using the configured bounded HTTP client. Inside the locked transaction, billing requires status `00`, matching merchant order, gross amount and nonempty reference (also matching the saved payment intent and callback reference where supplied). A pending/failed provider status, mismatch or unavailable status API returns a non-2xx callback response and leaves payment, wallet and ledger unchanged; a structured WARN is emitted for status rejection or provider call errors (an empty status response returns an error without a WARN). A later provider callback can retry. The row is rechecked under lock to keep concurrent callbacks idempotent; an already-paid replay does not query Duitku again. There is no polling or periodic status reconciliation. See [ADR 0033](../adr/0033-confirm-duitku-payment-status-before-settlement.md). Evidence: billing `pkg/duitku/client.go` (`TransactionStatus`), `internal/usecase/transaction_usecase.go` (`HandleDuitkuWebhook`, `handleDuitkuWebhookLocal`), `internal/usecase/transaction_status_confirmation_test.go`, `pkg/duitku/status_test.go`; PR #15 (`66597cdd5a5a0ee570534d34824c8e64b4bf5737`).
+
+**Result code handling.** Confirmed `00` marks the transaction `paid` and runs the paid side effects. `01`/`02` mark it `failed`, but only when the transaction is still `pending` or `creating`, so a callback can never downgrade a settled `paid` or `expired` row. A code outside `00`/`01`/`02` changes nothing: the service writes a structured `WARN` log with `merchant_order_id`, `transaction_id`, `enrollment_id`, `result_code`, `payment_code`, `reference`, and `transaction_status`, and still answers `200` so Duitku does not retry. Evidence: `internal/usecase/transaction_usecase.go:652-778`.
 
 **Late payment after local expiry.** Billing records `transactions.invoice_expires_at` (the same window sent to Duitku) and `transactions.expired_at`. The expiry worker moves overdue `pending` rows to `expired` with a single conditional update guarded by `status = 'pending'` plus `FOR UPDATE SKIP LOCKED`, so it is idempotent and safe with several replicas. A `00` callback that arrives after that still wins: the transaction becomes `paid`, `expired_at` is retained as evidence, and subscription, wallet/ledger, and reconciliation side effects run normally. `01`/`02` cannot undo it. See [ADR 0009](../adr/0009-local-invoice-expiry-without-losing-late-payments.md). Evidence: `internal/repository/transaction_repository.go:125-166`, `internal/usecase/transaction_expiry_worker.go`, `internal/usecase/transaction_usecase.go:653-746`.
 
