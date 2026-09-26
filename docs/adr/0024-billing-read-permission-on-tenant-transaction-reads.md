@@ -42,7 +42,13 @@ semantics academic uses.
 - The request to identity carries `tenant_id`, `role_id`, and `permission`.
   Identity counts only a role that belongs to that tenant or is a system role,
   so a role from another tenant cannot authorize a read.
-- Denied → `403 Insufficient permission`. Identity unreachable, erroring, or
+
+  > **Superseded in part by ADR 0034 (KEL-80):** the request now also carries the
+  > token's `member_id`, and a tenant token without a UUID, non-nil `member_id` is
+  > refused with `403` before identity is consulted, so identity can deny a removed or
+  > re-roled member. The denial message below was corrected from `Insufficient
+  > permission` to `Permission denied`, which is what the code has always returned.
+- Denied → `403 Permission denied`. Identity unreachable, erroring, or
   slower than `IDENTITY_PERMISSION_TIMEOUT_MS` (default 3000) →
   `503 Authorization service unavailable`, and the handler never runs, so no
   transaction data is returned while authorization is unknown.

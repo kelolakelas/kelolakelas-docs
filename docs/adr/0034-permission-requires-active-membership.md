@@ -58,12 +58,17 @@ that ignores it is compatible with clients that send it. The planned order:
 
 1. Deploy identity with this change (done, KEL-76). Requests without `member_id` are
    answered as before.
-2. Update academic and billing to forward the JWT `member_id` claim on every check (KEL-80).
+2. Update academic and billing to forward the JWT `member_id` claim on every check (done,
+   KEL-80: academic PR #20 `ebb6902010ab89ef7d2788e16f21ac5f23245767`, billing PR #16
+   `9ee1dc233d08bcefa566fcde97cc62fd90cbdd0e`; both also refuse a tenant token without a
+   usable `member_id` with 403 before calling identity).
 3. Add an identity flag analogous to `PERMISSION_REQUIRE_TENANT_ID` that rejects a request
    without `member_id` as `InvalidArgument`, and enable it once step 2 is deployed.
 
-Until step 3, a revoked or demoted member can still pass academic and billing permission
-checks with an unexpired token; identity's own HTTP routes are protected from step 1.
+Until step 2 was deployed, a revoked or demoted member could still pass academic and billing
+permission checks with an unexpired token; identity's own HTTP routes are protected from
+step 1. Step 3 is still open: it hardens identity against a client that omits `member_id`,
+but no current academic or billing path omits it.
 
 ## Consequences
 
