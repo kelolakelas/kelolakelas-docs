@@ -14,7 +14,9 @@ The target email is re-resolved under the lock at decision time. A request whose
 
 ## Consequences
 
-Apply identity migration `000005_creator_decisions` before serving the routes; it is idempotent and mirrored by a down migration. Approval of an existing non-Creator member upgrades that membership in place (one membership per user per tenant). An approved-unaccepted request grants nothing until the invitee registers through the bound invitation; there is no resend mechanism yet. Creator revocation and an approval UI remain unimplemented (KEL-95 out of scope).
+Apply identity migration `000005_creator_decisions` before serving the routes; it is idempotent and mirrored by a down migration. Approval of an existing non-Creator member upgrades that membership in place (one membership per user per tenant). An approved-unaccepted request grants nothing until the invitee registers through the bound invitation; there is no resend mechanism yet. Creator revocation remains unimplemented (KEL-95 out of scope).
+
+> **Superseded in part by [ADR 0037](0037-creator-request-browser-queue.md):** KEL-103 adds the browser approval UI and a protected pending cross-tenant read queue; the KEL-95 decision transaction remains unchanged.
 
 ## Evidence
 
