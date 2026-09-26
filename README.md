@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `0d4ae0cab1aaaad928a765a2e1298a54c74a4c4b` | KEL-53 merged; parent resume-payment link on the enrollment status screen (PR #29); PR CI gate passed |
+| `kelolakelas-web` | `main` | `169ebf4097959f95461f6411c3da194afa2d9aa6` | KEL-50 merged; per-slot schedule capacity and Add Schedule in tenant classes (PR #30); PR CI gate passed |
 | `kelolakelas-api-gateway` | `main` | `bdbdee308c8c9dda722782d4c871b31876e4f9d7` | KEL-105 merged; platform factor version enforced, challenge/verify proxies (PR #19); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `70bc2410349117d094bf38e7d3bcfeef9f2ef07c` | KEL-61 merged; sanitized 500 responses (RegisterTenant, CreateInvitation, RegisterInvitedUser) (PR #20); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `d6e2906c726a81ec6ba17861aca265eb19239ef6` | KEL-75 merged; parent checkout forwards JWT email claim to billing as sender_email (PR #16); PR and post-merge CI gate passed |
