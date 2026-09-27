@@ -46,7 +46,11 @@ An invoice created under v0 keeps `platform_fee` Rp0 and `platform_fee_policy_ve
 
 Deploy identity (migration 000013) first, then run billing's migration and deploy billing, then the gateway. Billing without an answering identity `FeePolicyService` refuses every new enrollment payment with 503. That is the intended fail-closed behavior, but it makes identity availability a precondition for checkout and renewal. After setting a version, an operator must record its applied report; until then billing refuses new invoices.
 
-As with ADR 0036, the applied report is an operator acknowledgement: billing does not report back which version it enforced, although every transaction records it. Academic still sends `platform_fee`; billing accepts and ignores it. A parent sees a policy outage or an over-gross refusal as a generic payment failure, because a dedicated message needs academic and web changes outside KEL-99. The gRPC link keeps the existing unauthenticated plaintext transport, so network restriction remains essential.
+As with ADR 0036, the applied report is an operator acknowledgement: billing does not report back which version it enforced, although every transaction records it. Academic still sends `platform_fee`; billing accepts and ignores it. A parent sees a policy outage or an over-gross refusal as a generic payment failure, because a dedicated message needs academic and web changes outside KEL-99.
+
+> **Superseded in part by [ADR 0045](0045-drop-enrollment-on-platform-fee-rejection.md):** since KEL-106 the over-gross refusal reaches the parent as academic HTTP 422 `code: platform_fee_exceeds_gross` with a dedicated web message, and the refused enrollment is dropped. A policy outage is still a generic payment failure.
+
+The gRPC link keeps the existing unauthenticated plaintext transport, so network restriction remains essential.
 
 ## Verification
 
