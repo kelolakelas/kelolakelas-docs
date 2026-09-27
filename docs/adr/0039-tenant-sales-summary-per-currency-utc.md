@@ -18,6 +18,8 @@ The existing transaction reads use `RequirePermissionUnlessParent` ([ADR 0024](0
 - `from` and `to` are optional `YYYY-MM-DD` UTC calendar days, both inclusive. The default is today (UTC) and the 29 preceding days. A malformed date, `from > to`, or more than 366 inclusive days is 400. SQL filters `status = 'paid'` and `paid_at >= from AND paid_at < to + 1 day`, so a row paid exactly at midnight after `to` is excluded and one at midnight of `from` is included.
 - The response groups by currency: `{from, to, totals: [{currency, transaction_count, gross_amount, net_amount}]}`, ordered by currency, `[]` when there are no sales. Amounts of different currencies are never added.
 - Net is the stored `net_amount`; no platform fee is computed.
+
+  > **Superseded in part by ADR 0044:** since KEL-99, invoice creation deducts the applied platform fee from each new transaction's stored `net_amount`. The summary still computes no fee, but its net totals reflect the fee policy in force when each transaction was created.
 - The web dashboard requests the default range and shows one bucket per currency in its own Suspense boundary, with loading, empty, forbidden and error states.
 
 ## Consequences
