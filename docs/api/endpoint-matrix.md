@@ -55,8 +55,8 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | POST | `/api/v1/sessions/:id/reschedule` | Academic → same | JWT | reschedule DTO → changed session | gateway:134; academic main:155 |
 | PATCH | `/api/v1/sessions/substitute-tutor` | Academic → same | JWT | substitute tutor DTO → changed session | gateway:135; academic main:156 |
 | PATCH | `/api/v1/sessions/:id/substitute-tutor` | Academic → same | JWT | substitute tutor DTO → changed session | gateway:136; academic main:157 |
-| GET | `/api/v1/enrollments` | Academic → same | JWT; tenant/parent scoped use case | filters → enrollment list | gateway:139; academic main:136 |
-| GET | `/api/v1/enrollments/:id` | Academic → same | JWT; tenant/parent scoped use case | UUID → enrollment | gateway:140; academic main:137 |
+| GET | `/api/v1/enrollments` | Academic → same | JWT; tenant/parent scoped use case | filters → enrollment list (each item may carry an optional `schedule` summary, KEL-70) | gateway:139; academic main:136 |
+| GET | `/api/v1/enrollments/:id` | Academic → same | JWT; tenant/parent scoped use case | UUID → enrollment (optional `schedule` summary, KEL-70) | gateway:140; academic main:137 |
 | PATCH | `/api/v1/enrollments/:id/schedule` | Academic → same | JWT; parent required | schedule assignment DTO → enrollment; 403/409/422 | gateway:141; academic main:138 |
 | POST | `/api/v1/enrollments/:id/cancel` | Academic → same | JWT; parent required | none → cancelled enrollment; 403/404/409 | gateway:142; academic main:135 |
 | POST | `/api/v1/tenants/:tenant_id/enrollments` | Academic → same | JWT; parent takes public flow, else claim must equal path | enrollment DTO + `Idempotency-Key` → enrollment/payment; 400/403 | gateway:143; academic main:133 |
