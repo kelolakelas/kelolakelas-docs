@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `58c2da9915745e4b0e18a33d670d6a0b34f8a840` | KEL-92 labelled `/kelas` filter controls and named filter form, one `h1` on login and registration, `aria-pressed` registration role toggle (PR #46); PR and post-merge push gate passed |
+| `kelolakelas-web` | `main` | `60dfae0666c9d660960ec3232dc485a05118b2c8` | KEL-44 parent payment return landing `/dashboard/parent/enrollments/return` with bounded automatic status refresh, and a parent post-login return to `/dashboard/parent/*` (PR #47); PR and post-merge push gate passed |
 | `kelolakelas-api-gateway` | `main` | `d7d61fc4a0fc14f440bddb87f6207322f290017e` | KEL-71 graceful shutdown: drain in-flight proxied requests on SIGINT/SIGTERM under `SERVER_SHUTDOWN_TIMEOUT_SECONDS` (PR #26); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `7d98535578cd78cde2972faad4ffe15c2e7b9d96` | KEL-59 non-unique `idx_tenant_members_user_id` lookup index, migration 000012 (PR #32); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `50c042ca3e9b379c459c40035e84da28ba0d9b3c` | KEL-43 student `last_name` JSON key, regenerated Swagger with security/`x-permission`, `make swagger`, route/Swagger contract test (PR #32); PR and post-merge CI gate passed |
