@@ -4,6 +4,22 @@
 
 **Implemented (KEL-40):** public `/ready` pings PostgreSQL under a one-second deadline; database failure returns 503 with component detail, while `/health` stays independent. Evidence: `cmd/server/{main,readiness,readiness_test}.go`; [PR #20](https://github.com/kelolakelas/kelolakelas-billing-service/pull/20), squash `60c6e18e5961782f1ada696d73d4cea93535c51e`.
 
+**Implemented (KEL-71):** the HTTP server is built by `newHTTPServer` (`cmd/server/server.go`) with bounded timeouts instead of `&http.Server{Addr, Handler}` with none:
+
+| Setting | Server field | Default |
+|---|---|---|
+| `SERVER_READ_HEADER_TIMEOUT_SECONDS` | `ReadHeaderTimeout` | 5 |
+| `SERVER_READ_TIMEOUT_SECONDS` | `ReadTimeout` | 30 |
+| `SERVER_WRITE_TIMEOUT_SECONDS` | `WriteTimeout` | 60 |
+| `SERVER_IDLE_TIMEOUT_SECONDS` | `IdleTimeout` | 120 |
+
+- A zero, negative or unset value uses the default. A value too large for a duration stops startup.
+- A client that stalls while sending headers, including one aimed at the public Duitku webhook, is disconnected after `ReadHeaderTimeout`.
+- Startup also fails, naming the setting, when `SERVER_WRITE_TIMEOUT_SECONDS` is at or below the longest outbound wait of one request: the webhook's sequential `DUITKU_HTTP_TIMEOUT_SECONDS + RESEND_HTTP_TIMEOUT_SECONDS + academic.RequestTimeout` (10 s), or `IDENTITY_PERMISSION_TIMEOUT_MS` when that is larger.
+- The signal context, the in-process workers and the 10-second `Shutdown` are unchanged. The workers still stop on the same context as the server.
+
+See [ADR 0043](../adr/0043-gateway-graceful-shutdown-and-billing-server-timeouts.md). Evidence: `cmd/server/{main,server,server_test}.go` (`TestSlowHeaderClientIsDisconnectedAfterReadHeaderTimeout`), `internal/config/{config,server_timeouts_test}.go` (`applyServerTimeouts`, `LongestRequestOutboundTimeout`), `pkg/academic/client.go` (`RequestTimeout`), `.env.example`; [PR #23](https://github.com/kelolakelas/kelolakelas-billing-service/pull/23), squash `6ac91c3d7981bc0015ee46320ce93e7a74619d3e`.
+
 **Implemented (KEL-63):** the build toolchain is pinned by `go 1.26.6` (`go.mod`; CI follows via `go-version-file`), fixing the reachable go1.26.5 standard-library advisories, including GO-2026-6088 (`encoding/xml`) that only this repository carried, alongside GO-2026-6089/GO-2026-5026 (`net/http`), GO-2026-6090 (`crypto/tls`), GO-2026-5972 (`encoding/asn1`), GO-2026-6218 (`net/url`), and GO-2026-6091 (`html/template`). `github.com/jackc/pgx/v5` moves v5.6.0 → v5.9.2 as an indirect dependency of the GORM Postgres driver (GO-2026-5004), with tidy-driven transitives (`golang.org/x/{crypto,mod,net,text,tools}`, `google.golang.org/genproto/googleapis/rpc`); billing has no direct `grpc` requirement. `govulncheck ./...` reports no vulnerabilities; no runtime code or behaviour changed, and the full `-race` suite (including `pkg/identity` and `pkg/duitku`) passes. Evidence: `kelolakelas-billing-service/go.mod`, `go.sum`; PR #12, squash `48d54619ef789c8e5128918d0259adda32a3a0b6`.
 
 **Implemented (KEL-68):** the required CI `gate` job ends with `Vulnerability check`, `go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...`, so a PR that makes a known-vulnerable symbol reachable (standard library or module) fails; uncalled module advisories are informational. The step fails closed when `vuln.go.dev` is unreachable (re-run). Evidence: `.github/workflows/ci.yml`; PR [#17](https://github.com/kelolakelas/kelolakelas-billing-service/pull/17), squash `bf4bdaadab649962e174a670a0f73b741fa06f24`. Procedure for a new advisory: [testing and quality § Dependency vulnerability gate](../06-testing-and-quality.md#dependency-vulnerability-gate-kel-68).
