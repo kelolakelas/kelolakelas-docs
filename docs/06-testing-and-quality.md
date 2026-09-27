@@ -4,7 +4,7 @@
 
 No tests were run for this documentation snapshot: doing so may compile with the host Go version and could require module/cache changes; no end-to-end configuration or external-service sandbox was authorized. Static checks performed are recorded in the root README and evidence index.
 
-Swagger JSON/YAML is generated and present for all three services. Treat it as a secondary contract: it can lag route/handler changes, as indicated by stale `Tutorin` copies under web `_docs/api`.
+Swagger JSON/YAML is generated and present for all three services. Treat it as a secondary contract: it can lag route/handler changes, as indicated by stale `Tutorin` copies under web `_docs/api`. Academic is the exception since KEL-43: `cmd/server/swagger_contract_test.go` fails `go test` when its Swagger drifts from the registered routes, security, or permission notes, and `make swagger` regenerates it. Identity and billing Swagger have no such check.
 
 ## Web full-repository CI gate (KEL-91)
 
