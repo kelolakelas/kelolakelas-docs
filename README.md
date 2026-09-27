@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `03b5cc0737491193def073d0fbaaaea1ff07742d` | KEL-43 shared student surname reader: `last_name` first, legacy `lastå_name` fallback (PR #43); PR and post-merge push gate passed |
+| `kelolakelas-web` | `main` | `2ca9fd30253c8159d2f4fade6d5ee8538090d5e7` | KEL-72 `robots.txt` and hourly-revalidated `sitemap.xml` from the public catalog (PR #44); PR and post-merge push gate passed |
 | `kelolakelas-api-gateway` | `main` | `d7d61fc4a0fc14f440bddb87f6207322f290017e` | KEL-71 graceful shutdown: drain in-flight proxied requests on SIGINT/SIGTERM under `SERVER_SHUTDOWN_TIMEOUT_SECONDS` (PR #26); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `7d98535578cd78cde2972faad4ffe15c2e7b9d96` | KEL-59 non-unique `idx_tenant_members_user_id` lookup index, migration 000012 (PR #32); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `50c042ca3e9b379c459c40035e84da28ba0d9b3c` | KEL-43 student `last_name` JSON key, regenerated Swagger with security/`x-permission`, `make swagger`, route/Swagger contract test (PR #32); PR and post-merge CI gate passed |
