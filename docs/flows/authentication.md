@@ -16,6 +16,25 @@ sequenceDiagram
   W-->>U: parent register returns to login; login/tenant register set HTTP-only cookie
 ```
 
+## Account email identity (KEL-89)
+
+**Implemented:** identity treats an email address as one account identity regardless of letter case.
+
+- **Normalization.** Register, tenant registration, login, platform login, password-reset request and invitation creation all trim and lowercase the email before validation and lookup (`internal/domain/email.go`: `NormalizeEmail` and the `EmailAddress` JSON request type).
+- **Storage.** New users are stored in that form, including users created through invitation redemption (`RegisterInvitedUserTx` normalizes the stored invitation address), and so are new invitations.
+- **Lookup.** Every account lookup compares `LOWER(email)` with the normalized input: `GetByEmail`, login lockout `Authenticate`, invitation duplicate and existence checks, and the Creator-invitation approval match on `LOWER(target_email)`.
+- **Legacy data.** An account stored as `Parent@X.com` before the change keeps that stored value and signs in as `parent@x.com`, `PARENT@X.COM` or ` Parent@x.com `. The JWT `email` claim is always lowercase.
+- **Duplicates.** Registering `Parent@x.com` when `parent@x.com` exists returns 409. The same holds for tenant registration, and for invitation creation (whose existing-account check already answered 409). Two simultaneous registrations cannot both succeed: the database index `uq_users_email_lower` rejects the second insert, and identity maps that unique violation to the same 409. A database error during the pre-check is returned as an error instead of being treated as "email available".
+
+**Migration 000011 and existing duplicates.** `000011_users_email_case_insensitive.up.sql` first groups `users` (soft-deleted rows included) by `lower(email)`.
+
+- If any address has more than one account, it raises `email case conflict: N email address(es) belong to more than one account when compared case-insensitively; resolve these accounts manually before applying migration 000011`. DETAIL lists the conflicting user ids, one group per address, and no addresses, so no PII reaches deploy logs. HINT gives the query that lists the addresses on the database.
+- Nothing is created, rewritten or merged when it stops: account merging is an operator decision.
+- golang-migrate records version 11 as dirty. To recover, resolve the accounts manually, mark version 10 clean (`migrate force 10`, or `UPDATE schema_migrations SET version = 10, dirty = false`; the repo's `cmd/migrate` has no force flag), then migrate up again.
+- On clean data it creates `CREATE UNIQUE INDEX uq_users_email_lower ON users (lower(email))`. The original case-sensitive `users_email_key` stays in place. The down migration only drops the new index, and no row is changed in either direction.
+
+Evidence: identity [PR #31](https://github.com/kelolakelas/kelolakelas-identity-service/pull/31), squash `6dd2c7a163668526fe06ed14256c7cc74cfa0cb6`. Tests: `internal/usecase/email_case_test.go`, `internal/delivery/http/handler/email_case_test.go`, `internal/repository/email_case_test.go`, `pkg/jwt/jwt_email_test.go`, and the PostgreSQL migration test `internal/migration/email_case_migration_integration_test.go` (`KEL89_TEST_ADMIN_DATABASE_URL`: clean up/rollback, legacy mixed-case login after migration, conflict stop without data change). See [ADR 0041](../adr/0041-case-insensitive-account-email.md). **Not implemented (out of scope):** automatic merging of duplicate accounts and email verification at registration.
+
 ## Password reset (KEL-66)
 
 **Implemented (backend KEL-66, web KEL-67):** the public gateway proxies `POST /api/v1/auth/password-reset/request` to identity. Identity looks up the email case-insensitively (excluding soft-deleted users), rotates a random 256-bit token under a user-row lock, stores only its SHA-256 hash and expiration, and asks Resend to send `${APP_URL}/reset-password?token=...`. Unknown addresses and delivery failures return the same generic 200 response as a delivered request; delivery failures are logged without the address or token. The token expires after `PASSWORD_RESET_TTL_MINUTES` (default 60). In the web app (KEL-67), the login page links to `/forgot-password`, which submits the email server-side and always shows the same generic confirmation after a 2xx; the emailed link opens `/reset-password?token=…` (`noindex`, `no-referrer`), which collects the new password and its confirmation and submits them server-side to the confirm endpoint. A 400 shows an invalid/expired-link message with a link to request a new one; success clears the browser's session cookies and redirects to `/login?reset=1`; 5xx or an unreachable gateway shows a generic Indonesian message. Both pages are `publicRoutes` in `proxy.ts`, so a signed-in visitor is redirected away like from `/login`. Evidence: web PR #32 (`21c3ba5087a640fa3346c62a9c151cc16a10a61a`), `app/(auth)/{forgot-password,reset-password}/**`, see [web component](../components/web.md).

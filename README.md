@@ -8,7 +8,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 |---|---|---|---|
 | `kelolakelas-web` | `main` | `bd205b0d9766627d834ddeb17e054723334c953e` | KEL-81 tenant member removal with confirmation dialog (PR #42); PR and post-merge push gate passed |
 | `kelolakelas-api-gateway` | `main` | `c90e4ae9c9bfd0db87331c4b242a581cccc97e38` | KEL-58 protected `/billing/transactions/summary` route (PR #25); PR and post-merge CI gate passed |
-| `kelolakelas-identity-service` | `main` | `82f3a7f1de0817b723105bfd275c1db7fa80a423` | KEL-81 self-removal refused on `DELETE /members/:id` (PR #30); PR and post-merge CI gate passed |
+| `kelolakelas-identity-service` | `main` | `6dd2c7a163668526fe06ed14256c7cc74cfa0cb6` | KEL-89 case-insensitive account email with `uq_users_email_lower` migration 000011 (PR #31); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `4e63449a66251dfd05d592b6c0805d3c1b1146cd` | KEL-87 400 for oversized page/search/varchar/capacity input and literal `ILIKE` search (PR #30); PR and post-merge CI gate passed |
 | `kelolakelas-billing-service` | `main` | `2f0982de17fe993ef9c2ed74a148af9bd1aa1da0` | KEL-58 tenant paid sales summary endpoint (PR #21); PR and post-merge CI gate passed |
 
