@@ -62,6 +62,14 @@ A downstream that closes the connection after the response header has already be
 
 `SERVER_WRITE_TIMEOUT_SECONDS` must be greater than `PROXY_UPSTREAM_TIMEOUT_SECONDS`. A configuration where it is not fails loading with an explanatory error instead of being silently clamped, so the operator sees the problem at startup. Evidence: `internal/config/config.go` (`LoadConfig`, the write-versus-upstream check).
 
+## Graceful shutdown
+
+**Implemented (KEL-71):** `main.go` binds the listener before serving and hands it to `serveUntilDone` (`cmd/server/lifecycle.go`), together with a `signal.NotifyContext(SIGINT, SIGTERM)` context. On a signal the server stops accepting connections, and `Shutdown` lets every in-flight request finish, including a proxied request still waiting on its downstream (for example a Duitku callback), for up to `SERVER_SHUTDOWN_TIMEOUT_SECONDS`. The default is 15. A zero, negative or unset value uses the default, and a non-numeric value or one too large for a duration stops startup.
+
+`Shutdown` does not cancel request contexts, so `PROXY_UPSTREAM_TIMEOUT_SECONDS` stays the only bound on a single exchange. At the deadline the remaining connections are closed and the process exits 1. A clean drain exits 0, and a bind or serve failure exits 1. The signal registration stays in place for the whole drain, so a second SIGTERM does not skip it. Keep the platform's termination grace period above the shutdown timeout. See [ADR 0043](../adr/0043-gateway-graceful-shutdown-and-billing-server-timeouts.md).
+
+Evidence: `cmd/server/{main,lifecycle,lifecycle_test}.go` (`TestShutdownCompletesInFlightProxiedRequest`, `TestShutdownForceClosesProxiedRequestThatOutlivesTimeout`), `internal/config/config.go` (`DefaultServerShutdownTimeout`), `internal/config/config_test.go` (`TestServerShutdownTimeout`); [PR #26](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/26), squash `d7d61fc4a0fc14f440bddb87f6207322f290017e`.
+
 ## Context header trust boundary
 
 **Implemented:** `middleware/context_header_middleware.go` registers `StripUntrustedContextHeaders()` as the second middleware, after request correlation and before access logging, CORS, rate limiting, and every route. It deletes `X-Tenant-ID` and `X-Internal-Service-Credential` from the inbound request, so no route, middleware, or proxy can observe a caller-supplied value of either header. `http.Header.Del` canonicalises the key, so differently-cased and repeated copies are removed together. Evidence: `internal/delivery/http/middleware/context_header_middleware.go:49-53`, `internal/delivery/http/router.go:31`.

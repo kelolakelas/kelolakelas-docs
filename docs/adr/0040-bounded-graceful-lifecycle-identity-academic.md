@@ -26,6 +26,8 @@ Identity and academic started gin with `r.Run("0.0.0.0:" + PORT)`. That leaves e
 - An identity host where `:50051` is already taken now fails to start instead of serving HTTP only. That is intended: a half-started identity breaks academic and billing permission checks silently.
 - Graceful shutdown of the gateway and HTTP server timeouts in billing remain out of scope for KEL-69.
 
+  > **Superseded in part by ADR 0043:** both are now implemented (KEL-71); see [ADR 0043](0043-gateway-graceful-shutdown-and-billing-server-timeouts.md).
+
 ## Evidence
 
 Identity [PR #29](https://github.com/kelolakelas/kelolakelas-identity-service/pull/29), squash `c13e15c2177c27a102b5a9e61bf0709d0bcde9bf`: `cmd/server/{main,lifecycle,lifecycle_test}.go`, `internal/config/{config,server_timeouts_test}.go`, `.env.example`. Academic [PR #28](https://github.com/kelolakelas/kelolakelas-academic-service/pull/28), squash `5219e468642eacd11dce89931a56ee354ec1362b`: `cmd/server/{main,lifecycle,lifecycle_test}.go`, `internal/config/{config,server_timeouts_test}.go`, `pkg/billing/client.go`, `.env.example`. Tests prove an in-flight request completes with 200 during shutdown while new connections are refused and the process exits before the deadline, a request outliving the deadline is force-closed, incomplete headers are cut at `ReadHeaderTimeout`, an in-flight gRPC call completes during `GracefulStop`, the `Stop` fallback, and the config defaults and rejections. PR and main-push `gate` checks passed in both repositories.
