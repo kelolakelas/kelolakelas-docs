@@ -6,6 +6,8 @@ The gateway’s public request paths and downstream paths are identical. Identit
 
 **Implemented (KEL-82):** `GET /api/v1/invitations` and `DELETE /api/v1/invitations/:id` are proxied in the protected group, after JWT and tenant checks. The gateway replaces a caller-supplied `X-Tenant-ID` with the verified tenant claim; identity independently checks `member:invite` and tenant scope. Evidence: gateway `internal/delivery/http/router.go`, `internal/delivery/http/invitation_route_test.go`; identity `cmd/server/main.go` and `internal/delivery/http/handler/invitation_handler.go`.
 
+**Implemented (KEL-58):** `GET /api/v1/billing/transactions/summary` is proxied to billing in the protected group, registered before `/billing/transactions/:id`. The gateway only validates the JWT and publishes the verified tenant header; billing enforces tenant scope, `billing:read`, parent refusal and the date range. Evidence: gateway `internal/delivery/http/router.go`, `router_test.go` (`protectedRoutes` 401 without a token, `TestSalesSummaryRouteForwardsRangeToBilling`); [PR #25](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/25), squash `c90e4ae9c9bfd0db87331c4b242a581cccc97e38`.
+
 For a complete route-by-route list, including handler (`ProxyTo…Service`), downstream target, authentication, and code evidence, see the [endpoint matrix](endpoint-matrix.md).
 
 ## Gateway-generated error envelope

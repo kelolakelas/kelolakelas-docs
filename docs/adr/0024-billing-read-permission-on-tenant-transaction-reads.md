@@ -34,6 +34,11 @@ semantics academic uses.
 - `middleware.RequirePermissionUnlessParent(permissions, "billing:read")` guards
   only the two tenant-facing GET routes
   (`kelolakelas-billing-service/cmd/server/routes.go`).
+
+  > **Superseded in part by ADR 0039:** a third tenant-facing GET route,
+  > `/api/v1/billing/transactions/summary` (KEL-58), exists and is guarded by
+  > `middleware.RequirePermission`, which refuses parent tokens instead of
+  > letting them through.
 - A parent token passes without an identity call. Parents carry ownership, not a
   role, and the handler already scopes their query to `parent_id`.
 - A tenant token must carry a UUID `role_id` and `tenant_id`. A token without
