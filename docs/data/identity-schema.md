@@ -16,7 +16,7 @@ erDiagram
 
 | Tables | Important constraints/indexes |
 |---|---|
-| `users`, `tenants` | unique email/name; soft delete; tenants validate latitude/longitude pairing and ranges |
+| `users`, `tenants` | unique email/name; soft delete; tenants validate latitude/longitude pairing and ranges. Since KEL-89 (`000011_users_email_case_insensitive`) `users` also has the unique expression index `uq_users_email_lower` on `lower(email)`, which makes the account email case-insensitive; the original case-sensitive `users_email_key` remains ([ADR 0041](../adr/0041-case-insensitive-account-email.md)) |
 | `roles`, `permissions`, `role_permissions`, `tenant_members` | unique `(tenant_id,name)` and `(tenant_id,user_id)`; FKs to tenant/user/role/permission. `roles.tenant_id` is nullable: a null row is a system role seeded for every tenant (the built-in `Creator` and `Teacher` roles), which is why a permission lookup counts an assignment only when `roles.tenant_id` equals the tenant being operated on or is null |
 | `tenant_invitations` | unique token; tenant/role FKs; used/expiry fields |
 | `tenant_wallets`, `user_wallets`, bank accounts, ledger entries, withdrawals | FK-backed identity financial tables; withdrawal status indexes |
