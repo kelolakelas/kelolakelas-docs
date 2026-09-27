@@ -22,7 +22,7 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | GET | `/api/v1/tutors` | Identity → same | JWT; tenant claim only | pagination/filter → tutor list; 400/403 | gateway:76; identity main:115 |
 | GET | `/api/v1/members/:id` | Identity → same | JWT; tenant scope | UUID → member; 400/404 | gateway:77; identity main:116 |
 | PUT | `/api/v1/members/:id/role` | Identity → same | JWT; caller role used | update role DTO → member; 400/403/404/409 | gateway:78; identity main:117 |
-| DELETE | `/api/v1/members/:id` | Identity → same | JWT; handler/use case scope | UUID → envelope; 400/403/404 | gateway:79; identity main:118 |
+| DELETE | `/api/v1/members/:id` | Identity → same | JWT; `member:delete` (active membership); own membership refused | UUID → envelope; 400/403/404/409 (self-removal, KEL-81) | gateway:79; identity main:118 |
 | GET/PATCH | `/api/v1/tenant/settings` | Identity → same | JWT; tenant claim only | none / settings DTO → tenant; 400/403/404 | gateway:80,77; identity main:119-120 |
 | GET/PATCH | `/api/v1/tenants/settings` | Identity → same | JWT; alias | same as singular settings path | gateway:82,79; identity main:121-122 |
 | GET/PUT | `/api/v1/tenant/settings/location` | Identity → same | JWT; tenant claim only | none / location DTO → location; geocode may fail; 403 without a tenant claim | gateway:84,81; identity main:123-124 |

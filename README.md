@@ -6,9 +6,9 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `e4e5338dc362120f530a897753da72ac13515d73` | KEL-70 parent enrollment card schedule line (PR #41); PR `gate` passed |
+| `kelolakelas-web` | `main` | `bd205b0d9766627d834ddeb17e054723334c953e` | KEL-81 tenant member removal with confirmation dialog (PR #42); PR and post-merge push gate passed |
 | `kelolakelas-api-gateway` | `main` | `c90e4ae9c9bfd0db87331c4b242a581cccc97e38` | KEL-58 protected `/billing/transactions/summary` route (PR #25); PR and post-merge CI gate passed |
-| `kelolakelas-identity-service` | `main` | `c13e15c2177c27a102b5a9e61bf0709d0bcde9bf` | KEL-69 bounded HTTP timeouts and graceful HTTP/gRPC shutdown (PR #29); PR and post-merge CI gate passed |
+| `kelolakelas-identity-service` | `main` | `82f3a7f1de0817b723105bfd275c1db7fa80a423` | KEL-81 self-removal refused on `DELETE /members/:id` (PR #30); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `2c469ce47717a729b92a13fd464481d498ebd03e` | KEL-70 optional enrollment `schedule` summary on list/detail (PR #29); PR and post-merge CI gate passed |
 | `kelolakelas-billing-service` | `main` | `2f0982de17fe993ef9c2ed74a148af9bd1aa1da0` | KEL-58 tenant paid sales summary endpoint (PR #21); PR and post-merge CI gate passed |
 
