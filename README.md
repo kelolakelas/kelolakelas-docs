@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `c2f1fb70bd2f44efb91fc36a2904c014c06a7daf` | KEL-110 tenant schedule-request review/approve/reject page (PR #51); PR `gate` passed |
+| `kelolakelas-web` | `main` | `05562bffabf5df6d5fbb5c658c09476cc145f908` | KEL-116 tenant recommendation and parent accept/decline web flow (PR #52); PR `gate` passed |
 | `kelolakelas-api-gateway` | `main` | `eacc28f45977af6d753e75ba1a00dd42c9132ff6` | KEL-115 protected recommendation accept/decline proxies (PR #30); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `b05a137ba390604dd1ab02ebcd5ff2e8e14055e8` | KEL-117 `chat:manage` catalog entry and system Creator grant (migration 000014, default seed, PostgreSQL integration tests; PR #34); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `9e80403031247f86682cd7ed7f411b1d8cfef49f` | KEL-115 recommended private schedule purchase and decline (PR #36); PR and post-merge CI gate passed |
