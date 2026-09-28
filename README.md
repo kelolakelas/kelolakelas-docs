@@ -8,7 +8,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 |---|---|---|---|
 | `kelolakelas-web` | `main` | `0a87cabe0274211e6dd59fac1089679a8f936b7e` | KEL-111 parent creates student via modal in class detail without leaving the page (PR #49); PR `gate` passed |
 | `kelolakelas-api-gateway` | `main` | `2ce4b1b7024758d96f3506e8b938e3a55b315428` | KEL-108 protected schedule-request approval route proxied to academic (PR #29); PR and post-merge CI gate passed |
-| `kelolakelas-identity-service` | `main` | `16406dfdbcf6950654fa21105907559f86dba684` | KEL-99 applied platform fee policy `billing/platform/PLATFORM_FEE_POLICY` (migration 000013, admin HTTP, `tenant.FeePolicyService` gRPC) (PR #33); PR and post-merge CI gate passed |
+| `kelolakelas-identity-service` | `main` | `b05a137ba390604dd1ab02ebcd5ff2e8e14055e8` | KEL-117 `chat:manage` catalog entry and system Creator grant (migration 000014, default seed, PostgreSQL integration tests; PR #34); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `603b29aa0a14c2da04cede9da62f8504446c5151` | KEL-108 tenant approval creates pending enrollment, private schedules, sessions and billing checkout (PR #35); PR and post-merge CI gate passed |
 | `kelolakelas-billing-service` | `main` | `95cce66636e5efa4f01b55fae0d0d9423969fa19` | KEL-99 new transactions priced from identity's applied platform fee policy with an immutable per-transaction snapshot (migration `20260928000000`), fail-closed 503 and 422 `platform_fee_exceeds_gross` (PR #24); PR and post-merge CI gate passed |
 

@@ -22,6 +22,8 @@
 - Duitku callbacks bind required fields and validate an HMAC before invoking the use case (`kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go:220-247`; `pkg/duitku/client.go:96-112`).
 - Web server actions store received tokens in HTTP-only, Lax cookies; `secure` is enabled only for `NODE_ENV=production` (`kelolakelas-web/app/(auth)/login/_actions/actions.ts:67-76`).
 
+**Implemented (KEL-117):** the identity permission catalog now includes `chat:manage`. Migration `000014_chat_manage_permission` grants it to the system `Creator` role only, not `Teacher` or pre-existing custom roles; the default seed yields the same result on a new database. `GET /api/v1/permissions` reads the catalog and the existing `CheckPermission` gRPC decision uses the persisted role grant and active tenant membership, without a special-case authorization path. This is a permission definition, not enforcement in chat-service or another caller. Evidence: identity `migrations/000014_chat_manage_permission.{up,down}.sql`, `seeders/000001_default_permissions_and_roles.sql`, `internal/migration/chat_manage_migration_integration_test.go`; [PR #34](https://github.com/kelolakelas/kelolakelas-identity-service/pull/34), squash `b05a137ba390604dd1ab02ebcd5ff2e8e14055e8`.
+
 ## Boundary diagram
 
 ```mermaid
