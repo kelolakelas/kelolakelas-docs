@@ -39,6 +39,13 @@ failure through one JSON envelope.
 
 ### The upstream deadline is per request, not a transport timeout
 
+> **Superseded in part by ADR 0048:** `GET /api/v1/chat/ws` is exempt from the
+> per-request upstream deadline. A hijacked WebSocket connection outlives any
+> single request bound by design, so the shared deadline would cut every
+> long-lived socket (KEL-122,
+> [ADR 0048](0048-gateway-chat-websocket-forwarding.md)). All other proxied
+> exchanges, including the REST chat routes, remain bounded as decided here.
+
 `proxyRoute` derives `context.WithTimeout` from the request context when
 `ProxyOptions.UpstreamTimeout` is positive, and forwards
 `c.Request.WithContext(ctx)`. A deadline on the request context covers name
