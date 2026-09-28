@@ -1,6 +1,6 @@
 # Identity schema
 
-**Implemented migration authority:** `kelolakelas-identity-service/migrations/00000000000000_init_schema.up.sql` plus the numbered migrations `000001_seed_versions` through `000012_tenant_members_user_id_index`.
+**Implemented migration authority:** `kelolakelas-identity-service/migrations/00000000000000_init_schema.up.sql` plus the numbered migrations `000001_seed_versions` through `000014_chat_manage_permission`.
 
 ```mermaid
 erDiagram
@@ -21,6 +21,8 @@ erDiagram
 | `tenant_invitations` | unique token; tenant/role FKs; used/expiry fields |
 | `tenant_wallets`, `user_wallets`, bank accounts, ledger entries, withdrawals | FK-backed identity financial tables; withdrawal status indexes |
 | `seed_versions` | records seeder filename/checksum/application time |
+
+**Implemented (KEL-117):** migration `000014_chat_manage_permission` adds the `chat:manage` catalog entry and grants it only to the system `Creator` (`tenant_id IS NULL`) role when present; a later default seed supplies the grant if roles did not yet exist. `Teacher` and existing custom roles receive no automatic grant. The up SQL and seed are idempotent; down removes the system grant before deleting the catalog entry, but deliberately fails if another role still references that permission rather than revoking that role's grant silently. Evidence: `kelolakelas-identity-service/migrations/000014_chat_manage_permission.{up,down}.sql`, `seeders/000001_default_permissions_and_roles.sql`, `internal/migration/chat_manage_migration_integration_test.go`; identity [PR #34](https://github.com/kelolakelas/kelolakelas-identity-service/pull/34), squash `b05a137ba390604dd1ab02ebcd5ff2e8e14055e8`.
 
 No migration-level foreign keys link this schema to academic/billing databases.
 
