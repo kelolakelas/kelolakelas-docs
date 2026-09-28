@@ -12,6 +12,8 @@ The gateway’s public request paths and downstream paths are identical. Identit
 
 **Implemented (KEL-108):** `POST /api/v1/schedule-requests/:id/approve` joins those protected proxies and forwards to academic. Academic, not the gateway, requires tenant `enrollment:update`, rejects parent tokens, and scopes the request by the verified tenant claim. Evidence: gateway `internal/delivery/http/router.go`, `router_test.go`; [PR #29](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/29), squash `2ce4b1b7024758d96f3506e8b938e3a55b315428`.
 
+**Implemented (KEL-115):** `POST /api/v1/schedule-requests/:id/recommendation/accept` and `/recommendation/decline` are JWT-protected proxies to academic. The existing reject route also forwards `recommended_slots` unchanged. Academic enforces parent ownership for accept/decline and tenant permission for rejection; the gateway does not authorize these transitions itself. Evidence: gateway `internal/delivery/http/router.go`, `router_test.go`; [PR #30](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/30), squash `eacc28f45977af6d753e75ba1a00dd42c9132ff6`; academic [PR #36](https://github.com/kelolakelas/kelolakelas-academic-service/pull/36), squash `9e80403031247f86682cd7ed7f411b1d8cfef49f`.
+
 For a complete route-by-route list, including handler (`ProxyTo…Service`), downstream target, authentication, and code evidence, see the [endpoint matrix](endpoint-matrix.md).
 
 ## Gateway-generated error envelope
