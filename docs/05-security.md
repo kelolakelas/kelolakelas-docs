@@ -36,6 +36,8 @@ flowchart LR
   G -->|platform queue; identity live admin check| IHTTP
   A[Academic] -->|static internal credential| BL[Billing internal API]
   BL -->|static internal credential| A
+  C[Chat JWT verification] -->|static internal credential; context at creation| A
+  C -->|unauthenticated/plaintext gRPC: permission, tenant name| I
   P[Duitku] -->|HMAC payload| BL
   A -->|unauthenticated/plaintext gRPC: tenant, permission, catalog policy| I[Identity gRPC]
   BL -->|unauthenticated/plaintext gRPC in code: permission, fee policy| I

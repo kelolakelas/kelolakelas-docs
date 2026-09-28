@@ -15,6 +15,8 @@
 | Billing | Identity | gRPC `:50051`, `tenant.FeePolicyService/GetPlatformFeePolicy` over `structpb.Struct` (`percent_bps`, `fixed_fee`, `applied_version`, `desired_version`), no app auth/TLS found, bounded by `IDENTITY_PERMISSION_TIMEOUT_MS` | effective applied platform fee policy for every new transaction and renewal; unavailable, malformed or unapplied policy refuses the invoice with 503 and no record | Implemented (KEL-99): billing `pkg/identity/fee_policy_client.go`, identity `internal/delivery/grpc/fee_policy_service.go`; plaintext/auth hardening remains outstanding |
 | Academic | Billing | HTTP internal bearer | payment invoice creation for enrollment | Implemented: `pkg/billing/client.go` |
 | Billing | Academic | HTTP internal bearer | activate paid enrollment | Implemented: `pkg/academic/client.go` |
+| Chat | Academic | HTTP `X-Internal-Service-Credential` | read private schedule/report context only on conversation creation | Implemented (KEL-120): chat `pkg/academic/client.go`, academic `cmd/server/routes.go` |
+| Chat | Identity | gRPC `:50051`, no app auth/TLS in shown code | `CheckPermission` for tenant members and `GetTenantPublicInfo` name snapshot | Implemented (KEL-120): chat `pkg/grpcclient/{permission,tenant}.go`; network restriction remains essential |
 | Identity | Redis | Redis TCP/TLS optional | cache role permission arrays | Implemented: `pkg/database/redis.go` |
 | Gateway | Redis | Redis TCP/TLS optional | rate limit counters | Implemented: gateway main/middleware |
 | Identity | Resend | HTTPS SDK | invitation email | Implemented: `pkg/email/resend.go` |
