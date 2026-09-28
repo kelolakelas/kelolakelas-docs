@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `56e606cd443dd0c9eba7a4140bd3045765034975` | KEL-109 parent schedule request form + status list on private class detail (PR #50); PR `gate` passed |
+| `kelolakelas-web` | `main` | `c2f1fb70bd2f44efb91fc36a2904c014c06a7daf` | KEL-110 tenant schedule-request review/approve/reject page (PR #51); PR `gate` passed |
 | `kelolakelas-api-gateway` | `main` | `2ce4b1b7024758d96f3506e8b938e3a55b315428` | KEL-108 protected schedule-request approval route proxied to academic (PR #29); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `b05a137ba390604dd1ab02ebcd5ff2e8e14055e8` | KEL-117 `chat:manage` catalog entry and system Creator grant (migration 000014, default seed, PostgreSQL integration tests; PR #34); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `603b29aa0a14c2da04cede9da62f8504446c5151` | KEL-108 tenant approval creates pending enrollment, private schedules, sessions and billing checkout (PR #35); PR and post-merge CI gate passed |
