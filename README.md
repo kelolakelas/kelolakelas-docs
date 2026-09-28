@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `f98f22cd2c06240a459beb0efa7c8f9e4784a3f9` | KEL-106 dedicated platform fee message when checkout is refused with 422 `platform_fee_exceeds_gross` (PR #48); PR and post-merge push gate passed |
+| `kelolakelas-web` | `main` | `0a87cabe0274211e6dd59fac1089679a8f936b7e` | KEL-111 parent creates student via modal in class detail without leaving the page (PR #49); PR `gate` passed |
 | `kelolakelas-api-gateway` | `main` | `2ce4b1b7024758d96f3506e8b938e3a55b315428` | KEL-108 protected schedule-request approval route proxied to academic (PR #29); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `16406dfdbcf6950654fa21105907559f86dba684` | KEL-99 applied platform fee policy `billing/platform/PLATFORM_FEE_POLICY` (migration 000013, admin HTTP, `tenant.FeePolicyService` gRPC) (PR #33); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `603b29aa0a14c2da04cede9da62f8504446c5151` | KEL-108 tenant approval creates pending enrollment, private schedules, sessions and billing checkout (PR #35); PR and post-merge CI gate passed |
