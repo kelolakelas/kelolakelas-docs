@@ -6,6 +6,8 @@ Date: 2026-09-15
 
 ## Context
 
+> **Superseded in part by [ADR 0046](../adr/0046-private-schedule-request-before-checkout.md):** this checkout path applies to group classes only. Direct private checkout now returns 422 `private_schedule_request_required`; parent schedule requests precede any private approval/invoice flow.
+
 The academic service already exposes a parent-scoped catalog enrollment endpoint. It validates parent identity, student ownership, publication/enrollment state, capacity, and idempotency before asking Billing to create the invoice. The web had public class discovery and parent student management, but no path connecting them to checkout.
 
 ## Decision

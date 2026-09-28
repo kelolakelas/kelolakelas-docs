@@ -8,6 +8,8 @@ The gateway’s public request paths and downstream paths are identical. Identit
 
 **Implemented (KEL-58):** `GET /api/v1/billing/transactions/summary` is proxied to billing in the protected group, registered before `/billing/transactions/:id`. The gateway only validates the JWT and publishes the verified tenant header; billing enforces tenant scope, `billing:read`, parent refusal and the date range. Evidence: gateway `internal/delivery/http/router.go`, `router_test.go` (`protectedRoutes` 401 without a token, `TestSalesSummaryRouteForwardsRangeToBilling`); [PR #25](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/25), squash `c90e4ae9c9bfd0db87331c4b242a581cccc97e38`.
 
+**Implemented (KEL-107):** the gateway proxies five JWT-protected private schedule request routes to academic: parent creation at `POST /catalog/classes/:class_id/schedule-requests`, shared `GET /schedule-requests` and `GET /schedule-requests/:id`, tenant rejection at `POST /schedule-requests/:id/reject`, and parent cancellation at `POST /schedule-requests/:id/cancel` (each under `/api/v1`). The downstream service enforces permissions and resource scope; gateway authentication alone is not authorization. Evidence: gateway `internal/delivery/http/router.go`, `router_test.go`; [PR #28](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/28), squash `fef837a40edef676d86c7715a024e7b440f40c51`.
+
 For a complete route-by-route list, including handler (`ProxyTo…Service`), downstream target, authentication, and code evidence, see the [endpoint matrix](endpoint-matrix.md).
 
 ## Gateway-generated error envelope
