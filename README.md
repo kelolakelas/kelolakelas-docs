@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `05562bffabf5df6d5fbb5c658c09476cc145f908` | KEL-116 tenant recommendation and parent accept/decline web flow (PR #52); PR `gate` passed |
+| `kelolakelas-web` | `main` | `ba43d23977859da32a4db05211b0d0fc14a96110` | KEL-123 parent/tenant chat inbox and realtime (PR #53); PR `gate` passed |
 | `kelolakelas-api-gateway` | `main` | `51a8a23876e18495f220bc115671b2125daa9230` | KEL-122 REST chat + ticket WebSocket proxies to chat-service (PR #31); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `b05a137ba390604dd1ab02ebcd5ff2e8e14055e8` | KEL-117 `chat:manage` catalog entry and system Creator grant (migration 000014, default seed, PostgreSQL integration tests; PR #34); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `82169ba8b5e02b3079c09704dba23e60f9ad6888` | KEL-118 internal chat contexts for private schedule requests and reports (PR #37); PR and post-merge CI gate passed |
@@ -28,7 +28,7 @@ flowchart LR
   Billing -->|internal HTTP| Academic
 ```
 
-**Implemented (KEL-119, KEL-120):** chat-service persists staff, private schedule-request and report conversations and text messages with direct authenticated HTTP access, academic context checks on creation, identity permission and tenant-name lookup, and service-owned PostgreSQL. Since KEL-121 it also serves ticket-based realtime WebSocket events (`message.created`, `conversation.read`) fanned out in-memory on a single instance. Since KEL-122 the gateway exposes the chat routes (seven protected REST routes plus the ticket WebSocket upgrade); only web surfaces are still missing. See [chat component](docs/components/chat-service.md), [API](docs/api/chat.md) and [schema](docs/data/chat-schema.md).
+**Implemented (KEL-119, KEL-120):** chat-service persists staff, private schedule-request and report conversations and text messages with direct authenticated HTTP access, academic context checks on creation, identity permission and tenant-name lookup, and service-owned PostgreSQL. Since KEL-121 it also serves ticket-based realtime WebSocket events (`message.created`, `conversation.read`) fanned out in-memory on a single instance. Since KEL-122 the gateway exposes the chat routes (seven protected REST routes plus the ticket WebSocket upgrade); since KEL-123 parent and tenant web dashboards provide chat inboxes, send/retry, and ticket-based realtime with REST fallback. See [chat component](docs/components/chat-service.md), [API](docs/api/chat.md) and [schema](docs/data/chat-schema.md).
 
 ## Navigation
 
