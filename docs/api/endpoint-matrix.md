@@ -91,6 +91,8 @@ The `502`/`504` responses never name the downstream host, path, or transport err
 
 | Method/path | Target authentication | Purpose / evidence |
 |---|---|---|
+| GET `/internal/chat-context/schedule-requests/:id` | internal credential | Minimal schedule-request context for chat-service, 400 invalid UUID, 404 absent or deleted related student/class; no gateway route (KEL-118); academic `cmd/server/routes.go` |
+| GET `/internal/chat-context/reports/:id` | internal credential | Minimal report context for chat-service, 400 invalid UUID, 404 absent or deleted report/enrollment/student/class; no gateway route (KEL-118); academic `cmd/server/routes.go` |
 | PUT `/internal/enrollments/:id/activate` | internal credential | Billing activates a paid pending enrollment; `kelolakelas-academic-service/cmd/server/main.go:162` |
 | PUT `/internal/enrollments/:id/release` | internal credential | Billing releases the seat of a pending enrollment whose payment failed or expired (KEL-26, [ADR 0012](../adr/0012-release-enrollment-seat-on-failed-payment.md)); idempotent, 409 for a non-releasable status; `kelolakelas-academic-service/cmd/server/main.go:163` |
 | POST `/internal/billing/transactions` | internal credential | Academic creates a billing invoice; `kelolakelas-billing-service/cmd/server/main.go:102` |
