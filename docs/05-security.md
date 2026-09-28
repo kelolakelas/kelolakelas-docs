@@ -26,12 +26,16 @@
 
 - **Implemented (KEL-121):** chat-service authenticates WebSocket upgrades with single-use tickets instead of the JWT. `POST /api/v1/chat/ws-tickets` behind JWT mints a ticket (>= 32 crypto-random bytes, SHA-256 hash at rest, 60 s TTL, bound to actor claims and token `exp`); `GET /api/v1/chat/ws?ticket=` upgrades only on atomic consume, otherwise 401 with no upgrade, so the JWT never travels in the query string. Fan-out (`message.created`, `conversation.read`) reaches only connections whose rights frozen at connect (`Service.Rights`) pass the same visibility boundary as REST (`Service.Visible`); `chat:manage`/`report:read` revoked mid-connection take effect at most when the 30-minute connection ends. Client frames are capped at 4 KB, 5 connections per user, slow consumers are evicted, and shutdown closes with the normal-close code. See [ADR 0047](adr/0047-ticket-based-chat-websocket-auth.md); chat `internal/chat/{wsticket,wshub}.go`, `internal/delivery/http/ws.go`; [PR #3](https://github.com/kelolakelas/kelolakelas-chat-service/pull/3), squash `0fd73a2a69981677db3cf6fe6bb4914e40dffd5e`.
 
+- **Implemented (KEL-122):** the gateway forwards that upgrade and the REST chat routes to chat-service. Seven REST routes are proxied behind the gateway JWT/session/tenant checks with the standard bounded proxy; `GET /api/v1/chat/ws` upgrades through the gateway with no gateway authentication (chat-service owns the ticket), no upstream deadline, and an explicit `Origin` check mirroring CORS (foreign `Origin` is rejected 403 before any byte reaches chat-service). It stays behind the global CORS middleware, the global rate limiter, and `StripUntrustedContextHeaders`; the access log records `URL.Path` only, so the `?ticket=` query never reaches the log. Without `CHAT_SERVICE_URL` every chat route answers `503` `Chat service is unavailable`. A hijacked socket is outside the HTTP server's graceful drain: shutdown does not wait for it. See [ADR 0048](adr/0048-gateway-chat-websocket-forwarding.md); gateway `internal/delivery/http/router.go`, `internal/delivery/http/handler/proxy_handler.go` (`ProxyToChatWS`); [PR #31](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/31), squash `51a8a23876e18495f220bc115671b2125daa9230`.
+
 ## Boundary diagram
 
 ```mermaid
 flowchart LR
   B[Browser cookie] --> W[Next server actions]
   B -->|Bearer header from server action| G[Gateway JWT verification]
+  B -->|ticket query, no gateway JWT| GW[Gateway chat WS forward]
+  GW -->|explicit Origin check, no deadline| C[Chat WS upgrade]
   G -->|signed JWT, internal HTTP session check| IHTTP[Identity session boundary / PostgreSQL]
   G --> S[Service JWT verification]
   W -->|tenant or platform caller Bearer, never service credential| G

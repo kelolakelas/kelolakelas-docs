@@ -8,7 +8,7 @@ Safe examples deliberately contain placeholders only — this includes every rep
 
 | Variable | Consumer | Required / default | Purpose / safe example | Sensitive | Evidence |
 |---|---|---|---|---|---|
-| `PORT` | chat | optional; `8083` | direct HTTP listener; currently no gateway proxy route | no | chat `cmd/server/main.go`, `.env.example` |
+| `PORT` | chat | optional; `8083` | direct HTTP listener; gateway-routed since KEL-122 | no | chat `cmd/server/main.go`, `.env.example` |
 | `JWT_SECRET` | chat | required; blank rejects startup | shared JWT validation secret; use secret manager | yes | chat `cmd/server/main.go`, `internal/delivery/http/handler.go` |
 | `DATABASE_URL` | chat server/migrator | optional; takes precedence over DB_* | PostgreSQL connection URL | yes | chat `cmd/server/main.go`, `cmd/migrate/main.go` |
 | `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` / `DB_SSLMODE` | chat server | optional fallback; localhost/5432/postgres/empty/chat/disable | service-owned PostgreSQL connection; fallback escapes credentials and supports IPv6; keep password out of logs | password yes | chat `cmd/server/main.go`, `.env.example` |
@@ -32,6 +32,7 @@ Safe examples deliberately contain placeholders only — this includes every rep
 | `IDENTITY_SERVICE_URL` | gateway | optional; localhost:8080 | proxy target, `http://identity:8080` | no | gateway config |
 | `ACADEMIC_SERVICE_URL` | gateway/billing | optional; localhost:8081 | proxy/internal academic target, `http://academic:8081` | no | gateway/billing config |
 | `BILLING_SERVICE_URL` | gateway/academic | optional; localhost:8082 | proxy/internal billing target, `http://billing:8082` | no | gateway/academic config |
+| `CHAT_SERVICE_URL` | gateway | optional; empty (chat disabled) | chat-service proxy target, `http://chat:8083`; empty answers every chat route with `503` `Chat service is unavailable` and skips chat in `/ready` (KEL-122) | no | gateway `internal/config/config.go`, `internal/delivery/http/handler/proxy_handler.go`, `internal/delivery/http/readiness.go`, `cmd/server/main.go`, `.env.example` |
 | `IDENTITY_GRPC_HOST` | academic/billing | optional; localhost:50051 (blank is treated as unset) | identity gRPC target, `identity:50051`; billing uses it for the `billing:read` check on tenant transaction reads (KEL-57) and, since KEL-99, for the platform fee policy read on every new transaction | no | academic/billing config; billing `.env.example` |
 | `IDENTITY_PERMISSION_TIMEOUT_MS` | academic/billing | optional; 3000 (non-positive uses the default; academic rejects a non-numeric value at startup) | upper bound of one `CheckPermission` call (billing also applies it to the KEL-99 `GetPlatformFeePolicy` call, where a timeout refuses the invoice with 503 `platform_fee_policy_unavailable`); past it the guarded request answers 503 `Authorization service unavailable` (academic since KEL-78), `3000` | no | billing `internal/config/config.go`; academic `internal/config/config.go`, `pkg/grpcclient/permission_client.go`, `.env.example` |
 | `INTERNAL_SERVICE_CREDENTIAL` | academic/billing | **required** | service-to-service Bearer value, `<random-service-secret>` | yes | academic/billing config |

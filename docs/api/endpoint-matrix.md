@@ -72,6 +72,14 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | GET | `/api/v1/billing/transactions` | Billing → same | JWT; tenant members `billing:read` (identity `CheckPermission`), parents own scope | query → transaction list; 403/503 | gateway:147; billing `cmd/server/routes.go` |
 | GET | `/api/v1/billing/transactions/summary` | Billing → same | JWT; tenant members `billing:read`; parents refused (403) before identity | `from`/`to` UTC dates → paid totals per currency; 400/401/403/503 | gateway `router.go` (protected, before `/:id`); billing `cmd/server/routes.go` (KEL-58) |
 | GET | `/api/v1/billing/transactions/:id` | Billing → same | JWT; tenant members `billing:read`, parents own scope | UUID → transaction; 403/404/503 | gateway:148; billing `cmd/server/routes.go` |
+| GET | `/api/v1/chat/conversations` | Chat → same | JWT + session check; tenant claim or parent bypass | page/page_size → visible conversation array | gateway `router.go` (`ProxyToChatService`); chat `cmd/server/main.go` (KEL-122) |
+| POST | `/api/v1/chat/conversations` | Chat → same | JWT + session check; tenant claim or parent bypass | kind/staff|schedule_request|report + subject → 201/200 conversation | gateway `router.go`; chat `cmd/server/main.go` (KEL-122) |
+| GET | `/api/v1/chat/conversations/:id` | Chat → same | JWT + session check; tenant claim or parent bypass | UUID → conversation; invisible 404 | gateway `router.go`; chat `cmd/server/main.go` (KEL-122) |
+| GET | `/api/v1/chat/conversations/:id/messages` | Chat → same | JWT + session check; tenant claim or parent bypass | limit/before → newest-first messages | gateway `router.go`; chat `cmd/server/main.go` (KEL-122) |
+| POST | `/api/v1/chat/conversations/:id/messages` | Chat → same | JWT + session check; tenant claim or parent bypass | body + client_message_id → 201 message/idempotent replay | gateway `router.go`; chat `cmd/server/main.go` (KEL-122) |
+| POST | `/api/v1/chat/conversations/:id/read` | Chat → same | JWT + session check; tenant claim or parent bypass | no body → 200 | gateway `router.go`; chat `cmd/server/main.go` (KEL-122) |
+| POST | `/api/v1/chat/ws-tickets` | Chat → same | JWT + session check; tenant claim or parent bypass (gateway); chat-service validates JWT again when minting | Bearer → ticket + expires_at | gateway `router.go`; chat `internal/delivery/http/ws.go` (KEL-121, KEL-122) |
+| GET | `/api/v1/chat/ws?ticket=<ticket>` | Chat → same | no gateway JWT; chat-service single-use ticket; gateway explicit `Origin` check (foreign `Origin` 403 before upstream) | valid ticket → 101 upgrade; otherwise 401 | gateway `router.go` (`ProxyToChatWS`); chat `internal/delivery/http/ws.go` (KEL-121, KEL-122) |
 
 There is no user-facing invoice-creation route. `POST /api/v1/billing/transactions` is **Not found** in the gateway: it was deliberately removed (commit `bdaa8797b05d7e5bc85d6d6fe3e043196d62ca60`, “block user-facing invoice creation”), and `kelolakelas-api-gateway/internal/delivery/http/router_test.go` (`TestUserFacingBillingTransactionCreationIsNotRouted`) asserts the path returns 404. Invoice creation exists only at `POST /internal/billing/transactions` below; see [billing API](billing.md) and [ADR 0014](../decisions/014-parent-enrollment-checkout.md).
 
@@ -86,6 +94,8 @@ There is no user-facing invoice-creation route. `POST /api/v1/billing/transactio
 | Request body exceeds `PROXY_MAX_BODY_BYTES` (default 1 MiB) | `413` | `Request body exceeds the configured limit` |
 
 The `502`/`504` responses never name the downstream host, path, or transport error. `GET /health`, `GET /ready`, `GET /swagger`, the prefixed Swagger UIs, and `OPTIONS` preflight are not proxied and are unaffected. Evidence: gateway `internal/delivery/http/handler/proxy_handler.go`, `internal/delivery/http/middleware/error_response.go`, `internal/delivery/http/middleware/body_limit_middleware.go`; see [ADR 0021](../adr/0021-bounded-gateway-proxy-and-error-envelope.md).
+
+**Implemented (KEL-122):** `GET /api/v1/chat/ws` is the one proxy exempt from the upstream deadline: the hijacked WebSocket connection outlives any single request bound by design, so the shared `PROXY_UPSTREAM_TIMEOUT_SECONDS` deadline would cut every long-lived socket. Without `CHAT_SERVICE_URL` it answers `503` `Chat service is unavailable` like the REST chat routes; otherwise it forwards with no deadline. See [ADR 0048](../adr/0048-gateway-chat-websocket-forwarding.md).
 
 ## Internal, non-gateway endpoints
 

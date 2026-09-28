@@ -1,6 +1,6 @@
-# Chat API (KEL-119, KEL-120, KEL-121)
+# Chat API (KEL-119, KEL-120, KEL-121, KEL-122)
 
-The chat service directly serves these routes under `/api/v1/chat/conversations`; as of KEL-119 they are **not** wired through the existing gateway. Every route requires `Authorization: Bearer <JWT>` with the shared HS256 secret. Tenant, role, member and user identifiers come from verified claims, never a supplied tenant header. Responses use `{ "status": "success|error", "message": "...", "data": ... }`.
+The chat service directly serves these routes under `/api/v1/chat`; since KEL-122 they are also wired through the gateway behind its JWT/session/tenant checks (see [gateway](gateway.md) and [ADR 0048](../adr/0048-gateway-chat-websocket-forwarding.md)). Every route requires `Authorization: Bearer <JWT>` with the shared HS256 secret. Tenant, role, member and user identifiers come from verified claims, never a supplied tenant header. Responses use `{ "status": "success|error", "message": "...", "data": ... }`.
 
 | Method | Route | Input | Success |
 |---|---|---|---|

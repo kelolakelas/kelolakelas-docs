@@ -19,16 +19,18 @@ flowchart LR
   Gateway -->|reverse proxy; unchanged /api/v1 path| Identity
   Gateway -->|reverse proxy; X-Tenant-ID from verified claim| Academic
   Gateway -->|reverse proxy; X-Tenant-ID from verified claim| Billing
+  Gateway -->|reverse proxy; JWT/session/tenant checks| Chat
+  Gateway -->|ticket query, no gateway JWT, no deadline| ChatWS[Chat WebSocket :8083]
   Academic -->|POST /internal/billing/transactions; internal credential| Billing
   Billing -->|PUT /internal/enrollments/:id/activate; internal credential| Academic
   Billing -->|durable retry state| Billing
 ```
 
-**Implemented (KEL-119):** chat-service has its own PostgreSQL database and calls identity `CheckPermission` over gRPC for tenant/member-bound `chat:manage`. Its direct REST listener is not yet connected to the gateway or web; the diagram above only shows established gateway routes. See [chat component](components/chat-service.md) and [schema](data/chat-schema.md).
+**Implemented (KEL-119):** chat-service has its own PostgreSQL database and calls identity `CheckPermission` over gRPC for tenant/member-bound `chat:manage`. Since KEL-122 its direct REST listener is connected to the gateway (seven protected REST routes behind JWT/session/tenant checks, plus a ticket-authenticated WebSocket upgrade with no upstream deadline); the web does not render chat surfaces yet. The diagram above shows the established gateway routes. See [chat component](components/chat-service.md) and [schema](data/chat-schema.md).
 
 The gateway strips `X-Tenant-ID` and `X-Internal-Service-Credential` from every inbound request, and republishes `X-Tenant-ID` on protected routes from the verified JWT tenant claim only, so a caller cannot present a tenant or a service credential of its own. No service treats the header as authorization: academic and identity both resolve the tenant from the verified JWT claim only, and billing reads the claim value from the middleware context (see [ADR 0010](adr/0010-tenant-context-from-verified-jwt-claim-only.md) and [ADR 0017](adr/0017-gateway-context-header-trust-boundary.md)).
 
-The gateway also bounds every proxied exchange: a per-request deadline (`PROXY_UPSTREAM_TIMEOUT_SECONDS`) and a request body limit (`PROXY_MAX_BODY_BYTES`), with configured `http.Server` read/write/idle timeouts. A downstream timeout is answered `504`, an unreachable downstream `502`, and an oversized body `413`, all in the shared `{status,message,data}` envelope and without internal detail (see [ADR 0021](adr/0021-bounded-gateway-proxy-and-error-envelope.md)).
+The gateway also bounds every proxied exchange except the chat WebSocket upgrade: a per-request deadline (`PROXY_UPSTREAM_TIMEOUT_SECONDS`) and a request body limit (`PROXY_MAX_BODY_BYTES`), with configured `http.Server` read/write/idle timeouts. A downstream timeout is answered `504`, an unreachable downstream `502`, and an oversized body `413`, all in the shared `{status,message,data}` envelope and without internal detail (see [ADR 0021](adr/0021-bounded-gateway-proxy-and-error-envelope.md)).
 
 **Implemented:** service identity is split by data store; migration foreign keys only refer to tables in the same database. IDs such as `tenant_id` and `parent_id` are application-level UUID references across stores, not database foreign keys. See [data overview](data/overview.md).
 
