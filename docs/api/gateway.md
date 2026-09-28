@@ -10,6 +10,8 @@ The gateway’s public request paths and downstream paths are identical. Identit
 
 **Implemented (KEL-107):** the gateway proxies five JWT-protected private schedule request routes to academic: parent creation at `POST /catalog/classes/:class_id/schedule-requests`, shared `GET /schedule-requests` and `GET /schedule-requests/:id`, tenant rejection at `POST /schedule-requests/:id/reject`, and parent cancellation at `POST /schedule-requests/:id/cancel` (each under `/api/v1`). The downstream service enforces permissions and resource scope; gateway authentication alone is not authorization. Evidence: gateway `internal/delivery/http/router.go`, `router_test.go`; [PR #28](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/28), squash `fef837a40edef676d86c7715a024e7b440f40c51`.
 
+**Implemented (KEL-108):** `POST /api/v1/schedule-requests/:id/approve` joins those protected proxies and forwards to academic. Academic, not the gateway, requires tenant `enrollment:update`, rejects parent tokens, and scopes the request by the verified tenant claim. Evidence: gateway `internal/delivery/http/router.go`, `router_test.go`; [PR #29](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/29), squash `2ce4b1b7024758d96f3506e8b938e3a55b315428`.
+
 For a complete route-by-route list, including handler (`ProxyTo…Service`), downstream target, authentication, and code evidence, see the [endpoint matrix](endpoint-matrix.md).
 
 ## Gateway-generated error envelope

@@ -12,6 +12,8 @@ A parent first creates a private schedule request for an owned student in a publ
 
 ## Consequences
 
-A rejected or cancelled request allows another request for the student/class. A race between rejecting and cancelling has one winner; a decided request cannot be cancelled. Approval, schedule creation, enrollment, invoice, notifications and UI are separate work. The migration must precede traffic to the new endpoints; the gateway may deploy after academic. Existing private checkout clients must handle the new 422 and submit a request instead.
+A rejected or cancelled request allows another request for the student/class. A race between rejecting and cancelling has one winner; a decided request cannot be cancelled. Approval, schedule creation, enrollment, invoice, notifications and UI were separate work at the time of this ADR. The migration must precede traffic to the new endpoints; the gateway may deploy after academic. Existing private checkout clients must handle the new 422 and submit a request.
+
+> **Superseded in part by KEL-108:** approval now creates the enrollment, private schedules and invoice checkout from a pending request; notifications and new UI remain out of scope. See [academic API](../api/academic.md#private-schedule-approval-and-checkout-kel-108).
 
 Evidence: academic [PR #34](https://github.com/kelolakelas/kelolakelas-academic-service/pull/34), squash `41a73e8c2e9223285863b6830cc10ad5912e2723`; gateway [PR #28](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/28), squash `fef837a40edef676d86c7715a024e7b440f40c51`; academic `internal/usecase/private_schedule_request_usecase.go`, `internal/repository/private_schedule_request_repository.go`, `internal/delivery/http/handler/enrollment_handler.go`, and `migrations/00001790600000_private_schedule_requests.up.sql`.
