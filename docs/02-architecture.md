@@ -9,6 +9,7 @@
 | Identity | Go / Gin / GORM | users, tenants, membership, roles, invitation/email, gRPC tenant data | `kelolakelas-identity-service/cmd/server/main.go` |
 | Academic | Go / Gin / GORM | academic records, public catalog, enrollment lifecycle | `kelolakelas-academic-service/cmd/server/main.go` |
 | Billing | Go / Gin / GORM | subscription transactions, Duitku callback, worker | `kelolakelas-billing-service/cmd/server/main.go` |
+| Chat (KEL-119) | Go / net/http / pgx | service-owned PostgreSQL staff conversations, permission-checked REST | `kelolakelas-chat-service/cmd/server/main.go`, `internal/chat/chat.go` |
 
 ```mermaid
 flowchart LR
@@ -22,6 +23,8 @@ flowchart LR
   Billing -->|PUT /internal/enrollments/:id/activate; internal credential| Academic
   Billing -->|durable retry state| Billing
 ```
+
+**Implemented (KEL-119):** chat-service has its own PostgreSQL database and calls identity `CheckPermission` over gRPC for tenant/member-bound `chat:manage`. Its direct REST listener is not yet connected to the gateway or web; the diagram above only shows established gateway routes. See [chat component](components/chat-service.md) and [schema](data/chat-schema.md).
 
 The gateway strips `X-Tenant-ID` and `X-Internal-Service-Credential` from every inbound request, and republishes `X-Tenant-ID` on protected routes from the verified JWT tenant claim only, so a caller cannot present a tenant or a service credential of its own. No service treats the header as authorization: academic and identity both resolve the tenant from the verified JWT claim only, and billing reads the claim value from the middleware context (see [ADR 0010](adr/0010-tenant-context-from-verified-jwt-claim-only.md) and [ADR 0017](adr/0017-gateway-context-header-trust-boundary.md)).
 

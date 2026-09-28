@@ -4,8 +4,18 @@
 
 Safe examples deliberately contain placeholders only — this includes every repository `.env.example`: credential values there must stay recognizable placeholders (for example `JWT_SECRET=change-me-...`), never real or realistic secrets. “Required” means the loader refuses startup. Evidence throughout is the named service `internal/config/config.go`; web evidence is the listed app files.
 
+**Implemented (KEL-119):** chat-service reads its variables directly in `cmd/server/main.go`; these are not yet included in identity's static configuration catalog.
+
 | Variable | Consumer | Required / default | Purpose / safe example | Sensitive | Evidence |
 |---|---|---|---|---|---|
+| `PORT` | chat | optional; `8083` | direct HTTP listener; currently no gateway proxy route | no | chat `cmd/server/main.go`, `.env.example` |
+| `JWT_SECRET` | chat | required; blank rejects startup | shared JWT validation secret; use secret manager | yes | chat `cmd/server/main.go`, `internal/delivery/http/handler.go` |
+| `DATABASE_URL` | chat server/migrator | optional; takes precedence over DB_* | PostgreSQL connection URL | yes | chat `cmd/server/main.go`, `cmd/migrate/main.go` |
+| `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` / `DB_SSLMODE` | chat server | optional fallback; localhost/5432/postgres/empty/chat/disable | service-owned PostgreSQL connection; fallback escapes credentials and supports IPv6; keep password out of logs | password yes | chat `cmd/server/main.go`, `.env.example` |
+| `IDENTITY_GRPC_HOST` | chat | optional; `localhost:50051` | identity permission gRPC target | no | chat `cmd/server/main.go`, `pkg/grpcclient/permission.go` |
+| `IDENTITY_PERMISSION_TIMEOUT_MS` | chat | optional; 500; nonpositive/invalid falls back | per-call `CheckPermission` timeout, failure denies visibility | no | chat `cmd/server/main.go`, `pkg/grpcclient/permission.go` |
+| `SERVER_READ_HEADER_TIMEOUT_SECONDS` / `SERVER_READ_TIMEOUT_SECONDS` / `SERVER_WRITE_TIMEOUT_SECONDS` / `SERVER_IDLE_TIMEOUT_SECONDS` / `SERVER_SHUTDOWN_TIMEOUT_SECONDS` | chat | optional; 5/30/60/120/15; invalid/nonpositive falls back | HTTP timeouts and graceful shutdown | no | chat `cmd/server/main.go` |
+
 | `GATEWAY_API_URL` | web | **required; rejects blank, non-HTTP(S), or path-bearing values** | server-side gateway origin, `https://api.example.test` | no | `kelolakelas-web/.env.example`, `lib/gateway.ts`; web auth/dashboard actions and queries |
 | `CLIENT_IP_SOURCE_HEADER` | web | optional; unset disables forwarding; invalid header name also disables it | name of one incoming header overwritten by a trusted edge, e.g. `X-Real-IP`; forwards only a literal IPv4/IPv6 address as `X-Forwarded-For` to selected gateway calls (KEL-65). Never enable when the browser can supply this header directly; configure gateway `TRUSTED_CLIENT_IP_HEADER=X-Forwarded-For` and a web-server-only `TRUSTED_PROXY_CIDRS` together | no | web `.env.example`, `lib/gateway.ts`, `lib/client-ip-forwarding.test.ts` |
 | `NEXT_PUBLIC_APP_URL` | web | optional; `http://localhost:3000` (also used when the value is blank, not a URL, or not HTTP(S) in `lib/site-metadata.ts`) | public origin for canonical and Open Graph URLs, root `metadataBase`, and the absolute URLs in `/robots.txt` and `/sitemap.xml` (KEL-72), `https://app.example.test` | no | `kelolakelas-web/.env.example`, `lib/site-metadata.ts` (`getAppUrl`), `app/layout.tsx`, `app/robots.ts`, `app/sitemap.ts`, `/kelas` pages, login/register/invitation pages |
