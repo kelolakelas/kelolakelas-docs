@@ -6,7 +6,7 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 | Repository | Branch | HEAD | State at inspection |
 |---|---|---|---|
-| `kelolakelas-web` | `main` | `f4dbd117e531d7b0d34b0ff64853277728355438` | KEL-131 parent enrollment history envelope unwrapping (PR #54); PR `gate` passed; KEL-123 parent/tenant chat inbox and realtime (PR #53); PR `gate` passed |
+| `kelolakelas-web` | `main` | `c847c9f2dffe491dcd55d384968fb549f2191d1d` | KEL-124 chat entry points from schedule requests and student reports (PR #55); PR `gate` passed; KEL-131 parent enrollment history envelope unwrapping (PR #54); PR `gate` passed; KEL-123 parent/tenant chat inbox and realtime (PR #53); PR `gate` passed |
 | `kelolakelas-api-gateway` | `main` | `51a8a23876e18495f220bc115671b2125daa9230` | KEL-122 REST chat + ticket WebSocket proxies to chat-service (PR #31); PR and post-merge CI gate passed |
 | `kelolakelas-identity-service` | `main` | `b05a137ba390604dd1ab02ebcd5ff2e8e14055e8` | KEL-117 `chat:manage` catalog entry and system Creator grant (migration 000014, default seed, PostgreSQL integration tests; PR #34); PR and post-merge CI gate passed |
 | `kelolakelas-academic-service` | `main` | `94b485ad1086379c32ece8af86545ef5ccca7e78` | KEL-125 optional payment channel for enrollment invoices (PR #38); PR and post-merge gate passed; KEL-118 internal chat contexts for private schedule requests and reports (PR #37); PR and post-merge CI gate passed |
