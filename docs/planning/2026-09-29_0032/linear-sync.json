@@ -1,0 +1,56 @@
+{
+  "projects": {
+    "payment-experience-owned-page": {
+      "identifier": "P-KEL-24",
+      "id": "d1466cff-05f5-409d-aeba-c748ad1439fa",
+      "url": "https://linear.app/farid-zamani/project/pembayaran-kelas-dengan-pilihan-channel-dan-halaman-kelolakelas-84997cfcfa61"
+    },
+    "private-payment-link-delivery": {
+      "identifier": "P-KEL-25",
+      "id": "a8a950c3-945c-4daa-b266-53e3d61e394e",
+      "url": "https://linear.app/farid-zamani/project/distribusi-aman-payment-link-kelas-private-4c5c457294f4"
+    }
+  },
+  "issues": {
+    "billing-payment-channel-selection": {
+      "identifier": "KEL-125",
+      "id": "3f88fbc1-5ca3-49ca-8e1f-70621148f24b",
+      "url": "https://linear.app/farid-zamani/issue/KEL-125/billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk-invoice-baru"
+    },
+    "billing-payment-instructions": {
+      "identifier": "KEL-126",
+      "id": "1f2007fc-c93c-4d45-82ff-b22fdfb8c1f8",
+      "url": "https://linear.app/farid-zamani/issue/KEL-126/billing-menyimpan-dan-menyajikan-instruksi-pembayaran-vaqr-untuk"
+    },
+    "web-payment-page": {
+      "identifier": "KEL-127",
+      "id": "3938eb02-c555-4238-a0da-7baf060de598",
+      "url": "https://linear.app/farid-zamani/issue/KEL-127/parent-membayar-vaqris-dari-halaman-kelolakelas-dan-kartu-melalui"
+    },
+    "private-payment-link-email": {
+      "identifier": "KEL-128",
+      "id": "231ce0ca-9c77-4433-bf79-6661438464f6",
+      "url": "https://linear.app/farid-zamani/issue/KEL-128/parent-menerima-email-payment-link-setelah-jadwal-private-disetujui"
+    },
+    "private-payment-link-chat": {
+      "identifier": "KEL-129",
+      "id": "a9a83814-59d3-4b11-a969-5c6c53ddab99",
+      "url": "https://linear.app/farid-zamani/issue/KEL-129/payment-link-private-dapat-dikirim-lewat-percakapan-request-yang-tepat"
+    },
+    "student-modal-existing-list": {
+      "identifier": "KEL-130",
+      "id": "2f454d50-9af3-483c-b2c8-ac0666d97f60",
+      "url": "https://linear.app/farid-zamani/issue/KEL-130/parent-yang-sudah-memiliki-student-dapat-menambah-student-lain-dari"
+    },
+    "parent-enrollment-history-envelope": {
+      "identifier": "KEL-131",
+      "id": "ba8c5181-9cf9-4fe8-a84b-87b7b3c9c898",
+      "url": "https://linear.app/farid-zamani/issue/KEL-131/riwayat-enrollment-parent-membaca-envelope-daftar-api-dengan-benar"
+    },
+    "private-schedule-capacity-guard": {
+      "identifier": "KEL-132",
+      "id": "ef18be84-f8f8-42e9-a616-4dce0b56cfa5",
+      "url": "https://linear.app/farid-zamani/issue/KEL-132/academic-menolak-kapasitas-jadwal-private-yang-tidak-sesuai-satu"
+    }
+  }
+}

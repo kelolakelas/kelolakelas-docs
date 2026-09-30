@@ -1,0 +1,181 @@
+{
+  "projects": {
+    "tutor-session-operations": {
+      "identifier": "P-KEL-26",
+      "id": "7e1ccc42-2a77-480b-941b-4db7141c4716",
+      "url": "https://linear.app/farid-zamani/project/operasional-sesi-absensi-dan-laporan-oleh-pengajar-691831fb15ac"
+    },
+    "parent-learning-portal": {
+      "identifier": "P-KEL-27",
+      "id": "88279533-8410-42e6-a6c1-4d66976952a7",
+      "url": "https://linear.app/farid-zamani/project/portal-belajar-parent-jadwal-kehadiran-dan-rapor-anak-ca6d547e0dcd"
+    },
+    "tenant-finance-payout": {
+      "identifier": "P-KEL-28",
+      "id": "6bf64982-2039-4ab0-afe2-4c92c2ec79c0",
+      "url": "https://linear.app/farid-zamani/project/keuangan-tenant-laporan-transaksi-dan-pencairan-dana-manual-dbaf9f2a57e9"
+    },
+    "renewal-dunning-refund": {
+      "identifier": "P-KEL-29",
+      "id": "aaa30069-425f-4e0b-839b-765385f3d3ec",
+      "url": "https://linear.app/farid-zamani/project/penanganan-tunggakan-perpanjangan-dan-refund-manual-78987e478cd0"
+    },
+    "parent-schedule-notifications": {
+      "identifier": "P-KEL-30",
+      "id": "4387984f-6485-429c-a03d-8c9c9ed498ec",
+      "url": "https://linear.app/farid-zamani/project/notifikasi-perubahan-jadwal-dan-kehadiran-ke-parent-5fef3a647b4d"
+    },
+    "tenant-storefront-growth": {
+      "identifier": "P-KEL-31",
+      "id": "1af5c085-6356-493d-8313-204e726a21c8",
+      "url": "https://linear.app/farid-zamani/project/profil-tenant-publik-ulasan-kelas-dan-voucher-e150bef1846a"
+    }
+  },
+  "issues": {
+    "attendance-by-session": {
+      "identifier": "KEL-134",
+      "id": "378fe5b8-f08d-47c3-9757-4cec14b72d4e",
+      "url": "https://linear.app/farid-zamani/issue/KEL-134/absensi-dapat-dicatat-per-sesi-termasuk-sesi-reschedule-dan-secara"
+    },
+    "tutor-session-scope-guards": {
+      "identifier": "KEL-135",
+      "id": "c905570c-3dca-4ccf-81c5-2aecc8bfbc73",
+      "url": "https://linear.app/farid-zamani/issue/KEL-135/pengajar-melihat-sesinya-sendiri-dan-akses-sesi-tutor-pengganti-serta"
+    },
+    "role-aware-tenant-nav": {
+      "identifier": "KEL-136",
+      "id": "df45106e-dfde-4a0a-8c95-76f33094bd5e",
+      "url": "https://linear.app/farid-zamani/issue/KEL-136/menu-dashboard-tenant-hanya-menampilkan-area-yang-diizinkan-permission"
+    },
+    "web-tutor-sessions-attendance": {
+      "identifier": "KEL-137",
+      "id": "35a73a26-d253-4f56-ac83-7b40d30cf53b",
+      "url": "https://linear.app/farid-zamani/issue/KEL-137/pengajar-melihat-sesi-hari-ini-dan-minggu-ini-serta-mencatat-kehadiran"
+    },
+    "web-session-reschedule-substitute": {
+      "identifier": "KEL-138",
+      "id": "806bd637-6802-4c63-8c29-9826eab6d163",
+      "url": "https://linear.app/farid-zamani/issue/KEL-138/tenant-dapat-me-reschedule-sesi-dan-menugaskan-tutor-pengganti-dari"
+    },
+    "web-tutor-student-reports": {
+      "identifier": "KEL-139",
+      "id": "2e039e11-bf90-42e6-a9a8-494e17c9e59b",
+      "url": "https://linear.app/farid-zamani/issue/KEL-139/pengajar-menulis-dan-mengelola-laporan-evaluasi-siswa-dari-dashboard"
+    },
+    "parent-learning-read-api": {
+      "identifier": "KEL-140",
+      "id": "4487f67c-f4a5-401f-9b14-cc0d70bd98e4",
+      "url": "https://linear.app/farid-zamani/issue/KEL-140/parent-dapat-membaca-sesi-kehadiran-dan-laporan-milik-anaknya-sendiri"
+    },
+    "web-parent-learning-portal": {
+      "identifier": "KEL-141",
+      "id": "9ed5f8be-7360-4431-8ee8-3a3b3bd7134c",
+      "url": "https://linear.app/farid-zamani/issue/KEL-141/parent-melihat-jadwal-riwayat-kehadiran-dan-rapor-anak-dari-dashboard"
+    },
+    "billing-tenant-balance-bank-account": {
+      "identifier": "KEL-142",
+      "id": "e0414956-d63a-4741-b250-74e7e561b0b9",
+      "url": "https://linear.app/farid-zamani/issue/KEL-142/tenant-dapat-melihat-saldo-dan-mutasi-ledger-serta-mengelola-rekening"
+    },
+    "billing-tenant-withdrawal-request": {
+      "identifier": "KEL-143",
+      "id": "1670fa70-f1ec-43f4-813e-32f5d0d31282",
+      "url": "https://linear.app/farid-zamani/issue/KEL-143/tenant-dapat-mengajukan-dan-membatalkan-penarikan-dengan-saldo-yang"
+    },
+    "platform-withdrawal-processing": {
+      "identifier": "KEL-144",
+      "id": "2fe4bf70-b498-4dfd-8e18-c73a47f1a500",
+      "url": "https://linear.app/farid-zamani/issue/KEL-144/platform-admin-memproses-penarikan-tenant-secara-manual-dengan-jejak"
+    },
+    "web-tenant-finance": {
+      "identifier": "KEL-145",
+      "id": "cdabcdd0-07bb-4e36-be73-26a05b19e80b",
+      "url": "https://linear.app/farid-zamani/issue/KEL-145/tenant-melihat-saldo-mutasi-rekening-dan-mengajukan-penarikan-dari"
+    },
+    "web-platform-withdrawal-queue": {
+      "identifier": "KEL-146",
+      "id": "d1d76cdf-f32f-4647-9619-3161afb3a1ce",
+      "url": "https://linear.app/farid-zamani/issue/KEL-146/platform-admin-memproses-antrean-penarikan-tenant-dari-dashboard"
+    },
+    "billing-transaction-report-export": {
+      "identifier": "KEL-147",
+      "id": "74983f23-3328-4e40-a685-78efb79d6662",
+      "url": "https://linear.app/farid-zamani/issue/KEL-147/tenant-dapat-memfilter-transaksi-berdasarkan-tanggal-bayar-dan"
+    },
+    "web-tenant-transactions-page": {
+      "identifier": "KEL-148",
+      "id": "943097d3-7482-495a-8b4a-ff573d23a3f8",
+      "url": "https://linear.app/farid-zamani/issue/KEL-148/tenant-melihat-daftar-transaksi-dengan-filter-dan-mengunduh-csv"
+    },
+    "academic-enrollment-suspension": {
+      "identifier": "KEL-149",
+      "id": "b1d1d195-ac0e-400c-88b3-441aed40f41b",
+      "url": "https://linear.app/farid-zamani/issue/KEL-149/enrollment-dapat-ditangguhkan-dipulihkan-dan-diakhiri-melalui-endpoint"
+    },
+    "billing-renewal-grace-suspend": {
+      "identifier": "KEL-150",
+      "id": "27dddadb-2d14-43b9-aec4-c1ea58f8c2bc",
+      "url": "https://linear.app/farid-zamani/issue/KEL-150/renewal-yang-tidak-dibayar-setelah-masa-tenggang-menangguhkan"
+    },
+    "web-parent-latest-payment-status": {
+      "identifier": "KEL-151",
+      "id": "1c8cbf56-bce7-4a1a-84e4-8e21f81f16ba",
+      "url": "https://linear.app/farid-zamani/issue/KEL-151/parent-melihat-status-transaksi-terbaru-dan-tagihan-perpanjangan-pada"
+    },
+    "billing-manual-refund": {
+      "identifier": "KEL-152",
+      "id": "724f15d5-aad6-4a12-a9c3-1170fffe6927",
+      "url": "https://linear.app/farid-zamani/issue/KEL-152/tenant-dapat-mencatat-refund-manual-untuk-transaksi-paid-dan"
+    },
+    "web-tenant-manual-refund": {
+      "identifier": "KEL-153",
+      "id": "2fffd360-b92b-4751-b276-7e601bcb3e68",
+      "url": "https://linear.app/farid-zamani/issue/KEL-153/tenant-mencatat-refund-manual-dari-halaman-transaksi"
+    },
+    "chat-system-notification-channel": {
+      "identifier": "KEL-154",
+      "id": "37b65a84-f4b1-4a17-9370-afce0576c734",
+      "url": "https://linear.app/farid-zamani/issue/KEL-154/chat-service-menerima-pesan-notifikasi-sistem-dari-service-internal"
+    },
+    "academic-parent-notification-outbox": {
+      "identifier": "KEL-155",
+      "id": "01959aea-883e-44b3-b94a-2508c3f574f2",
+      "url": "https://linear.app/farid-zamani/issue/KEL-155/parent-diberi-tahu-lewat-email-dan-chat-saat-sesi-di-reschedule-tutor"
+    },
+    "academic-session-reminder": {
+      "identifier": "KEL-156",
+      "id": "4376092d-2e56-4128-8d59-95dcd1242f55",
+      "url": "https://linear.app/farid-zamani/issue/KEL-156/parent-menerima-pengingat-sehari-sebelum-sesi-anaknya"
+    },
+    "web-system-notification-render": {
+      "identifier": "KEL-157",
+      "id": "139028af-e1dd-45a3-b3d0-c5fd2c61a62d",
+      "url": "https://linear.app/farid-zamani/issue/KEL-157/inbox-parent-menampilkan-percakapan-notifikasi-sistem-dengan-jelas"
+    },
+    "tenant-public-profile-page": {
+      "identifier": "KEL-158",
+      "id": "10f69be4-c6ac-4d66-8d28-0f528b417e95",
+      "url": "https://linear.app/farid-zamani/issue/KEL-158/calon-parent-dapat-membuka-profil-publik-tenant-beserta-kelas-yang"
+    },
+    "class-reviews-api": {
+      "identifier": "KEL-159",
+      "id": "f002234a-8bf0-4b4f-9741-86cd002bbc49",
+      "url": "https://linear.app/farid-zamani/issue/KEL-159/parent-yang-pernah-terdaftar-dapat-memberi-rating-dan-ulasan-kelas"
+    },
+    "web-class-reviews": {
+      "identifier": "KEL-160",
+      "id": "b92bc23e-01ab-4818-a83f-c25dc0d5e055",
+      "url": "https://linear.app/farid-zamani/issue/KEL-160/detail-kelas-menampilkan-rating-dan-ulasan-dan-parent-dapat-menulis"
+    },
+    "tenant-voucher-management": {
+      "identifier": "KEL-161",
+      "id": "00301afd-705c-4323-b138-334314e6e21a",
+      "url": "https://linear.app/farid-zamani/issue/KEL-161/tenant-dapat-membuat-mengubah-dan-menonaktifkan-voucher"
+    },
+    "voucher-checkout-redemption": {
+      "identifier": "KEL-162",
+      "id": "3eb5d495-4ae8-41ba-8542-682540d86a7d",
+      "url": "https://linear.app/farid-zamani/issue/KEL-162/parent-dapat-memakai-voucher-tenant-saat-checkout-kelas-grup"
+    }
+  }
+}

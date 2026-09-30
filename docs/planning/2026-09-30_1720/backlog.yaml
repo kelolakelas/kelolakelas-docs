@@ -1,0 +1,1667 @@
+{
+  "schemaVersion": "kelolakelas.planning-backlog/v1",
+  "projects": [
+    {
+      "key": "tutor-session-operations",
+      "name": "Operasional sesi, absensi, dan laporan oleh pengajar",
+      "outcome": "Pengajar dapat melihat sesi yang menjadi tanggung jawabnya, mencatat kehadiran, mengubah jadwal atau mengganti pengajar, dan menulis laporan evaluasi siswa dari dashboard KelolaKelas.",
+      "problem": "Backend sesi, absensi, dan laporan sudah ada, tetapi tidak ada satu pun layar web yang memakainya; absensi gagal untuk sesi yang di-reschedule, guard pengajar tidak konsisten, dan menu tenant statis sehingga pengajar melihat semua menu admin.",
+      "valueAndPriority": "High: operasional kelas harian adalah alasan utama tenant memakai aplikasi setelah kelas terjual; sebagian besar kemampuan backend sudah tersedia sehingga nilai per effort tinggi.",
+      "scope": [
+        "Absensi per sesi termasuk sesi hasil reschedule dan pencatatan massal per sesi.",
+        "Guard akses sesi dan laporan untuk pengajar serta daftar sesi milik pengajar yang login.",
+        "Endpoint permission anggota saat ini dan menu tenant yang mengikuti permission.",
+        "Layar sesi dan absensi, reschedule dan tutor pengganti, serta laporan evaluasi siswa."
+      ],
+      "outOfScope": [
+        "Akses parent ke sesi, absensi, dan laporan (Project portal parent).",
+        "Notifikasi perubahan jadwal ke parent (Project notifikasi).",
+        "Aplikasi mobile native."
+      ],
+      "successMetrics": [
+        "Pengajar dapat mencatat kehadiran seluruh siswa satu sesi, termasuk sesi yang di-reschedule, dalam satu aksi.",
+        "Pengajar hanya melihat menu dan data yang diizinkan permission-nya; tidak ada update laporan oleh pengajar yang tidak mengajar kelas tersebut."
+      ],
+      "dependenciesAndRisks": [
+        "Role sistem hanya Creator dan Teacher; role kustom tenant bisa tidak memiliki permission baru yang diwajibkan sehingga dokumentasi perubahan akses wajib disertakan.",
+        "Perubahan guard backend dapat menolak klien yang sebelumnya lolos; uji kompatibilitas role Creator dan Teacher."
+      ]
+    },
+    {
+      "key": "parent-learning-portal",
+      "name": "Portal belajar parent: jadwal, kehadiran, dan rapor anak",
+      "outcome": "Parent dapat melihat jadwal sesi berikutnya, riwayat kehadiran, dan laporan evaluasi milik anaknya sendiri tanpa dapat membaca data anak lain.",
+      "problem": "Parent hanya dapat melihat enrollment, data anak, dan chat; endpoint sesi, absensi, dan laporan tidak memiliki jalur parent, dan token parent yang membawa tenant claim berpotensi melewati pemeriksaan permission.",
+      "valueAndPriority": "High: visibilitas progres anak adalah nilai inti bagi pembayar dan mendukung retensi perpanjangan.",
+      "scope": [
+        "Akses baca parent yang dibatasi kepemilikan untuk sesi, absensi, dan laporan anak.",
+        "Navigasi parent serta layar jadwal, kehadiran, dan rapor per anak."
+      ],
+      "outOfScope": [
+        "Parent mengubah absensi atau laporan.",
+        "Notifikasi otomatis ke parent (Project notifikasi).",
+        "Ekspor rapor ke PDF."
+      ],
+      "successMetrics": [
+        "Parent melihat jadwal, kehadiran, dan laporan anaknya sendiri dari satu area dashboard.",
+        "Uji otorisasi membuktikan parent tidak dapat membaca data anak parent lain maupun data tenant lain."
+      ],
+      "dependenciesAndRisks": [
+        "Risiko kebocoran data anak lintas parent atau tenant; guard wajib di academic, bukan hanya di UI.",
+        "Bergantung pada absensi per sesi dan guard sesi dari Project operasional pengajar agar data yang ditampilkan benar."
+      ]
+    },
+    {
+      "key": "tenant-finance-payout",
+      "name": "Keuangan tenant: laporan transaksi dan pencairan dana manual",
+      "outcome": "Tenant dapat melihat saldo, mutasi, dan transaksi yang dapat diekspor, lalu mengajukan penarikan ke rekening terdaftar yang diproses manual oleh platform admin.",
+      "problem": "Pembayaran parent sudah dikreditkan ke wallet dan ledger tenant, tetapi tenant tidak dapat melihat saldo, mendaftarkan rekening, atau menarik dana; laporan transaksi hanya berupa kartu ringkasan tanpa daftar lengkap maupun ekspor.",
+      "valueAndPriority": "High: tanpa pencairan dana, tenant tidak menerima hasil penjualan; laporan transaksi dibutuhkan untuk pembukuan dan rekonsiliasi.",
+      "scope": [
+        "API saldo, mutasi ledger, dan rekening bank tenant.",
+        "Pengajuan penarikan oleh tenant dengan penahanan saldo yang atomik.",
+        "Pemrosesan penarikan manual oleh platform admin dengan pengecekan assignment aktif.",
+        "Daftar transaksi tenant dengan filter dan ekspor CSV.",
+        "Layar keuangan tenant dan antrean penarikan platform."
+      ],
+      "outOfScope": [
+        "Disbursement otomatis via API provider.",
+        "Payout terjadwal otomatis dan biaya admin penarikan selain nol.",
+        "Faktur pajak atau integrasi akuntansi."
+      ],
+      "successMetrics": [
+        "Setiap penarikan yang dibayar atau ditolak tercermin di ledger dengan saldo akhir yang sama dengan jumlah mutasinya.",
+        "Tenant dapat mengekspor transaksi untuk rentang tanggal yang dipilih dan totalnya cocok dengan ringkasan penjualan."
+      ],
+      "dependenciesAndRisks": [
+        "Risiko kebenaran finansial: double spend saldo, penarikan ganda, dan perubahan rekening saat penarikan berjalan.",
+        "Billing belum memiliki cara memverifikasi platform admin secara live; butuh kemampuan baru dari identity.",
+        "Ledger saat ini tidak dikreditkan untuk transaksi sandbox; perilaku ini harus dipertahankan dan didokumentasikan."
+      ]
+    },
+    {
+      "key": "renewal-dunning-refund",
+      "name": "Penanganan tunggakan perpanjangan dan refund manual",
+      "outcome": "Enrollment yang tagihan perpanjangannya tidak dibayar melewati masa tenggang ditangguhkan dan kursinya dilepas, dapat pulih bila pembayaran terlambat diterima, dan tenant dapat mencatat refund manual dengan konsekuensi yang konsisten.",
+      "problem": "Setelah masa penagihan lewat, worker renewal berhenti tanpa konsekuensi dan subscription tetap aktif; status enrollment tidak punya bentuk tangguh, refund tidak pernah ditulis, dan parent melihat transaksi tertua alih-alih yang terbaru.",
+      "valueAndPriority": "High untuk tunggakan (akses tanpa bayar dan kursi terkunci), Medium untuk refund (kebutuhan administratif dengan keputusan manual).",
+      "scope": [
+        "Status tangguh enrollment beserta endpoint internal suspend, resume, dan end.",
+        "Masa tenggang renewal lalu suspend, serta resume saat pembayaran terlambat.",
+        "Status pembayaran terbaru dan tagihan perpanjangan di web parent.",
+        "Pencatatan refund manual oleh tenant beserta permission-nya."
+      ],
+      "outOfScope": [
+        "Refund otomatis melalui API provider.",
+        "Refund parsial.",
+        "Penagihan denda atau bunga keterlambatan."
+      ],
+      "successMetrics": [
+        "Tidak ada enrollment aktif yang periodenya lewat masa tenggang tanpa pembayaran.",
+        "Setiap refund tercatat dengan alasan, referensi, pelaku, dan enrollment terkait diakhiri."
+      ],
+      "dependenciesAndRisks": [
+        "Keputusan owner: masa tenggang lalu suspend dengan kursi dilepas; refund dicatat manual oleh tenant.",
+        "Pertanyaan terbuka: apakah refund manual juga mengurangi saldo wallet tenant. Default draft: pencatatan saja tanpa mutasi ledger.",
+        "Risiko race antara pembayaran terlambat dan suspend; wajib idempoten dan dapat direkonsiliasi."
+      ]
+    },
+    {
+      "key": "parent-schedule-notifications",
+      "name": "Notifikasi perubahan jadwal dan kehadiran ke parent",
+      "outcome": "Parent diberi tahu lewat email dan pesan chat saat sesi anaknya di-reschedule, tutornya diganti, anaknya tercatat tidak hadir, dan sehari sebelum sesi.",
+      "problem": "Reschedule, tutor pengganti, dan absensi tidak menghasilkan komunikasi apa pun; academic tidak memiliki email atau outbox, dan chat tidak dapat menerima pesan dari sistem.",
+      "valueAndPriority": "Medium: mengurangi sesi terlewat dan beban komunikasi manual tenant; memanfaatkan email Resend dan chat yang sudah ada tanpa vendor baru.",
+      "scope": [
+        "Pesan sistem di chat melalui endpoint internal dan percakapan notifikasi per parent per tenant.",
+        "Outbox notifikasi academic untuk reschedule, tutor pengganti, dan absen, dengan pengiriman email dan chat.",
+        "Pengingat sesi H-1.",
+        "Tampilan pesan sistem di inbox web."
+      ],
+      "outOfScope": [
+        "WhatsApp, SMS, dan push notification (kandidat berikutnya).",
+        "Preferensi notifikasi per parent.",
+        "Broadcast dan marketing."
+      ],
+      "successMetrics": [
+        "Setiap perubahan sesi yang memengaruhi enrollment aktif menghasilkan tepat satu notifikasi per parent per channel.",
+        "Kegagalan email atau chat dapat diamati dan di-retry tanpa membatalkan perubahan jadwal."
+      ],
+      "dependenciesAndRisks": [
+        "Keputusan owner: channel email dan chat; WhatsApp ditunda.",
+        "Academic belum menyimpan email parent pada enrollment; enrollment lama hanya menerima chat.",
+        "Pengiriman ke provider eksternal bersifat at-least-once; butuh idempotency key."
+      ]
+    },
+    {
+      "key": "tenant-storefront-growth",
+      "name": "Profil tenant publik, ulasan kelas, dan voucher",
+      "outcome": "Calon parent dapat melihat profil publik tenant dan ulasan kelas, dan tenant dapat membuat voucher yang ditukar dengan aman saat checkout kelas grup.",
+      "problem": "Nama tenant di katalog hanya memfilter daftar kelas; tidak ada profil publik, ulasan, maupun penukaran voucher meski tabel dan permission voucher sudah ada.",
+      "valueAndPriority": "Medium: meningkatkan kepercayaan dan konversi katalog; dikerjakan setelah operasional dan keuangan inti.",
+      "scope": [
+        "Endpoint dan halaman profil publik tenant.",
+        "Ulasan dan rating kelas oleh parent yang pernah terdaftar.",
+        "Manajemen voucher tenant dan penukaran voucher di checkout kelas grup."
+      ],
+      "outOfScope": [
+        "Moderasi ulasan oleh platform admin.",
+        "Voucher untuk kelas private dan tagihan perpanjangan.",
+        "Upload logo atau media tenant."
+      ],
+      "successMetrics": [
+        "Halaman profil tenant hanya menampilkan data publik tenant aktif.",
+        "Tidak ada voucher yang dipakai melebihi batas penggunaan atau di luar masa berlaku."
+      ],
+      "dependenciesAndRisks": [
+        "Kolom `about` pada tenant berbentuk jsonb bebas; hanya subset yang disepakati boleh dipublikasikan.",
+        "Penukaran voucher menyentuh kebenaran harga dan platform fee; butuh reservasi pemakaian yang atomik."
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "draftKey": "attendance-by-session",
+      "projectKey": "tutor-session-operations",
+      "title": "Absensi dapat dicatat per sesi, termasuk sesi reschedule dan secara massal",
+      "type": "Improvement",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": ["academic", "ai-ready"],
+      "repositories": ["academic"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Request absensi memakai `enrollment_id + schedule_id + date` (`internal/domain/attendance.go:92-97`) lalu dicari lewat `FindForAttendance` yang mencocokkan `schedule_id` dan `session_date` (`internal/repository/session_repository.go:59-65`). Sesi hasil `RescheduleSession` dibuat dengan `ScheduleID=nil` (`internal/usecase/schedule_usecase.go:338-348`), sehingga absensinya tidak dapat dicatat dan `GetSessionAttendees` gagal dengan ErrScheduleNotFound (`schedule_usecase.go:620-623`). Tidak ada pencatatan massal per sesi.",
+        "goal": "Pengajar dapat mencatat dan membaca kehadiran berdasarkan sesi, termasuk sesi yang di-reschedule, untuk seluruh siswa satu sesi dalam satu request.",
+        "requirements": [
+          "Sediakan cara mencatat absensi yang dialamatkan ke sesi (session id) sambil mempertahankan request lama berbasis schedule_id + date.",
+          "Sediakan pencatatan massal status kehadiran untuk banyak enrollment dalam satu sesi, atomik per request, dengan upsert terhadap unique key (session_id, enrollment_id).",
+          "Daftar attendees dan pencatatan absensi harus bekerja untuk sesi hasil reschedule, memakai enrollment dari jadwal asal sesi tersebut.",
+          "Pertahankan guard yang ada: pengajar hanya dapat mencatat untuk sesi yang `tutor_id`-nya adalah dirinya, dan permission `attendance:create|update` tetap berlaku.",
+          "Hanya enrollment berstatus aktif pada sesi tersebut yang dapat diabsen."
+        ],
+        "acceptanceCriteria": [
+          "Absensi untuk sesi reschedule dapat dibuat, diubah, dan dibaca.",
+          "Satu request massal mencatat status seluruh siswa satu sesi; mengulang request yang sama tidak membuat duplikat.",
+          "Pengajar yang bukan tutor sesi tersebut ditolak 403 dan enrollment yang bukan milik sesi ditolak dengan error validasi.",
+          "Request lama berbasis schedule_id + date tetap berfungsi.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko high: relasi sesi reschedule ke jadwal asal tidak tersimpan, sehingga perbaikan yang keliru dapat menautkan absensi ke enrollment kelas lain atau tenant lain. Tentukan dari data yang ada bagaimana sesi reschedule terhubung ke jadwal asalnya; bila tidak ada kolom yang cukup, tambahkan migration kompatibel (golang-migrate di `migrations/`) dan isi data lama bila dapat dibuktikan, jika tidak dokumentasikan batasannya. Semua query tetap di-scope tenant di SQL (ADR 0019). Tambahkan anotasi `@x-permission` dan perbarui swagger agar `cmd/server/swagger_contract_test.go` lulus. Perbarui `kelolakelas-docs` (api/academic.md, flows/academic.md, data/academic-schema.md) dan catat ADR bila model relasi sesi berubah.",
+        "relevantAreas": [
+          "kelolakelas-academic-service/internal/domain/attendance.go",
+          "kelolakelas-academic-service/internal/usecase/attendance_usecase.go",
+          "kelolakelas-academic-service/internal/usecase/schedule_usecase.go",
+          "kelolakelas-academic-service/internal/repository/session_repository.go",
+          "kelolakelas-academic-service/cmd/server/attendance_report_routes.go"
+        ],
+        "edgeCases": [
+          "Sesi reschedule untuk kelas private dengan satu enrollment.",
+          "Request massal berisi enrollment yang sudah dropped atau milik sesi lain.",
+          "Dua pengajar mengirim absensi sesi yang sama secara bersamaan.",
+          "Sesi yang sudah dibatalkan."
+        ],
+        "testingValidation": [
+          "Unit test usecase untuk sesi biasa, sesi reschedule, request massal, dan penolakan enrollment asing.",
+          "Postgres integration test untuk upsert massal serentak dan scope tenant di SQL sebagai mitigasi risiko penautan lintas tenant.",
+          "Swagger contract test, go vet, go test -race, dan build lulus.",
+          "Acceptance criteria diverifikasi melalui request API terhadap database lokal."
+        ],
+        "outOfScope": [
+          "Layar web absensi.",
+          "Notifikasi absen ke parent.",
+          "Akses parent ke absensi."
+        ]
+      }
+    },
+    {
+      "draftKey": "tutor-session-scope-guards",
+      "projectKey": "tutor-session-operations",
+      "title": "Pengajar melihat sesinya sendiri dan akses sesi, tutor pengganti, serta laporan dijaga konsisten",
+      "type": "Improvement",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": ["academic", "identity", "ai-ready"],
+      "repositories": ["academic", "identity"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "`GET /sessions`, `/sessions/:id`, dan `/sessions/:id/attendees` hanya di-scope tenant tanpa permission (`cmd/server/routes.go:93,94,100`). Filter `tutor_id` ada (`internal/delivery/http/handler/session_handler.go:37`) tetapi tidak diturunkan dari JWT. Tutor pengganti hanya menimpa `tutor_id` tanpa memeriksa bahwa ia anggota aktif tenant (`internal/usecase/schedule_usecase.go:473-506`). Update dan delete laporan tidak memeriksa pengajar (`internal/usecase/report_usecase.go:65-85`), berbeda dengan create yang memeriksa `class_teachers` (`internal/repository/enrollment_repository.go:227-231`). Identity hanya mengekspos gRPC ValidateTenantStatus, GetTenantPublicInfo, dan CheckPermission yang membutuhkan roleID (`kelolakelas-identity-service/internal/delivery/grpc/permission_service.go:88`).",
+        "goal": "Pengajar dapat meminta daftar sesinya sendiri, dan akses baca sesi, penugasan tutor pengganti, serta perubahan laporan mengikuti aturan permission dan penugasan yang konsisten.",
+        "requirements": [
+          "Endpoint baca sesi mewajibkan permission `schedule:read` untuk anggota tenant.",
+          "Sediakan filter sesi milik pemanggil yang diturunkan dari `member_id` JWT, bukan dari input klien.",
+          "Tutor pengganti hanya dapat ditugaskan kepada anggota aktif tenant yang sama; identity menyediakan pemeriksaan keanggotaan aktif lewat gRPC internal.",
+          "Update dan delete laporan menerapkan aturan penugasan pengajar yang sama dengan create laporan.",
+          "Perilaku token parent tidak diubah pada issue ini."
+        ],
+        "acceptanceCriteria": [
+          "Anggota tanpa `schedule:read` ditolak 403 pada endpoint baca sesi; Creator dan Teacher tetap dapat membaca.",
+          "Filter sesi milik sendiri hanya mengembalikan sesi dengan `tutor_id` pemanggil.",
+          "Penugasan tutor pengganti ke member tenant lain, member nonaktif, atau ID acak ditolak dengan error validasi.",
+          "Pengajar yang tidak mengajar kelas terkait tidak dapat mengubah atau menghapus laporan.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko high: pengetatan guard dapat memblokir role kustom tenant yang sebelumnya bisa membaca sesi, dan cek keanggotaan lintas service menambah titik gagal. Mitigasi: tolak secara fail-closed bila identity tidak tersedia untuk mutasi tutor pengganti, dan dokumentasikan permission baru yang diwajibkan untuk role kustom. Ikuti pola gRPC identity yang ada (TenantService/PermissionService dengan struct atau proto yang sudah dipakai academic di `pkg/proto/tenant`); keanggotaan aktif mengikuti ADR 0034. Tambahkan `@x-permission` dan perbarui swagger. Perbarui `kelolakelas-docs` (api/academic.md, components/identity-service.md, ADR bila kontrak gRPC baru) serta baris usang di `08-known-gaps-and-risks.md` tentang attendance/report tanpa permission.",
+        "relevantAreas": [
+          "kelolakelas-academic-service/cmd/server/routes.go",
+          "kelolakelas-academic-service/internal/delivery/http/handler/session_handler.go",
+          "kelolakelas-academic-service/internal/usecase/schedule_usecase.go",
+          "kelolakelas-academic-service/internal/usecase/report_usecase.go",
+          "kelolakelas-academic-service/pkg/grpcclient",
+          "kelolakelas-identity-service/internal/delivery/grpc"
+        ],
+        "edgeCases": [
+          "Pengajar yang juga Creator.",
+          "Anggota tanpa member_id pada token lama.",
+          "Identity gRPC tidak tersedia saat menugaskan tutor pengganti.",
+          "Laporan untuk enrollment yang kelasnya sudah tidak diajar pengajar tersebut."
+        ],
+        "testingValidation": [
+          "Unit test academic untuk setiap guard, filter sesi milik sendiri, dan jalur fail-closed identity.",
+          "Unit test gRPC identity untuk anggota aktif, nonaktif, dan lintas tenant sebagai mitigasi risiko akses lintas tenant.",
+          "Swagger contract test, go vet, go test -race, dan build lulus di kedua repo.",
+          "Acceptance criteria diverifikasi dengan token Creator, Teacher, dan role kustom."
+        ],
+        "outOfScope": [
+          "Akses parent ke sesi dan laporan.",
+          "Layar web sesi dan laporan.",
+          "Perubahan role sistem."
+        ]
+      }
+    },
+    {
+      "draftKey": "role-aware-tenant-nav",
+      "projectKey": "tutor-session-operations",
+      "title": "Menu dashboard tenant hanya menampilkan area yang diizinkan permission anggota",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": ["identity", "api-gateway", "web", "ai-ready"],
+      "repositories": ["identity", "api-gateway", "web"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "`TENANT_NAV_ITEMS` statis (`kelolakelas-web/app/(dashboard)/dashboard/tenant/_constants/constants.ts:7-48`) dirender penuh di `TenantSidebar.tsx:197` dan `MobileNav.tsx:378`, dengan footer tetap \"Tenant Admin / Organization Owner\" (`TenantSidebar.tsx:228-231`). JWT tidak membawa daftar permission (`kelolakelas-identity-service/pkg/jwt/jwt.go:17-29`) dan `GET /permissions` mengembalikan katalog, bukan permission pemanggil (`role_handler.go:45-61`).",
+        "goal": "Anggota tenant, termasuk pengajar, hanya melihat menu yang dapat dipakainya, beserta nama role yang benar.",
+        "requirements": [
+          "Identity menyediakan endpoint baca untuk anggota tenant yang mengembalikan nama role dan permission dari keanggotaan aktif pemanggil.",
+          "Gateway meneruskan endpoint tersebut di grup protected dengan tenant claim.",
+          "Web memfilter item sidebar dan mobile nav berdasarkan permission, dan menampilkan nama role di footer.",
+          "Backend tetap menjadi penegak akses; penyaringan menu hanya untuk kegunaan."
+        ],
+        "acceptanceCriteria": [
+          "Anggota role Teacher tidak melihat menu anggota, role, dan settings bila tidak memiliki permission-nya.",
+          "Creator melihat semua menu seperti sebelumnya.",
+          "Bila endpoint permission gagal, web menampilkan menu minimum yang aman dan pesan error, bukan seluruh menu admin.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Permission sudah di-cache di Redis oleh identity; gunakan sumber yang sama dengan CheckPermission agar hasil konsisten (keanggotaan aktif, ADR 0034). Token parent dan platform admin tidak dilayani endpoint ini. Pemetaan menu ke permission ditulis di satu tempat dan dipakai oleh sidebar maupun mobile nav, yang saat ini menduplikasi ikon. Ikuti pola `_queries` dan result type `{data, error}` di web serta docs Next.js lokal (`AGENTS.md`). Perbarui `kelolakelas-docs` (api/identity.md, api/gateway.md, components/web.md).",
+        "relevantAreas": [
+          "kelolakelas-identity-service/internal/delivery/http/handler/role_handler.go",
+          "kelolakelas-identity-service/cmd/server/main.go",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/_constants/constants.ts",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/TenantSidebar.tsx",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/MobileNav.tsx"
+        ],
+        "edgeCases": [
+          "Role kustom tanpa permission apa pun.",
+          "Permission berubah saat sesi berjalan (cache).",
+          "Keanggotaan dinonaktifkan setelah login."
+        ],
+        "testingValidation": [
+          "Unit test handler identity untuk Creator, Teacher, role kustom, dan keanggotaan nonaktif.",
+          "Router test gateway untuk route baru.",
+          "Vitest untuk pemfilteran menu dan fallback error; test, lint, type check, dan build web lulus.",
+          "Verifikasi manual login sebagai Creator dan Teacher."
+        ],
+        "outOfScope": [
+          "Menambahkan menu sesi, laporan, atau keuangan (issue masing-masing).",
+          "Navigasi parent."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-tutor-sessions-attendance",
+      "projectKey": "tutor-session-operations",
+      "title": "Pengajar melihat sesi hari ini dan minggu ini serta mencatat kehadiran dari dashboard",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": ["attendance-by-session", "tutor-session-scope-guards", "role-aware-tenant-nav"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Tidak ada kode web yang memanggil `/api/v1/sessions`, `/sessions/:id/attendees`, atau `/attendance`; tipe `ClassSession` di `app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts:440-449` tidak pernah dirender. Pengajar tidak dapat mengelola sesi dari aplikasi.",
+        "goal": "Pengajar membuka satu halaman untuk melihat sesinya hari ini atau minggu ini dan mencatat kehadiran seluruh siswa satu sesi.",
+        "requirements": [
+          "Halaman sesi di dashboard tenant dengan tampilan hari ini dan minggu ini, filter sesi milik sendiri sebagai default untuk pengajar, dan filter kelas.",
+          "Detail sesi menampilkan attendees dan form kehadiran massal (hadir, telat, izin, alfa) yang memakai API absensi per sesi.",
+          "Item menu sesi mengikuti pemetaan permission dari menu sadar-permission.",
+          "State loading, kosong, forbidden, dan error ditangani sesuai pola halaman tenant yang ada."
+        ],
+        "acceptanceCriteria": [
+          "Pengajar melihat sesinya sendiri untuk hari ini dan minggu ini, termasuk sesi reschedule.",
+          "Pengajar menyimpan kehadiran seluruh siswa satu sesi dan melihat hasilnya setelah refresh.",
+          "Anggota tanpa permission melihat panel forbidden, bukan error mentah.",
+          "Form dapat dioperasikan dengan keyboard dan label status terbaca screen reader.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Ikuti konvensi `_queries`, `_actions` ('use server'), `_components`, dan `_lib/schema.ts` (zod v4); gunakan `normalizeListEnvelope` dari `lib/list-envelope.ts`. Tanggal ditampilkan dalam Asia/Jakarta, dan batas hari untuk filter harus sesuai kontrak backend. Swagger lokal `_docs/api` untuk sesi usang, jadi pakai kontrak dari issue backend. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts",
+          "kelolakelas-web/lib/list-envelope.ts"
+        ],
+        "edgeCases": [
+          "Tidak ada sesi pada rentang yang dipilih.",
+          "Sesi dibatalkan atau di-reschedule setelah halaman dimuat.",
+          "Sebagian simpan gagal karena enrollment sudah tidak aktif."
+        ],
+        "testingValidation": [
+          "Vitest untuk query, schema, dan komponen form kehadiran termasuk state forbidden dan error.",
+          "Test, lint, type check, dan production build lulus.",
+          "Verifikasi manual sebagai Teacher dan Creator terhadap backend lokal."
+        ],
+        "outOfScope": [
+          "Reschedule dan tutor pengganti.",
+          "Laporan evaluasi.",
+          "Tampilan kalender bulanan."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-session-reschedule-substitute",
+      "projectKey": "tutor-session-operations",
+      "title": "Tenant dapat me-reschedule sesi dan menugaskan tutor pengganti dari detail sesi",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": ["web-tutor-sessions-attendance"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Endpoint `POST /sessions/:id/reschedule` dan `PATCH /sessions/:id/substitute-tutor` sudah dirouting (gateway `router.go:205-212`) dengan permission `schedule:update`, tetapi tidak ada UI yang memanggilnya.",
+        "goal": "Anggota dengan `schedule:update` dapat memindahkan satu sesi atau mengganti pengajarnya dari detail sesi.",
+        "requirements": [
+          "Aksi reschedule pada detail sesi dengan input tanggal dan jam baru serta konfirmasi.",
+          "Aksi tutor pengganti yang memilih dari daftar pengajar tenant (`GET /api/v1/tutors`).",
+          "Aksi disembunyikan bagi anggota tanpa `schedule:update`, dan penolakan backend tetap ditampilkan dengan jelas.",
+          "Setelah berhasil, daftar sesi dan detail diperbarui."
+        ],
+        "acceptanceCriteria": [
+          "Sesi yang di-reschedule tampil di tanggal baru dan absensinya dapat dicatat.",
+          "Tutor pengganti tampil pada sesi dan sesi muncul di daftar milik tutor pengganti.",
+          "Error validasi backend (misalnya tutor tidak valid) ditampilkan tanpa kehilangan input.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Mutasi melalui server action; body mutasi saat ini membutuhkan id di body (catatan path-alias di `08-known-gaps-and-risks.md`), jadi pastikan payload sesuai kontrak backend. Konfirmasi memakai dialog in-page yang dapat diakses keyboard seperti pembatalan enrollment parent. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go"
+        ],
+        "edgeCases": [
+          "Reschedule ke waktu yang sudah lewat.",
+          "Tidak ada pengajar lain di tenant.",
+          "Sesi sudah dibatalkan oleh anggota lain."
+        ],
+        "testingValidation": [
+          "Vitest untuk action dan komponen dialog termasuk error validasi.",
+          "Test, lint, type check, dan production build lulus.",
+          "Verifikasi manual reschedule dan tutor pengganti terhadap backend lokal."
+        ],
+        "outOfScope": [
+          "Perubahan jadwal permanen (sudah ada endpoint terpisah).",
+          "Notifikasi ke parent."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-tutor-student-reports",
+      "projectKey": "tutor-session-operations",
+      "title": "Pengajar menulis dan mengelola laporan evaluasi siswa dari dashboard",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": ["tutor-session-scope-guards", "role-aware-tenant-nav"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "API laporan (`/api/v1/reports`, model `Report` dengan title, evaluation_notes, score 0-100) sudah ada, tetapi web hanya memanggilnya dari picker chat (`app/(dashboard)/dashboard/tenant/chat/_queries/queries.ts:94`) dan tidak pernah menampilkan isi laporan.",
+        "goal": "Pengajar dapat membuat, membaca, mengubah, dan menghapus laporan evaluasi untuk siswa di kelas yang diajarnya.",
+        "requirements": [
+          "Halaman laporan dengan filter kelas, siswa, dan rentang tanggal.",
+          "Form buat dan ubah laporan (judul, catatan evaluasi, skor opsional 0-100) serta hapus dengan konfirmasi.",
+          "Pilihan enrollment hanya dari kelas yang dapat diakses pemanggil.",
+          "Item menu laporan mengikuti pemetaan permission."
+        ],
+        "acceptanceCriteria": [
+          "Pengajar dapat membuat laporan dan melihatnya di daftar.",
+          "Pengajar tidak dapat mengubah laporan kelas yang tidak diajarnya dan melihat pesan yang jelas.",
+          "Validasi skor di luar 0-100 dan judul kosong ditampilkan di form.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Gunakan kembali tipe laporan yang sudah ada di chat query bila cocok. Tambahkan tombol ke `ReportChatStarter` bila relevan, tanpa mengubah perilaku chat. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/chat/_queries/queries.ts"
+        ],
+        "edgeCases": [
+          "Siswa dengan enrollment dropped.",
+          "Catatan evaluasi panjang.",
+          "Laporan dihapus oleh anggota lain."
+        ],
+        "testingValidation": [
+          "Vitest untuk schema form, query, dan state forbidden.",
+          "Test, lint, type check, dan production build lulus.",
+          "Verifikasi manual CRUD laporan sebagai Teacher dan Creator."
+        ],
+        "outOfScope": [
+          "Akses parent ke laporan.",
+          "Ekspor rapor ke PDF."
+        ]
+      }
+    },
+    {
+      "draftKey": "parent-learning-read-api",
+      "projectKey": "parent-learning-portal",
+      "title": "Parent dapat membaca sesi, kehadiran, dan laporan milik anaknya sendiri",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "critical",
+      "labels": ["academic", "ai-ready"],
+      "repositories": ["academic"],
+      "blockedByDraftKeys": ["tutor-session-scope-guards"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Handler sesi, absensi, dan laporan membutuhkan tenant claim sehingga parent tanpa tenant mendapat 401 (`internal/delivery/http/handler/attendance_handler.go:75-78`). Middleware melewati pemeriksaan permission untuk parent (`internal/delivery/http/middleware/permission_middleware.go:51-66`), sementara list usecase hanya memfilter tenant (`internal/usecase/attendance_usecase.go:32-44`, `report_usecase.go:31-43`). Akibatnya token parent yang membawa tenant_id berpotensi membaca seluruh data tenant. Enrollment dan student sudah punya pola kepemilikan parent (`internal/repository/enrollment_repository.go:162-168`).",
+        "goal": "Parent dapat membaca sesi mendatang, riwayat kehadiran, dan laporan untuk anak miliknya saja, dan tidak ada jalur parent yang dapat membaca data anak lain.",
+        "requirements": [
+          "Token parent pada endpoint baca sesi, absensi, dan laporan selalu dibatasi pada student dengan `parent_id` pemanggil, terlepas dari ada tidaknya tenant claim.",
+          "Sesi untuk parent hanya sesi dari jadwal enrollment aktif anaknya; attendees tidak mengekspos siswa lain.",
+          "Parent tidak dapat melakukan mutasi absensi, sesi, atau laporan.",
+          "Perilaku anggota tenant tidak berubah."
+        ],
+        "acceptanceCriteria": [
+          "Parent melihat sesi, absensi, dan laporan anaknya di beberapa tenant sekaligus.",
+          "Parent tidak dapat membaca data anak parent lain meski memberikan student_id, enrollment_id, atau tenant header milik orang lain.",
+          "Token parent yang membawa tenant_id tidak lagi dapat membaca seluruh data tenant.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko critical: kebocoran data anak (kehadiran dan evaluasi) lintas parent atau tenant. Penegakan wajib di repository atau usecase, bukan di UI atau gateway. Gateway `RequireTenant` meloloskan parent tanpa tenant (`principal_middleware.go:22-31`), jadi tidak ada perubahan gateway. Perbarui anotasi `@x-permission` (`parent_tokens`) dan swagger. Perbarui `kelolakelas-docs` (api/academic.md bagian KEL-22 yang menyatakan parent tidak punya akses, 05-security.md) dan catat ADR untuk model akses parent.",
+        "relevantAreas": [
+          "kelolakelas-academic-service/internal/delivery/http/middleware/permission_middleware.go",
+          "kelolakelas-academic-service/internal/delivery/http/handler/attendance_handler.go",
+          "kelolakelas-academic-service/internal/usecase/attendance_usecase.go",
+          "kelolakelas-academic-service/internal/usecase/report_usecase.go",
+          "kelolakelas-academic-service/internal/repository/session_repository.go",
+          "kelolakelas-academic-service/internal/repository/enrollment_repository.go"
+        ],
+        "edgeCases": [
+          "Parent dengan anak di dua tenant.",
+          "Enrollment yang sudah dropped: riwayat kehadiran dan laporan lama tetap terbaca, tetapi sesi mendatang tidak.",
+          "Sesi group dengan banyak siswa dari parent berbeda.",
+          "Student dihapus secara soft delete."
+        ],
+        "testingValidation": [
+          "Postgres integration test matriks otorisasi: parent pemilik, parent lain, parent dengan tenant header asing, anggota tenant, dan tenant lain, sebagai mitigasi risiko kebocoran.",
+          "Unit test penolakan mutasi oleh parent.",
+          "Swagger contract test, go vet, go test -race, dan build lulus.",
+          "Acceptance criteria diverifikasi dengan token parent nyata dari identity lokal."
+        ],
+        "outOfScope": [
+          "Layar web parent.",
+          "Student notes untuk parent."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-parent-learning-portal",
+      "projectKey": "parent-learning-portal",
+      "title": "Parent melihat jadwal, riwayat kehadiran, dan rapor anak dari dashboard",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "L",
+      "complexity": "medium",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": ["parent-learning-read-api"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Area parent hanya berisi enrollments, students, dan chat tanpa layout atau navigasi bersama; halaman saling menautkan secara manual (`app/(public)/kelas/page.tsx:32`, `parent/enrollments/page.tsx:33-35`, `StudentsManager.tsx:41`, `parent/chat/page.tsx:33`). Jadwal sesi, kehadiran, dan laporan anak belum ditampilkan.",
+        "goal": "Parent memiliki area dashboard yang konsisten untuk melihat jadwal sesi mendatang, riwayat kehadiran, dan laporan evaluasi per anak.",
+        "requirements": [
+          "Layout dan navigasi parent bersama (kelas saya, anak, jadwal dan progres, chat) yang berfungsi di desktop dan mobile.",
+          "Halaman progres per anak: sesi mendatang (misalnya dua minggu ke depan), riwayat kehadiran dengan ringkasan, dan daftar serta detail laporan.",
+          "Pemilih anak bila parent memiliki lebih dari satu anak.",
+          "Tautan untuk memulai chat dari laporan memakai entry point chat yang sudah ada."
+        ],
+        "acceptanceCriteria": [
+          "Parent dengan dua anak dapat berpindah anak dan melihat data yang benar.",
+          "State kosong ditampilkan saat anak belum punya sesi, kehadiran, atau laporan.",
+          "Halaman parent yang ada tetap dapat diakses melalui navigasi baru.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "`proxy.ts:74` sudah menjaga `/dashboard/parent` hanya untuk parent. Ikuti konvensi `_queries` dan result type web; teks antarmuka parent berbahasa Indonesia. Waktu ditampilkan dalam Asia/Jakarta. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/parent",
+          "kelolakelas-web/proxy.ts",
+          "kelolakelas-web/lib/list-envelope.ts"
+        ],
+        "edgeCases": [
+          "Parent tanpa anak.",
+          "Anak dengan enrollment di beberapa tenant.",
+          "Laporan tanpa skor."
+        ],
+        "testingValidation": [
+          "Vitest untuk query, pemilih anak, dan state kosong atau error.",
+          "Test, lint, type check, dan production build lulus.",
+          "Verifikasi manual sebagai parent dengan satu dan dua anak serta pemeriksaan aksesibilitas navigasi."
+        ],
+        "outOfScope": [
+          "Notifikasi.",
+          "Mengubah data kehadiran atau laporan."
+        ]
+      }
+    },
+    {
+      "draftKey": "billing-tenant-balance-bank-account",
+      "projectKey": "tenant-finance-payout",
+      "title": "Tenant dapat melihat saldo dan mutasi ledger serta mengelola rekening pencairan",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": ["billing", "api-gateway", "ai-ready"],
+      "repositories": ["billing", "api-gateway"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Callback sukses mengkreditkan `NetAmount` ke `AvailableBalance` wallet tenant dan menulis ledger `payment_received` (`internal/usecase/transaction_usecase.go:976-1021`), tetapi tidak ada route untuk membaca saldo atau ledger. Tabel `bank_accounts` ada (`migrations/00000000000000_init_schema.up.sql`), tetapi repository dan usecase penarikan hanya berupa interface (`internal/repository/interfaces.go:34,40`, `internal/usecase/interfaces.go:12,32`). Identity juga memiliki tabel keuangan yang tidak dipakai (`kelolakelas-identity-service/migrations/00000000000000_init_schema.up.sql:51-91`).",
+        "goal": "Tenant dapat melihat saldo tersedia dan mutasinya, serta mendaftarkan dan mengelola rekening bank utama untuk pencairan.",
+        "requirements": [
+          "Endpoint baca saldo wallet dan daftar mutasi ledger berhalaman untuk anggota dengan `billing:read`; parent ditolak.",
+          "Endpoint buat, ubah, hapus (soft delete), dan tetapkan rekening utama dengan `billing:withdraw`; tepat satu rekening utama per tenant.",
+          "Nomor rekening ditampilkan tersamar pada respons baca tenant.",
+          "Gateway meneruskan route baru di grup protected.",
+          "Tenant tanpa wallet mendapat saldo nol, bukan error."
+        ],
+        "acceptanceCriteria": [
+          "Saldo sama dengan jumlah mutasi ledger untuk tenant dengan transaksi paid.",
+          "Anggota tanpa `billing:read` atau `billing:withdraw` ditolak 403 sesuai endpoint, dan tenant lain tidak dapat membaca data ini.",
+          "Rekening utama dapat diganti tanpa menghapus riwayat.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko high: kebocoran data rekening dan saldo lintas tenant. Scope tenant diambil dari claim terverifikasi dan diterapkan di SQL. Billing dipilih sebagai pemilik data keuangan karena wallet, ledger, dan withdrawal sudah di billing; tabel identity tidak dipakai dan dicatat di ADR. Ledger tidak dikreditkan untuk transaksi sandbox, jadi dokumentasikan perilaku ini. Validasi format rekening mengikuti bank_code yang disimpan; verifikasi kepemilikan rekening dilakukan manual oleh platform admin saat pemrosesan. Perbarui `kelolakelas-docs` (api/billing.md, data/billing-schema.md, api/gateway.md) dan tulis ADR kepemilikan data keuangan tenant.",
+        "relevantAreas": [
+          "kelolakelas-billing-service/internal/domain/wallet.go",
+          "kelolakelas-billing-service/internal/domain/ledger_entry.go",
+          "kelolakelas-billing-service/internal/domain/bank_account.go",
+          "kelolakelas-billing-service/internal/repository",
+          "kelolakelas-billing-service/cmd/server/routes.go",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go"
+        ],
+        "edgeCases": [
+          "Tenant belum pernah menerima pembayaran.",
+          "Menghapus rekening utama yang sedang dipakai penarikan berjalan.",
+          "Dua request menetapkan rekening utama bersamaan."
+        ],
+        "testingValidation": [
+          "Postgres integration test untuk scope tenant dan keunikan rekening utama saat serentak, sebagai mitigasi risiko kebocoran.",
+          "Unit test handler untuk permission dan penyamaran nomor rekening.",
+          "Router test gateway, go vet, go test -race, dan build lulus di kedua repo.",
+          "Verifikasi saldo terhadap jumlah ledger pada data lokal."
+        ],
+        "outOfScope": [
+          "Pengajuan dan pemrosesan penarikan.",
+          "Verifikasi rekening otomatis via API bank."
+        ]
+      }
+    },
+    {
+      "draftKey": "billing-tenant-withdrawal-request",
+      "projectKey": "tenant-finance-payout",
+      "title": "Tenant dapat mengajukan dan membatalkan penarikan dengan saldo yang ditahan secara atomik",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "critical",
+      "labels": ["billing", "api-gateway", "ai-ready"],
+      "repositories": ["billing", "api-gateway"],
+      "blockedByDraftKeys": ["billing-tenant-balance-bank-account"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Domain `Withdrawal` (amount, admin_fee, net_amount, status, provider_payout_id, requested_at, processed_at) dan tabel `withdrawals` sudah ada, tetapi `WithdrawalUsecase.RequestWithdrawal` hanya interface (`internal/usecase/interfaces.go:32`). `PendingBalance` wallet tidak pernah dipakai.",
+        "goal": "Tenant dapat mengajukan penarikan ke rekening utama tanpa kemungkinan saldo dipakai dua kali, dan dapat membatalkannya selama belum diproses.",
+        "requirements": [
+          "Pengajuan dengan `billing:withdraw` memindahkan jumlah dari saldo tersedia ke saldo tertahan dalam satu transaksi database dengan lock wallet dan entri ledger yang dapat ditelusuri.",
+          "Tolak jumlah di bawah minimum yang dapat dikonfigurasi, melebihi saldo tersedia, atau bila tenant belum punya rekening utama; hanya satu pengajuan terbuka per tenant.",
+          "Pengajuan menyimpan snapshot rekening tujuan.",
+          "Pembatalan oleh tenant hanya pada status requested dan mengembalikan saldo dengan entri ledger pembalik.",
+          "Pengajuan idempoten terhadap retry klien, dan daftar riwayat penarikan tersedia bagi tenant."
+        ],
+        "acceptanceCriteria": [
+          "Dua pengajuan serentak yang total melebihi saldo hanya satu yang berhasil.",
+          "Setelah pengajuan dan pembatalan, saldo tersedia kembali ke nilai awal dan ledger mencatat kedua mutasi.",
+          "Perubahan rekening utama setelah pengajuan tidak mengubah rekening tujuan pengajuan.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko critical: kebenaran finansial (double spend dan saldo negatif). Gunakan pola lock wallet yang sudah dipakai pada callback pembayaran dan unique index ledger `(reference_id, reference_type, entry_type)` untuk idempotensi. Biaya admin penarikan bernilai nol sampai ada kebijakan. Minimum penarikan diatur lewat konfigurasi service yang terdokumentasi. Perbarui `kelolakelas-docs` (api/billing.md, flows/billing-and-subscriptions.md, data/billing-schema.md) dan ADR alur penarikan manual.",
+        "relevantAreas": [
+          "kelolakelas-billing-service/internal/domain/withdrawal.go",
+          "kelolakelas-billing-service/internal/domain/wallet.go",
+          "kelolakelas-billing-service/internal/usecase/interfaces.go",
+          "kelolakelas-billing-service/internal/usecase/transaction_usecase.go",
+          "kelolakelas-billing-service/cmd/server/routes.go",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go"
+        ],
+        "edgeCases": [
+          "Pembayaran baru dikreditkan saat pengajuan sedang dibuat.",
+          "Retry klien setelah timeout gateway.",
+          "Pembatalan bersamaan dengan pemrosesan oleh platform admin."
+        ],
+        "testingValidation": [
+          "Postgres integration test untuk pengajuan serentak, retry idempoten, dan pembatalan serentak dengan pemrosesan, sebagai mitigasi risiko double spend.",
+          "Unit test invariant saldo tersedia + tertahan terhadap jumlah ledger.",
+          "Router test gateway, go vet, go test -race, dan build lulus.",
+          "Acceptance criteria diverifikasi lewat API lokal."
+        ],
+        "outOfScope": [
+          "Pemrosesan oleh platform admin.",
+          "Disbursement otomatis.",
+          "Biaya admin penarikan."
+        ]
+      }
+    },
+    {
+      "draftKey": "platform-withdrawal-processing",
+      "projectKey": "tenant-finance-payout",
+      "title": "Platform admin memproses penarikan tenant secara manual dengan jejak audit",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "L",
+      "complexity": "critical",
+      "labels": ["identity", "billing", "api-gateway", "ai-ready"],
+      "repositories": ["identity", "billing", "api-gateway"],
+      "blockedByDraftKeys": ["billing-tenant-withdrawal-request"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Gateway `RequirePlatform` hanya memeriksa claim JWT; identity memeriksa ulang assignment platform admin secara live untuk route-nya sendiri (ADR 0026), tetapi gRPC identity hanya menyediakan ValidateTenantStatus, GetTenantPublicInfo, CheckPermission, CatalogPolicy, dan FeePolicy (`kelolakelas-identity-service/cmd/server/main.go:230-233`). Billing tidak dapat memverifikasi platform admin dan tidak memiliki alur pemrosesan penarikan.",
+        "goal": "Platform admin yang aktif dapat melihat antrean penarikan, menandai penarikan sebagai dibayar dengan referensi transfer, atau menolaknya dengan alasan, dan saldo tenant diperbarui dengan benar.",
+        "requirements": [
+          "Identity menyediakan pemeriksaan assignment platform admin aktif lewat gRPC internal yang dipakai billing secara fail-closed.",
+          "Billing menyediakan endpoint platform untuk antrean penarikan (terlama dahulu) beserta detail rekening lengkap, tandai dibayar (wajib referensi transfer), dan tolak (wajib alasan).",
+          "Dibayar mengurangi saldo tertahan dengan entri ledger; ditolak mengembalikan saldo ke tersedia dengan entri pembalik; keduanya atomik dan hanya dari status requested.",
+          "Setiap keputusan menyimpan pelaku, waktu, dan referensi atau alasan.",
+          "Gateway meneruskan route di bawah `/api/v1/platform/...` dengan `RequirePlatform`."
+        ],
+        "acceptanceCriteria": [
+          "Platform admin aktif dapat menandai dibayar dan menolak; admin yang assignment-nya dicabut ditolak meski token masih berlaku.",
+          "Keputusan ganda atau serentak pada penarikan yang sama hanya satu yang berhasil.",
+          "Saldo tersedia + tertahan tenant tetap sama dengan jumlah ledger setelah setiap keputusan.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko critical: kebenaran finansial dan eskalasi hak akses lintas tenant. Tambahkan kontrak gRPC baru mengikuti pola CatalogPolicy/FeePolicy di identity dan client billing di `pkg/identity`; dokumentasikan konfigurasi alamat gRPC. Status penarikan dibatasi requested → paid|rejected|cancelled. Tidak ada pemanggilan API disbursement. Perbarui `kelolakelas-docs` (api/billing.md, api/identity.md, 05-security.md) dan ADR pemrosesan manual.",
+        "relevantAreas": [
+          "kelolakelas-identity-service/internal/delivery/grpc",
+          "kelolakelas-identity-service/cmd/server/main.go",
+          "kelolakelas-billing-service/pkg/identity",
+          "kelolakelas-billing-service/internal/usecase",
+          "kelolakelas-billing-service/cmd/server/routes.go",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go"
+        ],
+        "edgeCases": [
+          "Tenant membatalkan saat admin sedang memproses.",
+          "Identity gRPC tidak tersedia.",
+          "Referensi transfer duplikat untuk dua penarikan."
+        ],
+        "testingValidation": [
+          "Postgres integration test keputusan serentak dan invariant ledger sebagai mitigasi risiko finansial.",
+          "Unit test gRPC identity dan jalur fail-closed billing untuk admin aktif, dicabut, dan bukan admin.",
+          "Router test gateway, go vet, go test -race, dan build lulus di ketiga repo.",
+          "Verifikasi manual alur ajukan → bayar dan ajukan → tolak."
+        ],
+        "outOfScope": [
+          "Layar web antrean platform.",
+          "Disbursement otomatis dan notifikasi email penarikan."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-tenant-finance",
+      "projectKey": "tenant-finance-payout",
+      "title": "Tenant melihat saldo, mutasi, rekening, dan mengajukan penarikan dari halaman keuangan",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": ["billing-tenant-balance-bank-account", "billing-tenant-withdrawal-request"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Settings tenant hanya mencakup profil dan lokasi (`app/(dashboard)/dashboard/tenant/settings/_queries/queries.ts:117,152`); tidak ada UI saldo, rekening, atau penarikan.",
+        "goal": "Tenant memiliki satu halaman keuangan untuk memantau saldo dan mengajukan pencairan ke rekeningnya.",
+        "requirements": [
+          "Kartu saldo tersedia dan tertahan, serta daftar mutasi berhalaman.",
+          "Form kelola rekening bank utama dengan nomor tersamar.",
+          "Form pengajuan penarikan dengan validasi jumlah dan konfirmasi, riwayat penarikan beserta statusnya, dan aksi batalkan untuk status requested.",
+          "Menu keuangan mengikuti permission `billing:read` dan `billing:withdraw`."
+        ],
+        "acceptanceCriteria": [
+          "Tenant dapat menambah rekening, mengajukan penarikan, dan melihat saldo tertahan bertambah.",
+          "Pembatalan mengembalikan saldo tersedia di tampilan setelah refresh.",
+          "Error backend (saldo kurang, tanpa rekening, pengajuan terbuka) ditampilkan dengan pesan yang jelas.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Format nominal mengikuti formatter rupiah yang dipakai `SalesSummaryCard`. Pengajuan memakai idempotency key per submit untuk mencegah submit ganda. Bila menu sadar-permission sudah ada, daftarkan item dengan permission yang sesuai. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/SalesSummaryCard.tsx"
+        ],
+        "edgeCases": [
+          "Tenant tanpa transaksi.",
+          "Klik ganda pada tombol ajukan.",
+          "Anggota hanya dengan `billing:read`."
+        ],
+        "testingValidation": [
+          "Vitest untuk form, validasi, dan state forbidden atau error.",
+          "Test, lint, type check, dan production build lulus.",
+          "Verifikasi manual alur rekening → ajukan → batalkan."
+        ],
+        "outOfScope": [
+          "Antrean platform admin.",
+          "Ekspor mutasi."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-platform-withdrawal-queue",
+      "projectKey": "tenant-finance-payout",
+      "title": "Platform admin memproses antrean penarikan tenant dari dashboard platform",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": ["platform-withdrawal-processing"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Dashboard platform memiliki halaman creator requests (`app/platform/creator-requests/page.tsx`) tetapi tidak ada halaman penarikan.",
+        "goal": "Platform admin dapat melihat antrean penarikan dan mencatat hasil transfer manual atau penolakan.",
+        "requirements": [
+          "Halaman antrean penarikan dengan tenant, jumlah, rekening tujuan lengkap, dan waktu pengajuan.",
+          "Aksi tandai dibayar dengan input referensi transfer dan aksi tolak dengan alasan, masing-masing dengan konfirmasi.",
+          "Riwayat keputusan terbaru."
+        ],
+        "acceptanceCriteria": [
+          "Admin mencatat pembayaran dan item keluar dari antrean.",
+          "Penolakan tanpa alasan dicegah di form.",
+          "Keputusan yang sudah diproses admin lain menampilkan pesan konflik yang jelas.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Ikuti pola halaman platform creator requests, termasuk alur challenge TOTP yang ada. Nomor rekening lengkap hanya ditampilkan di halaman ini. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/platform",
+          "kelolakelas-web/app/platform/creator-requests"
+        ],
+        "edgeCases": [
+          "Antrean kosong.",
+          "Sesi platform kedaluwarsa saat memproses."
+        ],
+        "testingValidation": [
+          "Vitest untuk form keputusan dan state konflik.",
+          "Test, lint, type check, dan production build lulus.",
+          "Verifikasi manual sebagai platform admin."
+        ],
+        "outOfScope": [
+          "Ekspor laporan penarikan.",
+          "Disbursement otomatis."
+        ]
+      }
+    },
+    {
+      "draftKey": "billing-transaction-report-export",
+      "projectKey": "tenant-finance-payout",
+      "title": "Tenant dapat memfilter transaksi berdasarkan tanggal bayar dan mengekspornya ke CSV",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": ["billing", "api-gateway", "ai-ready"],
+      "repositories": ["billing", "api-gateway"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "`GET /api/v1/billing/transactions` memfilter tanggal berdasarkan `created_at`, bukan `paid_at` (`internal/delivery/http/handler/transaction_handler.go:44-80`, `internal/repository/transaction_repository.go:89-103`), sementara summary memakai `paid_at` (ADR 0039). Tidak ada ekspor.",
+        "goal": "Tenant dapat mengambil daftar transaksi yang cocok dengan ringkasan penjualan dan mengekspornya sebagai CSV untuk pembukuan.",
+        "requirements": [
+          "Tambahkan pilihan basis tanggal `paid_at` pada daftar transaksi tanpa mengubah default lama.",
+          "Endpoint ekspor CSV dengan filter yang sama, `billing:read`, parent ditolak, dan rentang maksimal 366 hari.",
+          "Kolom CSV mencakup order id, tanggal buat dan bayar, status, student atau enrollment id, subtotal, diskon, gross, platform fee, gateway fee, dan net.",
+          "Nilai sel dinetralkan terhadap CSV/formula injection.",
+          "Gateway meneruskan route ekspor."
+        ],
+        "acceptanceCriteria": [
+          "Total net CSV untuk transaksi paid pada rentang yang sama cocok dengan summary.",
+          "Rentang lebih dari 366 hari dan tanggal tidak valid ditolak 400.",
+          "Nilai yang diawali `=`, `+`, `-`, atau `@` tidak dieksekusi sebagai formula di spreadsheet.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Hari mengikuti UTC seperti summary (ADR 0039, batas WIB pukul 07:00); dokumentasikan hal ini di respons dan docs. Streaming atau batasi ukuran agar tidak memuat seluruh data ke memori; summary tidak punya index khusus sehingga periksa rencana query. Perbarui `kelolakelas-docs` (api/billing.md, api/gateway.md).",
+        "relevantAreas": [
+          "kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go",
+          "kelolakelas-billing-service/internal/repository/transaction_repository.go",
+          "kelolakelas-billing-service/cmd/server/routes.go",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go"
+        ],
+        "edgeCases": [
+          "Rentang tanpa transaksi (CSV hanya header).",
+          "Transaksi dengan beberapa mata uang.",
+          "Transaksi paid terlambat setelah expired lokal."
+        ],
+        "testingValidation": [
+          "Unit test pembentukan CSV termasuk escaping dan injection.",
+          "Integration test kecocokan total dengan summary.",
+          "Router test gateway, go vet, go test -race, dan build lulus."
+        ],
+        "outOfScope": [
+          "Ekspor Excel atau PDF.",
+          "Laporan terjadwal via email."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-tenant-transactions-page",
+      "projectKey": "tenant-finance-payout",
+      "title": "Tenant melihat daftar transaksi dengan filter dan mengunduh CSV",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "low",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": ["billing-transaction-report-export"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Tenant hanya punya kartu ringkasan (`SalesSummaryCard.tsx`) dan halaman enrollment dengan status bayar; tidak ada daftar transaksi lengkap atau unduhan.",
+        "goal": "Tenant dapat menelusuri transaksi dan mengunduh CSV untuk rentang yang dipilih.",
+        "requirements": [
+          "Halaman transaksi dengan filter status, rentang tanggal (basis tanggal bayar), dan pencarian order id, serta pagination.",
+          "Kolom gross, fee, net, status, dan tanggal bayar.",
+          "Tombol unduh CSV untuk filter aktif.",
+          "Menu transaksi mengikuti permission `billing:read`."
+        ],
+        "acceptanceCriteria": [
+          "Tenant memfilter transaksi paid bulan lalu dan mengunduh CSV yang sama isinya.",
+          "Anggota tanpa `billing:read` melihat panel forbidden.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Unduhan diproksikan lewat route atau server action web agar token tidak terekspos ke klien. Gunakan formatter rupiah yang ada. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/_queries/sales-summary.ts"
+        ],
+        "edgeCases": [
+          "Rentang tanpa transaksi.",
+          "Rentang melebihi batas backend."
+        ],
+        "testingValidation": [
+          "Vitest untuk filter, pagination, dan error.",
+          "Test, lint, type check, dan production build lulus.",
+          "Verifikasi manual unduhan CSV."
+        ],
+        "outOfScope": [
+          "Grafik historis.",
+          "Refund (issue terpisah)."
+        ]
+      }
+    },
+    {
+      "draftKey": "academic-enrollment-suspension",
+      "projectKey": "renewal-dunning-refund",
+      "title": "Enrollment dapat ditangguhkan, dipulihkan, dan diakhiri melalui endpoint internal",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": ["academic", "web", "ai-ready"],
+      "repositories": ["academic", "web"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Status enrollment hanya pending, active, completed, dan dropped (`internal/domain/enrollment.go:58`). Endpoint internal hanya activate dan release; release tidak pernah mencabut enrollment aktif (`internal/usecase/enrollment_usecase.go:472-512`). Tidak ada cara bagi billing untuk menangguhkan akses atau mengakhiri enrollment aktif.",
+        "goal": "Billing dapat menangguhkan enrollment aktif dengan melepas kursinya, memulihkannya bila kursi tersedia, dan mengakhirinya, dan status ini terlihat di web.",
+        "requirements": [
+          "Tambahkan status tangguh beserta transisi active → suspended (lepas kursi), suspended → active (klaim ulang kursi bila tersedia, jika tidak konflik), dan active|suspended → dropped (akhiri).",
+          "Endpoint internal suspend, resume, dan end dengan kredensial internal yang idempoten.",
+          "Enrollment tangguh tidak muncul sebagai attendee sesi mendatang dan tidak dapat diabsen; riwayat tetap ada.",
+          "Web parent dan tenant menampilkan label status tangguh, dan filter status tenant menyertakannya.",
+          "Tidak ada perubahan perilaku untuk pembatalan pending oleh parent."
+        ],
+        "acceptanceCriteria": [
+          "Suspend mengurangi jumlah kursi terpakai dan resume mengembalikannya; resume pada kelas penuh mengembalikan konflik dan status tetap tangguh.",
+          "Memanggil endpoint yang sama dua kali tidak mengubah hasil.",
+          "Parent dan tenant melihat label \"Ditangguhkan\" pada enrollment terkait.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko high: hitungan kursi yang salah dapat membuat overbooking atau kursi hilang. Ikuti pola lock dan hitungan kursi pada activate, release, dan concurrent enrollment tests. Migration kompatibel bila status dibatasi CHECK. Keputusan owner: suspend melepas kursi. Perbarui `kelolakelas-docs` (api/academic.md, flows/academic.md, data/academic-schema.md, components/web.md) dan ADR siklus hidup enrollment.",
+        "relevantAreas": [
+          "kelolakelas-academic-service/internal/domain/enrollment.go",
+          "kelolakelas-academic-service/internal/usecase/enrollment_usecase.go",
+          "kelolakelas-academic-service/cmd/server/routes.go",
+          "kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/page.tsx",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/enrollments/_lib/schema.ts"
+        ],
+        "edgeCases": [
+          "Resume setelah kelas dipenuhi enrollment lain.",
+          "Suspend dan end datang bersamaan.",
+          "Enrollment private dengan jadwal kapasitas satu."
+        ],
+        "testingValidation": [
+          "Postgres integration test transisi serentak dan hitungan kursi sebagai mitigasi overbooking.",
+          "Unit test setiap transisi dan idempotensi.",
+          "go vet, go test -race, build academic; test, lint, type check, dan build web lulus.",
+          "Verifikasi manual label status di web."
+        ],
+        "outOfScope": [
+          "Aturan kapan billing memanggil suspend (issue masa tenggang).",
+          "Refund."
+        ]
+      }
+    },
+    {
+      "draftKey": "billing-renewal-grace-suspend",
+      "projectKey": "renewal-dunning-refund",
+      "title": "Renewal yang tidak dibayar setelah masa tenggang menangguhkan enrollment dan pulih saat dibayar",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "critical",
+      "labels": ["billing", "ai-ready"],
+      "repositories": ["billing"],
+      "blockedByDraftKeys": ["academic-enrollment-suspension"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Worker renewal memproses subscription dengan `next_billing_date <= now+7d` (`internal/usecase/subscription_worker.go:73`) dan berhenti tanpa aksi setelah period+7 hari (`:90`); subscription tetap `active` dan hanya status pending serta active yang dipakai (`internal/domain/subscription.go:23`). Invoice renewal yang expired memicu job `release` (`internal/repository/transaction_repository.go:255-282`) yang tidak berdampak pada enrollment aktif.",
+        "goal": "Periode renewal yang tidak dibayar hingga akhir masa tenggang menangguhkan subscription dan enrollment, dan pembayaran terlambat yang sah memulihkannya.",
+        "requirements": [
+          "Masa tenggang dapat dikonfigurasi (default 7 hari, sama dengan jendela penagihan saat ini).",
+          "Setelah masa tenggang tanpa transaksi paid untuk periode itu, subscription menjadi tangguh dan billing memanggil suspend academic melalui job rekonsiliasi durable yang idempoten.",
+          "Worker berhenti menerbitkan invoice dan pengingat untuk subscription tangguh.",
+          "Pembayaran terlambat yang terkonfirmasi untuk periode tersebut mengaktifkan kembali subscription dan memanggil resume; bila resume konflik karena kursi penuh, catat status yang dapat diamati.",
+          "Dokumentasikan interaksi job release untuk invoice renewal yang expired."
+        ],
+        "acceptanceCriteria": [
+          "Subscription tanpa pembayaran melewati masa tenggang menjadi tangguh tepat satu kali dan enrollment-nya tangguh.",
+          "Pembayaran terlambat memulihkan subscription dan enrollment; bila kursi penuh, status konflik tercatat dan dapat dilihat operator.",
+          "Menjalankan worker berulang tidak menggandakan panggilan atau pengingat.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko critical: pembayaran yang diterima tetapi akses tetap tangguh, atau akses berlanjut tanpa bayar. Gunakan pola rekonsiliasi durable (ADR 0001) dan konfirmasi status Duitku sebelum settlement (ADR 0033). Pembayaran terlambat mengikuti ADR 0009. Worker berjalan in-process tanpa leader election (known gap), jadi transisi harus aman terhadap eksekusi ganda. Perbarui `kelolakelas-docs` (flows/billing-and-subscriptions.md, 04-configuration.md, reference/environment-variables.md) dan ADR dunning.",
+        "relevantAreas": [
+          "kelolakelas-billing-service/internal/usecase/subscription_worker.go",
+          "kelolakelas-billing-service/internal/domain/subscription.go",
+          "kelolakelas-billing-service/internal/repository/subscription_repository.go",
+          "kelolakelas-billing-service/internal/repository/transaction_repository.go",
+          "kelolakelas-billing-service/pkg/academic/client.go"
+        ],
+        "edgeCases": [
+          "Callback paid tiba tepat saat worker menangguhkan.",
+          "Academic tidak tersedia saat suspend.",
+          "Subscription lama tanpa billing email."
+        ],
+        "testingValidation": [
+          "Postgres integration test race pembayaran terlambat vs suspend dan eksekusi worker ganda sebagai mitigasi risiko finansial.",
+          "Unit test dengan clock palsu untuk batas masa tenggang.",
+          "go vet, go test -race, dan build lulus.",
+          "Verifikasi manual alur tidak bayar → tangguh → bayar terlambat → aktif dengan database lokal."
+        ],
+        "outOfScope": [
+          "Denda keterlambatan.",
+          "Notifikasi khusus tangguh ke parent selain pengingat yang ada."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-parent-latest-payment-status",
+      "projectKey": "renewal-dunning-refund",
+      "title": "Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment",
+      "type": "Improvement",
+      "priority": "High",
+      "estimate": "S",
+      "complexity": "low",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "`app/(dashboard)/dashboard/parent/enrollments/page.tsx:21` membangun `new Map(transactions.map(t => [t.enrollment_id, t]))` sehingga baris terakhir menang, padahal billing mengembalikan transaksi `created_at DESC`. Parent dengan renewal melihat transaksi tertua; halaman tenant sudah memilih `transactions[0]`.",
+        "goal": "Parent melihat status pembayaran terbaru dan tagihan perpanjangan yang masih harus dibayar untuk setiap enrollment.",
+        "requirements": [
+          "Pilih transaksi terbaru per enrollment secara eksplisit berdasarkan waktu, bukan urutan array.",
+          "Tandai transaksi renewal (order id `renewal-`) sebagai tagihan perpanjangan dengan periode dan batas waktu bila tersedia, serta aksi bayar melalui alur resume yang ada.",
+          "Status enrollment yang tidak dikenal web ditampilkan dengan label netral yang terbaca."
+        ],
+        "acceptanceCriteria": [
+          "Enrollment dengan transaksi awal paid dan renewal pending menampilkan renewal pending beserta aksi bayar.",
+          "Urutan respons API yang berbeda tidak mengubah transaksi yang dipilih.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Gunakan helper yang ada di `lib/payment-status.ts` (deteksi renewal di baris 28) dan `resumePayment`. Samakan logika pemilihan dengan halaman tenant bila memungkinkan. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/page.tsx",
+          "kelolakelas-web/lib/payment-status.ts"
+        ],
+        "edgeCases": [
+          "Enrollment tanpa transaksi.",
+          "Dua transaksi dengan created_at sama."
+        ],
+        "testingValidation": [
+          "Vitest untuk pemilihan transaksi terbaru dengan berbagai urutan dan renewal.",
+          "Test, lint, type check, dan production build lulus."
+        ],
+        "outOfScope": [
+          "Status tangguh dari backend (issue suspend).",
+          "Riwayat seluruh transaksi."
+        ]
+      }
+    },
+    {
+      "draftKey": "billing-manual-refund",
+      "projectKey": "renewal-dunning-refund",
+      "title": "Tenant dapat mencatat refund manual untuk transaksi paid dan mengakhiri enrollment terkait",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "critical",
+      "labels": ["identity", "billing", "api-gateway", "ai-ready"],
+      "repositories": ["identity", "billing", "api-gateway"],
+      "blockedByDraftKeys": ["academic-enrollment-suspension"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Status transaksi `refunded` hanya konstanta dan tidak pernah ditulis (`internal/domain/transaction.go:32-39`); pembatalan setelah paid ditolak 409 (`internal/delivery/http/handler/transaction_handler.go:232`). Tidak ada permission refund (seeder identity hanya `billing:read` dan `billing:withdraw`).",
+        "goal": "Tenant dapat mencatat bahwa transaksi paid telah di-refund secara manual, dengan enrollment terkait diakhiri dan jejak audit yang lengkap.",
+        "requirements": [
+          "Identity menambahkan permission `billing:refund` melalui migration dan memberikannya ke role Creator mengikuti pola permission chat.",
+          "Billing menyediakan endpoint pencatatan refund penuh untuk transaksi paid milik tenant, dengan alasan dan referensi transfer wajib, yang mengubah status menjadi refunded dan menyimpan pelaku serta waktu.",
+          "Billing mengakhiri enrollment terkait melalui endpoint end academic dan menghentikan subscription terkait melalui job durable yang idempoten.",
+          "Pencatatan ini tidak mengubah ledger wallet (default draft sampai owner memutuskan lain).",
+          "Gateway meneruskan route baru."
+        ],
+        "acceptanceCriteria": [
+          "Refund transaksi paid mengubah status menjadi refunded, mengakhiri enrollment, dan menghentikan penagihan berikutnya.",
+          "Refund pada transaksi selain paid, milik tenant lain, atau tanpa `billing:refund` ditolak.",
+          "Request ganda tidak membuat dua catatan.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko critical: kebenaran status finansial dan akhir enrollment yang tidak sinkron. Summary penjualan menghitung paid saja sehingga transaksi yang di-refund keluar dari total historis; dokumentasikan. Pertanyaan terbuka owner: apakah refund manual juga mendebit wallet tenant. Jangan implementasikan debit sebelum diputuskan. Perbarui `kelolakelas-docs` (api/billing.md, api/identity.md, flows/billing-and-subscriptions.md) dan ADR refund manual.",
+        "relevantAreas": [
+          "kelolakelas-identity-service/migrations",
+          "kelolakelas-identity-service/seeders/000001_default_permissions_and_roles.sql",
+          "kelolakelas-billing-service/internal/usecase/transaction_usecase.go",
+          "kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go",
+          "kelolakelas-billing-service/pkg/academic/client.go",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go"
+        ],
+        "edgeCases": [
+          "Refund transaksi renewal saat enrollment tangguh.",
+          "Academic tidak tersedia saat mengakhiri enrollment.",
+          "Transaksi sandbox."
+        ],
+        "testingValidation": [
+          "Postgres integration test idempotensi dan scope tenant sebagai mitigasi risiko finansial.",
+          "Test migration identity up/down dan pemberian permission ke Creator.",
+          "Router test gateway, go vet, go test -race, dan build lulus di ketiga repo.",
+          "Verifikasi manual alur refund dengan database lokal."
+        ],
+        "outOfScope": [
+          "Refund parsial.",
+          "Refund otomatis via API provider.",
+          "Debit wallet tenant."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-tenant-manual-refund",
+      "projectKey": "renewal-dunning-refund",
+      "title": "Tenant mencatat refund manual dari halaman transaksi",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "S",
+      "complexity": "medium",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": ["billing-manual-refund", "web-tenant-transactions-page"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Tidak ada UI untuk refund. Halaman transaksi tenant didraft pada issue terpisah.",
+        "goal": "Anggota dengan `billing:refund` dapat mencatat refund manual untuk transaksi paid dari daftar transaksi.",
+        "requirements": [
+          "Aksi catat refund pada transaksi paid, disembunyikan tanpa permission.",
+          "Dialog dengan alasan dan referensi transfer wajib serta peringatan bahwa enrollment akan diakhiri.",
+          "Status transaksi dan enrollment diperbarui setelah berhasil."
+        ],
+        "acceptanceCriteria": [
+          "Refund tercatat dan transaksi tampil sebagai refunded.",
+          "Form tanpa alasan atau referensi tidak dapat dikirim.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Dialog in-page yang dapat diakses keyboard. Label refunded sudah dikenal di `lib/enrollment-cancellation.ts:34`, jadi tambahkan ke presentasi status bila belum ada. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant",
+          "kelolakelas-web/lib/payment-status.ts"
+        ],
+        "edgeCases": [
+          "Transaksi sudah di-refund oleh anggota lain.",
+          "Backend gagal mengakhiri enrollment."
+        ],
+        "testingValidation": [
+          "Vitest untuk dialog dan state error.",
+          "Test, lint, type check, dan production build lulus.",
+          "Verifikasi manual alur refund."
+        ],
+        "outOfScope": [
+          "Refund parsial.",
+          "Notifikasi refund ke parent."
+        ]
+      }
+    },
+    {
+      "draftKey": "chat-system-notification-channel",
+      "projectKey": "parent-schedule-notifications",
+      "title": "Chat service menerima pesan notifikasi sistem dari service internal",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": ["chat", "ai-ready"],
+      "repositories": ["chat"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Semua route chat membutuhkan JWT pengguna (`internal/delivery/http/handler.go:73-113,157`); tidak ada route internal (`cmd/server/main.go:104-111`). `sender_kind` hanya parent atau member dengan `sender_user_id` wajib (`migrations/000001_chat.up.sql`), dan jenis percakapan hanya staff, schedule_request, dan report (`migrations/000002_context_chat.up.sql:2`).",
+        "goal": "Service internal dapat mengirim pesan sistem yang idempoten ke percakapan notifikasi per parent per tenant, yang tersampaikan realtime dan tercatat sebagai belum dibaca.",
+        "requirements": [
+          "Endpoint internal dengan kredensial `X-Internal-Service-Credential` untuk mengirim pesan sistem ke parent tertentu pada tenant tertentu.",
+          "Jenis percakapan notifikasi (satu per tenant dan parent) yang dibuat otomatis, dan sender sistem tanpa user id.",
+          "Idempotency key dari pengirim mencegah pesan ganda.",
+          "Parent dapat membaca tetapi tidak membalas percakapan notifikasi; anggota tenant tidak melihatnya di inbox.",
+          "Pesan baru di-fan-out lewat WebSocket dan menambah unread count."
+        ],
+        "acceptanceCriteria": [
+          "Pesan internal muncul di inbox parent dengan unread count bertambah.",
+          "Mengirim ulang dengan idempotency key sama tidak menambah pesan.",
+          "Request tanpa kredensial internal atau parent membalas percakapan notifikasi ditolak.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko high: endpoint internal adalah jalur tulis baru, dan kesalahan scope dapat mengirim pesan ke parent atau tenant yang salah. Kredensial dibandingkan secara constant-time dan tidak dirouting lewat gateway. Migration memperluas CHECK kind dan sender_kind secara kompatibel; perbarui daftar kind di `internal/chat/chat.go:106,152` dan `handler.go:188`. Fan-out hanya single-instance (ADR 0047). Perbarui `kelolakelas-docs` (komponen chat, ADR pesan sistem).",
+        "relevantAreas": [
+          "kelolakelas-chat-service/cmd/server/main.go",
+          "kelolakelas-chat-service/internal/chat/chat.go",
+          "kelolakelas-chat-service/internal/postgres/store.go",
+          "kelolakelas-chat-service/internal/delivery/http/handler.go",
+          "kelolakelas-chat-service/migrations"
+        ],
+        "edgeCases": [
+          "Parent belum pernah membuka chat.",
+          "Pesan serentak dengan idempotency key sama.",
+          "Parent tidak terhubung ke WebSocket."
+        ],
+        "testingValidation": [
+          "Postgres integration test idempotensi serentak dan scope percakapan sebagai mitigasi risiko salah kirim.",
+          "Unit test otorisasi kredensial internal dan larangan membalas.",
+          "go vet, go test -race, dan build lulus."
+        ],
+        "outOfScope": [
+          "Pemicu notifikasi dari academic.",
+          "Push notification, email, atau WhatsApp."
+        ]
+      }
+    },
+    {
+      "draftKey": "academic-parent-notification-outbox",
+      "projectKey": "parent-schedule-notifications",
+      "title": "Parent diberi tahu lewat email dan chat saat sesi di-reschedule, tutor diganti, atau anak tidak hadir",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "L",
+      "complexity": "high",
+      "labels": ["academic", "ai-ready"],
+      "repositories": ["academic"],
+      "blockedByDraftKeys": ["chat-system-notification-channel", "attendance-by-session"],
+      "externalDependencies": [
+        {
+          "key": "resend-sender-domain",
+          "description": "Academic membutuhkan API key dan sender domain Resend yang terverifikasi untuk mengirim email.",
+          "verification": "Email uji dari academic ke alamat sandbox terkirim dengan status delivered di dashboard Resend."
+        }
+      ],
+      "body": {
+        "backgroundProblem": "Academic tidak memiliki email client, outbox, maupun event (`internal/usecase` tanpa notifikasi); reschedule dan tutor pengganti (`internal/usecase/schedule_usecase.go:338-348,473-506`) serta absensi tidak memberi tahu siapa pun. Email parent dari JWT diteruskan ke billing saat checkout tetapi tidak disimpan di enrollment (`internal/domain/enrollment.go:95`).",
+        "goal": "Setiap reschedule, tutor pengganti, dan absensi alfa yang memengaruhi enrollment aktif menghasilkan notifikasi email dan chat yang andal ke parent terkait.",
+        "requirements": [
+          "Simpan email parent terverifikasi pada enrollment baru dari JWT saat checkout; enrollment lama tanpa email hanya menerima chat.",
+          "Tulis event notifikasi ke outbox dalam transaksi database yang sama dengan perubahan sesi atau absensi.",
+          "Worker mengirim outbox ke endpoint internal chat dan email Resend dengan retry, backoff, dan idempotency key per event, parent, dan channel.",
+          "Isi pesan memuat nama kelas, nama depan siswa, waktu lama dan baru (Asia/Jakarta), tanpa data sensitif lain.",
+          "Kegagalan pengiriman tidak membatalkan perubahan jadwal dan tercatat untuk diamati."
+        ],
+        "acceptanceCriteria": [
+          "Reschedule sesi group mengirim satu notifikasi per parent terdampak per channel.",
+          "Absensi alfa mengirim notifikasi ke parent siswa tersebut saja.",
+          "Restart worker di tengah pengiriman tidak menggandakan pesan chat dan memakai idempotency key yang sama untuk email.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko high: salah kirim ke parent lain dan pesan ganda setelah crash. Pengiriman ke provider bersifat at-least-once. Worker in-process tanpa leader election, jadi klaim baris outbox dengan `FOR UPDATE SKIP LOCKED` seperti session generation worker. Konfigurasi baru (Resend, URL chat, kredensial internal) wajib didokumentasikan tanpa nilai rahasia. Perbarui `kelolakelas-docs` (components/academic-service.md, 04-configuration.md, reference/environment-variables.md, data/academic-schema.md) dan ADR outbox notifikasi.",
+        "relevantAreas": [
+          "kelolakelas-academic-service/internal/usecase/schedule_usecase.go",
+          "kelolakelas-academic-service/internal/usecase/attendance_usecase.go",
+          "kelolakelas-academic-service/internal/usecase/enrollment_usecase.go",
+          "kelolakelas-academic-service/internal/usecase/session_generation_worker.go",
+          "kelolakelas-academic-service/cmd/server/main.go",
+          "kelolakelas-academic-service/migrations"
+        ],
+        "edgeCases": [
+          "Parent memiliki dua anak di sesi yang sama.",
+          "Absensi diubah dari alfa ke hadir setelah notifikasi dikirim.",
+          "Chat service tidak tersedia dalam waktu lama."
+        ],
+        "testingValidation": [
+          "Postgres integration test penulisan outbox atomik dan klaim worker ganda sebagai mitigasi risiko pesan ganda.",
+          "Unit test pemilihan penerima untuk sesi group dan private sebagai mitigasi risiko salah kirim.",
+          "Test dengan fake chat dan fake email untuk retry dan idempotensi.",
+          "go vet, go test -race, dan build lulus."
+        ],
+        "outOfScope": [
+          "Pengingat sesi H-1.",
+          "WhatsApp dan preferensi notifikasi."
+        ]
+      }
+    },
+    {
+      "draftKey": "academic-session-reminder",
+      "projectKey": "parent-schedule-notifications",
+      "title": "Parent menerima pengingat sehari sebelum sesi anaknya",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "S",
+      "complexity": "medium",
+      "labels": ["academic", "ai-ready"],
+      "repositories": ["academic"],
+      "blockedByDraftKeys": ["academic-parent-notification-outbox"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Tidak ada pengingat sesi; session generation worker sudah membuat sesi hingga horizon satu bulan (`internal/usecase/session_generation_worker.go:14-18,61-99`).",
+        "goal": "Parent dengan enrollment aktif menerima satu pengingat untuk setiap sesi anaknya sekitar satu hari sebelumnya.",
+        "requirements": [
+          "Worker berkala menulis event pengingat ke outbox notifikasi untuk sesi terjadwal dalam jendela H-1 (Asia/Jakarta).",
+          "Satu pengingat per sesi per enrollment, idempoten terhadap eksekusi ulang.",
+          "Sesi dibatalkan atau enrollment tidak aktif tidak diingatkan.",
+          "Jendela dan pengaktifan worker dapat dikonfigurasi."
+        ],
+        "acceptanceCriteria": [
+          "Sesi besok menghasilkan tepat satu pengingat per parent terdampak.",
+          "Menjalankan worker dua kali tidak menggandakan pengingat.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Gunakan outbox dan pengirim dari issue notifikasi. Sesi yang di-reschedule setelah pengingat terkirim mengikuti notifikasi reschedule. Perbarui `kelolakelas-docs` (04-configuration.md, components/academic-service.md).",
+        "relevantAreas": [
+          "kelolakelas-academic-service/internal/usecase/session_generation_worker.go",
+          "kelolakelas-academic-service/cmd/server/main.go"
+        ],
+        "edgeCases": [
+          "Sesi dekat tengah malam WIB.",
+          "Sesi di-reschedule ke besok setelah worker berjalan."
+        ],
+        "testingValidation": [
+          "Unit test dengan clock palsu untuk batas jendela.",
+          "Postgres integration test idempotensi.",
+          "go vet, go test -race, dan build lulus."
+        ],
+        "outOfScope": [
+          "Pengingat untuk pengajar.",
+          "Pengaturan waktu pengingat per parent."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-system-notification-render",
+      "projectKey": "parent-schedule-notifications",
+      "title": "Inbox parent menampilkan percakapan notifikasi sistem dengan jelas",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "S",
+      "complexity": "low",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": ["chat-system-notification-channel"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "`ChatInbox.tsx` hanya mengenal pesan parent dan member; tidak ada tampilan pesan sistem.",
+        "goal": "Parent dapat membedakan percakapan notifikasi dari tenant dan membaca pesannya tanpa kolom balasan.",
+        "requirements": [
+          "Percakapan notifikasi diberi label tenant dan ikon yang berbeda serta muncul di inbox dengan unread count.",
+          "Pesan sistem dirender dengan gaya berbeda dan tanpa input balasan.",
+          "Jenis percakapan atau sender yang tidak dikenal tidak membuat inbox error."
+        ],
+        "acceptanceCriteria": [
+          "Parent melihat pesan notifikasi realtime dan unread count berkurang setelah dibaca.",
+          "Tidak ada kolom balasan pada percakapan notifikasi.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Perbarui tipe di `lib/chat.ts` mengikuti kontrak chat baru. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/parent/chat/_components/ChatInbox.tsx",
+          "kelolakelas-web/lib/chat.ts"
+        ],
+        "edgeCases": [
+          "Parent dengan notifikasi dari beberapa tenant.",
+          "Pesan sistem panjang."
+        ],
+        "testingValidation": [
+          "Vitest untuk render pesan sistem dan jenis tak dikenal.",
+          "Test, lint, type check, dan production build lulus."
+        ],
+        "outOfScope": [
+          "Pusat notifikasi terpisah dari chat.",
+          "Push notification browser."
+        ]
+      }
+    },
+    {
+      "draftKey": "tenant-public-profile-page",
+      "projectKey": "tenant-storefront-growth",
+      "title": "Calon parent dapat membuka profil publik tenant beserta kelas yang dipublikasikan",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": ["identity", "api-gateway", "web", "ai-ready"],
+      "repositories": ["identity", "api-gateway", "web"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Nama tenant di katalog hanya menautkan filter `/kelas?tenant_id=` (`kelolakelas-web/app/(public)/kelas/_components/CatalogCard.tsx:10`). Identity hanya mengekspos `GetTenantPublicInfo` lewat gRPC (`internal/delivery/grpc/tenant_handler.go:59-85`); tidak ada endpoint HTTP publik tenant. Field tenant: name, phone, address, address_formatted, lat/lng, about (jsonb bebas), dan status (`internal/domain/tenant.go:19-35`).",
+        "goal": "Pengunjung dapat melihat halaman profil tenant aktif dengan informasi publik dan kelas yang dipublikasikan.",
+        "requirements": [
+          "Endpoint publik identity untuk profil tenant aktif yang hanya mengembalikan field publik yang disepakati (nama, alamat terformat, koordinat, dan subset `about` yang terdokumentasi).",
+          "Tenant nonaktif atau tidak ada mengembalikan 404; kebijakan katalog publik yang diterapkan (ADR 0036) dihormati.",
+          "Gateway meneruskan route publik.",
+          "Halaman web profil tenant menampilkan info dan daftar kelas dari katalog dengan filter tenant; tautan dari kartu katalog dan detail kelas diarahkan ke profil."
+        ],
+        "acceptanceCriteria": [
+          "Profil tenant aktif tampil dengan kelas yang dipublikasikan.",
+          "Nomor telepon, status internal, dan field non-publik tidak ada di respons.",
+          "Tenant nonaktif menghasilkan halaman tidak ditemukan.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Field `about` berbentuk jsonb bebas; tentukan subset publik yang eksplisit, dan bila bentuknya tidak dapat dipastikan, jangan ekspos. Terapkan rate limit gateway yang ada. Pertimbangkan metadata SEO dasar. Perbarui `kelolakelas-docs` (api/identity.md, api/gateway.md, components/web.md).",
+        "relevantAreas": [
+          "kelolakelas-identity-service/internal/domain/tenant.go",
+          "kelolakelas-identity-service/cmd/server/main.go",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go",
+          "kelolakelas-web/app/(public)/kelas/_components/CatalogCard.tsx",
+          "kelolakelas-web/app/(public)/kelas/[id]/page.tsx"
+        ],
+        "edgeCases": [
+          "Tenant tanpa kelas terpublikasi.",
+          "Tenant tanpa lokasi.",
+          "UUID tidak valid."
+        ],
+        "testingValidation": [
+          "Unit test handler identity untuk field publik saja dan tenant nonaktif.",
+          "Router test gateway; go vet, go test -race, dan build lulus.",
+          "Vitest halaman profil; test, lint, type check, dan build web lulus."
+        ],
+        "outOfScope": [
+          "Upload logo dan galeri.",
+          "Slug URL kustom."
+        ]
+      }
+    },
+    {
+      "draftKey": "class-reviews-api",
+      "projectKey": "tenant-storefront-growth",
+      "title": "Parent yang pernah terdaftar dapat memberi rating dan ulasan kelas",
+      "type": "Feature",
+      "priority": "Low",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": ["academic", "api-gateway", "ai-ready"],
+      "repositories": ["academic", "api-gateway"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Tidak ada tabel, route, atau data ulasan di academic maupun gateway; katalog publik (`cmd/server/routes.go:43-44`) tidak memuat rating.",
+        "goal": "Parent dengan enrollment aktif atau selesai dapat memberi satu ulasan per enrollment, dan pengunjung dapat melihat rata-rata rating dan ulasan kelas.",
+        "requirements": [
+          "Parent membuat atau mengubah ulasannya sendiri (rating 1-5 dan komentar opsional dengan batas panjang) untuk enrollment miliknya berstatus active atau completed.",
+          "Endpoint publik daftar ulasan kelas berhalaman, serta rata-rata dan jumlah rating pada detail katalog.",
+          "Ulasan publik tidak menampilkan nama siswa, email, atau identitas lengkap parent.",
+          "Gateway meneruskan route baru."
+        ],
+        "acceptanceCriteria": [
+          "Parent tanpa enrollment yang memenuhi syarat ditolak.",
+          "Satu enrollment hanya menghasilkan satu ulasan, dan edit menggantikan isinya.",
+          "Rata-rata di detail katalog sesuai dengan ulasan yang tersimpan.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko high: penyalahgunaan (ulasan palsu atau ganda) dan kebocoran identitas. Kepemilikan dicek dengan pola `parent_id` enrollment. Komentar disimpan sebagai teks polos dan di-escape saat render. Tenant tidak dapat menghapus ulasan; moderasi platform ditunda. Perbarui `kelolakelas-docs` (api/academic.md, data/academic-schema.md, api/gateway.md).",
+        "relevantAreas": [
+          "kelolakelas-academic-service/cmd/server/routes.go",
+          "kelolakelas-academic-service/internal/domain/catalog.go",
+          "kelolakelas-academic-service/internal/repository/enrollment_repository.go",
+          "kelolakelas-academic-service/migrations",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go"
+        ],
+        "edgeCases": [
+          "Enrollment di-drop setelah ulasan dibuat.",
+          "Kelas tanpa ulasan.",
+          "Dua request create serentak untuk enrollment sama."
+        ],
+        "testingValidation": [
+          "Postgres integration test keunikan serentak dan kepemilikan sebagai mitigasi penyalahgunaan.",
+          "Unit test bahwa respons publik tidak memuat data pribadi.",
+          "Router test gateway, go vet, go test -race, dan build lulus."
+        ],
+        "outOfScope": [
+          "Moderasi dan balasan tenant.",
+          "Layar web ulasan."
+        ]
+      }
+    },
+    {
+      "draftKey": "web-class-reviews",
+      "projectKey": "tenant-storefront-growth",
+      "title": "Detail kelas menampilkan rating dan ulasan, dan parent dapat menulis ulasan",
+      "type": "Feature",
+      "priority": "Low",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": ["web", "ai-ready"],
+      "repositories": ["web"],
+      "blockedByDraftKeys": ["class-reviews-api"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Detail kelas publik (`app/(public)/kelas/[id]/page.tsx`) dan kartu katalog tidak menampilkan rating atau ulasan.",
+        "goal": "Pengunjung melihat rating dan ulasan pada detail kelas, dan parent yang memenuhi syarat dapat menulis ulasan dari enrollment-nya.",
+        "requirements": [
+          "Ringkasan rating dan daftar ulasan berhalaman di detail kelas; rata-rata di kartu katalog bila tersedia.",
+          "Form ulasan (rating yang dapat diakses keyboard dan komentar) dari halaman enrollment parent untuk enrollment yang memenuhi syarat.",
+          "State kosong saat belum ada ulasan."
+        ],
+        "acceptanceCriteria": [
+          "Parent mengirim ulasan dan ulasan tampil di detail kelas.",
+          "Kontrol rating dapat dioperasikan keyboard dan terbaca screen reader.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Komentar dirender sebagai teks, bukan HTML. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(public)/kelas/[id]/page.tsx",
+          "kelolakelas-web/app/(public)/kelas/_components/CatalogCard.tsx",
+          "kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/page.tsx"
+        ],
+        "edgeCases": [
+          "Parent mengubah ulasan yang sudah ada.",
+          "Komentar sangat panjang."
+        ],
+        "testingValidation": [
+          "Vitest untuk form rating dan render ulasan.",
+          "Test, lint, type check, dan production build lulus."
+        ],
+        "outOfScope": [
+          "Pelaporan ulasan tidak pantas.",
+          "Balasan tenant."
+        ]
+      }
+    },
+    {
+      "draftKey": "tenant-voucher-management",
+      "projectKey": "tenant-storefront-growth",
+      "title": "Tenant dapat membuat, mengubah, dan menonaktifkan voucher",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": ["billing", "api-gateway", "web", "ai-ready"],
+      "repositories": ["billing", "api-gateway", "web"],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Tabel `vouchers` (code unik per tenant, discount_type/value, max_discount_amount, min_transaction_amount, max_uses/current_uses, valid_from/until, is_active) ada di billing (`migrations/00000000000000_init_schema.up.sql:3-13`) dan permission `voucher:*` sudah di-seed di identity, tetapi `VoucherRepository` hanya interface (`internal/repository/interfaces.go:40`) dan tidak ada route maupun UI.",
+        "goal": "Tenant dapat mengelola voucher miliknya dari dashboard.",
+        "requirements": [
+          "Endpoint CRUD voucher dengan permission `voucher:create|read|update|delete`, di-scope tenant.",
+          "Validasi: kode unik case-insensitive per tenant, nilai persen 1-100 atau nominal positif, rentang tanggal valid, dan max_uses minimal current_uses.",
+          "Voucher yang pernah dipakai hanya dapat dinonaktifkan, bukan dihapus.",
+          "Gateway meneruskan route, dan web menyediakan halaman daftar serta form voucher."
+        ],
+        "acceptanceCriteria": [
+          "Tenant membuat voucher dan melihatnya di daftar dengan jumlah pemakaian.",
+          "Kode duplikat dan nilai tidak valid ditolak dengan pesan jelas.",
+          "Tenant lain tidak dapat membaca atau mengubah voucher ini.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Permission dicek lewat identity `CheckPermission` seperti `billing:read`. Belum ada efek pada harga checkout. Perbarui `kelolakelas-docs` (api/billing.md, api/gateway.md, components/web.md).",
+        "relevantAreas": [
+          "kelolakelas-billing-service/internal/domain/voucher.go",
+          "kelolakelas-billing-service/internal/repository/interfaces.go",
+          "kelolakelas-billing-service/cmd/server/routes.go",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant"
+        ],
+        "edgeCases": [
+          "Voucher kedaluwarsa diaktifkan kembali.",
+          "Kode dengan huruf besar dan kecil berbeda."
+        ],
+        "testingValidation": [
+          "Unit test validasi dan scope tenant.",
+          "Router test gateway; go vet, go test -race, dan build billing lulus.",
+          "Vitest form voucher; test, lint, type check, dan build web lulus."
+        ],
+        "outOfScope": [
+          "Penukaran voucher di checkout.",
+          "Voucher lintas tenant atau dari platform."
+        ]
+      }
+    },
+    {
+      "draftKey": "voucher-checkout-redemption",
+      "projectKey": "tenant-storefront-growth",
+      "title": "Parent dapat memakai voucher tenant saat checkout kelas grup",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "L",
+      "complexity": "critical",
+      "labels": ["billing", "academic", "web", "ai-ready"],
+      "repositories": ["billing", "academic", "web"],
+      "blockedByDraftKeys": ["tenant-voucher-management"],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Invoice internal menerima `VoucherID` dan `DiscountAmount` dari pemanggil tanpa validasi atau hitungan pemakaian (`kelolakelas-billing-service/internal/domain/transaction.go:185-187`, `internal/usecase/transaction_usecase.go:155`). Checkout web hanya memilih channel (`kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts:42-120`).",
+        "goal": "Parent dapat memasukkan kode voucher saat checkout kelas grup, dan diskon dihitung serta dicatat server-side tanpa melebihi batas voucher.",
+        "requirements": [
+          "Academic meneruskan kode voucher dari checkout kelas grup ke billing; billing sebagai satu-satunya penentu validitas dan nilai diskon.",
+          "Billing memvalidasi voucher milik tenant kelas, aktif, dalam masa berlaku, memenuhi minimum transaksi, dan belum mencapai max_uses; diskon dibatasi max_discount_amount dan tidak melebihi subtotal.",
+          "Pemakaian direservasi atomik saat invoice dibuat dan dilepas saat transaksi expired, cancelled, atau failed.",
+          "Platform fee dihitung dari gross setelah diskon; penolakan `platform_fee_exceeds_gross` yang ada tetap berlaku.",
+          "Web menampilkan input kode, pratinjau diskon, dan error validasi; replay idempotency tidak mengubah diskon invoice yang sudah terbit."
+        ],
+        "acceptanceCriteria": [
+          "Voucher valid mengurangi nominal invoice dan tercatat pada transaksi.",
+          "Voucher dengan sisa satu pemakaian yang dipakai dua checkout serentak hanya berhasil di satu checkout.",
+          "Voucher tenant lain, kedaluwarsa, atau nonaktif ditolak dengan pesan jelas.",
+          "Transaksi expired melepas pemakaian voucher.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko critical: kebenaran harga dan pemakaian voucher berlebih. Klien tidak pernah mengirim nominal diskon. Reservasi menggunakan update bersyarat atau lock baris voucher dalam transaksi yang sama dengan invoice claim. Ikuti snapshot platform fee (ADR 0044) dan klaim invoice (ADR 0020). Kelas private dan renewal di luar scope. Perbarui `kelolakelas-docs` (api/academic.md, api/billing.md, flows/billing-and-subscriptions.md) dan ADR voucher.",
+        "relevantAreas": [
+          "kelolakelas-billing-service/internal/usecase/transaction_usecase.go",
+          "kelolakelas-billing-service/internal/domain/transaction.go",
+          "kelolakelas-billing-service/internal/domain/voucher.go",
+          "kelolakelas-academic-service/internal/usecase/enrollment_usecase.go",
+          "kelolakelas-academic-service/pkg/billing/client.go",
+          "kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts"
+        ],
+        "edgeCases": [
+          "Diskon membuat gross di bawah platform fee.",
+          "Parent membatalkan enrollment pending yang memakai voucher.",
+          "Voucher dinonaktifkan di antara pratinjau dan checkout."
+        ],
+        "testingValidation": [
+          "Postgres integration test reservasi serentak dan pelepasan pada expiry sebagai mitigasi risiko pemakaian berlebih.",
+          "Unit test perhitungan diskon, batas maksimum, dan interaksi platform fee.",
+          "go vet, go test -race, build academic dan billing; test, lint, type check, dan build web lulus.",
+          "Verifikasi sandbox checkout dengan voucher persen dan nominal."
+        ],
+        "outOfScope": [
+          "Voucher untuk kelas private dan renewal.",
+          "Voucher otomatis tanpa kode."
+        ]
+      }
+    }
+  ]
+}

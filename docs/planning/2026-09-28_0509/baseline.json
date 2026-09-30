@@ -1,0 +1,38 @@
+{
+  "schema": "kelolakelas.planning-run/v1",
+  "runId": "2026-09-28_0509",
+  "createdAt": "2026-09-27T22:09:47.341Z",
+  "previousRun": null,
+  "repositories": {
+    "kelolakelas-web": {
+      "branch": "main",
+      "head": "f98f22cd2c06240a459beb0efa7c8f9e4784a3f9",
+      "dirty": false
+    },
+    "kelolakelas-api-gateway": {
+      "branch": "main",
+      "head": "df5f0dbc39b77732b3d96626bb2388631c806954",
+      "dirty": false
+    },
+    "kelolakelas-identity-service": {
+      "branch": "main",
+      "head": "16406dfdbcf6950654fa21105907559f86dba684",
+      "dirty": false
+    },
+    "kelolakelas-academic-service": {
+      "branch": "main",
+      "head": "23fc8dc7a3750a9f2592d62557017da7e0a95379",
+      "dirty": false
+    },
+    "kelolakelas-billing-service": {
+      "branch": "main",
+      "head": "95cce66636e5efa4f01b55fae0d0d9423969fa19",
+      "dirty": false
+    },
+    "kelolakelas-docs": {
+      "branch": "main",
+      "head": "13ebda93619cd46654c0bf16c264dc97fcc1917d",
+      "dirty": true
+    }
+  }
+}

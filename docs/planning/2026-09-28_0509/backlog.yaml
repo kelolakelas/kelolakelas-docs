@@ -1,0 +1,497 @@
+schemaVersion: kelolakelas.planning-backlog/v1
+projects:
+  - key: private-class-scheduled-purchase
+    name: Pembelian kelas private dengan jadwal yang disepakati
+    outcome: "Parent dapat mengajukan jadwal kelas private, tenant meninjau lalu menyetujui, menolak, atau menolak dengan rekomendasi jadwal lain, lalu parent membayar melalui payment link sehingga enrollment aktif dengan jadwal yang disepakati."
+    problem: "Kelas private kini dibeli langsung tanpa jadwal (academic `internal/usecase/enrollment_usecase.go:168,217`). Jadwal private hanya dapat dibuat tenant melalui `POST /schedules` dengan `enrollment_id` setelah enrollment ada (`internal/usecase/schedule_usecase.go:221-239`), dan tidak ada UI untuk itu. Akibatnya kelas private terjual tanpa jadwal yang disepakati."
+    valueAndPriority: "High. Kelas private adalah produk inti bimbel. Confidence tinggi karena alur memakai ulang enrollment, invoice billing, aktivasi internal, dan generator sesi yang sudah ada. Effort total L."
+    scope:
+      - "Resource permintaan jadwal private di academic beserta route gateway."
+      - "Form permintaan jadwal dan status permintaan untuk parent di web."
+      - "Persetujuan tenant yang membuat enrollment, jadwal private, dan invoice."
+      - "Halaman tenant untuk meninjau, menyetujui, dan menolak permintaan."
+      - "Penolakan dengan rekomendasi jadwal lain dan penerimaan rekomendasi oleh parent."
+    outOfScope:
+      - "Chat tenant–parent (menunggu keputusan arsitektur)."
+      - "Pengiriman payment link lewat email atas permintaan tenant (kandidat run berikutnya)."
+      - "Negosiasi bolak-balik di luar rekomendasi tenant dan pengajuan ulang oleh parent."
+      - "Halaman pembayaran tanpa redirect ke Duitku."
+    successMetrics:
+      - "Kelas private hanya dapat dibeli melalui permintaan jadwal yang disetujui tenant."
+      - "Setiap enrollment private yang dibayar memiliki jadwal aktif yang sama dengan slot yang disetujui dan sesi yang dihasilkan."
+      - "Tidak ada permintaan atau enrollment yang dapat diakses lintas tenant atau lintas parent (dibuktikan test isolasi)."
+    dependenciesAndRisks:
+      - "Invoice memakai `GenerateInvoice` billing yang ada (academic `pkg/billing/client.go`); tidak ada perubahan billing."
+      - "Risiko utama adalah idempotensi persetujuan dan kebocoran data lintas tenant."
+issues:
+  - draftKey: private-schedule-request-api
+    projectKey: private-class-scheduled-purchase
+    title: Parent dapat mengajukan jadwal kelas private dan tenant dapat meninjau atau menolaknya melalui API
+    type: Feature
+    priority: High
+    estimate: L
+    complexity: high
+    labels: [academic, api-gateway, ai-ready]
+    repositories: [academic, api-gateway]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "Kelas private kini dapat dibeli langsung melalui `POST /api/v1/catalog/classes/:class_id/enrollments` tanpa jadwal. Pada academic `internal/usecase/enrollment_usecase.go:217`, hanya kelas group yang wajib `schedule_id`. Jadwal private hanya dapat dibuat tenant melalui `POST /schedules` dengan `enrollment_id` (`internal/usecase/schedule_usecase.go:221-239`) setelah enrollment ada. Parent tidak punya cara menyampaikan jadwal yang diinginkan, dan tenant tidak dapat meninjaunya sebelum pembayaran."
+      goal: "Parent dapat mengajukan slot jadwal mingguan untuk kelas private bagi student miliknya. Tenant dapat melihat dan menolak ajuan, dengan atau tanpa alasan. Isolasi tenant dan kepemilikan student tetap terjaga."
+      requirements:
+        - "Academic menyimpan permintaan jadwal private dengan tenant, kelas, student, parent, billing cycle (`monthly`/`quarterly`/`yearly`), satu atau lebih slot mingguan (`day_of_week` ISO 1–7, `start_time`, `end_time`), catatan parent opsional, status (`pending`, `approved`, `rejected`, `cancelled`), alasan penolakan opsional, serta waktu dibuat dan diputuskan."
+        - "Parent hanya dapat membuat permintaan untuk student miliknya, pada kelas bertipe `private` yang dipublikasikan dengan `enrollment_status` `open`. Kelas group ditolak."
+        - "Satu student hanya boleh memiliki satu permintaan `pending` per kelas, dan tidak boleh mengajukan bila sudah memiliki enrollment `pending` atau `active` di kelas tersebut."
+        - "Parent dapat melihat daftar dan detail permintaannya sendiri, serta membatalkan permintaan yang masih `pending`."
+        - "Anggota tenant dengan `enrollment:read` dapat melihat daftar (dengan filter status) dan detail permintaan milik tenant-nya. Anggota dengan `enrollment:update` dapat menolak permintaan `pending`, dengan alasan opsional."
+        - "Email parent dari klaim token terverifikasi disimpan pada permintaan agar invoice yang kelak dibuat tenant dapat dialamatkan, mengikuti pola KEL-75 di `internal/delivery/http/handler/enrollment_handler.go:198-201`."
+        - "Checkout langsung kelas private melalui `POST /catalog/classes/:class_id/enrollments` ditolak dengan `code` error yang dapat dibaca mesin dan mengarahkan ke permintaan jadwal. Checkout kelas group tidak berubah."
+        - "Semua route baru didaftarkan di gateway `internal/delivery/http/router.go` dengan autentikasi yang sama seperti route enrollment."
+      acceptanceCriteria:
+        - "Parent membuat permintaan untuk student miliknya pada kelas private yang terbuka dan menerima 201 dengan status `pending`."
+        - "Permintaan untuk student milik parent lain, kelas group, kelas yang tidak dipublikasikan atau tidak `open`, atau slot dengan `end_time` tidak setelah `start_time` ditolak 4xx dengan pesan yang jelas."
+        - "Permintaan `pending` kedua untuk student dan kelas yang sama ditolak 409."
+        - "Anggota tenant A tidak dapat membaca, menolak, atau mengetahui keberadaan permintaan tenant B."
+        - "Tenant menolak dengan atau tanpa alasan, lalu parent melihat status `rejected` beserta alasannya bila ada."
+        - "Parent membatalkan permintaan `pending`, dan permintaan yang sudah diputuskan tidak dapat dibatalkan."
+        - "Checkout langsung kelas private ditolak dengan `code` terdokumentasi, sedangkan checkout kelas group tetap berhasil seperti sebelumnya."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Risiko utama: kebocoran data lintas tenant atau lintas parent, karena resource baru dibaca oleh dua persona. Ikuti scoping tenant dan `RequirePermissionUnlessParent` di academic `cmd/server/routes.go:65-70`, serta sanitasi 5xx (KEL-64). Tambahkan migration academic baru; format waktu mengikuti `ScheduleItemRequest` (`internal/domain/schedule_dto.go:10-20`). Keputusan owner (2026-09-28): (1) kelas private hanya dapat dibeli melalui permintaan jadwal yang disetujui tenant, dan checkout langsung dihapus; (2) tenant dapat menolak begitu saja atau menolak dengan rekomendasi jadwal lain. Rekomendasi dikerjakan di issue terpisah (`private-schedule-recommendation-api`); issue ini menyediakan penolakan dengan alasan opsional, dan parent tetap dapat mengajukan permintaan baru setelah ditolak. Persetujuan, invoice, UI, email, dan chat ada di luar issue ini. Perbarui kelolakelas-docs: `docs/api/academic.md`, `docs/api/endpoint-matrix.md`, `docs/api/gateway.md`, `docs/data/academic-schema.md`, dan `docs/flows/academic.md`."
+      relevantAreas:
+        - "kelolakelas-academic-service/internal/domain"
+        - "kelolakelas-academic-service/internal/usecase/enrollment_usecase.go"
+        - "kelolakelas-academic-service/internal/repository"
+        - "kelolakelas-academic-service/internal/delivery/http/handler"
+        - "kelolakelas-academic-service/cmd/server/routes.go"
+        - "kelolakelas-academic-service/migrations"
+        - "kelolakelas-api-gateway/internal/delivery/http/router.go"
+      edgeCases:
+        - "Kelas di-unpublish atau ditutup saat permintaan masih `pending`."
+        - "Student dihapus saat permintaan masih `pending`."
+        - "Slot duplikat atau tumpang tindih dalam satu permintaan."
+        - "Parent membatalkan bersamaan dengan tenant menolak (race)."
+        - "Token parent tanpa klaim email."
+      testingValidation:
+        - "Unit test usecase untuk validasi, transisi status, dan aturan satu `pending` per student per kelas."
+        - "Integration test PostgreSQL untuk isolasi tenant dan kepemilikan student (mitigasi risiko lintas tenant)."
+        - "Handler test untuk permission `enrollment:read`/`enrollment:update` serta akses parent."
+        - "Gateway route test untuk route baru."
+        - "Existing tests pass, `go vet`/lint pass, dan acceptance criteria diverifikasi."
+      outOfScope:
+        - "Persetujuan permintaan beserta pembuatan enrollment, jadwal, dan invoice."
+        - "UI web parent dan tenant."
+        - "Notifikasi email atau chat."
+        - "Penolakan dengan rekomendasi jadwal lain (issue terpisah)."
+  - draftKey: approve-private-schedule-request
+    projectKey: private-class-scheduled-purchase
+    title: Persetujuan tenant atas permintaan jadwal private membuat enrollment, jadwal, dan payment link
+    type: Feature
+    priority: High
+    estimate: M
+    complexity: high
+    labels: [academic, api-gateway, ai-ready]
+    repositories: [academic, api-gateway]
+    blockedByDraftKeys: [private-schedule-request-api]
+    externalDependencies: []
+    body:
+      backgroundProblem: "Setelah permintaan jadwal private tersedia, tenant perlu mengubah permintaan yang disetujui menjadi pembelian yang dapat dibayar. Academic sudah mampu membuat enrollment `pending` beserta invoice billing (`internal/usecase/enrollment_usecase.go:331` `EnrollStudent`, `pkg/billing/client.go` `GenerateInvoice`) dan membuat jadwal private terikat `enrollment_id` (`internal/usecase/schedule_usecase.go:221-239`). Billing juga sudah mengaktifkan enrollment setelah pembayaran melalui `/internal/enrollments/:id/activate` (`cmd/server/routes.go:94`). Namun belum ada operasi yang menyatukan langkah-langkah tersebut dari sebuah permintaan."
+      goal: "Anggota tenant dengan izin menyetujui permintaan `pending`, dan sistem menghasilkan enrollment `pending`, jadwal private sesuai slot yang disetujui, serta payment link yang dapat dibayar parent. Setelah pembayaran terkonfirmasi, enrollment aktif dengan jadwal tersebut."
+      requirements:
+        - "Anggota tenant dengan `enrollment:update` dapat menyetujui permintaan `pending` milik tenant-nya."
+        - "Persetujuan mengubah status permintaan menjadi `approved`, membuat satu enrollment `pending` untuk student, kelas, dan billing cycle dari permintaan, serta membuat jadwal private per slot yang terikat enrollment tersebut dengan kapasitas 1."
+        - "Invoice dibuat melalui `GenerateInvoice` billing yang ada dengan idempotency key yang diturunkan dari permintaan dan email parent yang tersimpan. Checkout URL disimpan pada enrollment dengan cara yang sama seperti `EnrollPublic`."
+        - "Respons persetujuan memuat enrollment id, transaction id, dan `checkout_session_url` agar tenant dapat membagikannya."
+        - "Persetujuan berulang untuk permintaan yang sama idempoten: tidak membuat enrollment, jadwal, atau invoice ganda, dan mengembalikan hasil yang sama."
+        - "Kegagalan invoice mengikuti jalur `invoiceFailure` yang ada (termasuk `platform_fee_exceeds_gross`, KEL-106) dan tidak meninggalkan permintaan `approved` tanpa enrollment yang dapat dibayar. Tenant dapat mencoba lagi."
+        - "Aktivasi setelah pembayaran dan pelepasan saat invoice kedaluwarsa memakai jalur internal yang ada tanpa perubahan billing."
+      acceptanceCriteria:
+        - "Menyetujui permintaan `pending` menghasilkan enrollment `pending`, jadwal private sesuai slot, dan `checkout_session_url` yang valid."
+        - "Parent melihat enrollment baru beserta tautan \"Lanjutkan pembayaran\" di halaman status enrollment yang ada (KEL-53)."
+        - "Setelah webhook pembayaran terkonfirmasi, enrollment menjadi `active` dan sesi dihasilkan dari jadwal yang disetujui."
+        - "Persetujuan kedua atau paralel untuk permintaan yang sama tidak membuat data ganda."
+        - "Permintaan milik tenant lain, permintaan yang tidak `pending`, dan anggota tanpa `enrollment:update` ditolak dengan 404/409/403 yang sesuai."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Risiko utama: financial correctness dan idempotensi. Persetujuan ganda atau parsial dapat menghasilkan invoice ganda atau enrollment tanpa jadwal. Jaga penulisan permintaan, enrollment, dan jadwal dalam satu transaksi database, dan jangan menahan lock database selama I/O ke billing (pola `EnrollPublic` di `enrollment_usecase.go:168-240`). Pakai ulang `CreateIfCapacityAvailable` dan penanganan duplikat enrollment (KEL-54). Tidak ada perubahan billing. Route persetujuan harus didaftarkan di gateway. Perbarui kelolakelas-docs: `docs/api/academic.md`, `docs/flows/academic.md`, dan `docs/flows/billing-and-subscriptions.md` untuk alur private."
+      relevantAreas:
+        - "kelolakelas-academic-service/internal/usecase/enrollment_usecase.go"
+        - "kelolakelas-academic-service/internal/usecase/schedule_usecase.go"
+        - "kelolakelas-academic-service/pkg/billing/client.go"
+        - "kelolakelas-academic-service/cmd/server/routes.go"
+        - "kelolakelas-api-gateway/internal/delivery/http/router.go"
+      edgeCases:
+        - "Billing menolak invoice karena biaya platform melebihi gross (KEL-106)."
+        - "Billing timeout setelah enrollment dibuat."
+        - "Student sudah memiliki enrollment aktif di kelas yang sama saat disetujui."
+        - "Kelas ditutup di antara pengajuan dan persetujuan."
+        - "Invoice kedaluwarsa sebelum dibayar, sehingga enrollment dilepas oleh jalur yang ada."
+      testingValidation:
+        - "Unit test usecase untuk persetujuan sukses, kegagalan invoice, dan replay idempoten."
+        - "Integration test PostgreSQL untuk persetujuan paralel yang tidak menghasilkan data ganda (mitigasi risiko finansial)."
+        - "Test isolasi tenant dan permission untuk handler persetujuan."
+        - "Gateway route test."
+        - "Existing tests pass, `go vet`/lint pass, dan acceptance criteria diverifikasi."
+      outOfScope:
+        - "Pengiriman payment link lewat email atau chat."
+        - "Perubahan billing atau provider pembayaran."
+        - "UI web."
+  - draftKey: parent-private-schedule-request-web
+    projectKey: private-class-scheduled-purchase
+    title: Parent mengajukan jadwal kelas private dari detail kelas dan memantau status permintaannya
+    type: Feature
+    priority: High
+    estimate: M
+    complexity: medium
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: [private-schedule-request-api]
+    externalDependencies: []
+    body:
+      backgroundProblem: "Panel enrollment di detail kelas (`app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx`) menampilkan form checkout yang sama untuk kelas private dan group. Setelah API permintaan jadwal tersedia dan checkout langsung kelas private ditolak, parent membutuhkan UI untuk mengajukan jadwal dan mengikuti hasil peninjauan."
+      goal: "Parent dapat mengajukan satu atau lebih slot jadwal untuk kelas private langsung dari detail kelas, lalu melihat status permintaan, alasan penolakan bila ada, dan kelanjutan pembayaran setelah disetujui."
+      requirements:
+        - "Untuk kelas private dan pengguna parent, panel detail kelas menampilkan form permintaan jadwal: student, periode pembayaran, satu atau lebih slot (hari, jam mulai, jam selesai), dan catatan opsional. Form checkout kelas private tidak lagi ditampilkan."
+        - "Kelas group tetap memakai form checkout yang ada tanpa perubahan."
+        - "Parent dapat melihat daftar permintaannya dengan status, slot, dan alasan penolakan bila ada, serta membatalkan permintaan `pending`."
+        - "Permintaan yang disetujui mengarahkan parent ke enrollment terkait di halaman status enrollment yang ada, tempat tautan pembayaran sudah tersedia (KEL-53)."
+        - "Error API (409 permintaan ganda, 4xx validasi, 403, error jaringan) ditampilkan dengan pesan berbahasa Indonesia yang jelas."
+      acceptanceCriteria:
+        - "Parent pada kelas private melihat form permintaan jadwal, bukan tombol \"Lanjut ke pembayaran\"."
+        - "Mengirim permintaan valid menampilkan konfirmasi, dan permintaan muncul dengan status menunggu peninjauan."
+        - "Slot dengan jam selesai tidak setelah jam mulai ditolak di form sebelum request dikirim."
+        - "Permintaan ganda menampilkan pesan bahwa permintaan sebelumnya masih menunggu."
+        - "Permintaan yang ditolak menampilkan alasan dari tenant bila ada, beserta opsi mengajukan ulang."
+        - "Kelas group tetap berfungsi seperti sebelumnya."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Ikuti pola Server Action dan `useActionState` di `app/(public)/kelas/[id]/_actions/actions.ts`, serta penanganan gateway di `lib/gateway.ts`. Kontrak endpoint mengikuti hasil issue API permintaan jadwal. Jangan mengarang field di luar kontrak tersebut. Hari memakai ISO 1–7 dengan label bahasa Indonesia, konsisten dengan `enrollmentScheduleLabel` (KEL-70). Perbarui kelolakelas-docs `docs/components/web.md`."
+      relevantAreas:
+        - "kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx"
+        - "kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts"
+        - "kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments"
+        - "kelolakelas-web/lib"
+      edgeCases:
+        - "Parent belum memiliki student."
+        - "Kelas ditutup saat form sedang diisi."
+        - "Sesi login kedaluwarsa saat submit."
+        - "Permintaan disetujui tetapi invoice gagal dibuat."
+      testingValidation:
+        - "Vitest untuk render form private versus group, validasi slot, dan pemetaan error."
+        - "Test daftar permintaan untuk status pending, rejected, approved, dan cancelled."
+        - "Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Perubahan API academic."
+        - "Chat atau email."
+        - "Halaman tenant."
+        - "Menampilkan dan menerima rekomendasi jadwal dari tenant (issue terpisah)."
+  - draftKey: tenant-private-schedule-review-web
+    projectKey: private-class-scheduled-purchase
+    title: Tenant meninjau, menyetujui, atau menolak permintaan jadwal private dari dashboard
+    type: Feature
+    priority: High
+    estimate: M
+    complexity: medium
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: [approve-private-schedule-request]
+    externalDependencies: []
+    body:
+      backgroundProblem: "Dashboard tenant memiliki halaman enrollments (`app/(dashboard)/dashboard/tenant/enrollments`) tetapi tidak memiliki tempat untuk permintaan jadwal private. Tanpa UI, API peninjauan dan persetujuan tidak dapat dipakai tenant. Chat dan email payment link belum tersedia, sehingga tenant juga membutuhkan cara membagikan payment link secara manual."
+      goal: "Anggota tenant yang berizin dapat melihat permintaan jadwal private, menyetujui atau menolaknya dengan alasan opsional, dan menyalin payment link hasil persetujuan."
+      requirements:
+        - "Dashboard tenant menampilkan daftar permintaan jadwal private dengan filter status, nama student, kelas, slot yang diminta, periode pembayaran, catatan parent, dan waktu pengajuan."
+        - "Aksi setujui memakai dialog konfirmasi. Setelah berhasil, UI menampilkan payment link beserta tombol salin dan batas waktu bila tersedia."
+        - "Aksi tolak memakai dialog konfirmasi dengan alasan opsional."
+        - "Anggota tanpa `enrollment:read` melihat pesan izin, dan aksi disembunyikan atau ditolak dengan pesan jelas untuk anggota tanpa `enrollment:update`."
+        - "State loading, kosong, dan error API ditampilkan dengan jelas."
+      acceptanceCriteria:
+        - "Permintaan `pending` milik tenant tampil beserta detail slotnya."
+        - "Menyetujui permintaan menampilkan payment link yang dapat disalin, dan status berubah menjadi disetujui."
+        - "Menolak dengan atau tanpa alasan mengubah status menjadi ditolak."
+        - "Member tanpa izin melihat pesan izin, bukan error teknis."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Ikuti pola dialog yang dapat diakses di `app/(dashboard)/dashboard/tenant/roles/_components/RoleEditModal.tsx` dan pola tabel di `tenant/enrollments/_components/EnrollmentTable.tsx`. Kontrak endpoint mengikuti hasil issue API permintaan jadwal dan persetujuan. Payment link hanya ditampilkan bila skemanya http/https, mengikuti `resumePayment` di `lib/payment-status.ts`. Perbarui kelolakelas-docs `docs/components/web.md`."
+      relevantAreas:
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/enrollments"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/_constants/constants.ts"
+        - "kelolakelas-web/lib/payment-status.ts"
+      edgeCases:
+        - "Permintaan sudah dibatalkan parent saat tenant membuka dialog."
+        - "Persetujuan gagal karena biaya platform melebihi pembayaran (KEL-106)."
+        - "Dua anggota tenant memproses permintaan yang sama bersamaan."
+      testingValidation:
+        - "Vitest untuk daftar, dialog setujui, dialog tolak dengan dan tanpa alasan, serta pemetaan 403/409."
+        - "Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Pengiriman payment link lewat email atau chat."
+        - "Menolak dengan rekomendasi jadwal lain (issue terpisah)."
+        - "Perubahan API."
+  - draftKey: private-schedule-recommendation-api
+    projectKey: private-class-scheduled-purchase
+    title: Tenant dapat menolak permintaan jadwal private dengan rekomendasi jadwal lain dan parent dapat menerimanya melalui API
+    type: Feature
+    priority: High
+    estimate: M
+    complexity: high
+    labels: [academic, api-gateway, ai-ready]
+    repositories: [academic, api-gateway]
+    blockedByDraftKeys: [approve-private-schedule-request]
+    externalDependencies: []
+    body:
+      backgroundProblem: "Owner memutuskan (2026-09-28) bahwa tenant dapat menolak permintaan jadwal private begitu saja atau menolak dengan rekomendasi jadwal lain. Penolakan biasa dan persetujuan disediakan oleh issue API permintaan jadwal dan issue persetujuan. Belum ada cara bagi tenant menyertakan slot alternatif, maupun bagi parent menerima rekomendasi tersebut sehingga pembelian dapat dilanjutkan tanpa mengajukan ulang dari awal."
+      goal: "Tenant dapat menolak permintaan `pending` sambil merekomendasikan slot jadwal lain. Parent dapat menerima rekomendasi, sehingga enrollment, jadwal, dan payment link dibuat dengan slot rekomendasi. Parent juga dapat menolak rekomendasi."
+      requirements:
+        - "Anggota tenant dengan `enrollment:update` dapat menolak permintaan `pending` dengan satu atau lebih slot rekomendasi (`day_of_week` ISO 1–7, `start_time`, `end_time`) dan alasan opsional. Validasi slot sama dengan slot permintaan."
+        - "Permintaan yang ditolak dengan rekomendasi menyimpan slot rekomendasi, dan parent dapat melihatnya pada detail dan daftar permintaan miliknya."
+        - "Parent pemilik permintaan dapat menerima rekomendasi selama permintaan belum kedaluwarsa atau dibatalkan. Penerimaan membuat enrollment `pending`, jadwal private sesuai slot rekomendasi dengan kapasitas 1, dan invoice melalui operasi persetujuan yang sama (idempotency, transaksi, dan jalur `invoiceFailure` yang sama), lalu mengembalikan `checkout_session_url`."
+        - "Parent dapat menolak rekomendasi. Setelah itu rekomendasi tidak dapat diterima lagi, dan parent tetap dapat mengajukan permintaan baru."
+        - "Penerimaan rekomendasi yang berulang atau paralel tidak membuat enrollment, jadwal, atau invoice ganda."
+        - "Penolakan tanpa rekomendasi tetap berperilaku seperti sebelumnya."
+        - "Route baru didaftarkan di gateway `internal/delivery/http/router.go`."
+      acceptanceCriteria:
+        - "Tenant menolak dengan rekomendasi, lalu parent melihat status ditolak beserta slot rekomendasi dan alasan bila ada."
+        - "Parent menerima rekomendasi dan menerima `checkout_session_url`; setelah pembayaran terkonfirmasi, enrollment `active` dengan jadwal sesuai slot rekomendasi."
+        - "Parent menolak rekomendasi, lalu penerimaan setelahnya ditolak 409."
+        - "Parent lain, tenant lain, atau permintaan tanpa rekomendasi tidak dapat menerima rekomendasi (404/403/409 yang sesuai)."
+        - "Penerimaan kedua atau paralel tidak membuat data ganda."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Risiko utama: financial correctness dan isolasi. Penerimaan rekomendasi adalah jalur pembelian kedua, jadi pakai ulang operasi persetujuan dari issue persetujuan, bukan menulis ulang logika enrollment dan invoice. Aktor penerimaan adalah parent, sehingga kepemilikan permintaan harus diverifikasi seperti akses parent pada permintaan. Status dan penyimpanan rekomendasi mengikuti skema permintaan yang dibuat issue API permintaan jadwal; jangan mengarang nama tabel sebelum skema itu ada. Negosiasi bolak-balik (parent mengusulkan balik atas rekomendasi) di luar scope; parent mengajukan permintaan baru. Perbarui kelolakelas-docs: `docs/api/academic.md`, `docs/api/gateway.md`, `docs/data/academic-schema.md`, dan `docs/flows/academic.md`."
+      relevantAreas:
+        - "kelolakelas-academic-service/internal/domain"
+        - "kelolakelas-academic-service/internal/usecase/enrollment_usecase.go"
+        - "kelolakelas-academic-service/internal/repository"
+        - "kelolakelas-academic-service/internal/delivery/http/handler"
+        - "kelolakelas-academic-service/cmd/server/routes.go"
+        - "kelolakelas-academic-service/migrations"
+        - "kelolakelas-api-gateway/internal/delivery/http/router.go"
+      edgeCases:
+        - "Kelas ditutup atau di-unpublish setelah rekomendasi dikirim."
+        - "Student sudah memiliki enrollment aktif di kelas yang sama saat rekomendasi diterima."
+        - "Billing menolak invoice saat rekomendasi diterima (KEL-106)."
+        - "Parent menerima dan menolak rekomendasi bersamaan (race)."
+      testingValidation:
+        - "Unit test usecase untuk tolak dengan rekomendasi, terima, tolak rekomendasi, dan replay idempoten."
+        - "Integration test PostgreSQL untuk penerimaan paralel dan isolasi tenant/parent (mitigasi risiko finansial dan lintas tenant)."
+        - "Handler test untuk permission tenant dan kepemilikan parent."
+        - "Gateway route test."
+        - "Existing tests pass, `go vet`/lint pass, dan acceptance criteria diverifikasi."
+      outOfScope:
+        - "UI web tenant dan parent."
+        - "Notifikasi email atau chat atas rekomendasi."
+        - "Parent mengusulkan balik jadwal atas rekomendasi (negosiasi bolak-balik)."
+  - draftKey: private-schedule-recommendation-web
+    projectKey: private-class-scheduled-purchase
+    title: Tenant mengirim rekomendasi jadwal saat menolak dan parent dapat menerima atau menolaknya di web
+    type: Feature
+    priority: High
+    estimate: M
+    complexity: medium
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: [private-schedule-recommendation-api, parent-private-schedule-request-web, tenant-private-schedule-review-web]
+    externalDependencies: []
+    body:
+      backgroundProblem: "Setelah API rekomendasi tersedia, tenant membutuhkan cara menyertakan slot alternatif saat menolak dari dashboard, dan parent membutuhkan cara melihat serta menerima atau menolak rekomendasi dari daftar permintaannya. Dialog tolak tenant dan daftar permintaan parent dibuat oleh issue web tenant dan issue web parent."
+      goal: "Tenant dapat memilih menolak begitu saja atau menolak dengan rekomendasi jadwal lain. Parent dapat melihat rekomendasi, menerimanya lalu melanjutkan pembayaran, atau menolaknya."
+      requirements:
+        - "Dialog tolak tenant menyediakan pilihan \"Tolak\" dan \"Tolak dengan rekomendasi jadwal\". Pilihan kedua menampilkan input satu atau lebih slot (hari, jam mulai, jam selesai) dan alasan opsional."
+        - "Daftar permintaan parent menampilkan slot rekomendasi pada permintaan yang ditolak dengan rekomendasi, beserta tombol \"Terima jadwal ini\" dan \"Tolak rekomendasi\"."
+        - "Menerima rekomendasi mengarahkan parent ke pembayaran melalui `checkout_session_url` yang dikembalikan API, hanya bila skemanya http/https (pola `resumePayment` di `lib/payment-status.ts`)."
+        - "Tenant melihat status rekomendasi (menunggu parent, diterima, ditolak) di daftar permintaan."
+        - "Error API (409, 403, validasi, jaringan) ditampilkan dengan pesan berbahasa Indonesia yang jelas."
+      acceptanceCriteria:
+        - "Tenant menolak dengan rekomendasi, lalu parent melihat slot rekomendasi pada permintaannya."
+        - "Parent menerima rekomendasi dan diarahkan ke pembayaran; enrollment terkait tampil di halaman status enrollment."
+        - "Parent menolak rekomendasi, lalu tombol terima tidak lagi tersedia dan status tampil ditolak."
+        - "Slot rekomendasi dengan jam selesai tidak setelah jam mulai dicegah di form tenant."
+        - "Penolakan tanpa rekomendasi tetap berfungsi seperti sebelumnya."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Pakai ulang input slot dari form permintaan parent bila memungkinkan. Kontrak endpoint mengikuti hasil issue API rekomendasi; jangan mengarang field. Hari memakai ISO 1–7 dengan label bahasa Indonesia seperti `enrollmentScheduleLabel` (KEL-70). Perbarui kelolakelas-docs `docs/components/web.md`."
+      relevantAreas:
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/enrollments"
+        - "kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments"
+        - "kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx"
+        - "kelolakelas-web/lib/payment-status.ts"
+      edgeCases:
+        - "Rekomendasi diterima tetapi invoice gagal dibuat."
+        - "Parent membuka rekomendasi yang sudah ditolak di tab lain."
+        - "Kelas ditutup sebelum parent menerima rekomendasi."
+      testingValidation:
+        - "Vitest untuk dialog tolak dengan dan tanpa rekomendasi, validasi slot, serta aksi terima dan tolak rekomendasi oleh parent."
+        - "Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Perubahan API."
+        - "Notifikasi email atau chat."
+        - "Parent mengusulkan balik jadwal atas rekomendasi."
+  - draftKey: create-student-modal-class-detail
+    projectKey: null
+    title: Parent dapat menambah student lewat modal di detail kelas lalu langsung melanjutkan enrollment
+    type: Improvement
+    priority: High
+    estimate: S
+    complexity: low
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "Saat parent belum memiliki student, `EnrollmentPanel.tsx:38` hanya menampilkan tautan ke `/dashboard/parent/students?returnTo=/kelas/<id>`. Parameter `returnTo` tidak dibaca di mana pun, sehingga setelah membuat student parent harus kembali ke katalog dan mencari kelasnya lagi. Ini memutus konversi enrollment."
+      goal: "Parent dapat membuat profil student melalui modal di detail kelas dan langsung memilih student baru untuk enrollment tanpa meninggalkan halaman."
+      requirements:
+        - "Saat parent belum memiliki student, panel menampilkan tombol \"Tambah student\" yang membuka modal berisi field dan validasi yang sama dengan form student yang ada."
+        - "Setelah student berhasil dibuat, modal tertutup, daftar student di panel diperbarui, dan student baru terpilih pada form enrollment."
+        - "Parent tetap berada di URL detail kelas yang sama."
+        - "Modal dapat diakses: `role=\"dialog\"`, `aria-modal`, fokus awal pada field pertama, Escape menutup, dan fokus kembali ke tombol pemicu."
+        - "Pembuatan student di dashboard parent tidak berubah."
+      acceptanceCriteria:
+        - "Parent tanpa student dapat membuat student dari detail kelas dan langsung melihat form enrollment dengan student tersebut terpilih."
+        - "Error validasi dan error API ditampilkan di dalam modal tanpa menutupnya."
+        - "Membatalkan modal tidak membuat data."
+        - "Halaman `/dashboard/parent/students` tetap berfungsi seperti sebelumnya."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Pakai ulang `createStudent` (`app/(dashboard)/dashboard/parent/students/_actions/actions.ts:44`) dan field `StudentForm.tsx` bila memungkinkan. Action tersebut hanya me-revalidate `/dashboard/parent/students`, sehingga detail kelas perlu memperoleh daftar student terbaru. Mekanismenya diserahkan ke implementasi dengan mengikuti konvensi Next.js App Router di repo. Ikuti pola dialog di `app/(dashboard)/dashboard/parent/students/_components/DeleteStudentButton.tsx`. Perbarui kelolakelas-docs `docs/components/web.md`."
+      relevantAreas:
+        - "kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx"
+        - "kelolakelas-web/app/(public)/kelas/[id]/page.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/parent/students/_components/StudentForm.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/parent/students/_actions/actions.ts"
+      edgeCases:
+        - "Sesi parent kedaluwarsa saat submit modal."
+        - "Gagal memuat ulang daftar student setelah create berhasil."
+        - "Kelas group tanpa jadwal tersedia (panel tetap menampilkan pesan jadwal)."
+      testingValidation:
+        - "Vitest untuk membuka dan menutup modal, sukses yang memilih student baru, dan tampilan error."
+        - "Existing tests pass (termasuk `EnrollmentPanel.test.tsx`), `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Edit atau hapus student dari detail kelas."
+        - "Perubahan API academic."
+  - draftKey: weekly-schedule-slot-generator
+    projectKey: null
+    title: Tenant dapat menghasilkan slot jadwal mingguan dari pilihan hari, jam, lama sesi, dan jeda
+    type: Feature
+    priority: Medium
+    estimate: M
+    complexity: medium
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "`ScheduleForm.tsx` (dipakai wizard kelas dan `AddScheduleModal.tsx`) mengharuskan tenant menambah slot satu per satu dengan hari, jam mulai, jam selesai, kapasitas, dan lokasi. Kelas dengan banyak sesi per hari atau per minggu lambat disiapkan dan rawan salah input."
+      goal: "Tenant memilih hari melalui checkbox, lalu mengisi jam mulai, jam selesai, lama sesi, dan jeda antar sesi. Form menghasilkan slot yang dapat ditinjau dan diubah sebelum dikirim."
+      requirements:
+        - "Form jadwal menyediakan generator dengan checkbox hari Senin–Minggu, jam mulai, jam selesai (batas akhir), lama sesi dalam menit, jeda antar sesi dalam menit, serta kapasitas dan lokasi default."
+        - "Untuk setiap hari terpilih, generator membuat sesi berurutan mulai dari jam mulai dengan durasi lama sesi dan dipisahkan jeda. Sesi yang tidak selesai sebelum atau tepat pada jam selesai tidak dibuat. Contoh: 08:00–12:00, 90 menit, jeda 15 menit menghasilkan 08:00–09:30 dan 09:45–11:15."
+        - "Slot hasil generator masuk ke daftar slot yang ada dan tetap dapat diubah atau dihapus. Tambah slot manual tetap tersedia."
+        - "Validasi mencakup minimal satu hari, lama sesi > 0, jeda ≥ 0, jam selesai setelah jam mulai, minimal satu sesi muat, dan slot duplikat (hari dan jam sama) dicegah."
+        - "Payload ke `POST /api/v1/schedules` dan aturan kapasitas per slot (KEL-50) tidak berubah."
+      acceptanceCriteria:
+        - "Contoh di atas menghasilkan tepat dua slot untuk setiap hari yang dicentang."
+        - "Input tidak valid menampilkan pesan per field dan tidak menghasilkan slot."
+        - "Slot yang dihasilkan tersimpan melalui endpoint yang ada dan tampil di detail kelas."
+        - "Wizard kelas private tetap menampilkan notice yang ada tanpa generator."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Perubahan hanya di web. Letakkan logika generasi sebagai fungsi murni yang dapat diuji di `_lib`, di samping `scheduleItemSchema` (`app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts:186`). Waktu adalah wall-clock `HH:MM` tanpa zona waktu, sama dengan backend. Sesi yang melewati tengah malam tidak didukung. Academic tidak memvalidasi tumpang tindih jadwal (tidak ditemukan pengecekan overlap), sehingga pencegahan duplikat di form adalah perlindungan UI saja. Perbarui kelolakelas-docs `docs/components/web.md`."
+      relevantAreas:
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_components/ScheduleForm.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_components/AddScheduleModal.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts"
+      edgeCases:
+        - "Lama sesi lebih panjang dari rentang jam, sehingga tidak ada sesi yang dihasilkan."
+        - "Jeda 0 menit, sehingga sesi bersambung."
+        - "Generator dijalankan dua kali dengan parameter sama, dan duplikat tidak ditambahkan."
+        - "Jumlah slot yang dihasilkan sangat besar."
+      testingValidation:
+        - "Unit test fungsi generator untuk contoh di atas, batas akhir tepat, jeda 0, dan input tidak valid."
+        - "Vitest untuk interaksi form (centang hari, generate, ubah, hapus)."
+        - "Existing tests pass (termasuk `ClassCreationWizard.test.tsx`), `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Validasi overlap jadwal di academic."
+        - "Generator jadwal untuk kelas private."
+        - "Tanggal berlaku (`valid_from`/`valid_until`)."
+  - draftKey: disable-capacity-private-class-form
+    projectKey: null
+    title: Form buat kelas tidak lagi menampilkan field kapasitas karena kapasitas diatur per jadwal
+    type: Improvement
+    priority: Medium
+    estimate: S
+    complexity: low
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "`ClassForm.tsx:180-201` menampilkan input \"Max Student Capacity\" untuk semua tipe kelas, termasuk Private. Nilainya dikirim `createClass` (`_actions/classActions.ts:128`) ke `POST /api/v1/classes`, tetapi academic tidak menyimpannya: `Class.Capacity` deprecated dengan `json:\"-\"` (`internal/domain/class.go:37`) dan `CreateClassRequest` tidak memiliki field kapasitas (`class.go:47`). Kapasitas yang berlaku diisi per jadwal (KEL-50). Tenant mengisi field yang diam-diam dibuang."
+      goal: "Form buat kelas tidak lagi meminta kapasitas untuk tipe apa pun. Tenant menetapkan kapasitas hanya pada jadwal, dan kelas private jelas ditujukan untuk satu student."
+      requirements:
+        - "Input kapasitas beserta pesan error-nya dihapus dari `ClassForm.tsx` untuk kelas group dan private."
+        - "`createClass` tidak lagi membaca atau mengirim `capacity`, dan `createClassSchema` tidak lagi memiliki field `capacity`."
+        - "Saat tipe Private dipilih, form menampilkan teks bantuan bahwa kelas private untuk satu student dan jadwalnya disepakati per enrollment."
+        - "Saat tipe Group dipilih, form menampilkan teks bantuan bahwa kapasitas diatur per jadwal pada langkah jadwal."
+        - "Input kapasitas per jadwal (`scheduleItemSchema`, `ScheduleForm.tsx`, `AddScheduleModal.tsx`) tidak berubah."
+      acceptanceCriteria:
+        - "Form buat kelas tidak menampilkan input kapasitas pada tipe Private maupun Group."
+        - "Body request `POST /api/v1/classes` dari form tidak mengandung `capacity`."
+        - "Kelas private dan group tetap dapat dibuat, dan wizard tetap lanjut ke langkah jadwal seperti sebelumnya."
+        - "Input kapasitas per jadwal tetap tampil dan tervalidasi seperti sebelumnya."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Keputusan owner (2026-09-28): field kapasitas dihapus dari form kelas, dan kapasitas hanya diisi per jadwal. Perubahan hanya di web; academic sudah mengabaikan field ini, jadi tidak ada perubahan kontrak API. Tipe `ClassEntity.capacity` (`_lib/schema.ts:262`) boleh dipertahankan sebagai field respons opsional, atau dihapus bila tidak ada pemakai; periksa dengan pencarian sebelum menghapus. Test `ClassListTable.test.tsx` yang memastikan tidak ada klaim kapasitas tingkat kelas harus tetap lulus. Perbarui kelolakelas-docs `docs/components/web.md` bila form kelas didokumentasikan."
+      relevantAreas:
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_components/ClassForm.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_actions/classActions.ts"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts"
+      edgeCases:
+        - "Tenant berpindah tipe Group ↔ Private: teks bantuan mengikuti tipe terpilih."
+        - "Error validasi server dikembalikan: form tidak lagi mencoba menampilkan error `capacity`."
+      testingValidation:
+        - "Vitest untuk form tanpa input kapasitas pada kedua tipe, teks bantuan per tipe, dan payload `createClass` tanpa `capacity`."
+        - "Test `createClassSchema` diperbarui; test `scheduleItemSchema capacity` tetap lulus tanpa perubahan."
+        - "Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Menghapus kolom `capacity` di tabel classes academic (migration backend)."
+        - "Perubahan kapasitas per jadwal."
+        - "Perubahan API academic."
+  - draftKey: pointer-cursor-clickable-elements
+    projectKey: null
+    title: Elemen yang dapat diklik di web menampilkan cursor pointer
+    type: Improvement
+    priority: Low
+    estimate: S
+    complexity: very-low
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "Web memakai Tailwind CSS v4. Preflight v4 tidak lagi memberi `cursor: pointer` pada `button` (`node_modules/tailwindcss/preflight.css`), dan `app/globals.css` tidak menambahkan base rule. Hanya 2 file yang memakai `cursor-pointer`, padahal ada sekitar 99 elemen `<button>`. Akibatnya tab Parent/Organization di `app/(auth)/register/_components/RegisterFormSwitch.tsx` dan tombol lain terlihat tidak dapat diklik."
+      goal: "Semua elemen interaktif yang aktif menampilkan cursor pointer, dan elemen nonaktif tidak menampilkannya."
+      requirements:
+        - "Base style global memberi `cursor: pointer` pada button, elemen `role=\"button\"`/`role=\"tab\"`, `summary`, `select`, label yang terhubung ke checkbox/radio, serta input checkbox, radio, submit, button, dan reset yang tidak disabled."
+        - "Elemen disabled menampilkan `cursor: not-allowed` tanpa mengubah perilaku `disabled:cursor-not-allowed` yang sudah ada."
+        - "Tab registrasi Parent/Organization menampilkan cursor pointer."
+        - "Tidak ada perubahan tampilan lain."
+      acceptanceCriteria:
+        - "Hover pada tab registrasi, tombol form, tombol dialog, dan checkbox izin role menampilkan pointer."
+        - "Tombol disabled menampilkan not-allowed."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Perubahan cukup satu base layer di `app/globals.css` sesuai konvensi Tailwind v4 (`@layer base`), tanpa menambah `cursor-pointer` per komponen. Utility per komponen yang sudah ada tetap berlaku. Perbarui kelolakelas-docs `docs/components/web.md` bila konvensi styling didokumentasikan."
+      relevantAreas:
+        - "kelolakelas-web/app/globals.css"
+        - "kelolakelas-web/app/(auth)/register/_components/RegisterFormSwitch.tsx"
+      edgeCases:
+        - "Elemen dengan `aria-disabled=\"true\"` tetapi tidak `disabled`."
+        - "Link yang dirender sebagai `<a>` tetap memakai pointer bawaan browser."
+      testingValidation:
+        - "Verifikasi manual di halaman register, katalog dan detail kelas, dashboard tenant, dan dashboard parent."
+        - "Existing tests pass, `npm run lint` pass, `next build` pass, dan acceptance criteria diverifikasi."
+      outOfScope:
+        - "Redesign visual komponen."
+        - "Perubahan komponen per halaman."

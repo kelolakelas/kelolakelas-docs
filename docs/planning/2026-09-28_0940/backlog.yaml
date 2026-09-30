@@ -1,0 +1,765 @@
+schemaVersion: kelolakelas.planning-backlog/v1
+projects:
+  - key: tenant-parent-teacher-chat
+    name: Chat realtime antara tenant, pengajar, dan parent
+    outcome: Parent dapat berdiskusi dengan admin tenant tentang permintaan jadwal private, pengajar dapat berdiskusi dengan admin tenant, dan pengajar dapat berdiskusi dengan parent tentang report student. Pesan baru muncul realtime melalui WebSocket.
+    problem: "Belum ada kanal komunikasi di dalam KelolaKelas: tidak ada kode chat, WebSocket, atau notifikasi di repo mana pun. Web tidak memiliki library WebSocket/SSE, dan gateway memutus setiap proxy setelah `PROXY_UPSTREAM_TIMEOUT_SECONDS` (default 30 detik, api-gateway `internal/delivery/http/handler/proxy_handler.go:115-138`). Alur permintaan jadwal private bergantung pada komunikasi di luar aplikasi, dan report student hanya dapat dibaca anggota tenant (academic `cmd/server/attendance_report_routes.go:17-21`)."
+    valueAndPriority: High. Permintaan owner yang melengkapi alur jadwal private dan komunikasi report. Confidence sedang karena ini service baru tanpa preseden realtime di codebase. Effort total besar (3 issue L, 4 issue M, 1 issue S).
+    scope:
+      - Repo dan service baru `kelolakelas-chat-service` (Go, PostgreSQL sendiri) untuk percakapan dan pesan.
+      - Permission tenant baru `chat:manage` di identity untuk admin tenant yang menangani chat.
+      - Endpoint internal academic yang menyediakan konteks permintaan jadwal private dan report untuk pemeriksaan hak akses chat-service.
+      - "Tiga jenis percakapan: parent–admin tenant per permintaan jadwal private, pengajar–admin tenant, dan pengajar–parent per report student."
+      - Pengiriman pesan lewat REST dan penerimaan realtime lewat WebSocket dengan tiket sekali pakai.
+      - Route REST dan WebSocket chat di api-gateway.
+      - Halaman chat parent dan tenant di web beserta titik masuk dari permintaan jadwal dan report.
+    outOfScope:
+      - Lampiran file atau gambar, edit dan hapus pesan, reaksi, indikator mengetik, dan status online.
+      - Notifikasi email, push, atau badge di luar halaman chat.
+      - Fan-out lintas beberapa instance chat-service; tahap ini satu instance.
+      - Chat antar-parent, atau chat parent langsung ke pengajar di luar konteks report.
+      - Moderasi, pemblokiran pengguna, serta retensi dan penghapusan otomatis pesan.
+      - Manifest deployment, yang belum ada untuk service mana pun.
+    successMetrics:
+      - Parent pemilik permintaan jadwal private dan admin tenant dapat bertukar pesan di percakapan permintaan itu, dan pesan muncul di sisi lain tanpa reload.
+      - Pengajar dapat memulai percakapan dengan admin tenant, dan dapat memulai percakapan dengan parent dari sebuah report.
+      - Tidak ada percakapan atau pesan yang dapat dibaca lintas tenant, lintas parent, atau oleh anggota tanpa permission, dibuktikan test isolasi di chat-service dan gateway.
+      - Koneksi WebSocket lewat gateway bertahan melewati `PROXY_UPSTREAM_TIMEOUT_SECONDS`.
+    dependenciesAndRisks:
+      - "Prasyarat operator sebelum issue mana pun diberi `ai-ready`: repo `kelolakelas/kelolakelas-chat-service` (public, kerangka Go, CI `gate`, branch protection sama dengan repo lain), `chat` ditambahkan ke `repositoryNames` kontrak orchestrator, tooling planning/autopilot disinkronkan, dan label Linear `chat` dibuat."
+      - "Risiko utama: kebocoran pesan lintas tenant atau lintas parent di service baru. Mitigasinya satu fungsi visibilitas yang dipakai REST dan fan-out WebSocket, ditambah test isolasi."
+      - "Risiko autentikasi WebSocket: browser tidak dapat mengirim JWT karena cookie `httpOnly` dan semua request web berjalan dari server ke `GATEWAY_API_URL`. Karena itu dipakai tiket sekali pakai berumur pendek."
+      - Titik masuk chat dari halaman permintaan jadwal bergantung pada KEL-109 dan KEL-110.
+  - key: private-class-scheduled-purchase
+    name: Pembelian kelas private dengan jadwal yang disepakati
+    outcome: Parent dapat mengajukan jadwal kelas private, tenant meninjau lalu menyetujui, menolak, atau menolak dengan rekomendasi jadwal lain, lalu parent membayar melalui payment link sehingga enrollment aktif dengan jadwal yang disepakati.
+    problem: Kelas private kini dibeli langsung tanpa jadwal (academic `internal/usecase/enrollment_usecase.go:168,217`). Jadwal private hanya dapat dibuat tenant melalui `POST /schedules` dengan `enrollment_id` setelah enrollment ada (`internal/usecase/schedule_usecase.go:221-239`), dan tidak ada UI untuk itu. Akibatnya kelas private terjual tanpa jadwal yang disepakati.
+    valueAndPriority: High. Kelas private adalah produk inti bimbel. Confidence tinggi karena alur memakai ulang enrollment, invoice billing, aktivasi internal, dan generator sesi yang sudah ada. Effort total L.
+    scope:
+      - Resource permintaan jadwal private di academic beserta route gateway.
+      - Form permintaan jadwal dan status permintaan untuk parent di web.
+      - Persetujuan tenant yang membuat enrollment, jadwal private, dan invoice.
+      - Halaman tenant untuk meninjau, menyetujui, dan menolak permintaan.
+      - Penolakan dengan rekomendasi jadwal lain dan penerimaan rekomendasi oleh parent.
+    outOfScope:
+      - Chat tenant–parent (menunggu keputusan arsitektur).
+      - Pengiriman payment link lewat email atas permintaan tenant (kandidat run berikutnya).
+      - Negosiasi bolak-balik di luar rekomendasi tenant dan pengajuan ulang oleh parent.
+      - Halaman pembayaran tanpa redirect ke Duitku.
+    successMetrics:
+      - Kelas private hanya dapat dibeli melalui permintaan jadwal yang disetujui tenant.
+      - Setiap enrollment private yang dibayar memiliki jadwal aktif yang sama dengan slot yang disetujui dan sesi yang dihasilkan.
+      - Tidak ada permintaan atau enrollment yang dapat diakses lintas tenant atau lintas parent (dibuktikan test isolasi).
+    dependenciesAndRisks:
+      - Invoice memakai `GenerateInvoice` billing yang ada (academic `pkg/billing/client.go`); tidak ada perubahan billing.
+      - Risiko utama adalah idempotensi persetujuan dan kebocoran data lintas tenant.
+issues:
+  - projectKey: tenant-parent-teacher-chat
+    type: Feature
+    priority: High
+    externalDependencies: []
+    draftKey: chat-manage-permission
+    title: Identity menyediakan permission tenant `chat:manage` untuk admin yang menangani chat
+    estimate: S
+    complexity: medium
+    repositories:
+      - identity
+    blockedByDraftKeys: []
+    body:
+      backgroundProblem: Chat membutuhkan cara menentukan siapa admin tenant yang menangani percakapan dengan parent dan pengajar. Katalog permission disimpan di tabel `permissions` dengan `name` unik (`migrations/00000000000000_init_schema.up.sql:29-30`) dan diisi oleh `seeders/000001_default_permissions_and_roles.sql`. Role sistem `Creator` hanya mendapat semua permission saat seed dijalankan (`seeders/000001_default_permissions_and_roles.sql:65-70`), sehingga permission baru tidak otomatis dimiliki tenant yang sudah ada. Role `Teacher` hanya memiliki permission `schedule`, `attendance`, `student_note`, dan `report` (`:72-79`).
+      goal: Permission `chat:manage` tersedia di semua lingkungan, dimiliki role sistem `Creator`, dan dapat diberikan ke role kustom lewat editor role yang sudah ada.
+      requirements:
+        - Migration identity baru menambahkan permission `chat:manage` dengan deskripsi Bahasa Indonesia (mis. "Menangani chat tenant dengan parent dan pengajar") secara idempoten (`ON CONFLICT (name) DO NOTHING`).
+        - Migration yang sama memberikan `chat:manage` ke role sistem `Creator` (`tenant_id IS NULL`) secara idempoten, dan tidak memberikannya ke `Teacher`.
+        - Seeder default diperbarui sehingga database baru mendapat permission dan grant yang sama.
+        - Down migration menghapus grant `chat:manage`, lalu permission-nya.
+        - "`CheckPermission` gRPC (`internal/delivery/grpc/permission_service.go:88`) menjawab `chat:manage` hanya dari data, tanpa perubahan kode."
+      acceptanceCriteria:
+        - Setelah migrate up, `GET /api/v1/permissions` memuat `chat:manage`.
+        - Anggota dengan role `Creator` mendapat `true` dari `CheckPermission` untuk `chat:manage`, sedangkan anggota dengan role `Teacher` mendapat `false`.
+        - Menjalankan migrate up dua kali, atau seed setelah migrate, tidak menghasilkan duplikat.
+        - Migrate down lalu up kembali berhasil.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: "Nama `chat:manage` dipakai chat-service (issue `chat-service-core-api`) untuk menentukan admin tenant, jadi jangan diganti tanpa memperbarui issue itu. Ikuti pola migration terbaru (`migrations/000013_platform_fee_policy.*.sql`). Permission baru otomatis tampil di editor role karena katalog dibaca dari database (`internal/repository/rbac_repository.go:22`, `GET /api/v1/permissions`). Asumsi yang belum dikonfirmasi owner: admin tenant adalah pemegang `chat:manage`, dan owner dapat memberikannya ke role kustom lewat editor role. Perbarui kelolakelas-docs `docs/data/identity-schema.md` dan daftar permission di `docs/05-security.md` bila ada."
+      relevantAreas:
+        - kelolakelas-identity-service/migrations
+        - kelolakelas-identity-service/seeders/000001_default_permissions_and_roles.sql
+        - kelolakelas-identity-service/internal/delivery/grpc/permission_service.go
+        - kelolakelas-identity-service/internal/repository/rbac_repository.go
+      edgeCases:
+        - Database yang sudah memiliki permission `chat:manage` dari seed manual.
+        - Role `Creator` belum ada karena database belum diseed.
+        - Role kustom tenant yang meniru `Creator` tidak otomatis mendapat permission baru.
+      testingValidation:
+        - Test migration di PostgreSQL untuk up, up ulang, down, dan grant yang hanya ke `Creator`. Bila repo belum punya pola test migration, verifikasi manual di PostgreSQL lokal dan catat hasilnya di PR.
+        - Test `CheckPermission` untuk `Creator` dan `Teacher`.
+        - Existing tests pass, `gofmt`/`go vet` pass, dan acceptance criteria diverifikasi.
+      outOfScope:
+        - Pemakaian permission di service lain.
+        - UI khusus di luar editor role yang sudah ada.
+        - Memberikan permission ke role kustom yang sudah ada.
+    labels:
+      - identity
+      - ai-ready
+  - projectKey: tenant-parent-teacher-chat
+    type: Feature
+    priority: High
+    externalDependencies: []
+    draftKey: academic-chat-context-internal-api
+    title: Academic menyediakan konteks permintaan jadwal private dan report untuk chat-service melalui endpoint internal
+    estimate: M
+    complexity: high
+    repositories:
+      - academic
+    blockedByDraftKeys: []
+    body:
+      backgroundProblem: |-
+        Chat-service harus memastikan parent hanya membuka percakapan untuk permintaan jadwal miliknya, dan pengajar hanya membuka percakapan report di tenant-nya. Datanya hanya ada di academic:
+        - permintaan jadwal private (`internal/domain/private_schedule_request.go`: `tenant_id`, `parent_id`, `class_id`, `student_id`, `status`);
+        - report (`internal/domain/report.go`: `TenantID`, `EnrollmentID`, `ReporterID`);
+        - relasi enrollment ke student (`internal/domain/enrollment.go:54`) dan pemilik student (`internal/domain/student.go:22` `ParentID`).
+
+        Endpoint publik report hanya untuk anggota tenant (`cmd/server/attendance_report_routes.go:17-21`). Academic sudah memiliki grup internal ber-`InternalServiceAuth` (`cmd/server/routes.go:99-102`, header `X-Internal-Service-Credential`).
+      goal: Chat-service dapat mengambil konteks minimal satu permintaan jadwal private atau satu report lewat endpoint internal yang dilindungi credential, tanpa membuka data tersebut ke publik.
+      requirements:
+        - "`GET /internal/chat-context/schedule-requests/:id` mengembalikan `id`, `tenant_id`, `parent_id`, `class_id`, `class_name`, `student_id`, `student_first_name`, dan `status`."
+        - "`GET /internal/chat-context/reports/:id` mengembalikan `id`, `tenant_id`, `enrollment_id`, `student_id`, `student_first_name`, `parent_id`, `class_name`, `title`, dan `reporter_id`."
+        - Kedua endpoint hanya terdaftar di grup `/internal` dengan `InternalServiceAuth`, dan tidak ada route gateway baru.
+        - ID tidak valid dijawab 400. Resource yang tidak ada atau sudah soft-deleted (termasuk report yang student-nya soft-deleted) dijawab 404 dengan envelope standar.
+        - "Response tidak memuat field lain: tanpa catatan parent, email parent, skor, atau isi evaluasi report."
+      acceptanceCriteria:
+        - Request tanpa credential atau dengan credential salah ditolak 401 tanpa menyentuh database.
+        - Dengan credential benar, kedua endpoint mengembalikan konteks yang sesuai untuk permintaan jadwal dan report yang ada.
+        - Resource yang sudah soft-deleted dijawab 404.
+        - Perilaku endpoint publik report dan permintaan jadwal tidak berubah.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: "Risiko utama: kebocoran data lintas tenant, karena endpoint internal ini tidak memfilter tenant. Chat-service wajib membandingkan `tenant_id` dan `parent_id` dengan token pemanggil (diatur di issue `chat-service-conversation-contexts`). Mitigasi di sisi academic adalah payload minimal dan credential wajib. Ikuti pola `ActivateInternal` (`internal/delivery/http/handler/enrollment_handler.go:390`). Nama field dan path di atas adalah kontrak untuk chat-service. Perbarui kelolakelas-docs `docs/api/academic.md` (bagian internal) dan `docs/api/endpoint-matrix.md`."
+      relevantAreas:
+        - kelolakelas-academic-service/cmd/server/routes.go
+        - kelolakelas-academic-service/internal/delivery/http/handler
+        - kelolakelas-academic-service/internal/delivery/http/middleware/auth_middleware.go
+        - kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go
+        - kelolakelas-academic-service/internal/usecase/report_usecase.go
+        - kelolakelas-academic-service/internal/repository
+      edgeCases:
+        - Permintaan jadwal berstatus `cancelled` atau `rejected` tetap dikembalikan beserta statusnya.
+        - UUID valid tetapi milik jenis resource lain, misalnya ID report di endpoint schedule-request, dijawab 404.
+        - Kelas terkait sudah di-unpublish; `class_name` tetap dikembalikan.
+      testingValidation:
+        - Handler test kedua endpoint untuk 401 (tanpa credential dan credential salah), 400, 404, dan 200.
+        - Test bahwa response hanya memuat field yang ditentukan, sebagai mitigasi kebocoran data.
+        - Route test bahwa kedua endpoint tidak terdaftar di luar `/internal`.
+        - Existing tests pass, `gofmt`/`go vet`/`go test -race` pass, dan acceptance criteria diverifikasi.
+      outOfScope:
+        - Perubahan endpoint publik report atau permintaan jadwal.
+        - Akses parent ke isi report.
+        - Route gateway.
+    labels:
+      - academic
+      - ai-ready
+  - projectKey: tenant-parent-teacher-chat
+    type: Feature
+    priority: High
+    externalDependencies: []
+    draftKey: chat-service-core-api
+    title: Chat-service menyimpan percakapan pengajar–admin tenant dan pesannya melalui REST API
+    estimate: L
+    complexity: high
+    repositories:
+      - chat
+    blockedByDraftKeys:
+      - chat-manage-permission
+    body:
+      backgroundProblem: |-
+        Owner memutuskan (2026-09-28) bahwa chat dibangun sebagai service dan repo baru `kelolakelas-chat-service` dengan WebSocket. Operator membuat repo berisi kerangka Go dan CI `gate` sebelum issue ini diberi `ai-ready`, tetapi domain chat belum ada. Service lain menyediakan pola yang bisa diikuti:
+        - JWT HS256 dengan `JWT_SECRET` bersama dan klaim `user_id`, `tenant_id`, `role_id`, `member_id`, `is_parent` (identity `pkg/jwt/jwt.go:17-29`, academic `internal/delivery/http/middleware/auth_middleware.go:26-92`);
+        - cek permission lewat gRPC identity `/tenant.PermissionService/CheckPermission` (academic `pkg/grpcclient/permission_client.go`);
+        - migration golang-migrate dan envelope `{status, message, data}`.
+      goal: Anggota tenant dapat membuka satu percakapan dengan admin tenant. Anggota tersebut dan pemegang `chat:manage` di tenant yang sama dapat membaca, mengirim, dan menandai pesan terbaca lewat REST, dengan isolasi tenant yang teruji.
+      requirements:
+        - |-
+          Schema PostgreSQL (migration golang-migrate) mencakup tiga tabel:
+            - percakapan: `id`, `tenant_id`, `kind`, `subject_id`, `parent_user_id` (nullable), `member_user_id` (nullable), snapshot `context` jsonb, `created_by_user_id`, `created_at`, `last_message_at`, dengan unik (`tenant_id`, `kind`, `subject_id`);
+            - pesan: `id`, `conversation_id`, `sender_user_id`, `sender_kind` (`parent`/`member`), `body`, `client_message_id`, `created_at`, dengan unik (`conversation_id`, `sender_user_id`, `client_message_id`);
+            - status baca per pengguna per percakapan.
+        - Autentikasi JWT mengikuti academic `AuthMiddleware`. Token tanpa `user_id`, atau token non-parent tanpa `tenant_id`, ditolak 401.
+        - |-
+          Endpoint berikut disediakan:
+            - `GET /api/v1/chat/conversations`: percakapan yang boleh dilihat pemanggil, beserta pesan terakhir dan `unread_count`, dengan paginasi `page`/`page_size`;
+            - `POST /api/v1/chat/conversations`: get-or-create, menjawab 201 bila baru dan 200 bila sudah ada;
+            - `GET /api/v1/chat/conversations/:id`;
+            - `GET /api/v1/chat/conversations/:id/messages`: pesan terbaru dulu, dengan paginasi `before` + `limit` (maksimum 100);
+            - `POST /api/v1/chat/conversations/:id/messages`;
+            - `POST /api/v1/chat/conversations/:id/read`.
+        - Issue ini hanya mendukung `kind` `staff`. Anggota tenant membuat percakapannya sendiri (`subject_id` = `member_id` pemanggil); parent tidak dapat membuat `staff`.
+        - Aturan visibilitas dipusatkan di satu fungsi yang nanti juga dipakai WebSocket. Percakapan `staff` terlihat oleh anggota pemiliknya (`member_user_id` = `user_id` pemanggil, tenant sama) dan oleh anggota tenant yang sama yang memiliki `chat:manage`, dicek lewat gRPC identity dengan `tenant_id`, `role_id`, dan `member_id`.
+        - Percakapan yang tidak boleh dilihat dijawab 404, bukan 403, agar keberadaannya tidak bocor.
+        - Isi pesan di-trim, wajib 1–2000 karakter, lalu disimpan dan dikembalikan sebagai teks biasa. `client_message_id` wajib, dan pengiriman ulang dengan nilai yang sama mengembalikan pesan yang sudah ada (idempoten).
+        - Error 5xx disanitasi sehingga tidak membocorkan error database atau nama host.
+        - "Konfigurasi lewat env yang didokumentasikan di `.env.example`: `DATABASE_URL`/`DB_*`, `JWT_SECRET`, `IDENTITY_GRPC_HOST`, `IDENTITY_PERMISSION_TIMEOUT_MS`, `PORT`, dan timeout server."
+      acceptanceCriteria:
+        - Anggota tenant membuat percakapan `staff` dan mengirim pesan, lalu pemegang `chat:manage` di tenant yang sama melihat percakapan itu di daftarnya dengan `unread_count` 1.
+        - Setelah pemegang `chat:manage` membalas lalu memanggil `read`, `unread_count` miliknya menjadi 0.
+        - Anggota lain tanpa `chat:manage`, anggota tenant lain, dan parent mendapat 404 untuk percakapan itu dan tidak melihatnya di daftar.
+        - Membuat `staff` dua kali mengembalikan percakapan yang sama.
+        - Pesan kosong, hanya berisi spasi, atau lebih dari 2000 karakter ditolak 400, dan `client_message_id` yang sama tidak menduplikasi pesan.
+        - Bila gRPC identity tidak tersedia, pemeriksaan `chat:manage` gagal tertutup (akses ditolak).
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: |-
+        Risiko utama: kebocoran pesan lintas tenant di service baru. Mitigasinya satu fungsi visibilitas yang dipakai semua handler (dan kelak fan-out WebSocket), ditambah integration test isolasi.
+
+        Prasyarat Project yang dikerjakan operator: repo `kelolakelas-chat-service` dengan kerangka Go, CI `gate`, dan branch protection, serta `chat` sudah ada di kontrak orchestrator. Ikuti struktur academic: `cmd/server`, `cmd/migrate`, `internal/{config,domain,repository,usecase,delivery}`, dan `pkg/grpcclient`.
+
+        Path endpoint di atas adalah kontrak untuk issue `gateway-chat-routes` dan `web-chat-inbox-realtime`, jadi jangan diubah tanpa memperbarui issue tersebut. Pada tahap ini chat-service berjalan satu instance. Nama tampilan pengirim di luar scope; response memuat `sender_user_id` dan `sender_kind`.
+
+        Asumsi yang belum dikonfirmasi owner:
+        - admin tenant adalah pemegang `chat:manage`;
+        - pengajar adalah anggota tenant aktif mana pun;
+        - percakapan `staff` hanya dimulai oleh anggota, bukan oleh admin.
+
+        Perbarui kelolakelas-docs: `docs/components/chat-service.md` (baru), `docs/api/chat.md` (baru), `docs/data/chat-schema.md` (baru), `docs/reference/environment-variables.md`, `docs/reference/repository-map.md`, dan `docs/02-architecture.md`.
+      relevantAreas:
+        - kelolakelas-chat-service/cmd
+        - kelolakelas-chat-service/internal
+        - kelolakelas-chat-service/migrations
+        - kelolakelas-academic-service/internal/delivery/http/middleware/auth_middleware.go
+        - kelolakelas-academic-service/pkg/grpcclient/permission_client.go
+      edgeCases:
+        - Anggota dinonaktifkan atau role-nya diubah setelah percakapan dibuat. Permission dicek per request.
+        - Dua request create `staff` bersamaan dari anggota yang sama menghasilkan satu percakapan lewat unique constraint.
+        - Paginasi `before` memakai ID pesan dari percakapan lain.
+        - Token parent (tenant nol) memanggil daftar percakapan dan menerima daftar kosong, bukan error.
+      testingValidation:
+        - Unit test usecase untuk aturan visibilitas, validasi pesan, dan idempotensi `client_message_id`.
+        - Integration test PostgreSQL untuk isolasi tenant dan pemegang `chat:manage` sebagai mitigasi kebocoran lintas tenant, termasuk create bersamaan.
+        - Handler test untuk 401, 404 tersembunyi, 400, dan fail-closed saat gRPC identity gagal.
+        - CI `gate` pass (`gofmt`, `go vet`, `go test -race`, build, govulncheck), existing tests pass, dan acceptance criteria diverifikasi.
+      outOfScope:
+        - Percakapan `schedule_request` dan `report` (issue terpisah).
+        - WebSocket dan tiket (issue terpisah).
+        - Route gateway dan UI web.
+        - Lampiran, edit, dan hapus pesan.
+    labels:
+      - chat
+      - ai-ready
+  - projectKey: tenant-parent-teacher-chat
+    type: Feature
+    priority: High
+    externalDependencies: []
+    draftKey: chat-service-conversation-contexts
+    title: Chat-service mendukung percakapan parent–admin tenant per permintaan jadwal private dan pengajar–parent per report
+    estimate: M
+    complexity: high
+    repositories:
+      - chat
+    blockedByDraftKeys:
+      - chat-service-core-api
+      - academic-chat-context-internal-api
+    body:
+      backgroundProblem: "Owner menetapkan dua alur: parent dapat chat dengan admin tenant saat mengajukan jadwal private, dan pengajar dapat chat dengan parent terkait report student. Hak akses keduanya hanya dapat dibuktikan dari data academic, yang disediakan lewat endpoint internal (issue `academic-chat-context-internal-api`). Parent tidak dapat membaca report lewat API publik (academic `internal/usecase/report_usecase.go:62` hanya menyediakan `GetByIDForTenant`)."
+      goal: Parent dan admin tenant dapat membuka percakapan untuk satu permintaan jadwal private, dan pengajar dapat membuka percakapan dengan parent untuk satu report. Hak akses diverifikasi dari academic.
+      requirements:
+        - "`POST /api/v1/chat/conversations` menerima `kind` `schedule_request` dan `report`, dengan `subject_id` berupa ID permintaan atau ID report. Chat-service memanggil endpoint internal academic dengan `X-Internal-Service-Credential` (env `ACADEMIC_SERVICE_URL` dan `INTERNAL_SERVICE_CREDENTIAL`)."
+        - "`schedule_request`: parent dapat membuat bila `parent_id` konteks sama dengan `user_id` token parent, dan anggota dengan `chat:manage` dapat membuat bila `tenant_id` konteks sama dengan tenant token. Percakapan terlihat oleh parent tersebut dan pemegang `chat:manage` di tenant itu."
+        - "`report`: anggota dengan `report:read` di tenant report dapat membuat, sedangkan parent tidak dapat membuat. Percakapan terlihat oleh parent student (`parent_id` konteks) dan anggota tenant itu yang memiliki `report:read`."
+        - "Snapshot konteks disimpan saat percakapan dibuat: `class_name`, `student_first_name`, `report_title` bila ada, dan nama tenant dari gRPC identity `GetTenantPublicInfo`. Dengan begitu daftar percakapan parent lintas tenant tetap informatif."
+        - Parent (token tanpa tenant) melihat semua percakapan miliknya lintas tenant di `GET /api/v1/chat/conversations`.
+        - Aturan visibilitas baru ditambahkan ke fungsi visibilitas yang sama dari issue `chat-service-core-api`. Visibilitas setelah pembuatan memakai kolom tersimpan, bukan panggilan ulang ke academic.
+        - Bila academic tidak tersedia atau menjawab 5xx, pembuatan percakapan gagal dengan 503 tersanitasi; percakapan yang sudah ada tetap dapat dibaca.
+      acceptanceCriteria:
+        - Parent pemilik permintaan membuat percakapan `schedule_request`, dan pemegang `chat:manage` di tenant itu dapat membalas.
+        - Parent lain, anggota tenant lain, dan anggota tanpa `chat:manage` tidak dapat membuat maupun melihat percakapan permintaan itu (404).
+        - Pengajar dengan `report:read` membuat percakapan `report`, parent student melihat dan membalasnya, sedangkan parent lain mendapat 404.
+        - Parent yang mencoba membuat percakapan `report` ditolak.
+        - ID permintaan atau report yang tidak ada ditolak 404.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: |-
+        Risiko utama: kebocoran lintas tenant dan lintas parent, karena endpoint internal academic tidak memfilter tenant. Chat-service wajib membandingkan `tenant_id` dan `parent_id` konteks dengan token sebelum membuat percakapan.
+
+        Asumsi yang belum dikonfirmasi owner:
+        - percakapan permintaan jadwal boleh dibuka pada status apa pun, termasuk setelah ditolak atau dibatalkan;
+        - sisi tenant pada percakapan report adalah semua pemegang `report:read` di tenant, bukan hanya pembuat report.
+
+        Perbarui kelolakelas-docs `docs/api/chat.md`, `docs/components/chat-service.md`, dan `docs/reference/environment-variables.md`.
+      relevantAreas:
+        - kelolakelas-chat-service/internal/usecase
+        - kelolakelas-chat-service/internal/repository
+        - kelolakelas-chat-service/pkg
+        - kelolakelas-identity-service/pkg/proto/tenant
+      edgeCases:
+        - Permintaan dibatalkan setelah percakapan dibuat; percakapan tetap bisa dipakai.
+        - Student dihapus setelah percakapan report dibuat; snapshot konteks tetap ditampilkan.
+        - Parent memiliki percakapan di beberapa tenant.
+        - Dua anggota tenant membuat percakapan yang sama secara bersamaan.
+      testingValidation:
+        - Unit test usecase untuk setiap kombinasi pemanggil, jenis percakapan, dan kepemilikan.
+        - Integration test PostgreSQL dengan academic palsu (`httptest`) untuk isolasi parent dan tenant, sebagai mitigasi kebocoran.
+        - Test bahwa kegagalan academic menghasilkan 503 tersanitasi.
+        - CI `gate` pass (`gofmt`, `go vet`, `go test -race`, build, govulncheck), existing tests pass, dan acceptance criteria diverifikasi.
+      outOfScope:
+        - WebSocket (issue terpisah).
+        - Menampilkan isi report ke parent.
+        - Tombol di halaman permintaan jadwal atau report (issue web).
+    labels:
+      - chat
+      - ai-ready
+  - projectKey: tenant-parent-teacher-chat
+    type: Feature
+    priority: High
+    externalDependencies: []
+    draftKey: chat-service-websocket-realtime
+    title: Chat-service mengirim pesan baru secara realtime lewat WebSocket dengan tiket sekali pakai
+    estimate: L
+    complexity: high
+    repositories:
+      - chat
+    blockedByDraftKeys:
+      - chat-service-core-api
+      - chat-service-conversation-contexts
+    body:
+      backgroundProblem: Owner memutuskan pesan baru muncul lewat WebSocket sejak awal. Web memanggil backend hanya dari server (`kelolakelas-web/lib/gateway.ts:148-176`, kelolakelas-docs `docs/components/web.md:60-64`) dan menyimpan JWT di cookie `httpOnly` (`app/(auth)/login/_actions/actions.ts:73-74`). Akibatnya browser tidak dapat mengirim header `Authorization` saat membuka WebSocket. Belum ada library WebSocket di repo Go mana pun.
+      goal: Klien terautentikasi dapat membuka WebSocket dengan tiket sekali pakai dan menerima event pesan baru serta status baca untuk percakapan yang boleh dilihatnya, tanpa polling.
+      requirements:
+        - "`POST /api/v1/chat/ws-tickets` (JWT wajib) mengembalikan `ticket` acak minimal 32 byte dan `expires_at`. Tiket berlaku paling lama 60 detik, sekali pakai, hanya disimpan sebagai hash, dan terikat ke `user_id`, `tenant_id`, `role_id`, `member_id`, `is_parent`, serta `exp` token."
+        - "`GET /api/v1/chat/ws?ticket=` melakukan upgrade WebSocket hanya bila tiket valid, belum dipakai, dan belum kedaluwarsa. Selain itu request ditolak 401 sebelum upgrade."
+        - Server mengirim event JSON `message.created` (`conversation_id` dan pesan) dan `conversation.read` (`conversation_id`, `user_id`, penanda baca) hanya ke koneksi yang lolos fungsi visibilitas yang sama dengan REST.
+        - Pesan tetap dikirim lewat REST; selain ping/pong, WebSocket hanya berarah dari server ke klien.
+        - Ping dikirim setiap 30 detik. Koneksi ditutup bila pong tidak diterima dalam dua interval, saat `exp` token tercapai, atau setelah umur koneksi 30 menit (klien lalu meminta tiket baru). Hak `chat:manage`/`report:read` koneksi dievaluasi saat terhubung.
+        - Ada batas ukuran frame dari klien (mis. 4 KB) dan batas jumlah koneksi per pengguna (mis. 5) untuk mencegah penyalahgunaan.
+        - Fan-out memakai hub di memori untuk satu instance, dan shutdown menutup koneksi dengan close code normal.
+      acceptanceCriteria:
+        - Klien dengan tiket valid menerima `message.created` untuk pesan yang dikirim peserta lain lewat REST, tanpa reload.
+        - Klien yang tidak berhak melihat percakapan, termasuk anggota tenant lain dan parent lain, tidak menerima event-nya.
+        - Tiket kedaluwarsa, sudah dipakai, atau acak ditolak 401 tanpa upgrade.
+        - Koneksi ditutup saat token kedaluwarsa atau setelah batas umur koneksi tercapai.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: |-
+        Risiko utama: autentikasi WebSocket dan kebocoran event. Mitigasinya:
+        - tiket sekali pakai berumur pendek, dan JWT tidak pernah dikirim lewat query;
+        - tiket disimpan sebagai hash;
+        - fan-out lewat fungsi visibilitas tunggal.
+
+        Pilih library WebSocket Go yang aktif dipelihara dan lolos govulncheck, lalu catat alasannya di ADR. Gateway meneruskan upgrade dan menegakkan Origin lewat `CORSMiddleware` (api-gateway `internal/delivery/http/router.go:76`). Access log gateway hanya mencatat path tanpa query (`internal/delivery/http/middleware/access_log_middleware.go:35-40`), sehingga tiket tidak tercatat.
+
+        Asumsi: chat-service berjalan satu instance. Fan-out multi-instance (mis. PostgreSQL LISTEN/NOTIFY) di luar scope dan dicatat sebagai risiko.
+
+        Perbarui kelolakelas-docs: `docs/api/chat.md` (protokol event), `docs/components/chat-service.md`, dan ADR baru untuk autentikasi WebSocket berbasis tiket.
+      relevantAreas:
+        - kelolakelas-chat-service/cmd/server
+        - kelolakelas-chat-service/internal/delivery
+        - kelolakelas-chat-service/internal/usecase
+        - kelolakelas-chat-service/migrations
+      edgeCases:
+        - Tiket yang sama dipakai dua kali bersamaan; hanya satu yang berhasil.
+        - Klien lambat yang buffer kirimnya penuh diputus agar tidak memblokir hub.
+        - Permission dicabut saat koneksi masih terbuka; perubahan berlaku paling lambat saat batas umur koneksi.
+        - Pengguna membuka beberapa tab.
+      testingValidation:
+        - Unit test tiket (kedaluwarsa, sekali pakai, hash) dan hub (fan-out hanya ke koneksi yang berhak).
+        - Integration test WebSocket dengan `httptest` untuk upgrade, event, isolasi tenant/parent sebagai mitigasi kebocoran, dan penutupan saat token kedaluwarsa.
+        - Test race untuk pemakaian tiket bersamaan dengan `go test -race`.
+        - CI `gate` pass (`gofmt`, `go vet`, `go test -race`, build, govulncheck), existing tests pass, dan acceptance criteria diverifikasi.
+      outOfScope:
+        - Mengirim pesan lewat WebSocket.
+        - Fan-out multi-instance.
+        - Indikator mengetik dan status online.
+        - Route gateway (issue terpisah).
+    labels:
+      - chat
+      - ai-ready
+  - projectKey: tenant-parent-teacher-chat
+    type: Feature
+    priority: High
+    externalDependencies: []
+    draftKey: gateway-chat-routes
+    title: Gateway meneruskan REST chat dan koneksi WebSocket chat ke chat-service
+    estimate: M
+    complexity: high
+    repositories:
+      - api-gateway
+    blockedByDraftKeys:
+      - chat-service-core-api
+      - chat-service-websocket-realtime
+    body:
+      backgroundProblem: Gateway saat ini hanya mengenal tiga upstream (`internal/config/config.go:58-60`, `internal/delivery/http/handler/proxy_handler.go:47-83`). Setiap proxy dibatasi `context.WithTimeout` selama `PROXY_UPSTREAM_TIMEOUT_SECONDS` (default 30 detik) untuk seluruh pertukaran (`proxy_handler.go:115-138`). `httputil.ReverseProxy` meneruskan upgrade WebSocket dan menutup koneksi backend ketika context request selesai, sehingga route WebSocket yang melewati `proxyRoute` akan terputus setelah 30 detik. Sebaliknya, hijack koneksi menghapus deadline server (Go `net/http/server.go:325`), jadi `SERVER_WRITE_TIMEOUT_SECONDS` tidak memutus koneksi yang sudah di-upgrade. Kesimpulan ini Inferred dari source stdlib dan harus dibuktikan lewat test.
+      goal: Web dapat memanggil REST chat lewat gateway dengan autentikasi dan session check yang sama seperti route lain, serta membuka WebSocket chat yang bertahan melewati batas timeout proxy.
+      requirements:
+        - Env baru `CHAT_SERVICE_URL` bersifat opsional. Bila kosong, semua route chat menjawab 503 dengan envelope gateway dan readiness tidak memeriksa chat. Bila diisi, readiness (`internal/delivery/http/readiness.go`) ikut memeriksa chat-service.
+        - Route REST chat (`/api/v1/chat/conversations`, `/api/v1/chat/conversations/:id`, `/:id/messages`, `/:id/read`, dan `POST /api/v1/chat/ws-tickets`) didaftarkan di grup protected dengan `AuthMiddlewareWithSessionCheck`. Route ini dapat diakses parent maupun anggota tenant dan memakai `proxyRoute` biasa.
+        - "`GET /api/v1/chat/ws` didaftarkan tanpa `Authorization`, karena chat-service yang memvalidasi tiket. Route ini memakai reverse proxy terpisah tanpa deadline upstream, tetapi tetap melewati `CORSMiddleware` dan rate limit global."
+        - Header konteks yang tidak tepercaya tetap dihapus (`StripUntrustedContextHeaders`) pada route chat.
+        - Signature `NewProxyHandler` yang dipakai test lama tetap dapat dikompilasi; upstream chat ditambahkan lewat opsi atau field baru.
+      acceptanceCriteria:
+        - REST chat tanpa token ditolak 401 oleh gateway, sedangkan dengan token valid diteruskan ke chat-service.
+        - Dalam test dengan timeout diperkecil, upgrade WebSocket dengan Origin sama dengan `APP_URL` berhasil dan tetap terhubung lebih lama dari `PROXY_UPSTREAM_TIMEOUT_SECONDS`.
+        - Upgrade dengan Origin lain ditolak 403 sebelum mencapai chat-service.
+        - Tanpa `CHAT_SERVICE_URL`, route chat menjawab 503 dan route lain tidak berubah.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: |-
+        Risiko utama: route WebSocket ini tidak diautentikasi gateway dan tidak punya batas waktu. Mitigasinya:
+        - autentikasi tiket di chat-service;
+        - Origin ditegakkan `CORSMiddleware` (`internal/delivery/http/router.go:76`);
+        - rate limit global;
+        - batas umur koneksi di chat-service;
+        - access log yang tidak mencatat query.
+
+        `http.Server.Shutdown` tidak menutup koneksi yang sudah di-hijack, jadi pastikan shutdown gateway tidak tertahan oleh koneksi WebSocket. Path mengikuti kontrak issue `chat-service-core-api` dan `chat-service-websocket-realtime`.
+
+        Perbarui kelolakelas-docs: `docs/api/gateway.md`, `docs/api/endpoint-matrix.md`, `docs/components/api-gateway.md`, dan `docs/reference/environment-variables.md`, serta tambahkan ADR yang mencatat pengecualian WebSocket terhadap ADR 0021 (bounded proxy).
+      relevantAreas:
+        - kelolakelas-api-gateway/internal/config/config.go
+        - kelolakelas-api-gateway/internal/delivery/http/router.go
+        - kelolakelas-api-gateway/internal/delivery/http/handler/proxy_handler.go
+        - kelolakelas-api-gateway/internal/delivery/http/readiness.go
+        - kelolakelas-api-gateway/cmd/server/main.go
+        - kelolakelas-api-gateway/.env.example
+      edgeCases:
+        - Chat-service tidak tersedia saat upgrade; dijawab 502 dengan envelope gateway.
+        - Gateway shutdown saat koneksi WebSocket masih terbuka.
+        - Body REST chat melebihi `PROXY_MAX_BODY_BYTES` dijawab 413.
+      testingValidation:
+        - Router test bahwa setiap route chat diteruskan ke upstream chat dan route REST terlindungi.
+        - Test WebSocket end-to-end dengan upstream echo `httptest` yang membuktikan koneksi bertahan melewati timeout upstream yang diperkecil, sebagai mitigasi risiko timeout.
+        - Test bahwa Origin asing ditolak dan `CHAT_SERVICE_URL` kosong menghasilkan 503.
+        - Existing tests pass, `gofmt`/`go vet`/`go test -race` pass, dan acceptance criteria diverifikasi.
+      outOfScope:
+        - Autentikasi tiket (di chat-service).
+        - Rate limit khusus chat.
+        - Load balancing multi-instance.
+    labels:
+      - api-gateway
+      - ai-ready
+  - projectKey: tenant-parent-teacher-chat
+    type: Feature
+    priority: High
+    externalDependencies: []
+    draftKey: web-chat-inbox-realtime
+    title: Parent dan anggota tenant membaca dan membalas chat di web dengan pesan baru muncul realtime
+    estimate: L
+    complexity: medium
+    repositories:
+      - web
+    blockedByDraftKeys:
+      - gateway-chat-routes
+    body:
+      backgroundProblem: Web belum memiliki halaman chat maupun library WebSocket. Semua panggilan backend berjalan di Server Actions/Components ke `GATEWAY_API_URL`, yang sengaja server-only (`lib/gateway.ts:148-176`, kelolakelas-docs `docs/components/web.md:60-64`). Satu-satunya pola pembaruan berkala saat ini adalah `PaymentReturnRefresher` (`router.refresh()`). Navigasi tenant didefinisikan di `app/(dashboard)/dashboard/tenant/_constants/constants.ts`, dan halaman parent ada di `app/(dashboard)/dashboard/parent/{students,enrollments}`.
+      goal: Parent dan anggota tenant dapat melihat daftar percakapan, membuka percakapan, mengirim pesan, dan melihat pesan baru tanpa reload.
+      requirements:
+        - Halaman `/dashboard/parent/chat` dan `/dashboard/tenant/chat` menampilkan daftar percakapan (jenis, konteks snapshot, pesan terakhir, jumlah belum dibaca) dan panel percakapan yang dipilih.
+        - Pesan dikirim lewat Server Action ke `POST /api/v1/chat/conversations/:id/messages` dengan `client_message_id` yang dibuat klien. Pesan tampil optimis, lalu dikonfirmasi atau ditandai gagal dengan opsi kirim ulang.
+        - Membuka percakapan memanggil `POST /api/v1/chat/conversations/:id/read`.
+        - Anggota tenant dapat memulai percakapan dengan admin tenant (`kind` `staff`) dari halaman chat tenant.
+        - "Realtime berjalan begini: Server Action meminta tiket (`POST /api/v1/chat/ws-tickets`) memakai cookie auth, lalu komponen klien membuka WebSocket ke env publik baru `NEXT_PUBLIC_CHAT_WS_URL` (origin ws/wss gateway) + `/api/v1/chat/ws?ticket=`. Event `message.created` dan `conversation.read` memperbarui daftar dan panel."
+        - Saat koneksi putus atau ditutup server, klien reconnect dengan backoff dan tiket baru, lalu mengambil ulang pesan yang terlewat. Bila `NEXT_PUBLIC_CHAT_WS_URL` kosong atau koneksi gagal, halaman tetap berfungsi dengan refresh manual dan menampilkan status koneksi.
+        - Tautan ke chat ditambahkan di navigasi tenant dan di halaman parent yang sudah ada.
+        - Isi pesan dirender sebagai teks biasa tanpa HTML, dengan pemisah baris dipertahankan.
+      acceptanceCriteria:
+        - Parent dan admin tenant di dua browser melihat pesan satu sama lain muncul tanpa reload.
+        - Anggota tenant memulai percakapan dengan admin tenant, dan admin melihatnya di daftar.
+        - Pesan yang gagal terkirim ditandai dan dapat dikirim ulang tanpa duplikasi.
+        - Saat WebSocket tidak tersedia, halaman menampilkan status terputus dan tetap dapat mengirim serta memuat pesan.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: 'Sesuai keputusan owner, realtime memakai WebSocket sejak awal. `NEXT_PUBLIC_CHAT_WS_URL` sengaja membuka origin WebSocket gateway ke browser, sebagai pengecualian dari prinsip gateway server-only; JWT tetap tidak pernah dikirim ke browser, hanya tiket sekali pakai. Saat ini tidak ada CSP di `next.config.ts`. Error 404 dari chat ditampilkan sebagai "Percakapan tidak ditemukan". Nama tampilan pengirim di luar scope: tampilkan "Anda", "Tenant", "Pengajar", atau "Parent" berdasarkan `sender_kind` dan jenis percakapan. Perbarui `.env.example` web, serta kelolakelas-docs `docs/components/web.md` dan `docs/reference/environment-variables.md`.'
+      relevantAreas:
+        - kelolakelas-web/app/(dashboard)/dashboard/parent
+        - kelolakelas-web/app/(dashboard)/dashboard/tenant
+        - kelolakelas-web/app/(dashboard)/dashboard/tenant/_constants/constants.ts
+        - kelolakelas-web/lib/gateway.ts
+        - kelolakelas-web/.env.example
+      edgeCases:
+        - Tiket kedaluwarsa sebelum koneksi dibuka; klien meminta tiket baru sekali.
+        - Event datang untuk percakapan yang belum ada di daftar; daftar dimuat ulang.
+        - Beberapa tab terbuka.
+        - Pesan panjang dan multi-baris.
+        - Cookie sesi kedaluwarsa saat meminta tiket; pengguna diarahkan ke login seperti di halaman lain.
+      testingValidation:
+        - "Vitest untuk state chat: penerapan event, optimistic update, dan dedup `client_message_id`."
+        - Test komponen untuk status koneksi dan fallback tanpa WebSocket.
+        - Test Server Actions untuk pemetaan error 401, 404, dan 400.
+        - Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.
+      outOfScope:
+        - Tombol memulai chat dari permintaan jadwal dan report (issue terpisah).
+        - Notifikasi di luar halaman chat.
+        - Lampiran dan nama tampilan pengirim.
+    labels:
+      - web
+      - ai-ready
+  - projectKey: tenant-parent-teacher-chat
+    type: Feature
+    priority: High
+    externalDependencies: []
+    draftKey: web-chat-entry-points
+    title: Parent, admin tenant, dan pengajar dapat memulai chat dari permintaan jadwal private dan dari report student
+    estimate: M
+    complexity: medium
+    repositories:
+      - web
+    blockedByDraftKeys:
+      - web-chat-inbox-realtime
+      - parent-private-schedule-request-web
+      - tenant-private-schedule-review-web
+    body:
+      backgroundProblem: Owner menginginkan parent dapat chat dengan admin tenant saat mengajukan jadwal private, dan pengajar dapat chat dengan parent terkait report student. Halaman status permintaan untuk parent dan halaman tinjauan untuk tenant dibangun di KEL-109 dan KEL-110. Web belum memiliki halaman report, tetapi daftar report sudah tersedia lewat `GET /api/v1/reports` untuk anggota dengan `report:read` (academic `cmd/server/attendance_report_routes.go:17`, route gateway `/reports`).
+      goal: Chat untuk permintaan jadwal private dan report dapat dimulai langsung dari konteksnya, dan membuka percakapan yang sama bila sudah ada.
+      requirements:
+        - Di halaman permintaan jadwal private parent (KEL-109), setiap permintaan memiliki tombol "Chat dengan tenant". Tombol ini membuat atau membuka percakapan `schedule_request`, lalu menuju percakapan tersebut.
+        - Di halaman tinjauan permintaan tenant (KEL-110), pemegang `chat:manage` mendapat tombol "Chat dengan parent" dengan perilaku yang sama.
+        - Di halaman chat tenant, anggota dengan `report:read` dapat memilih report (dari `GET /api/v1/reports`, dengan pencarian dan paginasi), lalu memulai percakapan `report` dengan parent student.
+        - Bila pengguna tidak berhak (chat-service menjawab 403/404), tombol disembunyikan atau pesan yang jelas ditampilkan.
+      acceptanceCriteria:
+        - Parent menekan "Chat dengan tenant" pada permintaan miliknya dan masuk ke percakapan permintaan itu. Menekan lagi membuka percakapan yang sama.
+        - Admin tenant memulai chat dari permintaan yang sama dan masuk ke percakapan yang sama dengan parent.
+        - Pengajar memilih report dan memulai percakapan, lalu parent student melihatnya di daftar chat parent.
+        - Anggota tanpa `report:read` tidak melihat pemilih report.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: "Issue ini bergantung pada halaman yang dibuat KEL-109 dan KEL-110; ikuti struktur file yang ada di `main` saat dikerjakan. Pemeriksaan hak akses di UI hanya kosmetik, karena chat-service tetap menjadi penegaknya. Asumsi yang belum dikonfirmasi owner: chat permintaan jadwal tersedia setelah permintaan terkirim (butuh ID permintaan), bukan di dalam form sebelum submit. Perbarui kelolakelas-docs `docs/components/web.md`."
+      relevantAreas:
+        - kelolakelas-web/app/(dashboard)/dashboard/parent
+        - kelolakelas-web/app/(dashboard)/dashboard/tenant/enrollments
+        - kelolakelas-web/app/(dashboard)/dashboard/tenant
+      edgeCases:
+        - Permintaan sudah dibatalkan atau ditolak; tombol tetap tersedia.
+        - Report yang student-nya sudah dihapus; tampilkan pesan yang jelas.
+        - Chat-service menjawab 503; tampilkan pesan untuk mencoba lagi.
+      testingValidation:
+        - Test komponen tombol untuk get-or-create dan navigasi.
+        - Test pemilih report untuk paginasi, daftar kosong, dan error izin.
+        - Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.
+      outOfScope:
+        - Halaman report lengkap untuk tenant.
+        - Menampilkan isi report ke parent.
+        - Perubahan API.
+    labels:
+      - web
+      - ai-ready
+  - draftKey: private-schedule-request-api
+    projectKey: private-class-scheduled-purchase
+    title: Parent dapat mengajukan jadwal kelas private dan tenant dapat meninjau atau menolaknya melalui API
+    type: Feature
+    priority: High
+    estimate: L
+    complexity: high
+    labels:
+      - academic
+      - api-gateway
+      - ai-ready
+    repositories:
+      - academic
+      - api-gateway
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: Kelas private kini dapat dibeli langsung melalui `POST /api/v1/catalog/classes/:class_id/enrollments` tanpa jadwal. Pada academic `internal/usecase/enrollment_usecase.go:217`, hanya kelas group yang wajib `schedule_id`. Jadwal private hanya dapat dibuat tenant melalui `POST /schedules` dengan `enrollment_id` (`internal/usecase/schedule_usecase.go:221-239`) setelah enrollment ada. Parent tidak punya cara menyampaikan jadwal yang diinginkan, dan tenant tidak dapat meninjaunya sebelum pembayaran.
+      goal: Parent dapat mengajukan slot jadwal mingguan untuk kelas private bagi student miliknya. Tenant dapat melihat dan menolak ajuan, dengan atau tanpa alasan. Isolasi tenant dan kepemilikan student tetap terjaga.
+      requirements:
+        - Academic menyimpan permintaan jadwal private dengan tenant, kelas, student, parent, billing cycle (`monthly`/`quarterly`/`yearly`), satu atau lebih slot mingguan (`day_of_week` ISO 1–7, `start_time`, `end_time`), catatan parent opsional, status (`pending`, `approved`, `rejected`, `cancelled`), alasan penolakan opsional, serta waktu dibuat dan diputuskan.
+        - Parent hanya dapat membuat permintaan untuk student miliknya, pada kelas bertipe `private` yang dipublikasikan dengan `enrollment_status` `open`. Kelas group ditolak.
+        - Satu student hanya boleh memiliki satu permintaan `pending` per kelas, dan tidak boleh mengajukan bila sudah memiliki enrollment `pending` atau `active` di kelas tersebut.
+        - Parent dapat melihat daftar dan detail permintaannya sendiri, serta membatalkan permintaan yang masih `pending`.
+        - Anggota tenant dengan `enrollment:read` dapat melihat daftar (dengan filter status) dan detail permintaan milik tenant-nya. Anggota dengan `enrollment:update` dapat menolak permintaan `pending`, dengan alasan opsional.
+        - Email parent dari klaim token terverifikasi disimpan pada permintaan agar invoice yang kelak dibuat tenant dapat dialamatkan, mengikuti pola KEL-75 di `internal/delivery/http/handler/enrollment_handler.go:198-201`.
+        - Checkout langsung kelas private melalui `POST /catalog/classes/:class_id/enrollments` ditolak dengan `code` error yang dapat dibaca mesin dan mengarahkan ke permintaan jadwal. Checkout kelas group tidak berubah.
+        - Semua route baru didaftarkan di gateway `internal/delivery/http/router.go` dengan autentikasi yang sama seperti route enrollment.
+      acceptanceCriteria:
+        - Parent membuat permintaan untuk student miliknya pada kelas private yang terbuka dan menerima 201 dengan status `pending`.
+        - Permintaan untuk student milik parent lain, kelas group, kelas yang tidak dipublikasikan atau tidak `open`, atau slot dengan `end_time` tidak setelah `start_time` ditolak 4xx dengan pesan yang jelas.
+        - Permintaan `pending` kedua untuk student dan kelas yang sama ditolak 409.
+        - Anggota tenant A tidak dapat membaca, menolak, atau mengetahui keberadaan permintaan tenant B.
+        - Tenant menolak dengan atau tanpa alasan, lalu parent melihat status `rejected` beserta alasannya bila ada.
+        - Parent membatalkan permintaan `pending`, dan permintaan yang sudah diputuskan tidak dapat dibatalkan.
+        - Checkout langsung kelas private ditolak dengan `code` terdokumentasi, sedangkan checkout kelas group tetap berhasil seperti sebelumnya.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: "Risiko utama: kebocoran data lintas tenant atau lintas parent, karena resource baru dibaca oleh dua persona. Ikuti scoping tenant dan `RequirePermissionUnlessParent` di academic `cmd/server/routes.go:65-70`, serta sanitasi 5xx (KEL-64). Tambahkan migration academic baru; format waktu mengikuti `ScheduleItemRequest` (`internal/domain/schedule_dto.go:10-20`). Keputusan owner (2026-09-28): (1) kelas private hanya dapat dibeli melalui permintaan jadwal yang disetujui tenant, dan checkout langsung dihapus; (2) tenant dapat menolak begitu saja atau menolak dengan rekomendasi jadwal lain. Rekomendasi dikerjakan di issue terpisah (`private-schedule-recommendation-api`); issue ini menyediakan penolakan dengan alasan opsional, dan parent tetap dapat mengajukan permintaan baru setelah ditolak. Persetujuan, invoice, UI, email, dan chat ada di luar issue ini. Perbarui kelolakelas-docs: `docs/api/academic.md`, `docs/api/endpoint-matrix.md`, `docs/api/gateway.md`, `docs/data/academic-schema.md`, dan `docs/flows/academic.md`."
+      relevantAreas:
+        - kelolakelas-academic-service/internal/domain
+        - kelolakelas-academic-service/internal/usecase/enrollment_usecase.go
+        - kelolakelas-academic-service/internal/repository
+        - kelolakelas-academic-service/internal/delivery/http/handler
+        - kelolakelas-academic-service/cmd/server/routes.go
+        - kelolakelas-academic-service/migrations
+        - kelolakelas-api-gateway/internal/delivery/http/router.go
+      edgeCases:
+        - Kelas di-unpublish atau ditutup saat permintaan masih `pending`.
+        - Student dihapus saat permintaan masih `pending`.
+        - Slot duplikat atau tumpang tindih dalam satu permintaan.
+        - Parent membatalkan bersamaan dengan tenant menolak (race).
+        - Token parent tanpa klaim email.
+      testingValidation:
+        - Unit test usecase untuk validasi, transisi status, dan aturan satu `pending` per student per kelas.
+        - Integration test PostgreSQL untuk isolasi tenant dan kepemilikan student (mitigasi risiko lintas tenant).
+        - Handler test untuk permission `enrollment:read`/`enrollment:update` serta akses parent.
+        - Gateway route test untuk route baru.
+        - Existing tests pass, `go vet`/lint pass, dan acceptance criteria diverifikasi.
+      outOfScope:
+        - Persetujuan permintaan beserta pembuatan enrollment, jadwal, dan invoice.
+        - UI web parent dan tenant.
+        - Notifikasi email atau chat.
+        - Penolakan dengan rekomendasi jadwal lain (issue terpisah).
+  - draftKey: approve-private-schedule-request
+    projectKey: private-class-scheduled-purchase
+    title: Persetujuan tenant atas permintaan jadwal private membuat enrollment, jadwal, dan payment link
+    type: Feature
+    priority: High
+    estimate: M
+    complexity: high
+    labels:
+      - academic
+      - api-gateway
+      - ai-ready
+    repositories:
+      - academic
+      - api-gateway
+    blockedByDraftKeys:
+      - private-schedule-request-api
+    externalDependencies: []
+    body:
+      backgroundProblem: Setelah permintaan jadwal private tersedia, tenant perlu mengubah permintaan yang disetujui menjadi pembelian yang dapat dibayar. Academic sudah mampu membuat enrollment `pending` beserta invoice billing (`internal/usecase/enrollment_usecase.go:331` `EnrollStudent`, `pkg/billing/client.go` `GenerateInvoice`) dan membuat jadwal private terikat `enrollment_id` (`internal/usecase/schedule_usecase.go:221-239`). Billing juga sudah mengaktifkan enrollment setelah pembayaran melalui `/internal/enrollments/:id/activate` (`cmd/server/routes.go:94`). Namun belum ada operasi yang menyatukan langkah-langkah tersebut dari sebuah permintaan.
+      goal: Anggota tenant dengan izin menyetujui permintaan `pending`, dan sistem menghasilkan enrollment `pending`, jadwal private sesuai slot yang disetujui, serta payment link yang dapat dibayar parent. Setelah pembayaran terkonfirmasi, enrollment aktif dengan jadwal tersebut.
+      requirements:
+        - Anggota tenant dengan `enrollment:update` dapat menyetujui permintaan `pending` milik tenant-nya.
+        - Persetujuan mengubah status permintaan menjadi `approved`, membuat satu enrollment `pending` untuk student, kelas, dan billing cycle dari permintaan, serta membuat jadwal private per slot yang terikat enrollment tersebut dengan kapasitas 1.
+        - Invoice dibuat melalui `GenerateInvoice` billing yang ada dengan idempotency key yang diturunkan dari permintaan dan email parent yang tersimpan. Checkout URL disimpan pada enrollment dengan cara yang sama seperti `EnrollPublic`.
+        - Respons persetujuan memuat enrollment id, transaction id, dan `checkout_session_url` agar tenant dapat membagikannya.
+        - "Persetujuan berulang untuk permintaan yang sama idempoten: tidak membuat enrollment, jadwal, atau invoice ganda, dan mengembalikan hasil yang sama."
+        - Kegagalan invoice mengikuti jalur `invoiceFailure` yang ada (termasuk `platform_fee_exceeds_gross`, KEL-106) dan tidak meninggalkan permintaan `approved` tanpa enrollment yang dapat dibayar. Tenant dapat mencoba lagi.
+        - Aktivasi setelah pembayaran dan pelepasan saat invoice kedaluwarsa memakai jalur internal yang ada tanpa perubahan billing.
+      acceptanceCriteria:
+        - Menyetujui permintaan `pending` menghasilkan enrollment `pending`, jadwal private sesuai slot, dan `checkout_session_url` yang valid.
+        - Parent melihat enrollment baru beserta tautan "Lanjutkan pembayaran" di halaman status enrollment yang ada (KEL-53).
+        - Setelah webhook pembayaran terkonfirmasi, enrollment menjadi `active` dan sesi dihasilkan dari jadwal yang disetujui.
+        - Persetujuan kedua atau paralel untuk permintaan yang sama tidak membuat data ganda.
+        - Permintaan milik tenant lain, permintaan yang tidak `pending`, dan anggota tanpa `enrollment:update` ditolak dengan 404/409/403 yang sesuai.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: "Risiko utama: financial correctness dan idempotensi. Persetujuan ganda atau parsial dapat menghasilkan invoice ganda atau enrollment tanpa jadwal. Jaga penulisan permintaan, enrollment, dan jadwal dalam satu transaksi database, dan jangan menahan lock database selama I/O ke billing (pola `EnrollPublic` di `enrollment_usecase.go:168-240`). Pakai ulang `CreateIfCapacityAvailable` dan penanganan duplikat enrollment (KEL-54). Tidak ada perubahan billing. Route persetujuan harus didaftarkan di gateway. Perbarui kelolakelas-docs: `docs/api/academic.md`, `docs/flows/academic.md`, dan `docs/flows/billing-and-subscriptions.md` untuk alur private."
+      relevantAreas:
+        - kelolakelas-academic-service/internal/usecase/enrollment_usecase.go
+        - kelolakelas-academic-service/internal/usecase/schedule_usecase.go
+        - kelolakelas-academic-service/pkg/billing/client.go
+        - kelolakelas-academic-service/cmd/server/routes.go
+        - kelolakelas-api-gateway/internal/delivery/http/router.go
+      edgeCases:
+        - Billing menolak invoice karena biaya platform melebihi gross (KEL-106).
+        - Billing timeout setelah enrollment dibuat.
+        - Student sudah memiliki enrollment aktif di kelas yang sama saat disetujui.
+        - Kelas ditutup di antara pengajuan dan persetujuan.
+        - Invoice kedaluwarsa sebelum dibayar, sehingga enrollment dilepas oleh jalur yang ada.
+      testingValidation:
+        - Unit test usecase untuk persetujuan sukses, kegagalan invoice, dan replay idempoten.
+        - Integration test PostgreSQL untuk persetujuan paralel yang tidak menghasilkan data ganda (mitigasi risiko finansial).
+        - Test isolasi tenant dan permission untuk handler persetujuan.
+        - Gateway route test.
+        - Existing tests pass, `go vet`/lint pass, dan acceptance criteria diverifikasi.
+      outOfScope:
+        - Pengiriman payment link lewat email atau chat.
+        - Perubahan billing atau provider pembayaran.
+        - UI web.
+  - draftKey: parent-private-schedule-request-web
+    projectKey: private-class-scheduled-purchase
+    title: Parent mengajukan jadwal kelas private dari detail kelas dan memantau status permintaannya
+    type: Feature
+    priority: High
+    estimate: M
+    complexity: medium
+    labels:
+      - web
+      - ai-ready
+    repositories:
+      - web
+    blockedByDraftKeys:
+      - private-schedule-request-api
+    externalDependencies: []
+    body:
+      backgroundProblem: Panel enrollment di detail kelas (`app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx`) menampilkan form checkout yang sama untuk kelas private dan group. Setelah API permintaan jadwal tersedia dan checkout langsung kelas private ditolak, parent membutuhkan UI untuk mengajukan jadwal dan mengikuti hasil peninjauan.
+      goal: Parent dapat mengajukan satu atau lebih slot jadwal untuk kelas private langsung dari detail kelas, lalu melihat status permintaan, alasan penolakan bila ada, dan kelanjutan pembayaran setelah disetujui.
+      requirements:
+        - "Untuk kelas private dan pengguna parent, panel detail kelas menampilkan form permintaan jadwal: student, periode pembayaran, satu atau lebih slot (hari, jam mulai, jam selesai), dan catatan opsional. Form checkout kelas private tidak lagi ditampilkan."
+        - Kelas group tetap memakai form checkout yang ada tanpa perubahan.
+        - Parent dapat melihat daftar permintaannya dengan status, slot, dan alasan penolakan bila ada, serta membatalkan permintaan `pending`.
+        - Permintaan yang disetujui mengarahkan parent ke enrollment terkait di halaman status enrollment yang ada, tempat tautan pembayaran sudah tersedia (KEL-53).
+        - Error API (409 permintaan ganda, 4xx validasi, 403, error jaringan) ditampilkan dengan pesan berbahasa Indonesia yang jelas.
+      acceptanceCriteria:
+        - Parent pada kelas private melihat form permintaan jadwal, bukan tombol "Lanjut ke pembayaran".
+        - Mengirim permintaan valid menampilkan konfirmasi, dan permintaan muncul dengan status menunggu peninjauan.
+        - Slot dengan jam selesai tidak setelah jam mulai ditolak di form sebelum request dikirim.
+        - Permintaan ganda menampilkan pesan bahwa permintaan sebelumnya masih menunggu.
+        - Permintaan yang ditolak menampilkan alasan dari tenant bila ada, beserta opsi mengajukan ulang.
+        - Kelas group tetap berfungsi seperti sebelumnya.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: Ikuti pola Server Action dan `useActionState` di `app/(public)/kelas/[id]/_actions/actions.ts`, serta penanganan gateway di `lib/gateway.ts`. Kontrak endpoint mengikuti hasil issue API permintaan jadwal. Jangan mengarang field di luar kontrak tersebut. Hari memakai ISO 1–7 dengan label bahasa Indonesia, konsisten dengan `enrollmentScheduleLabel` (KEL-70). Perbarui kelolakelas-docs `docs/components/web.md`.
+      relevantAreas:
+        - kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx
+        - kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts
+        - kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments
+        - kelolakelas-web/lib
+      edgeCases:
+        - Parent belum memiliki student.
+        - Kelas ditutup saat form sedang diisi.
+        - Sesi login kedaluwarsa saat submit.
+        - Permintaan disetujui tetapi invoice gagal dibuat.
+      testingValidation:
+        - Vitest untuk render form private versus group, validasi slot, dan pemetaan error.
+        - Test daftar permintaan untuk status pending, rejected, approved, dan cancelled.
+        - Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.
+      outOfScope:
+        - Perubahan API academic.
+        - Chat atau email.
+        - Halaman tenant.
+        - Menampilkan dan menerima rekomendasi jadwal dari tenant (issue terpisah).
+  - draftKey: tenant-private-schedule-review-web
+    projectKey: private-class-scheduled-purchase
+    title: Tenant meninjau, menyetujui, atau menolak permintaan jadwal private dari dashboard
+    type: Feature
+    priority: High
+    estimate: M
+    complexity: medium
+    labels:
+      - web
+      - ai-ready
+    repositories:
+      - web
+    blockedByDraftKeys:
+      - approve-private-schedule-request
+    externalDependencies: []
+    body:
+      backgroundProblem: Dashboard tenant memiliki halaman enrollments (`app/(dashboard)/dashboard/tenant/enrollments`) tetapi tidak memiliki tempat untuk permintaan jadwal private. Tanpa UI, API peninjauan dan persetujuan tidak dapat dipakai tenant. Chat dan email payment link belum tersedia, sehingga tenant juga membutuhkan cara membagikan payment link secara manual.
+      goal: Anggota tenant yang berizin dapat melihat permintaan jadwal private, menyetujui atau menolaknya dengan alasan opsional, dan menyalin payment link hasil persetujuan.
+      requirements:
+        - Dashboard tenant menampilkan daftar permintaan jadwal private dengan filter status, nama student, kelas, slot yang diminta, periode pembayaran, catatan parent, dan waktu pengajuan.
+        - Aksi setujui memakai dialog konfirmasi. Setelah berhasil, UI menampilkan payment link beserta tombol salin dan batas waktu bila tersedia.
+        - Aksi tolak memakai dialog konfirmasi dengan alasan opsional.
+        - Anggota tanpa `enrollment:read` melihat pesan izin, dan aksi disembunyikan atau ditolak dengan pesan jelas untuk anggota tanpa `enrollment:update`.
+        - State loading, kosong, dan error API ditampilkan dengan jelas.
+      acceptanceCriteria:
+        - Permintaan `pending` milik tenant tampil beserta detail slotnya.
+        - Menyetujui permintaan menampilkan payment link yang dapat disalin, dan status berubah menjadi disetujui.
+        - Menolak dengan atau tanpa alasan mengubah status menjadi ditolak.
+        - Member tanpa izin melihat pesan izin, bukan error teknis.
+        - Existing functionality remains unaffected
+        - Error and validation scenarios are handled correctly
+      technicalNotes: Ikuti pola dialog yang dapat diakses di `app/(dashboard)/dashboard/tenant/roles/_components/RoleEditModal.tsx` dan pola tabel di `tenant/enrollments/_components/EnrollmentTable.tsx`. Kontrak endpoint mengikuti hasil issue API permintaan jadwal dan persetujuan. Payment link hanya ditampilkan bila skemanya http/https, mengikuti `resumePayment` di `lib/payment-status.ts`. Perbarui kelolakelas-docs `docs/components/web.md`.
+      relevantAreas:
+        - kelolakelas-web/app/(dashboard)/dashboard/tenant/enrollments
+        - kelolakelas-web/app/(dashboard)/dashboard/tenant/_constants/constants.ts
+        - kelolakelas-web/lib/payment-status.ts
+      edgeCases:
+        - Permintaan sudah dibatalkan parent saat tenant membuka dialog.
+        - Persetujuan gagal karena biaya platform melebihi pembayaran (KEL-106).
+        - Dua anggota tenant memproses permintaan yang sama bersamaan.
+      testingValidation:
+        - Vitest untuk daftar, dialog setujui, dialog tolak dengan dan tanpa alasan, serta pemetaan 403/409.
+        - Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.
+      outOfScope:
+        - Pengiriman payment link lewat email atau chat.
+        - Menolak dengan rekomendasi jadwal lain (issue terpisah).
+        - Perubahan API.

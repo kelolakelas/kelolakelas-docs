@@ -35,7 +35,7 @@ flowchart LR
 - [Executive summary](docs/00-executive-summary.md), [system context](docs/01-system-context.md), and [architecture](docs/02-architecture.md)
 - [Local development](docs/03-local-development.md), [configuration](docs/04-configuration.md), [security](docs/05-security.md), [testing](docs/06-testing-and-quality.md), and [operations](docs/07-operations.md)
 - [Known gaps and risks](docs/08-known-gaps-and-risks.md)
-- Planning: [AI orchestrator implementation plan](docs/planning/ai-orchestrator-implementation-plan.md)
+- Planning: [AI orchestrator implementation plan](docs/planning/ai-orchestrator-implementation-plan.md), [backlog planning runs](docs/planning/README.md)
 - Runbooks: [AI orchestrator operations](docs/runbooks/ai-orchestrator-operations.md)
 - Components: [web](docs/components/web.md), [gateway](docs/components/api-gateway.md), [identity](docs/components/identity-service.md), [academic](docs/components/academic-service.md), [billing](docs/components/billing-service.md), [chat](docs/components/chat-service.md)
 - API: [overview](docs/api/overview.md), [endpoint matrix](docs/api/endpoint-matrix.md), [authentication](docs/api/authentication.md), [gateway](docs/api/gateway.md), [identity](docs/api/identity.md), [academic](docs/api/academic.md), [billing](docs/api/billing.md), [chat](docs/api/chat.md)
