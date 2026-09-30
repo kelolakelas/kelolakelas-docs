@@ -1,0 +1,78 @@
+{
+  "projects": {
+    "tenant-parent-teacher-chat": {
+      "identifier": "P-KEL-23",
+      "id": "6fd7df4e-3f90-4efc-b835-f60581a2ce78",
+      "url": "https://linear.app/farid-zamani/project/chat-realtime-antara-tenant-pengajar-dan-parent-f963bcc87b57"
+    }
+  },
+  "issues": {
+    "chat-manage-permission": {
+      "identifier": "KEL-117",
+      "id": "f26fa522-bc07-4c16-94ca-914b2ab86ea0",
+      "url": "https://linear.app/farid-zamani/issue/KEL-117/identity-menyediakan-permission-tenant-chatmanage-untuk-admin-yang"
+    },
+    "academic-chat-context-internal-api": {
+      "identifier": "KEL-118",
+      "id": "10e9f052-a5f7-4fed-8d18-6d73fde6f341",
+      "url": "https://linear.app/farid-zamani/issue/KEL-118/academic-menyediakan-konteks-permintaan-jadwal-private-dan-report"
+    },
+    "chat-service-core-api": {
+      "identifier": "KEL-119",
+      "id": "465df100-4b17-4fc2-b861-5c00a4d857af",
+      "url": "https://linear.app/farid-zamani/issue/KEL-119/chat-service-menyimpan-percakapan-pengajar-admin-tenant-dan-pesannya"
+    },
+    "chat-service-conversation-contexts": {
+      "identifier": "KEL-120",
+      "id": "ccecbcfe-1acf-4ffc-9536-6c4e54d468b8",
+      "url": "https://linear.app/farid-zamani/issue/KEL-120/chat-service-mendukung-percakapan-parent-admin-tenant-per-permintaan"
+    },
+    "chat-service-websocket-realtime": {
+      "identifier": "KEL-121",
+      "id": "8595e6a0-fe96-4603-8f1c-b4d6125513e7",
+      "url": "https://linear.app/farid-zamani/issue/KEL-121/chat-service-mengirim-pesan-baru-secara-realtime-lewat-websocket"
+    },
+    "gateway-chat-routes": {
+      "identifier": "KEL-122",
+      "id": "95f3ed11-ae4c-4d88-ae17-17a19eaae84e",
+      "url": "https://linear.app/farid-zamani/issue/KEL-122/gateway-meneruskan-rest-chat-dan-koneksi-websocket-chat-ke-chat"
+    },
+    "web-chat-inbox-realtime": {
+      "identifier": "KEL-123",
+      "id": "f23b9e90-8570-4b1f-8f0b-453cfcea86a1",
+      "url": "https://linear.app/farid-zamani/issue/KEL-123/parent-dan-anggota-tenant-membaca-dan-membalas-chat-di-web-dengan"
+    },
+    "web-chat-entry-points": {
+      "identifier": "KEL-124",
+      "id": "4b0d6ae9-ed19-452f-a472-b520433ec301",
+      "url": "https://linear.app/farid-zamani/issue/KEL-124/parent-admin-tenant-dan-pengajar-dapat-memulai-chat-dari-permintaan"
+    }
+  },
+  "adoptedUnchanged": {
+    "private-schedule-request-api": {
+      "identifier": "KEL-107",
+      "id": "f11277e5-b7d4-44e1-a6da-650823a1dae1",
+      "url": "https://linear.app/farid-zamani/issue/KEL-107/parent-dapat-mengajukan-jadwal-kelas-private-dan-tenant-dapat-meninjau"
+    },
+    "approve-private-schedule-request": {
+      "identifier": "KEL-108",
+      "id": "64bcb38d-294e-426b-b773-36fa1f5033f6",
+      "url": "https://linear.app/farid-zamani/issue/KEL-108/persetujuan-tenant-atas-permintaan-jadwal-private-membuat-enrollment"
+    },
+    "parent-private-schedule-request-web": {
+      "identifier": "KEL-109",
+      "id": "94fa0753-0ab2-42fb-a233-53dd7a7be087",
+      "url": "https://linear.app/farid-zamani/issue/KEL-109/parent-mengajukan-jadwal-kelas-private-dari-detail-kelas-dan-memantau"
+    },
+    "tenant-private-schedule-review-web": {
+      "identifier": "KEL-110",
+      "id": "42951303-c297-4bf4-b70d-860f0ca0ecef",
+      "url": "https://linear.app/farid-zamani/issue/KEL-110/tenant-meninjau-menyetujui-atau-menolak-permintaan-jadwal-private-dari"
+    },
+    "private-class-scheduled-purchase": {
+      "identifier": "P-KEL-22",
+      "id": "66af01b4-f443-465d-9f4e-af651d2854db",
+      "url": "https://linear.app/farid-zamani/project/pembelian-kelas-private-dengan-jadwal-yang-disepakati-dcafb274e95b"
+    }
+  }
+}

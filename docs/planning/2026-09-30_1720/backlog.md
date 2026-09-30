@@ -1,0 +1,48 @@
+# Backlog draft 2026-09-30_1720
+
+> Dirender otomatis dari `backlog.yaml` oleh `kelolakelas-docs/scripts/planning.mjs render`. Jangan edit file ini, `issues/`, atau `projects/` secara manual; ubah `backlog.yaml` lalu render ulang. Isi `issues/*.md` dan `projects/*.md` adalah description Linear apa adanya.
+
+## Projects
+
+| Key | Nama | Jumlah issue | File |
+| --- | --- | --- | --- |
+| `tutor-session-operations` | Operasional sesi, absensi, dan laporan oleh pengajar | 6 | [projects/tutor-session-operations.md](projects/tutor-session-operations.md) |
+| `parent-learning-portal` | Portal belajar parent: jadwal, kehadiran, dan rapor anak | 2 | [projects/parent-learning-portal.md](projects/parent-learning-portal.md) |
+| `tenant-finance-payout` | Keuangan tenant: laporan transaksi dan pencairan dana manual | 7 | [projects/tenant-finance-payout.md](projects/tenant-finance-payout.md) |
+| `renewal-dunning-refund` | Penanganan tunggakan perpanjangan dan refund manual | 5 | [projects/renewal-dunning-refund.md](projects/renewal-dunning-refund.md) |
+| `parent-schedule-notifications` | Notifikasi perubahan jadwal dan kehadiran ke parent | 4 | [projects/parent-schedule-notifications.md](projects/parent-schedule-notifications.md) |
+| `tenant-storefront-growth` | Profil tenant publik, ulasan kelas, dan voucher | 5 | [projects/tenant-storefront-growth.md](projects/tenant-storefront-growth.md) |
+
+## Urutan eksekusi dan metadata issue
+
+| # | Issue | Project | Type | Priority | Estimate | Complexity | Labels | Blocked by | External dependencies |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | [Absensi dapat dicatat per sesi, termasuk sesi reschedule dan secara massal](issues/01-attendance-by-session.md) | Operasional sesi, absensi, dan laporan oleh pengajar | Improvement | High | M | high | `academic`, `ai-ready` | - | - |
+| 2 | [Pengajar melihat sesinya sendiri dan akses sesi, tutor pengganti, serta laporan dijaga konsisten](issues/02-tutor-session-scope-guards.md) | Operasional sesi, absensi, dan laporan oleh pengajar | Improvement | High | M | high | `academic`, `identity`, `ai-ready` | - | - |
+| 3 | [Menu dashboard tenant hanya menampilkan area yang diizinkan permission anggota](issues/03-role-aware-tenant-nav.md) | Operasional sesi, absensi, dan laporan oleh pengajar | Feature | High | M | medium | `identity`, `api-gateway`, `web`, `ai-ready` | - | - |
+| 4 | [Pengajar melihat sesi hari ini dan minggu ini serta mencatat kehadiran dari dashboard](issues/04-web-tutor-sessions-attendance.md) | Operasional sesi, absensi, dan laporan oleh pengajar | Feature | High | M | medium | `web`, `ai-ready` | `attendance-by-session`, `tutor-session-scope-guards`, `role-aware-tenant-nav` | - |
+| 5 | [Tenant dapat me-reschedule sesi dan menugaskan tutor pengganti dari detail sesi](issues/05-web-session-reschedule-substitute.md) | Operasional sesi, absensi, dan laporan oleh pengajar | Feature | Medium | M | medium | `web`, `ai-ready` | `web-tutor-sessions-attendance` | - |
+| 6 | [Pengajar menulis dan mengelola laporan evaluasi siswa dari dashboard](issues/06-web-tutor-student-reports.md) | Operasional sesi, absensi, dan laporan oleh pengajar | Feature | Medium | M | medium | `web`, `ai-ready` | `tutor-session-scope-guards`, `role-aware-tenant-nav` | - |
+| 7 | [Parent dapat membaca sesi, kehadiran, dan laporan milik anaknya sendiri](issues/07-parent-learning-read-api.md) | Portal belajar parent: jadwal, kehadiran, dan rapor anak | Feature | High | M | critical | `academic`, `ai-ready` | `tutor-session-scope-guards` | - |
+| 8 | [Parent melihat jadwal, riwayat kehadiran, dan rapor anak dari dashboard](issues/08-web-parent-learning-portal.md) | Portal belajar parent: jadwal, kehadiran, dan rapor anak | Feature | High | L | medium | `web`, `ai-ready` | `parent-learning-read-api` | - |
+| 9 | [Tenant dapat melihat saldo dan mutasi ledger serta mengelola rekening pencairan](issues/09-billing-tenant-balance-bank-account.md) | Keuangan tenant: laporan transaksi dan pencairan dana manual | Feature | High | M | high | `billing`, `api-gateway`, `ai-ready` | - | - |
+| 10 | [Tenant dapat mengajukan dan membatalkan penarikan dengan saldo yang ditahan secara atomik](issues/10-billing-tenant-withdrawal-request.md) | Keuangan tenant: laporan transaksi dan pencairan dana manual | Feature | High | M | critical | `billing`, `api-gateway`, `ai-ready` | `billing-tenant-balance-bank-account` | - |
+| 11 | [Platform admin memproses penarikan tenant secara manual dengan jejak audit](issues/11-platform-withdrawal-processing.md) | Keuangan tenant: laporan transaksi dan pencairan dana manual | Feature | High | L | critical | `identity`, `billing`, `api-gateway`, `ai-ready` | `billing-tenant-withdrawal-request` | - |
+| 12 | [Tenant melihat saldo, mutasi, rekening, dan mengajukan penarikan dari halaman keuangan](issues/12-web-tenant-finance.md) | Keuangan tenant: laporan transaksi dan pencairan dana manual | Feature | High | M | medium | `web`, `ai-ready` | `billing-tenant-balance-bank-account`, `billing-tenant-withdrawal-request` | - |
+| 13 | [Platform admin memproses antrean penarikan tenant dari dashboard platform](issues/13-web-platform-withdrawal-queue.md) | Keuangan tenant: laporan transaksi dan pencairan dana manual | Feature | High | M | medium | `web`, `ai-ready` | `platform-withdrawal-processing` | - |
+| 14 | [Tenant dapat memfilter transaksi berdasarkan tanggal bayar dan mengekspornya ke CSV](issues/14-billing-transaction-report-export.md) | Keuangan tenant: laporan transaksi dan pencairan dana manual | Feature | Medium | M | medium | `billing`, `api-gateway`, `ai-ready` | - | - |
+| 15 | [Tenant melihat daftar transaksi dengan filter dan mengunduh CSV](issues/15-web-tenant-transactions-page.md) | Keuangan tenant: laporan transaksi dan pencairan dana manual | Feature | Medium | M | low | `web`, `ai-ready` | `billing-transaction-report-export` | - |
+| 16 | [Enrollment dapat ditangguhkan, dipulihkan, dan diakhiri melalui endpoint internal](issues/16-academic-enrollment-suspension.md) | Penanganan tunggakan perpanjangan dan refund manual | Feature | High | M | high | `academic`, `web`, `ai-ready` | - | - |
+| 17 | [Renewal yang tidak dibayar setelah masa tenggang menangguhkan enrollment dan pulih saat dibayar](issues/17-billing-renewal-grace-suspend.md) | Penanganan tunggakan perpanjangan dan refund manual | Feature | High | M | critical | `billing`, `ai-ready` | `academic-enrollment-suspension` | - |
+| 18 | [Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment](issues/18-web-parent-latest-payment-status.md) | Penanganan tunggakan perpanjangan dan refund manual | Improvement | High | S | low | `web`, `ai-ready` | - | - |
+| 19 | [Tenant dapat mencatat refund manual untuk transaksi paid dan mengakhiri enrollment terkait](issues/19-billing-manual-refund.md) | Penanganan tunggakan perpanjangan dan refund manual | Feature | Medium | M | critical | `identity`, `billing`, `api-gateway`, `ai-ready` | `academic-enrollment-suspension` | - |
+| 20 | [Tenant mencatat refund manual dari halaman transaksi](issues/20-web-tenant-manual-refund.md) | Penanganan tunggakan perpanjangan dan refund manual | Feature | Medium | S | medium | `web`, `ai-ready` | `billing-manual-refund`, `web-tenant-transactions-page` | - |
+| 21 | [Chat service menerima pesan notifikasi sistem dari service internal](issues/21-chat-system-notification-channel.md) | Notifikasi perubahan jadwal dan kehadiran ke parent | Feature | Medium | M | high | `chat`, `ai-ready` | - | - |
+| 22 | [Parent diberi tahu lewat email dan chat saat sesi di-reschedule, tutor diganti, atau anak tidak hadir](issues/22-academic-parent-notification-outbox.md) | Notifikasi perubahan jadwal dan kehadiran ke parent | Feature | Medium | L | high | `academic`, `ai-ready` | `chat-system-notification-channel`, `attendance-by-session` | `resend-sender-domain` |
+| 23 | [Parent menerima pengingat sehari sebelum sesi anaknya](issues/23-academic-session-reminder.md) | Notifikasi perubahan jadwal dan kehadiran ke parent | Feature | Medium | S | medium | `academic`, `ai-ready` | `academic-parent-notification-outbox` | - |
+| 24 | [Inbox parent menampilkan percakapan notifikasi sistem dengan jelas](issues/24-web-system-notification-render.md) | Notifikasi perubahan jadwal dan kehadiran ke parent | Feature | Medium | S | low | `web`, `ai-ready` | `chat-system-notification-channel` | - |
+| 25 | [Calon parent dapat membuka profil publik tenant beserta kelas yang dipublikasikan](issues/25-tenant-public-profile-page.md) | Profil tenant publik, ulasan kelas, dan voucher | Feature | Medium | M | medium | `identity`, `api-gateway`, `web`, `ai-ready` | - | - |
+| 26 | [Parent yang pernah terdaftar dapat memberi rating dan ulasan kelas](issues/26-class-reviews-api.md) | Profil tenant publik, ulasan kelas, dan voucher | Feature | Low | M | high | `academic`, `api-gateway`, `ai-ready` | - | - |
+| 27 | [Detail kelas menampilkan rating dan ulasan, dan parent dapat menulis ulasan](issues/27-web-class-reviews.md) | Profil tenant publik, ulasan kelas, dan voucher | Feature | Low | M | medium | `web`, `ai-ready` | `class-reviews-api` | - |
+| 28 | [Tenant dapat membuat, mengubah, dan menonaktifkan voucher](issues/28-tenant-voucher-management.md) | Profil tenant publik, ulasan kelas, dan voucher | Feature | Medium | M | medium | `billing`, `api-gateway`, `web`, `ai-ready` | - | - |
+| 29 | [Parent dapat memakai voucher tenant saat checkout kelas grup](issues/29-voucher-checkout-redemption.md) | Profil tenant publik, ulasan kelas, dan voucher | Feature | Medium | L | critical | `billing`, `academic`, `web`, `ai-ready` | `tenant-voucher-management` | - |
