@@ -20,6 +20,7 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 || POST | `/api/v1/platform/creator-requests/:id/approve` and `/reject` | Identity → same | JWT `is_platform_admin`; identity rechecks live assignment in-transaction | decide a pending Creator request atomically with audit; approve grants once (member upgrade or email-bound invitation redeemed only on acceptance), reject stores reason; 400/403/404/409 | gateway router.go; identity main.go and creator_decision_handler.go |
 | GET | `/api/v1/members` | Identity → same | JWT; tenant claim only | pagination/filter → member list; 400/403 | gateway:75; identity main:114 |
 | GET | `/api/v1/tutors` | Identity → same | JWT; tenant claim only | pagination/filter → tutor list; 400/403 | gateway:76; identity main:115 |
+| GET | `/api/v1/members/me/membership` | Identity → same | JWT; tenant claim only; parent/platform refused by identity | none → own `{member_id, role_id, role_name, permissions}` from the active membership; 403 tenantless/inactive | gateway:154; identity main:182 |
 | GET | `/api/v1/members/:id` | Identity → same | JWT; tenant scope | UUID → member; 400/404 | gateway:77; identity main:116 |
 | PUT | `/api/v1/members/:id/role` | Identity → same | JWT; caller role used | update role DTO → member; 400/403/404/409 | gateway:78; identity main:117 |
 | DELETE | `/api/v1/members/:id` | Identity → same | JWT; `member:delete` (active membership); own membership refused | UUID → envelope; 400/403/404/409 (self-removal, KEL-81) | gateway:79; identity main:118 |
