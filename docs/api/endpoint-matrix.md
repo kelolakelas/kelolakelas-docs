@@ -10,7 +10,8 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | GET | `/api/v1/invitations/verify` | Identity → same | public | query `token` → invitation; 400/404 | gateway:60; identity main:106 |
 | POST | `/api/v1/invitations/register` | Identity → same | public | invited-user payload → user; 400/404/409 | gateway:61; identity main:107 |
 | GET | `/api/v1/catalog/classes` | Academic → same | public | catalog filters → catalog list; 400 | gateway:63; academic main:105 |
-| GET | `/api/v1/catalog/classes/:id` | Academic → same | public | UUID path → catalog class; 400/404 | gateway:64; academic main:106 |
+| GET | `/api/v1/catalog/classes/:id` | Academic → same | public | UUID path → catalog class with `rating_average` and `rating_count`; 400/404 | gateway `router.go`; academic `routes.go` (KEL-159) |
+| GET | `/api/v1/catalog/classes/:id/reviews` | Academic → same | public; catalog visibility policy | UUID and bounded `page`/`page_size` → PII-free review list; 400/404/503 | gateway `router.go`; academic `routes.go` (KEL-159) |
 | POST | `/api/v1/billing/webhooks/duitku` | Billing → same | public, provider HMAC | `DuitkuCallbackPayload` → envelope; 400/404 | gateway:67; billing main:94 |
 | POST | `/api/v1/invitations` | Identity → same | JWT tenant claim; `member:invite` | create/resend invitation → token-free response; 400/403/409 | gateway `router.go`; identity `main.go`, `invitation_handler.go` |
 | GET | `/api/v1/invitations` | Identity → same | JWT tenant claim; `member:invite` | unredeemed tenant invitations, token-free; 403 | gateway `router.go`; identity `main.go`, `invitation_handler.go` |
@@ -62,6 +63,7 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | GET | `/api/v1/enrollments/:id` | Academic → same | JWT; tenant/parent scoped use case | UUID → enrollment (optional `schedule` summary, KEL-70) | gateway:140; academic main:137 |
 | PATCH | `/api/v1/enrollments/:id/schedule` | Academic → same | JWT; parent required | schedule assignment DTO → enrollment; 403/409/422 | gateway:141; academic main:138 |
 | POST | `/api/v1/enrollments/:id/cancel` | Academic → same | JWT; parent required | none → cancelled enrollment; 403/404/409 | gateway:142; academic main:135 |
+| PUT | `/api/v1/enrollments/:id/review` | Academic → same | JWT; parent and eligible owned enrollment | rating 1–5, optional comment <=2000 characters → one upserted review; 400/403/404 | gateway `router.go`; academic `routes.go` (KEL-159) |
 | POST | `/api/v1/tenants/:tenant_id/enrollments` | Academic → same | JWT; parent takes public flow, else claim must equal path | enrollment DTO + `Idempotency-Key` → enrollment/payment; 400/403 | gateway:143; academic main:133 |
 | POST | `/api/v1/catalog/classes/:class_id/enrollments` | Academic → same | JWT; parent required | public enrollment DTO + `Idempotency-Key` → enrollment/payment; 403/409/422 | gateway:144; academic main:134 |
 | POST | `/api/v1/catalog/classes/:class_id/schedule-requests` | Academic → same | JWT parent, student ownership | slots/billing cycle → 201 pending; invalid 4xx, duplicate 409 | gateway `router.go`; academic `routes.go` (KEL-107) |
