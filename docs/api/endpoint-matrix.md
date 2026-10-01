@@ -39,7 +39,9 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | PATCH | `/api/v1/classes/:id/published` | Academic → same | JWT; tenant scope | publication DTO → class | gateway:101; academic main:117 |
 | GET/POST | `/api/v1/students` | Academic → same | JWT; handler rules | filters / student DTO → list/student | gateway:102,99; academic main:119-120 |
 | GET/PATCH/DELETE | `/api/v1/students/:id` | Academic → same | JWT; access scoped by handler/use case | UUID / update DTO → student/envelope | gateway:104,102; academic main:121-123 |
-| GET/POST | `/api/v1/attendance` | Academic → same | JWT | filters / attendance DTO → list/item | gateway:107,104; academic main:124-125 |
+| GET/POST | `/api/v1/attendance` | Academic → same | JWT | filters / attendance DTO (`session_id` XOR `schedule_id`+`date`, KEL-134) → list/item | gateway:107,104; academic main:124-125 |
+| GET/POST | `/api/v1/attendance/by-session` | Academic → same | JWT; **academic-only, not proxied by the gateway yet (KEL-134)** | `session_id`+`enrollment_id` (GET) / by-session DTO (POST) → item | academic attendance_report_routes:15,17 |
+| POST | `/api/v1/attendance/bulk` | Academic → same | JWT; **academic-only, not proxied by the gateway yet (KEL-134)** | bulk DTO `{session_id, items[]}` → bulk response | academic attendance_report_routes:16 |
 | GET/PATCH | `/api/v1/attendance/:id` | Academic → same | JWT | UUID / update DTO → item | gateway:109,106; academic main:126-127 |
 | GET/POST | `/api/v1/reports` | Academic → same | JWT | filters / report DTO → list/item | gateway:111,108; academic main:128-129 |
 | GET/PATCH/DELETE | `/api/v1/reports/:id` | Academic → same | JWT | UUID / update DTO → item/envelope | gateway:113,111; academic main:130-132 |
