@@ -19,6 +19,7 @@
 | Academic | Billing | HTTP internal bearer | payment invoice creation for enrollment | Implemented: `pkg/billing/client.go` |
 | Billing | Academic | HTTP internal bearer | activate paid enrollment; since KEL-149 also suspend/resume/end enrollment ([ADR 0050](../adr/0050-enrollment-suspend-resume-end.md)) | Implemented: `pkg/academic/client.go`; KEL-149 academic routes `PUT /internal/enrollments/:id/suspend|resume|end` |
 | Chat | Academic | HTTP `X-Internal-Service-Credential` | read private schedule/report context only on conversation creation | Implemented (KEL-120): chat `pkg/academic/client.go`, academic `cmd/server/routes.go` |
+| Sibling service (academic in future) | Chat | HTTP `POST /internal/notifications`, `X-Internal-Service-Credential` shared internal credential | write one idempotent system message into the (tenant, parent) notification conversation; direct service call, never through the gateway (KEL-154) | Implemented (KEL-154): chat `internal/delivery/http/handler.go` (`notifyInternal`), [ADR 0053](../adr/0053-internal-system-notification-channel.md) |
 | Chat | Identity | gRPC `:50051`, no app auth/TLS in shown code | `CheckPermission` for tenant members and `GetTenantPublicInfo` name snapshot | Implemented (KEL-120): chat `pkg/grpcclient/{permission,tenant}.go`; network restriction remains essential |
 | Identity | Redis | Redis TCP/TLS optional | cache role permission arrays | Implemented: `pkg/database/redis.go` |
 | Gateway | Redis | Redis TCP/TLS optional | rate limit counters | Implemented: gateway main/middleware |
