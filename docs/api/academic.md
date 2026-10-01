@@ -128,7 +128,15 @@ Catalog enrollment with an ended `schedule_id` returns HTTP 422 without creating
 
 A denied permission returns 403 before the use case, and an identity check failure
 returns 503. The existing assigned-tutor checks still apply after authorization; a
-read-only custom role cannot create a report. Absent or malformed tenant claims on
+read-only custom role cannot create a report.
+
+> **Superseded in part by ADR 0054:** the next two sentences described the
+> pre-KEL-140 behaviour. Parent tokens no longer receive 401 for a missing or
+> malformed tenant claim on these read routes: parent reads ignore the tenant
+> claim (see Parent-scoped reads below). Parent mutations still answer 403 via
+> `RequirePermissionForTenantResourceDenyParent` with no identity call.
+
+Absent or malformed tenant claims on
 parent tokens retain the handler's 401 `Invalid tenant context` response without an
 identity call; a parent token with a valid tenant retains the existing handler path.
 This does not introduce parent access to child attendance or reports. Evidence:
@@ -138,6 +146,44 @@ academic `cmd/server/attendance_report_routes.go`,
 `internal/usecase/report_permission_test.go`; [ADR 0002](../adr/0002-academic-permission-enforcement.md),
 academic [PR #25](https://github.com/kelolakelas/kelolakelas-academic-service/pull/25),
 squash `b29cf94c6315294db595ad2c7947f900a93b6258`.
+
+## Parent-scoped session, attendance, and report reads (KEL-140)
+
+**Implemented (KEL-140):** parent tokens read only their own children's
+sessions, attendance, and reports, across all tenants in one call. A parent
+caller (`is_parent` claim) resolves to the `parent_id` from the verified
+`user_id` claim — the same pattern as `studentScope` — and the tenant claim is
+ignored even when present, so a token carrying any (or no) `tenant_id` still
+sees exactly its own rows. Every parent read method constrains rows in SQL
+with `JOIN students ... s.parent_id = ?`: `SessionRepository.ListSessionsForParent` /
+`GetSessionForParent`, `AttendanceRepository.ListForParent` / `GetForParent`,
+`ReportRepository.ListForParent` / `GetForParent`, and
+`EnrollmentRepository.GetActiveByScheduleIDForParent`. Sessions served to a
+parent come only from schedules with an active enrollment of that parent's
+child, and `GetSessionAttendeesForParent` resolves the reschedule-origin chain
+through the same predicate, so a group session never exposes other parents'
+children. Not-owned rows map to the existing not-found error (404), never 403,
+so foreign ids stay indistinguishable from missing ones. Parent tokens are
+refused on every attendance/report mutation with 403 and no identity call
+(`RequirePermissionForTenantResourceDenyParent`; `RequirePermission` denies
+parents on the routes it guards); the existing 401 for an invalid tenant claim
+is preserved. Tenant-member reads and writes keep the exact previous path,
+including the permission table above, the KEL-135 `schedule:read` guard, and
+the assigned-tutor checks. Swagger `@x-permission parent_tokens` notes say
+`denied` on the seven attendance/report mutations and `skipped` on the parent
+read routes, asserted by `cmd/server/swagger_contract_test.go`. Contract
+details: [ADR 0054](../adr/0054-parent-scoped-session-attendance-report-reads.md).
+Evidence: academic `internal/repository/{attendance,report,session,enrollment}_repository.go`,
+`internal/usecase/{attendance,report,schedule}_usecase.go`,
+`internal/delivery/http/handler/{attendance,report,session,schedule}_handler.go`,
+`internal/delivery/http/middleware/permission_middleware.go`, regenerated
+Swagger; tests `internal/repository/parent_scope_postgres_test.go`
+(`KEL140_TEST_DSN`: owner across 2 tenants, other parent, foreign filters,
+member, other tenant) plus handler/route permission tests; [academic PR #44](https://github.com/kelolakelas/kelolakelas-academic-service/pull/44),
+squash `f7b0e0249af2a1c5a0a0103c0fa625ec224eac62`. The same PR also fixed the
+tenant report `List` count query to set its table
+(`Model(&domain.Report{})`); the predicate is unchanged. No web parent screen
+or student-notes change is part of KEL-140.
 
 ## Session-addressed and bulk attendance (KEL-134)
 

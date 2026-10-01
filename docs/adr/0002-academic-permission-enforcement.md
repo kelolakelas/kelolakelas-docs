@@ -53,7 +53,15 @@ Permission mapping:
 **Implemented (KEL-22):** the nine attendance/report routes now apply the mapped
 permission to tenant members before entering the handler. The existing assigned-tutor
 checks remain an additional use-case boundary; permission alone does not permit a tutor
-to write another session. For these routes, a parent token without a valid tenant retains
+to write another session.
+
+> **Superseded in part by ADR 0054 (KEL-140):** the next two sentences described
+> the pre-KEL-140 behaviour. Parent tokens no longer receive 401 on these read
+> routes for a missing or malformed tenant claim — parent reads ignore the
+> tenant claim and are ownership-scoped (`JOIN students ... s.parent_id = ?` in
+> SQL). Parent mutations still answer 403 with no identity call.
+
+For these routes, a parent token without a valid tenant retains
 the handler's `401 Invalid tenant context` response, without an identity call. A parent
 token with a valid tenant retains the previous handler path without a permission lookup;
 this change does not define parent access to a child's attendance or reports. Identity
