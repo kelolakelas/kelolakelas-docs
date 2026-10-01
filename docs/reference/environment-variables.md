@@ -80,6 +80,7 @@ Safe examples deliberately contain placeholders only — this includes every rep
 | `TRANSACTION_EXPIRY_WORKER_ENABLED` | billing | optional; true | starts the local worker that marks overdue unpaid transactions `expired` | no | billing config/main |
 | `TRANSACTION_EXPIRY_WORKER_INTERVAL_MINUTES` | billing | optional; 5 | expiry worker poll interval | no | billing config |
 | `TRANSACTION_CLAIM_TIMEOUT_MINUTES` | billing | optional; 10 | how long an unowned invoice claim may stay unowned before another request may take it over | no | billing config, `internal/domain/transaction.go` |
+| `WITHDRAWAL_MINIMUM_AMOUNT` | billing | optional; `50000` IDR when unset or non-positive (owner decision, 2026-10-01) | smallest tenant withdrawal accepted; default Rp 50.000, `WITHDRAWAL_MINIMUM_AMOUNT=50000`; smaller positive requests return 422 | no | billing `internal/config/config.go` (`DefaultWithdrawalMinimumAmount`), `internal/usecase/withdrawal_usecase.go`, `.env.example`; [ADR 0056](../adr/0056-tenant-manual-withdrawal-hold.md) |
 | `PAYMENT_RECONCILIATION_WORKER_ENABLED` | billing | optional; true | enables durable paid-enrollment activation retries | no | billing config |
 | `PAYMENT_RECONCILIATION_WORKER_INTERVAL_MINUTES` | billing | optional; 1 | reconciliation worker poll interval | no | billing config |
 | `PAYMENT_RECONCILIATION_MAX_ATTEMPTS` | billing | optional; 10 | attempts before terminal reconciliation failure | no | billing config |

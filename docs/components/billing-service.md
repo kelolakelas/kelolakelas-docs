@@ -1,6 +1,8 @@
 # Billing service (`kelolakelas-billing-service`)
 
-**Implemented:** Gin HTTP server default `:8082`, GORM/PostgreSQL data store, Duitku client, Resend client, internal academic client, and optional subscription worker. It exposes an internal cancellation path that withdraws the unpaid invoice of a cancelled enrollment (KEL-27). Evidence: `cmd/server/main.go:31-115`.
+**Implemented:** Gin HTTP server default `:8082`, GORM/PostgreSQL data store, Duitku client, Resend client, internal academic client, and optional subscription worker. It exposes an internal cancellation path that withdraws the unpaid invoice of a cancelled enrollment (KEL-27). Evidence: `cmd/server/main.go`.
+
+**Implemented (KEL-143):** tenant withdrawals can now hold available wallet balance atomically, write `withdrawal_hold`/`withdrawal_release` ledger entries, store an immutable bank destination snapshot, and cancel only a `requested` request. History and detail reads mask the destination number and are tenant-scoped. The default minimum is Rp 50.000; admin fee remains zero. The platform-admin processing and payout steps are not implemented. Evidence: `internal/usecase/withdrawal_usecase.go`, `internal/repository/withdrawal_repository.go`, `internal/delivery/http/handler/withdrawal_handler.go`, [ADR 0056](../adr/0056-tenant-manual-withdrawal-hold.md).
 
 **Implemented (KEL-40):** public `/ready` pings PostgreSQL under a one-second deadline; database failure returns 503 with component detail, while `/health` stays independent. Evidence: `cmd/server/{main,readiness,readiness_test}.go`; [PR #20](https://github.com/kelolakelas/kelolakelas-billing-service/pull/20), squash `60c6e18e5961782f1ada696d73d4cea93535c51e`.
 
