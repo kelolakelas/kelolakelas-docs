@@ -77,6 +77,7 @@ Safe examples deliberately contain placeholders only — this includes every rep
 | `SUBSCRIPTION_WORKER_INTERVAL_MINUTES` | billing | optional; 1440 | worker polling interval | no | billing config |
 | `SUBSCRIPTION_PAYMENT_REMINDER_INTERVAL_DAYS` | billing | optional; 3 | reminder cadence | no | billing config |
 | `SUBSCRIPTION_PAYMENT_EXPIRY_PERIOD_DAYS` | billing | optional; 14 | invoice validity in days; drives both the Duitku `expiryPeriod` and the stored `transactions.invoice_expires_at` | no | billing config, `internal/usecase/transaction_usecase.go`, `internal/usecase/subscription_worker.go` |
+| `SUBSCRIPTION_GRACE_PERIOD_DAYS` | billing | optional; 7 when unset or nonpositive | renewal scan horizon and suspension boundary: strictly after the billing date plus this many days, an unpaid active subscription becomes suspended; distinct from invoice expiry | no | billing `.env.example`, `internal/config/config.go`, `internal/usecase/subscription_worker.go` (KEL-150) |
 | `TRANSACTION_EXPIRY_WORKER_ENABLED` | billing | optional; true | starts the local worker that marks overdue unpaid transactions `expired` | no | billing config/main |
 | `TRANSACTION_EXPIRY_WORKER_INTERVAL_MINUTES` | billing | optional; 5 | expiry worker poll interval | no | billing config |
 | `TRANSACTION_CLAIM_TIMEOUT_MINUTES` | billing | optional; 10 | how long an unowned invoice claim may stay unowned before another request may take it over | no | billing config, `internal/domain/transaction.go` |
