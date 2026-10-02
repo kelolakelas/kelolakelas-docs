@@ -1,6 +1,6 @@
 # Configuration
 
-All Go services call `godotenv.Load()`, then Viper reads `.env` if present and consults process environment. Variables and defaults are inventoried in [environment variables](reference/environment-variables.md). `JWT_SECRET` is required by every Go service that issues or verifies JWTs (gateway, identity, academic, and billing): it must be nonblank and use the same strong value at each JWT boundary. The loaders never provide a source fallback.
+All Go services call `godotenv.Load()`, then Viper reads `.env` if present and consults process environment. Variables and defaults are inventoried in [environment variables](reference/environment-variables.md). Billing's `SUBSCRIPTION_GRACE_PERIOD_DAYS` defaults to 7 when unset or nonpositive; it controls the renewal scan and overdue suspension boundary, not the Duitku invoice lifetime. Apply billing migration `20261002020000_subscription_lifecycle` before enabling the KEL-150 worker deployment. `JWT_SECRET` is required by every Go service that issues or verifies JWTs (gateway, identity, academic, and billing): it must be nonblank and use the same strong value at each JWT boundary. The loaders never provide a source fallback.
 
 Configuration precedence for database settings is **Implemented:** `DATABASE_URL`, when supplied, fills otherwise-empty individual DB settings; individual settings retain precedence. Identity, academic, and billing validate PostgreSQL scheme and channel-binding value. Evidence: their `internal/config/config.go` `applyDatabaseURL` functions.
 
