@@ -1,5 +1,23 @@
 # Billing API
 
+## Manual full refund (KEL-152)
+
+**Implemented:** `POST /api/v1/billing/transactions/:id/refund` through the authenticated gateway requires tenant membership and `billing:refund`; parents are refused. Body: `{ "reason": "refund reason", "transfer_reference": "bank reference" }`. Both strings are trimmed and required (maximum 2000/255 bytes). The transaction UUID is tenant-scoped: foreign and unknown IDs answer 404, non-paid 409, malformed input 400, no JWT 401, denied permission 403, identity unavailable 503, persistence failure 500. A valid replay returns the original audit record, never replaces its actor/reason/reference/time, and creates no second row.
+
+HTTP 200 `data` contains `transaction_id`, `tenant_id`, JWT user `actor_id`, reason, transfer_reference, created_at, job status (`pending`/`completed`), attempt_count and optional next_attempt_at/last_error/completed_at. It acknowledges the financial record, not synchronous Academic completion. The record and paid → refunded transition commit atomically with subscription cancellation and cancellation of its open unpaid renewal transactions. Wallet and ledger are unchanged; the transfer itself is manual, not a provider API refund. Paid-only sales summary and default paid CSV no longer include this transaction, including historical periods.
+
+| Enrollment state | Durable job effect |
+|---|---|
+| active / suspended | existing Academic `/end` → dropped |
+| pending | neutralise queued/stale processing activation; `/end` 409 then `/release` → dropped |
+| release responds active | follow with `/end`, never accept a still-active release as success |
+| dropped | idempotent `/end`, unchanged |
+| completed | `/end` and `/release` 409; unchanged, refund succeeds |
+
+Academic errors retain the refund and schedule retry after 5 minutes × attempt, capped at 6 hours. Refund jobs live in `transaction_refunds`, not the payment reconciliation admin list/requeue API. Reposting a refund returns the original job state. See [ADR 0060](../adr/0060-manual-refund-per-status-enrollment.md).
+
+Evidence: billing `internal/domain/refund.go`, `internal/delivery/http/handler/refund_handler.go`, `internal/repository/refund_repository.go`, `pkg/academic/refund.go`, migration `20261005000000_manual_refunds`; [billing PR #35](https://github.com/kelolakelas/kelolakelas-billing-service/pull/35), squash `db5cc401acffc04ecf681a857b91a6eeec5e626c`; [gateway PR #39](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/39), squash `8f2776658d80ad26c69e0caed49528c6619409d9`.
+
 | Method/path | Authentication | Request/response | Evidence |
 |---|---|---|---|
 | `POST /api/v1/billing/webhooks/duitku` | public; Duitku HMAC validation | `DuitkuCallbackPayload`; success/error envelope | `transaction_handler.go:239-283` |
