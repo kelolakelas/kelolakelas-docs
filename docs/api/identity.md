@@ -1,5 +1,7 @@
 # Identity API
 
+**Implemented (KEL-152):** `billing:refund` is a separate permission for recording full manual refunds. Migration `000015_billing_refund_permission` and the default seeder grant it only to the system Creator role, preserving other role grants. Existing active-membership and tenant-scoped `CheckPermission` enforcement still applies; this is not implied by `billing:read` or `billing:withdraw`. Apply the reversible migration before deploying the billing route. Evidence: identity `migrations/000015_billing_refund_permission.{up,down}.sql`, `internal/migration/refund_permission_test.go`, default seeder; [identity PR #39](https://github.com/kelolakelas/kelolakelas-identity-service/pull/39), squash `f4b607f7fec57964f97ce01cfd9b277d5e6874f4`.
+
 Implemented routes are registered in `kelolakelas-identity-service/cmd/server/main.go:103-131`; request binding structs and response branches are in `internal/delivery/http/handler/`.
 
 | Operation | Key request schema | Result / notable errors |

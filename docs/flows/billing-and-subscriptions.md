@@ -1,5 +1,13 @@
 # Billing and subscriptions
 
+## Manual full refund (KEL-152)
+
+**Implemented:** A tenant actor with `billing:refund` records the external manual transfer with required reason/reference. Billing locks the tenant transaction and atomically writes immutable audit, `paid` → `refunded`, subscription cancellation and open unpaid renewal cancellation. Replays return the existing audit. Wallet/ledger and Academic source code are unchanged. Paid-only sales summaries and paid CSV exclude the refunded payment.
+
+The durable `transaction_refunds` job uses existing Academic endpoints: active/suspended → `/end` → dropped; pending → neutralise queued activation and guard in-flight activation, `/end` conflict → `/release` → dropped; a release answering active must be followed by `/end`; dropped stays dropped; completed is untouched and does not invalidate the refund. Activation/resume and renewal guards serialize on transaction/subscription locks, preventing stale work from reactivating or billing after refund. HTTP success records the refund even while Academic is unavailable; failed cleanup is retried with persisted backoff, separately from payment reconciliation. See [API contract](../api/billing.md#manual-full-refund-kel-152) and [ADR 0060](../adr/0060-manual-refund-per-status-enrollment.md).
+
+Evidence: billing `internal/repository/refund_repository.go`, `subscription_refund_guard.go`, `internal/usecase/{transaction_usecase,refund_worker,subscription_worker}.go`, `pkg/academic/refund.go`; billing PR #35 squash `db5cc401acffc04ecf681a857b91a6eeec5e626c`. Operator real-database gateway E2E: `.kel-autopilot/kel152/manual-e2e.md`, SUMMARY 42/42 PASS (outside repositories).
+
 ```mermaid
 sequenceDiagram
   participant A as Academic

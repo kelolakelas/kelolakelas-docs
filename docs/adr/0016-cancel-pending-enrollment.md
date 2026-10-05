@@ -192,6 +192,8 @@ cancellation is recorded as `paid` and its activation rejection is stored in
 `reconciliation_last_error`. Nothing automatically refunds it, and no operator
 notification is emitted when that error appears.
 
+> **Superseded in part by ADR 0060:** KEL-152 now records a full manual refund of a paid transaction with status-specific durable enrollment cleanup. The bank transfer is still manual; provider invoice revocation is not added.
+
 Known gaps this decision leaves open: a paid transaction's refund remains out of
 scope, so the operator path for a paid-after-cancel payment is manual; the
 provider invoice cannot be revoked, so the checkout link stays payable until
