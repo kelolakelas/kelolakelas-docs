@@ -1,5 +1,7 @@
 # Academic API
 
+**Implemented (KEL-162):** Parent group checkout accepts optional `voucher_code` and forwards only that code to billing, never a client discount. Academic derives tenant and subtotal from the published group class. Authenticated `POST /api/v1/catalog/classes/:class_id/voucher-preview` accepts the code and delegates to billing's internal read-only preview; it cannot create an enrollment, invoice or reservation. Preview is advisory and checkout revalidates under lock. A billing 422 `voucher_rejected` is preserved with a clear parent-facing message; a new checkout rejection releases its seat, whereas replacement rejection preserves recovery context. Existing successful replays retain billing's gross snapshot. No checkout `dry_run` flag exists. Evidence: `internal/usecase/voucher_preview.go`, `pkg/billing/voucher.go`, `internal/usecase/enrollment_usecase.go`, `cmd/server/routes.go`; [academic PR #46](https://github.com/kelolakelas/kelolakelas-academic-service/pull/46), squash `e499bc523db930539d2832b1ddc8e8fcc34d4e73`.
+
 Routes registered in `kelolakelas-academic-service/cmd/server/routes.go` are the source of truth. `GET /api/v1/catalog/classes`, `GET /api/v1/catalog/classes/:id`, and `GET /api/v1/catalog/classes/:id/reviews` are public; all other `/api/v1` routes require JWT. Internal activation, release, chat-context reads, and the billing cancel path are outside `/api/v1`.
 
 | Area | Operations | Request/response source |

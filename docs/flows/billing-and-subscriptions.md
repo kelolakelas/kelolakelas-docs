@@ -1,5 +1,11 @@
 # Billing and subscriptions
 
+## Group checkout voucher lifecycle (KEL-162)
+
+Parent enters an optional code and obtains an advisory read-only preview through gateway → academic → billing. Checkout sends only the code; billing computes and persists discounted gross and applied fees, reserving one use under the voucher row lock in the same transaction. Failed/expired/cancelled invoices release once. A confirmed late paid callback retakes a released use even above the cap without changing the saved price. A replacement invoice must re-reserve or is refused when ineligible; valid replays do not take another use. Discounts are checkout-only and do not carry to renewals; private vouchers are out of scope. The existing `current_uses` displays over-cap late payment usage. See [ADR 0061](../adr/0061-group-checkout-voucher-reservations.md) and [billing API](../api/billing.md#group-checkout-vouchers-kel-162).
+
+Evidence: billing PR #36 squash `a87e3345f6f639b89ab0058f9cfd8dd668d5d88b`, academic PR #46 squash `e499bc523db930539d2832b1ddc8e8fcc34d4e73`, gateway PR #41 squash `4b718d28046080d3b673d0d60fa0fa628e9729c8`, web PR #77 squash `923ca5b6cb2b1cf20d1a7b2c8ccc3775bc3e30e6`. Real PostgreSQL race count3: 12 top-level and 18 subtests PASS. Operator sandbox evidence `.kel-autopilot/kel162/sandbox-evidence.md`: PASS 8/8, kept outside repositories; not a production settlement claim.
+
 ## Manual full refund (KEL-152)
 
 **Implemented:** A tenant actor with `billing:refund` records the external manual transfer with required reason/reference. Billing locks the tenant transaction and atomically writes immutable audit, `paid` → `refunded`, subscription cancellation and open unpaid renewal cancellation. Replays return the existing audit. Wallet/ledger and Academic source code are unchanged. Paid-only sales summaries and paid CSV exclude the refunded payment.

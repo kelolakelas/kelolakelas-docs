@@ -1,5 +1,7 @@
 # Gateway surface
 
+**Implemented (KEL-162):** `POST /api/v1/catalog/classes/:class_id/voucher-preview` requires gateway JWT validation and proxies to academic, which checks parent context and derives class pricing before calling billing's read-only preview. No checkout dry-run, new enrollment or voucher reservation is introduced by this route. Evidence: `internal/delivery/http/{router.go,router_test.go}`; [gateway PR #41](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/41), squash `4b718d28046080d3b673d0d60fa0fa628e9729c8`.
+
 **Implemented (KEL-158):** Public tenant profile GET proxies to identity unchanged through the existing global rate limiter and bounded HTTP proxy, without JWT authentication. Identity owns active/nondeleted tenant and applied catalog policy checks and the privacy allowlist. Evidence: `internal/delivery/http/{router.go,public_tenant_test.go}`; [gateway PR #40](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/40), squash `207f84face89bfcf604b97191e9f9608a2892e21`. Unauthenticated 200/404/503 router tests, full local Go gate, PR and post-merge `gate` passed.
 
 **Implemented gateway-owned endpoints:** `GET /health`, `GET /ready`, `GET /swagger`, `GET /swagger/*any`, and prefixed service Swagger UIs. Every `/api/v1` business route is proxied; no successful response envelope is added. Route registration is the authority: `kelolakelas-api-gateway/internal/delivery/http/router.go:38-147`.
