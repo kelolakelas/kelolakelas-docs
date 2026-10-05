@@ -1,5 +1,13 @@
 # Billing API
 
+## Group checkout vouchers (KEL-162)
+
+**Implemented:** `POST /internal/billing/transactions` accepts optional `voucher_code`; billing resolves the tenant voucher and computes the discount, ignoring caller-supplied discount amounts. Percent discounts round down; fixed/percent discounts are capped by the configured maximum and subtotal. Applied platform fees are calculated on discounted gross. The invoice stores its voucher and immutable subtotal/discount/gross/fee snapshot. Invalid tenant, validity window, minimum, inactive or exhausted vouchers return 422 `voucher_rejected`.
+
+`POST /internal/billing/vouchers/preview` is internal-bearer protected and read-only: eligibility and pricing only, no enrollment, transaction or reservation. A checkout locks the voucher and reserves usage atomically with snapshot creation. `current_uses` includes paid uses and active reservations; failed, expired and cancelled invoices release a reservation exactly once. Confirmed late paid callbacks retake a released use even above `max_uses`, retaining the original price; the existing count exposes over-cap usage. Replacement invoices must re-reserve under lock or return `voucher_rejected` if no longer eligible, never reprice. Valid invoice replays do not reserve twice. Private checkout vouchers and recurring renewal discounts are not supported.
+
+Migration `20261006000000_transaction_voucher_use` installs reservation timestamps and status-transition trigger; apply before serving new checkout behavior. Evidence: billing `internal/domain/voucher_redemption.go`, `internal/usecase/voucher_checkout.go`, `internal/repository/{voucher_reservation,kel162_voucher_postgres_test}.go`; [PR #36](https://github.com/kelolakelas/kelolakelas-billing-service/pull/36), squash `a87e3345f6f639b89ab0058f9cfd8dd668d5d88b`. See [ADR 0061](../adr/0061-group-checkout-voucher-reservations.md).
+
 ## Manual full refund (KEL-152)
 
 **Implemented:** `POST /api/v1/billing/transactions/:id/refund` through the authenticated gateway requires tenant membership and `billing:refund`; parents are refused. Body: `{ "reason": "refund reason", "transfer_reference": "bank reference" }`. Both strings are trimmed and required (maximum 2000/255 bytes). The transaction UUID is tenant-scoped: foreign and unknown IDs answer 404, non-paid 409, malformed input 400, no JWT 401, denied permission 403, identity unavailable 503, persistence failure 500. A valid replay returns the original audit record, never replaces its actor/reason/reference/time, and creates no second row.
