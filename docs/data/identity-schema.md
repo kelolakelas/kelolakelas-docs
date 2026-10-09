@@ -1,5 +1,9 @@
 # Identity schema
 
+**Implemented (KEL-169):** Existing timestamp columns and UTC connection remain unchanged; GORM now uses `database.UTCNow` as `NowFunc`, and explicit application timestamp writes use UTC. Invitation creation captures one UTC instant for `created_at`/`updated_at`, with `expires_at` exactly 48 hours later. Invite redeem/revoke, auth/reset/factor and role writes use consistent instants; authorization, expiry errors and JSON field names/RFC3339 format are unchanged. No migration or backfill: rows written before deploy keep their +7 h skew when previously persisted as Jakarta wall time.
+
+Evidence: identity `pkg/database/db.go`, `internal/usecase/invitation_usecase.go`, `internal/repository/user_repository.go`, `internal/usecase/kel169_timestamp_test.go`, `internal/usecase/kel169_timestamp_postgres_test.go`; [PR #42](https://github.com/kelolakelas/kelolakelas-identity-service/pull/42), squash `c203d364a6cc2cb5119be0c82773275d54f0e3d8`. Operator API/web checks passed in Jakarta, UTC and America/New_York, including old invitations read by the new binary. Opt-in PostgreSQL round-trip/redeem tests require an isolated database via `KEL169_TEST_DATABASE_URL`.
+
 **Implemented migration authority:** `kelolakelas-identity-service/migrations/00000000000000_init_schema.up.sql` plus the numbered migrations `000001_seed_versions` through `000014_chat_manage_permission`.
 
 ```mermaid
