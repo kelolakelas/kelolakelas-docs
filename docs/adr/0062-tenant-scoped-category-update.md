@@ -121,6 +121,11 @@ operational surface: no worker, no retry, no reconciliation row, and no
 cross-service call.
 
 Known gaps this decision leaves open: there is no audit trail for category
-attribute changes; explicit description clearing is out of scope; and the web
-application still has no edit-category UI (KEL-189 covers the dashboard
-surface), so the endpoint is currently reachable only by direct API callers.
+attribute changes; explicit description clearing is out of scope.
+
+**Implemented (KEL-189):** the web dashboard now exposes permission-gated
+name/description editing and confirmed deletion. The previous direct-API-only
+observation no longer applies; the API decision itself is unchanged. Evidence:
+[web PR #91](https://github.com/kelolakelas/kelolakelas-web/pull/91), squash
+`b2d8b8c2e1a14be40147b3adb244de9f41e42a0c`, `CategoryControl` and
+`updateCategory`/`deleteCategory` in the tenant classes route.
