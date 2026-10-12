@@ -1,5 +1,7 @@
 # Known gaps and risks
 
+**Implemented (KEL-189):** category dashboard maintenance is available through permission-gated edit/delete controls ([web PR #91](https://github.com/kelolakelas/kelolakelas-web/pull/91), squash `b2d8b8c2e1a14be40147b3adb244de9f41e42a0c`). Backend authorization and active-class deletion refusal remain authoritative. Category audit history and explicit description clearing remain unsupported; the UI rejects clearing and preserves omitted descriptions. See [web component](components/web.md) and [category update ADR](adr/0062-tenant-scoped-category-update.md).
+
 Severity is an engineering assessment, not an exploit claim. “Confirmed” indicates direct code evidence; recommendations are not current behavior.
 
 | Finding | Severity | Component | Evidence | Impact | Status / recommended remediation |
