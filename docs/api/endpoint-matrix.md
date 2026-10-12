@@ -32,6 +32,7 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | GET/POST | `/api/v1/roles` | Identity → same | JWT; tenant claim only | none / create role DTO → roles/role; 400/403/409 | gateway:87,84; identity main:128-129 |
 | PUT/DELETE | `/api/v1/roles/:id` | Identity → same | JWT; custom-role ownership | update DTO/none → role/envelope; 400/403/404/409 | gateway:89,86; identity main:130-131 |
 | GET/POST | `/api/v1/categories` | Academic → same | JWT; tenant claim | none / category DTO → list/category; 400 | gateway:93,90; academic main:109-110 |
+| PATCH | `/api/v1/categories/:id` | Academic → same | JWT; `category:update` permission and tenant scope | `UpdateCategoryRequest` partial update; blank name 422 → category; 400/403/404/422 | gateway:181; academic main:51 |
 | DELETE | `/api/v1/categories/:id` | Academic → same | JWT; tenant scope | UUID → envelope; 400/404/409 | gateway:95; academic main:111 |
 | GET/POST | `/api/v1/classes` | Academic → same | JWT; tenant claim | filters / class DTO → list/class; 400 | gateway:96,93; academic main:112-113 |
 | POST | `/api/v1/classes/with-category` | Academic → same | JWT; tenant claim | combined DTO → class/category | gateway:98; academic main:114 |

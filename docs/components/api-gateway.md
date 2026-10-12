@@ -1,5 +1,7 @@
 # API gateway (`kelolakelas-api-gateway`)
 
+**Implemented (KEL-188):** the protected group proxies `PATCH /api/v1/categories/:id` to academic-service, so tenant category renames flow through gateway JWT auth like the other category routes. Evidence: gateway PR #43, squash `2f69ab40e022cf583924691796fd5497e83f9252`.
+
 **Implemented:** Gin service on `:8000` by default. It registers request correlation, structured access logging, recovery, restrictive origin matching CORS, Redis-backed rate limiting, health, local Swagger shell, service Swagger proxies, public routes, and a JWT-protected route group. Evidence: `cmd/server/main.go`, `internal/delivery/http/router.go:26-35`.
 
 > KEL-63 is historical: its Go 1.26.6 pin and scan result are superseded by KEL-177 below.
