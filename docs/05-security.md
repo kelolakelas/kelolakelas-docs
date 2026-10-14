@@ -42,7 +42,8 @@ flowchart LR
   W -->|tenant or platform caller Bearer, never service credential| G
   G -->|platform queue; identity live admin check| IHTTP
   A[Academic] -->|static internal credential| BL[Billing internal API]
-  A -->|static internal credential, KEL-154 sender (future)| C
+  A -->|static internal credential: private payment-link delivery, KEL-129| C
+  A -->|caller Bearer: current invoice read, billing:read| BL[Billing API]
   A -->|unauthenticated/plaintext gRPC: active-membership verdict, fail-closed (KEL-135)| I
   BL -->|static internal credential| A
   C[Chat JWT verification] -->|static internal credential; context at creation| A

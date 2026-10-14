@@ -1,7 +1,9 @@
 # Dependency matrix
 
-| Caller | Callee | Protocol / auth | Purpose | Status/evidence |
+| Caller | Callee | Transport/auth | Purpose | Evidence |
 |---|---|---|---|---|
+| Academic | Chat | HTTP POST `/internal/schedule-request-payment-links`, internal credential | explicit private invoice sharing; trusted expiry checked after lock at write boundary | KEL-129 academic `pkg/paymentlink/client.go`, chat `internal/postgres/payment_link.go`; ADR 0063 |
+| Academic | Billing | HTTP GET transaction, caller Bearer (`billing:read`) | resolve current existing pending invoice for private-link delivery | KEL-129 academic `pkg/paymentlink/client.go`, `internal/usecase/private_payment_link.go` |
 | Web | gateway | HTTP JSON, Bearer supplied by server actions | login, registration, tenant dashboard operations | Implemented: web `_actions`/`_queries` |
 | Web | Gateway | HTTP JSON server actions, pending JWT in Bearer during `/platform/auth/challenge`+`/verify`; verified JWT in Bearer on `/platform/me` | platform admin second-factor login flow (KEL-105): pending token can only start challenges, session cookie written only after verify 200 | Implemented (KEL-105): web `app/platform/login/actions.ts`, `app/platform/{page,challenge/page}.tsx` |
 | Gateway | identity/academic/billing | HTTP reverse proxy, service receives Bearer | public/protected API routing | Implemented: gateway router/proxy handler |
