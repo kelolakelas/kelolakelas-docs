@@ -1,5 +1,7 @@
 # Chat API (KEL-119, KEL-120, KEL-121, KEL-122, KEL-154)
 
+**Implemented (KEL-129):** internal-only `POST /internal/schedule-request-payment-links` requires `X-Internal-Service-Credential`, not a browser JWT. Academic supplies request/tenant/parent/transaction UUIDs, checkout URL and trusted `invoice_expires_at`. Chat checks academic context independently and atomically inserts/replays one system message in the request conversation, rejecting expiry after lock wait. It is not gateway-proxied. Contract, errors and invariants: [ADR 0063](../adr/0063-private-payment-link-chat.md). Evidence: chat `internal/chat/payment_link.go`, `internal/postgres/payment_link.go`, PR #6 squash `4a3f9d6b6bdf12ec21cfdb390127ee24e025c807`.
+
 The chat service directly serves these routes under `/api/v1/chat`; since KEL-122 they are also wired through the gateway behind its JWT/session/tenant checks (see [gateway](gateway.md) and [ADR 0048](../adr/0048-gateway-chat-websocket-forwarding.md)). Every route requires `Authorization: Bearer <JWT>` with the shared HS256 secret. Tenant, role, member and user identifiers come from verified claims, never a supplied tenant header. Responses use `{ "status": "success|error", "message": "...", "data": ... }`.
 
 | Method | Route | Input | Success |

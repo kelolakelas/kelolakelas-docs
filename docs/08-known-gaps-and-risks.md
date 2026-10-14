@@ -1,5 +1,7 @@
 # Known gaps and risks
 
+**KEL-129 boundary:** explicit private payment-link sharing is implemented, including write-boundary expiry and retry safety (ADR 0063). It still needs deployed academic `CHAT_SERVICE_URL` and matching internal credentials; `billing:read` is additionally required. Status is read before delivery, not held under a distributed billing/chat transaction. This is not automatic sending, invoice regeneration or proof of provider settlement.
+
 **Implemented (KEL-189):** category dashboard maintenance is available through permission-gated edit/delete controls ([web PR #91](https://github.com/kelolakelas/kelolakelas-web/pull/91), squash `b2d8b8c2e1a14be40147b3adb244de9f41e42a0c`). Backend authorization and active-class deletion refusal remain authoritative. Category audit history and explicit description clearing remain unsupported; the UI rejects clearing and preserves omitted descriptions. See [web component](components/web.md) and [category update ADR](adr/0062-tenant-scoped-category-update.md).
 
 Severity is an engineering assessment, not an exploit claim. “Confirmed” indicates direct code evidence; recommendations are not current behavior.
