@@ -1,0 +1,86 @@
+[
+  {
+    "identifier": "KEL-185",
+    "id": "3b8b1acd-474b-484c-a572-0748a739b58c",
+    "url": "https://linear.app/farid-zamani/issue/KEL-185/tetapkan-dan-selaraskan-permission-baca-administrasi-tenant",
+    "draftKey": "tenant-read-permission-policy",
+    "status": "Backlog",
+    "labels": [
+      "ai-ready",
+      "identity",
+      "web"
+    ],
+    "priority": "High",
+    "estimate": 2,
+    "blockedBy": [],
+    "updatedAt": "2026-10-14T06:16:24.457Z"
+  },
+  {
+    "identifier": "KEL-186",
+    "id": "a4d0a180-79bf-47c1-97f1-701809da7dbf",
+    "url": "https://linear.app/farid-zamani/issue/KEL-186/tenant-dapat-menugaskan-teacher-pada-jadwal-private-hasil-approval",
+    "draftKey": "private-teacher-assignment-policy",
+    "status": "Backlog",
+    "labels": [
+      "ai-ready",
+      "academic",
+      "web"
+    ],
+    "priority": "Medium",
+    "estimate": 2,
+    "blockedBy": [
+      "KEL-184"
+    ],
+    "updatedAt": "2026-10-14T06:16:31.469Z"
+  },
+  {
+    "identifier": "KEL-187",
+    "id": "da60be0b-6229-4d9e-9010-9a6bf68ab565",
+    "url": "https://linear.app/farid-zamani/issue/KEL-187/tetapkan-baseline-security-headers-dan-ownership-app-versus-edge",
+    "draftKey": "web-security-header-policy",
+    "status": "Backlog",
+    "labels": [
+      "ai-ready",
+      "web"
+    ],
+    "priority": "Low",
+    "estimate": 2,
+    "blockedBy": [],
+    "updatedAt": "2026-10-14T06:16:36.611Z"
+  },
+  {
+    "identifier": "KEL-133",
+    "id": "668770ff-1c6e-46c1-b004-55e169e2e005",
+    "url": "https://linear.app/farid-zamani/issue/KEL-133/parent-memilih-channel-pembayaran-untuk-pembelian-kelas-private",
+    "draftKey": "private-request-payment-channel",
+    "status": "Backlog",
+    "labels": [
+      "ai-ready",
+      "academic",
+      "web"
+    ],
+    "priority": "Medium",
+    "estimate": 3,
+    "blockedBy": [
+      "KEL-125"
+    ],
+    "updatedAt": "2026-10-14T06:16:42.053Z"
+  },
+  {
+    "identifier": "KEL-167",
+    "id": "e827444c-c1cd-4fc9-b53a-2d069f89357b",
+    "url": "https://linear.app/farid-zamani/issue/KEL-167/pilihan-siswa-di-form-laporan-tidak-terpotong-pada-1000-sesienrollment",
+    "draftKey": "report-student-search-picker",
+    "status": "Backlog",
+    "labels": [
+      "ai-ready",
+      "web"
+    ],
+    "priority": "Low",
+    "estimate": 2,
+    "blockedBy": [
+      "KEL-139"
+    ],
+    "updatedAt": "2026-10-14T06:16:47.875Z"
+  }
+]

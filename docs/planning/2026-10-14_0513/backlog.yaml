@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "kelolakelas.planning-backlog/v1",
+  "projects": [],
+  "issues": [
+    {
+      "draftKey": "qa-group-schedule-teacher-assignment",
+      "projectKey": null,
+      "title": "Wizard jadwal kelas grup menghasilkan sesi tanpa pengajar dan tidak menawarkan penugasan teacher",
+      "type": "Improvement",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "repositories": [
+        "web"
+      ],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "QA agent-browser pada 14 Oktober 2026 WIB, web b2d8b8c2 dan academic e4a67b91 (HEAD sama dengan origin/main setelah fetch). Tenant QA sudah mempunyai anggota Teacher aktif. Langkah: Classes → Create New Class → kategori QA Matematika → kelas grup QA Browser Grup, Rp100.000 → jadwal Senin 09:00–10:30 kapasitas 10 → Complete Class Setup. Form jadwal tidak menyediakan pemilihan teacher. GET /schedules mengembalikan tutor_id tidak terisi; GET /sessions?class_id=fba5b1e5-8fbc-43fc-8408-48cb1bf84b0f menunjukkan dua sesi (19 dan 26 Oktober) bertutor 00000000-0000-0000-0000-000000000000. GET /sessions?mine=true milik teacher tidak menampilkan kedua sesi. Kontrol positif: sesi fixture Rabu setelah ditugaskan ke member Teacher melalui endpoint substitute-tutor tampil pada Sesi Saya teacher. Ini jalur kelas GROUP; KEL-186 hanya membahas jadwal PRIVATE hasil approval.",
+        "goal": "Tenant dapat menugaskan pengajar aktif ketika membuat jadwal grup sehingga sesi tersedia pada dashboard teacher yang ditugaskan.",
+        "requirements": [
+          "Sediakan penugasan pengajar tenant pada wizard grup dan Add Schedule",
+          "Gunakan ID tenant_member, sesuai claim member_id dan kontrak tutor_id existing",
+          "Simpan tutor_id pada jadwal sehingga sesi hasil generate mempunyai pengajar yang dipilih",
+          "Berikan penjelasan yang jelas bila teacher belum tersedia; jangan menyatakan setup pengajar selesai jika sesi belum ditugaskan"
+        ],
+        "acceptanceCriteria": [
+          "Tenant dengan Teacher aktif dapat memilih teacher pada wizard dan Add Schedule",
+          "GET /schedules dan sesi hasil generate mempunyai tutor_id membership yang dipilih",
+          "Sesi terlihat pada Sesi Saya teacher untuk rentang tanggal yang sesuai",
+          "Sesi tidak muncul pada mine=true teacher lain",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Scope web berdasarkan bukti: DTO academic ScheduleItemRequest sudah menerima tutor_id dan CreateInitialSchedules meneruskannya; tidak perlu endpoint baru. Web createScheduleSchema/ScheduleForm belum mengumpulkan tutor_id. Backend sessionsForScheduleBetween memakai UUID nol bila TutorID nil. Gunakan daftar anggota dan izin existing; jangan menyamakan user_id dengan member_id. Pembaruan docs menjelaskan alur penugasan grup. Tidak ada dependency backlog baru; beda scope dari KEL-186.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_components/ScheduleForm.tsx",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_components/ClassCreationWizard.tsx",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_components/AddScheduleModal.tsx",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_actions/classActions.ts"
+        ],
+        "edgeCases": [
+          "Tenant belum mempunyai pengajar aktif",
+          "Fetch anggota gagal atau permission berubah",
+          "Slot generator membuat beberapa jadwal dengan tutor yang konsisten",
+          "Jadwal grup existing tanpa tutor tetap dapat dibaca"
+        ],
+        "testingValidation": [
+          "Uji browser tenant membuat jadwal untuk Teacher; login Teacher dan cek sesi pada tanggal jadwal",
+          "Uji payload tutor_id menggunakan member_id, bukan user_id",
+          "Uji kondisi daftar anggota kosong/gagal dan error penyimpanan",
+          "Regression test yang membuktikan acceptance criteria",
+          "npm run test; npm run lint; npx tsc --noEmit; npm run build",
+          "GitHub required CI sukses pada PR ke main sebelum merge",
+          "Perbarui dokumentasi current-state yang terdampak sesuai CONTRIBUTING"
+        ],
+        "outOfScope": [
+          "Approval jadwal private (KEL-186)",
+          "Backfill otomatis sesi lama bertutor nol",
+          "Perubahan policy otorisasi backend atau endpoint baru"
+        ]
+      }
+    },
+    {
+      "draftKey": "qa-checkout-preserve-failed-input",
+      "projectKey": null,
+      "title": "Checkout parent menghapus pilihan student, jadwal, periode, dan metode pembayaran setelah gagal",
+      "type": "Improvement",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "repositories": [
+        "web"
+      ],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "QA agent-browser pada 14 Oktober 2026 WIB, web b2d8b8c2. Parent membuat Anak QA, membuka /kelas/fba5b1e5-8fbc-43fc-8408-48cb1bf84b0f, memilih student, Senin 09:00–10:30, periode bulanan dan Virtual Account, lalu Lanjut ke pembayaran. Provider sandbox mengembalikan 404 (billing /internal/billing/transactions 500); UI menampilkan Checkout belum tersedia karena layanan pembayaran sedang bermasalah. Sesudah response, student dan jadwal kosong serta radio berubah ke Kartu (VC). Reproduksi lanjutan memakai quarterly dan QRIS mendapatkan conflict; input kembali kosong, cycle=monthly, method=VC. Teks halaman meminta kirim ulang intent yang sama, tetapi pilihan transaksi hilang. Screenshot: checkout-reset.png. Provider 404 adalah batasan environment terpisah; bug yang dilaporkan ialah kehilangan input pada error path.",
+        "goal": "Parent dapat memperbaiki atau mencoba ulang checkout gagal dengan pilihan transaksi yang tetap terlihat dan konsisten.",
+        "requirements": [
+          "Pertahankan pilihan student, jadwal, billing_cycle dan payment_method pada kegagalan validasi/domain/backend",
+          "Pertahankan voucher dan konsistensi idempotency intent sesuai kontrak existing",
+          "Jangan mengganti metode pembayaran atau periode secara diam-diam pada retry",
+          "Tetap tampilkan error dan link recovery backend yang sesuai"
+        ],
+        "acceptanceCriteria": [
+          "Setelah error checkout, semua input masih sama dengan submission terakhir",
+          "Quarterly/yearly dan VA/QRIS tidak kembali menjadi monthly/VC setelah error",
+          "Retry intent yang sama membawa pilihan dan idempotency yang konsisten",
+          "Jika student/jadwal tidak lagi valid, tampilkan error eksplisit dan minta pilihan baru",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "EnrollmentPanel memakai useActionState; schedule/cycle/radio uncontrolled dengan default monthly/VC, sehingga action completion mereset form. Student memakai controlled state tetapi DOM sesudah response juga kembali kosong dalam QA; validasi melalui browser diperlukan, jangan mengandalkan markup statis. Source enrolInClass mengembalikan error tanpa pemulihan draft form. Tidak perlu perubahan academic/billing untuk memperbaiki UI ini. KEL-172 hanya auth forms, bukan checkout. Regression harus memakai error response deterministic agar tidak tergantung sandbox Duitku. Perbarui docs flow retry.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx",
+          "kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts",
+          "kelolakelas-web/lib/enrollment.ts"
+        ],
+        "edgeCases": [
+          "Provider timeout/5xx",
+          "Enrollment duplikat atau jadwal penuh",
+          "Student/jadwal dihapus saat checkout",
+          "Voucher invalid; retry setelah perubahan intent"
+        ],
+        "testingValidation": [
+          "Browser test: submission quarterly+QRIS dan yearly+VA dengan error terkontrol, lalu verifikasi nilai input dan payload retry",
+          "Uji field validation, 409, 5xx dan happy path",
+          "Verifikasi idempotency retry tanpa invoice/enrollment tambahan",
+          "Regression test yang membuktikan acceptance criteria",
+          "npm run test; npm run lint; npx tsc --noEmit; npm run build",
+          "GitHub required CI sukses pada PR ke main sebelum merge",
+          "Perbarui dokumentasi current-state yang terdampak sesuai CONTRIBUTING"
+        ],
+        "outOfScope": [
+          "Memperbaiki konfigurasi sandbox Duitku",
+          "Mengubah policy harga atau billing",
+          "Form login/registrasi (KEL-172)"
+        ]
+      }
+    },
+    {
+      "draftKey": "qa-schedule-cards-class-identity",
+      "projectKey": null,
+      "title": "Tab Schedules tenant tidak menampilkan nama kelas sehingga jadwal antar kelas tidak dapat dibedakan",
+      "type": "Improvement",
+      "priority": "Medium",
+      "estimate": "S",
+      "complexity": "low",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "repositories": [
+        "web"
+      ],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "QA agent-browser pada 14 Oktober 2026 WIB. Tenant membuat QA Browser Grup dan QA Browser Bahasa, masing-masing memiliki Senin 09:00–10:30, kapasitas 10, Room 101. Buka /dashboard/tenant/classes → Schedules (3). Kedua kartu Senin tampil identik: Mon 09:00 - 10:30, 10 seats, Room 101; tidak ada nama kelas. GET /schedules menyediakan class_id dan class.name yang benar. Screenshot schedules.png membuktikan kehilangan konteks kelas. KEL-190 adalah kategori pada tabel Classes, bukan identitas kelas pada kartu Schedules.",
+        "goal": "Tenant dapat mengenali kelas pemilik setiap kartu jadwal meski waktu, kapasitas dan lokasi sama.",
+        "requirements": [
+          "Tampilkan nama kelas pemilik jadwal pada setiap kartu Schedules",
+          "Gunakan data relasi kelas existing dari API",
+          "Tangani relasi kelas absent dengan fallback yang tidak menyatakan kelas yang salah",
+          "Pertahankan informasi waktu, kapasitas, dan lokasi"
+        ],
+        "acceptanceCriteria": [
+          "Dua jadwal identik dari kelas berbeda menampilkan nama kelas masing-masing",
+          "Nama kelas terlihat pada desktop dan mobile",
+          "Relasi class yang kosong tidak menyebabkan crash atau label kelas keliru",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "SchedulesGrid di ClassListTable.tsx hanya merender hari, waktu, capacity dan location. GET /schedules telah menyediakan nested class.name; scope web saja, mapping/type dapat diselaraskan bila perlu. Tidak membutuhkan perubahan kontrak API. Dokumentasikan hasil tampilan baru. Duplikasi diperiksa melalui issue jadwal, teacher, tutor dan backlog KEL; KEL-190 berbeda field/komponen.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_components/ClassListTable.tsx",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_queries/queries.ts"
+        ],
+        "edgeCases": [
+          "Dua kelas punya jam/lokasi/kapasitas identik",
+          "Nama kelas panjang",
+          "Relasi kelas hilang atau jadwal kosong"
+        ],
+        "testingValidation": [
+          "Render regression dua kartu jadwal dari kelas berbeda dengan detail identik",
+          "Manual desktop/mobile dan data relasi kosong",
+          "Regression test yang membuktikan acceptance criteria",
+          "npm run test; npm run lint; npx tsc --noEmit; npm run build",
+          "GitHub required CI sukses pada PR ke main sebelum merge",
+          "Perbarui dokumentasi current-state yang terdampak sesuai CONTRIBUTING"
+        ],
+        "outOfScope": [
+          "Kategori tabel Classes (KEL-190)",
+          "Edit/hapus jadwal",
+          "Perubahan backend atau API baru"
+        ]
+      }
+    }
+  ]
+}

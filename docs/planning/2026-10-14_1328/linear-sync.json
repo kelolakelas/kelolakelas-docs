@@ -1,0 +1,21 @@
+{
+  "draftKey": "private-payment-link-chat",
+  "identifier": "KEL-129",
+  "id": "a9a83814-59d3-4b11-a969-5c6c53ddab99",
+  "url": "https://linear.app/farid-zamani/issue/KEL-129/payment-link-private-dapat-dikirim-lewat-percakapan-request-yang-tepat",
+  "status": "Backlog",
+  "labels": [
+    "chat",
+    "ai-ready",
+    "academic",
+    "api-gateway",
+    "web"
+  ],
+  "blockedBy": [
+    "KEL-123",
+    "KEL-124",
+    "KEL-128"
+  ],
+  "updatedAt": "2026-10-14T06:53:18.533Z",
+  "executorRuntimeVerified": false
+}

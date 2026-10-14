@@ -1,0 +1,506 @@
+[
+  {
+    "issue": "KEL-128",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/128",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-29T12:38:29Z",
+    "mergeCommit": "d842bec001d232f667542b59653946804002a67c",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-128",
+    "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/39",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-29T12:25:50Z",
+    "mergeCommit": "08aa007b488914281be917ccd00eeda1f22d0637",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-128",
+    "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/27",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-29T12:24:54Z",
+    "mergeCommit": "750d5fad8d059fd791b5cb10393c3b97beaa930b",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-123",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/122",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T19:39:07Z",
+    "mergeCommit": "81bb813ec1ad4b94e818ff6e3d76800a352d6aa1",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-123",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/53",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T19:36:09Z",
+    "mergeCommit": "ba43d23977859da32a4db05211b0d0fc14a96110",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      },
+      {
+        "name": "Vercel",
+        "status": "SUCCESS",
+        "conclusion": null
+      },
+      {
+        "name": "Vercel Preview Comments",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-124",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/126",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-29T10:00:02Z",
+    "mergeCommit": "416147d04d155f9c5a2bc1bfc4bcabacfd4fa987",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-124",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/55",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-29T09:55:14Z",
+    "mergeCommit": "c847c9f2dffe491dcd55d384968fb549f2191d1d",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      },
+      {
+        "name": "Vercel",
+        "status": "SUCCESS",
+        "conclusion": null
+      },
+      {
+        "name": "Vercel Preview Comments",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-120",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/119",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T14:35:19Z",
+    "mergeCommit": "d23b5b1aeb90524e176c96efa7c3647da160e9d2",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-120",
+    "url": "https://github.com/kelolakelas/kelolakelas-chat-service/pull/2",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T14:28:53Z",
+    "mergeCommit": "d99fa2423426490396a9a64658a2d40d6a7e4135",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-122",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/121",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T17:47:12Z",
+    "mergeCommit": "d8b2fa2b2d409c7408c1fe749acb9a3e15093848",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-122",
+    "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/31",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T17:28:08Z",
+    "mergeCommit": "51a8a23876e18495f220bc115671b2125daa9230",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-110",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/114",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T10:51:44Z",
+    "mergeCommit": "da37f6b918dc4370f8f0a499819f7fd8696ea92b",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-110",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/51",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T10:48:00Z",
+    "mergeCommit": "c2f1fb70bd2f44efb91fc36a2904c014c06a7daf",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      },
+      {
+        "name": "Vercel",
+        "status": "SUCCESS",
+        "conclusion": null
+      },
+      {
+        "name": "Vercel Preview Comments",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-109",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/113",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T08:37:25Z",
+    "mergeCommit": "bbabe6cf60f5e2d9150041600a9beb11ed16aa3a",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-109",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/50",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T08:34:04Z",
+    "mergeCommit": "56e606cd443dd0c9eba7a4140bd3045765034975",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      },
+      {
+        "name": "Vercel",
+        "status": "SUCCESS",
+        "conclusion": null
+      },
+      {
+        "name": "Vercel Preview Comments",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-119",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/118",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T13:57:54Z",
+    "mergeCommit": "966db4e345ac2456b01f0f9fb2bad491f4c08ee7",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-119",
+    "url": "https://github.com/kelolakelas/kelolakelas-chat-service/pull/1",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T13:52:40Z",
+    "mergeCommit": "b434adaf2ba849d6202d6c69e36337ea623305cb",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-118",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/117",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T13:20:09Z",
+    "mergeCommit": "62e3e343d1f0a972e99ce76cd264fc126e214e14",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-118",
+    "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/37",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T13:16:53Z",
+    "mergeCommit": "82169ba8b5e02b3079c09704dba23e60f9ad6888",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-121",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/120",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T16:36:57Z",
+    "mergeCommit": "1e23d9fdca9d1d39aeda1d4a84c75dccfa287c0b",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-121",
+    "url": "https://github.com/kelolakelas/kelolakelas-chat-service/pull/3",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T16:28:10Z",
+    "mergeCommit": "0fd73a2a69981677db3cf6fe6bb4914e40dffd5e",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-108",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/110",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T03:43:09Z",
+    "mergeCommit": "f1198d4af0eedd84cf88052bab84b01404b972eb",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-108",
+    "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/29",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T03:38:50Z",
+    "mergeCommit": "2ce4b1b7024758d96f3506e8b938e3a55b315428",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-108",
+    "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/35",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T03:37:39Z",
+    "mergeCommit": "603b29aa0a14c2da04cede9da62f8504446c5151",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-107",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/109",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T03:02:28Z",
+    "mergeCommit": "68afa0c1c625bf4d35277266ce4ba9cff49574f5",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-107",
+    "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/28",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T02:56:50Z",
+    "mergeCommit": "fef837a40edef676d86c7715a024e7b440f40c51",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-107",
+    "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/34",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T02:55:48Z",
+    "mergeCommit": "41a73e8c2e9223285863b6830cc10ad5912e2723",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-117",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/112",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T07:41:57Z",
+    "mergeCommit": "c326d8a6622f8f8c3a1708292f9cbac43c389f47",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  },
+  {
+    "issue": "KEL-117",
+    "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/34",
+    "state": "MERGED",
+    "base": "main",
+    "mergedAt": "2026-09-28T07:37:17Z",
+    "mergeCommit": "b05a137ba390604dd1ab02ebcd5ff2e8e14055e8",
+    "reachable": true,
+    "checks": [
+      {
+        "name": "gate",
+        "status": "COMPLETED",
+        "conclusion": "SUCCESS"
+      }
+    ]
+  }
+]

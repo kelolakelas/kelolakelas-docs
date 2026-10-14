@@ -1,0 +1,210 @@
+{
+  "verifiedAt": "2026-10-14",
+  "source": "Linear get_issue/provider reads",
+  "acyclic": true,
+  "issues": [
+    {
+      "identifier": "KEL-129",
+      "id": "a9a83814-59d3-4b11-a969-5c6c53ddab99",
+      "status": "Backlog",
+      "draftKey": "private-payment-link-chat",
+      "blockedBy": [
+        "KEL-123",
+        "KEL-124",
+        "KEL-128"
+      ],
+      "labels": [
+        "chat",
+        "academic",
+        "api-gateway",
+        "web"
+      ]
+    },
+    {
+      "identifier": "KEL-128",
+      "id": "231ce0ca-9c77-4433-bf79-6661438464f6",
+      "status": "Done",
+      "draftKey": "private-payment-link-email",
+      "blockedBy": [],
+      "labels": [
+        "billing",
+        "academic",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-123",
+      "id": "f23b9e90-8570-4b1f-8f0b-453cfcea86a1",
+      "status": "Done",
+      "draftKey": "web-chat-inbox-realtime",
+      "blockedBy": [
+        "KEL-122"
+      ],
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-124",
+      "id": "4b0d6ae9-ed19-452f-a472-b520433ec301",
+      "status": "Done",
+      "draftKey": "web-chat-entry-points",
+      "blockedBy": [
+        "KEL-109",
+        "KEL-110",
+        "KEL-123"
+      ],
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-120",
+      "id": "ccecbcfe-1acf-4ffc-9536-6c4e54d468b8",
+      "status": "Done",
+      "draftKey": "chat-service-conversation-contexts",
+      "blockedBy": [
+        "KEL-118",
+        "KEL-119"
+      ],
+      "labels": [
+        "chat",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-122",
+      "id": "95f3ed11-ae4c-4d88-ae17-17a19eaae84e",
+      "status": "Done",
+      "draftKey": "gateway-chat-routes",
+      "blockedBy": [
+        "KEL-119",
+        "KEL-121"
+      ],
+      "labels": [
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-110",
+      "id": "42951303-c297-4bf4-b70d-860f0ca0ecef",
+      "status": "Done",
+      "draftKey": "tenant-private-schedule-review-web",
+      "blockedBy": [
+        "KEL-108"
+      ],
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-109",
+      "id": "94fa0753-0ab2-42fb-a233-53dd7a7be087",
+      "status": "Done",
+      "draftKey": "parent-private-schedule-request-web",
+      "blockedBy": [
+        "KEL-107"
+      ],
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-119",
+      "id": "465df100-4b17-4fc2-b861-5c00a4d857af",
+      "status": "Done",
+      "draftKey": "chat-service-core-api",
+      "blockedBy": [
+        "KEL-117"
+      ],
+      "labels": [
+        "chat",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-118",
+      "id": "10e9f052-a5f7-4fed-8d18-6d73fde6f341",
+      "status": "Done",
+      "draftKey": "academic-chat-context-internal-api",
+      "blockedBy": [],
+      "labels": [
+        "academic",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-121",
+      "id": "8595e6a0-fe96-4603-8f1c-b4d6125513e7",
+      "status": "Done",
+      "draftKey": "chat-service-websocket-realtime",
+      "blockedBy": [
+        "KEL-119",
+        "KEL-120"
+      ],
+      "labels": [
+        "chat",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-108",
+      "id": "64bcb38d-294e-426b-b773-36fa1f5033f6",
+      "status": "Done",
+      "draftKey": "approve-private-schedule-request",
+      "blockedBy": [
+        "KEL-107"
+      ],
+      "labels": [
+        "academic",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-107",
+      "id": "f11277e5-b7d4-44e1-a6da-650823a1dae1",
+      "status": "Done",
+      "draftKey": "private-schedule-request-api",
+      "blockedBy": [],
+      "labels": [
+        "academic",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "identifier": "KEL-117",
+      "id": "f26fa522-bc07-4c16-94ca-914b2ab86ea0",
+      "status": "Done",
+      "draftKey": "chat-manage-permission",
+      "blockedBy": [],
+      "labels": [
+        "identity",
+        "Feature",
+        "ai-ready"
+      ]
+    }
+  ],
+  "executor": {
+    "host": "other machine (user confirmed)",
+    "runtimeStatus": "unverified; no access supplied"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "qa-group-schedule-teacher-assignment": {
+    "identifier": "KEL-193",
+    "id": "d1f1b0a8-8f1e-479e-aa38-c1fba06d2ace",
+    "url": "https://linear.app/farid-zamani/issue/KEL-193/wizard-jadwal-kelas-grup-menghasilkan-sesi-tanpa-pengajar-dan-tidak",
+    "labels": [
+      "ai-ready",
+      "web"
+    ],
+    "priority": "High",
+    "estimate": 2,
+    "attachments": []
+  },
+  "qa-checkout-preserve-failed-input": {
+    "identifier": "KEL-194",
+    "id": "74a31cb1-8473-46e2-9676-1186b16fb64f",
+    "url": "https://linear.app/farid-zamani/issue/KEL-194/checkout-parent-menghapus-pilihan-student-jadwal-periode-dan-metode",
+    "labels": [
+      "ai-ready",
+      "web"
+    ],
+    "priority": "Medium",
+    "estimate": 2,
+    "attachments": [
+      {
+        "id": "0b19276a-8480-4417-a2c3-874576884457",
+        "title": "Checkout error mengosongkan pilihan transaksi"
+      }
+    ]
+  },
+  "qa-schedule-cards-class-identity": {
+    "identifier": "KEL-195",
+    "id": "21b304c0-fdf3-45b2-a28a-a215f6610bff",
+    "url": "https://linear.app/farid-zamani/issue/KEL-195/tab-schedules-tenant-tidak-menampilkan-nama-kelas-sehingga-jadwal",
+    "labels": [
+      "ai-ready",
+      "web"
+    ],
+    "priority": "Medium",
+    "estimate": 1,
+    "attachments": [
+      {
+        "id": "e45932cd-0a20-4d72-abd8-99edc3986c56",
+        "title": "Dua kartu jadwal kelas berbeda tampil identik"
+      }
+    ]
+  }
+}

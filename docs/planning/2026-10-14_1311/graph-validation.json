@@ -1,0 +1,803 @@
+{
+  "schemaVersion": "kelolakelas.planning-backlog/v1",
+  "projects": [
+    {
+      "key": "qa-teaching-recovery",
+      "name": "QA: sesi dan identitas laporan pengajaran",
+      "outcome": "QA: sesi dan identitas laporan pengajaran",
+      "problem": "Temuan QA stack nyata menunjukkan flow belum dapat dipakai secara konsisten.",
+      "valueAndPriority": "Prioritas berdasarkan impact QA, confidence kode origin/main; tidak mengklaim bukti produksi.",
+      "scope": [
+        "Tanggal sesi dari timestamp API tampil di kartu dan dialog teacher",
+        "Respons report menyertakan identitas student dan class untuk daftar",
+        "Tenant dapat menugaskan teacher pada jadwal private hasil approval"
+      ],
+      "outOfScope": [
+        "Redesign domain, pembayaran dan perubahan policy tanpa keputusan owner."
+      ],
+      "successMetrics": [
+        "Acceptance criteria tiap issue terverifikasi pada stack nyata."
+      ],
+      "dependenciesAndRisks": [
+        "Issue berkeputusan owner tetap tanpa ai-ready."
+      ]
+    },
+    {
+      "key": "payment-experience-owned-page",
+      "name": "Pembayaran kelas dengan pilihan channel dan halaman KelolaKelas",
+      "outcome": "Parent dapat memilih VA atau QRIS dan melihat instruksi pembayaran di KelolaKelas; channel kartu yang membutuhkan otorisasi eksternal tetap diarahkan ke Duitku.",
+      "problem": "Billing memaksa VC dan hanya menyimpan paymentUrl, sehingga web harus redirect dan tidak dapat menampilkan VA atau QR.",
+      "valueAndPriority": "High: konversi checkout dan kejelasan status transaksi; perubahan finansial dikerjakan berlapis dengan kontrak kompatibel.",
+      "scope": [
+        "Pemilihan channel pada invoicing yang terikat enrollment dan validasi server.",
+        "Instruksi pembayaran VA/QR dan status/expiry pada API yang terotorisasi.",
+        "Halaman pembayaran parent yang mengonsumsi instruksi dan tetap mengarahkan kartu ke provider."
+      ],
+      "outOfScope": [
+        "Mengumpulkan nomor kartu/CVV di KelolaKelas atau menghilangkan 3DS provider.",
+        "Cart, voucher, refund, dan payout."
+      ],
+      "successMetrics": [
+        "Parent melihat detail pembayaran VA/QR yang sesuai transaksi miliknya tanpa redirect; kartu tetap melalui hosted provider.",
+        "Tidak ada instruksi pembayaran yang terlihat lintas parent/tenant dan callback tidak menghasilkan invoice ganda."
+      ],
+      "dependenciesAndRisks": [
+        "Owner menyatakan seluruh channel merchant Duitku aktif; verifikasi respons sandbox per channel sebelum deploy.",
+        "Risiko instruksi kedaluwarsa dan duplikasi provider ditangani oleh invariant invoice claim/idempotency yang ada."
+      ]
+    },
+    {
+      "key": "tutor-session-operations",
+      "name": "Operasional sesi, absensi, dan laporan oleh pengajar",
+      "outcome": "Pengajar dapat melihat sesi yang menjadi tanggung jawabnya, mencatat kehadiran, mengubah jadwal atau mengganti pengajar, dan menulis laporan evaluasi siswa dari dashboard KelolaKelas.",
+      "problem": "Backend sesi, absensi, dan laporan sudah ada, tetapi tidak ada satu pun layar web yang memakainya; absensi gagal untuk sesi yang di-reschedule, guard pengajar tidak konsisten, dan menu tenant statis sehingga pengajar melihat semua menu admin.",
+      "valueAndPriority": "High: operasional kelas harian adalah alasan utama tenant memakai aplikasi setelah kelas terjual; sebagian besar kemampuan backend sudah tersedia sehingga nilai per effort tinggi.",
+      "scope": [
+        "Absensi per sesi termasuk sesi hasil reschedule dan pencatatan massal per sesi.",
+        "Guard akses sesi dan laporan untuk pengajar serta daftar sesi milik pengajar yang login.",
+        "Endpoint permission anggota saat ini dan menu tenant yang mengikuti permission.",
+        "Layar sesi dan absensi, reschedule dan tutor pengganti, serta laporan evaluasi siswa."
+      ],
+      "outOfScope": [
+        "Akses parent ke sesi, absensi, dan laporan (Project portal parent).",
+        "Notifikasi perubahan jadwal ke parent (Project notifikasi).",
+        "Aplikasi mobile native."
+      ],
+      "successMetrics": [
+        "Pengajar dapat mencatat kehadiran seluruh siswa satu sesi, termasuk sesi yang di-reschedule, dalam satu aksi.",
+        "Pengajar hanya melihat menu dan data yang diizinkan permission-nya; tidak ada update laporan oleh pengajar yang tidak mengajar kelas tersebut."
+      ],
+      "dependenciesAndRisks": [
+        "Role sistem hanya Creator dan Teacher; role kustom tenant bisa tidak memiliki permission baru yang diwajibkan sehingga dokumentasi perubahan akses wajib disertakan.",
+        "Perubahan guard backend dapat menolak klien yang sebelumnya lolos; uji kompatibilitas role Creator dan Teacher."
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "draftKey": "tenant-read-permission-policy",
+      "projectKey": null,
+      "title": "Tetapkan dan selaraskan permission baca administrasi tenant",
+      "type": "Improvement",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": [
+        "identity",
+        "web",
+        "ai-ready"
+      ],
+      "repositories": [
+        "identity",
+        "web"
+      ],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "L1-01: Teacher tanpa member:read/role:read/tenant:read membaca members/roles/settings via URL dan API; writes sudah 403. Bukan lintas tenant.",
+        "goal": "Tetapkan dan selaraskan permission baca administrasi tenant",
+        "requirements": [
+          "Wajibkan member:read untuk daftar/detail anggota tenant, role:read untuk daftar role tenant, dan tenant:read untuk pengaturan tenant, pada API dan halaman/direct URL.",
+          "Selaraskan navigasi dan error forbidden dengan permission terkini Creator, Teacher, dan custom role.",
+          "Pertahankan bootstrap GET /members/me/membership untuk anggota aktif, tenant isolation dan seluruh gate mutasi existing; jangan memperluas gate ke public tenant profile atau tutor teaching lookup tanpa kebutuhan scope."
+        ],
+        "acceptanceCriteria": [
+          "Teacher tanpa permission terkait mendapat forbidden pada API dan direct URL administrasi.",
+          "Creator dengan permission lengkap tetap dapat membaca members/roles/settings.",
+          "Custom role hanya dapat membaca area sesuai permission; GetMember juga memerlukan member:read.",
+          "Own membership bootstrap tetap bekerja dan nav sesuai permission terkini.",
+          "Tenant asing, parent, sesi revoked, atau membership tidak aktif tidak memperoleh data protected. ",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Verifikasi ulang origin/main dilakukan melalui pembacaan kode; runtime QA berasal dari lane, bukan replay baru oleh consolidator. identity member_handler.go:82-136 dan role_handler.go:122-144 hanya tenant context; web members queries hanya membatasi invitation. Gateway members/roles/tenant routes transparent, tidak berubah. Gateway hanya read-only reference kecuali tercantum di repositories. Perbarui kelolakelas-docs setelah implementasi. Risiko: perubahan boundary authorization/data terproteksi; jangan memperluas akses atau menghapus predicate scope. Keputusan owner disetujui pada 14 Oktober 2026 WIB melalui jawaban “setuju semua rekomendasi”. Policy yang dipilih: matching read permissions. Scope mencakup ListMembers/GetMember, GetRoles dan GetSettings; gunakan permission check scoped/live yang ada. Jangan gate bootstrap own membership atau merusak teaching lookup /tutors. Risiko high: pembatasan akses data protected dan perubahan kompatibilitas custom role; uji fail-closed serta Creator/Teacher/custom role sebelum delivery.",
+        "relevantAreas": [
+          "kelolakelas-identity-service/internal",
+          "kelolakelas-web/app"
+        ],
+        "edgeCases": [
+          "Sesi kedaluwarsa atau assignment dicabut saat operasi berlangsung.",
+          "Data lama, foreign tenant/parent, input malformed dan request ulang."
+        ],
+        "testingValidation": [
+          "API authorization matrix dan bootstrap own membership regression.",
+          "verifikasi manual terhadap stack lokal (web → gateway → identity)",
+          "Mitigasi risiko: uji scope tenant/parent dan permission tetap fail-closed.",
+          "Relevant unit tests are added or updated",
+          "Relevant integration tests are added or updated",
+          "Existing tests pass",
+          "Lint passes",
+          "Type checking passes",
+          "Acceptance criteria are manually or automatically verified",
+          "Regression test happy path, validasi/error, dan authorization sesuai scope",
+          "Formatter, lint, type check, unit/integration test dan build repository terkait lulus",
+          "Required GitHub CI setiap PR ke main sukses sebelum merge",
+          "Perbarui kelolakelas-docs tentang perubahan behavior/contract; catat keputusan arsitektural pada ADR bila relevan"
+        ],
+        "outOfScope": [
+          "Perubahan kebijakan pembayaran/refund dan desain ulang sistem.",
+          "Perubahan repository yang tidak tercantum dalam kontrak."
+        ]
+      },
+      "source": {
+        "linearIssueId": "3b8b1acd-474b-484c-a572-0748a739b58c",
+        "linearIdentifier": "KEL-185",
+        "linearCreatedAt": "2026-10-12T14:08:23.100Z",
+        "gitBranchName": "skinel123/kel-185-tetapkan-dan-selaraskan-permission-baca-administrasi-tenant",
+        "linearBlockedByIdentifiers": []
+      }
+    },
+    {
+      "draftKey": "private-teacher-assignment-policy",
+      "projectKey": "qa-teaching-recovery",
+      "title": "Tenant dapat menugaskan teacher pada jadwal private hasil approval",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": [
+        "web",
+        "academic",
+        "ai-ready"
+      ],
+      "repositories": [
+        "web",
+        "academic"
+      ],
+      "blockedByDraftKeys": [
+        "report-list-enrollment-identities"
+      ],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "L4-F01/L2-05 dikonsolidasi: private approval membuat schedule/session tanpa tutor sehingga teacher mine=true kosong; supported substitute API membuka workflow. Group picker L2 adalah deferral KEL-50, bukan bug.",
+        "goal": "Tenant dapat menugaskan teacher pada jadwal private hasil approval",
+        "requirements": [
+          "Teacher boleh belum ditugaskan saat approval; approval tetap membuat enrollment/jadwal dan invoice dengan alur existing.",
+          "Sediakan assignment teacher aktif oleh tenant setelah approval dari dashboard private request/jadwal yang relevan; tampilkan status Belum ditugaskan secara jelas.",
+          "Gunakan tenant_member ID dan validasi membership aktif tenant melalui mekanisme existing, tanpa memilih teacher otomatis.",
+          "Penugasan memperbarui jadwal dan sesi relevan secara konsisten tanpa menghasilkan invoice/enrollment/jadwal duplikat; pertahankan semantik effective-date endpoint existing."
+        ],
+        "acceptanceCriteria": [
+          "Approval private tanpa teacher tetap berhasil menurut kontrak existing dan menampilkan Belum ditugaskan.",
+          "Tenant dapat memilih teacher aktif setelah approval; sesi terkait tampil pada mine=true teacher yang ditugaskan.",
+          "Teacher asing/nonaktif ditolak sebelum mutasi; kegagalan verifikasi membership fail-closed.",
+          "Assignment tidak mengubah invoice, harga, atau status pembayaran dan tidak membuat enrollment/schedule duplikat.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Verifikasi ulang origin/main dilakukan melalui pembacaan kode; runtime QA berasal dari lane, bukan replay baru oleh consolidator. academic private_schedule_request_usecase.go:178 ClassSchedule tanpa TutorID; web approval UI tanpa picker. Hop approve URL → gateway router.go:236 → academic; GET /tutors sudah proxied :162 ke identity (read-only). Gateway hanya read-only reference kecuali tercantum di repositories. Perbarui kelolakelas-docs setelah implementasi. Risiko: perubahan boundary authorization/data terproteksi; jangan memperluas akses atau menghapus predicate scope. Keputusan owner disetujui pada 14 Oktober 2026 WIB melalui jawaban “setuju semua rekomendasi”. Teacher opsional saat approval dan dapat ditugaskan setelahnya; status unassigned wajib eksplisit. Tidak menunda pembayaran atau menambah mandatory teacher pada approval. Gunakan endpoint assignment/schedule/tutor yang telah diproxy jika cocok, sehingga gateway tetap read-only. Validasi membership aktif pada jalur assignment yang dipakai; pertahankan transaksi dan effective-date schedule change existing. Risiko high: session/schedule consistency dan authorization. Dependency native KEL-184 dipertahankan; status Done bukan bukti merge untuk eksekusi.",
+        "relevantAreas": [
+          "kelolakelas-web/app",
+          "kelolakelas-academic-service/internal"
+        ],
+        "edgeCases": [
+          "Sesi kedaluwarsa atau assignment dicabut saat operasi berlangsung.",
+          "Data lama, foreign tenant/parent, input malformed dan request ulang."
+        ],
+        "testingValidation": [
+          "Transaction/failure tests dan membership fail-closed validation.",
+          "verifikasi manual terhadap stack lokal (web → gateway → academic)",
+          "Mitigasi risiko: uji scope tenant/parent dan permission tetap fail-closed.",
+          "Relevant unit tests are added or updated",
+          "Relevant integration tests are added or updated",
+          "Existing tests pass",
+          "Lint passes",
+          "Type checking passes",
+          "Acceptance criteria are manually or automatically verified",
+          "Regresi approval tanpa tutor, assignment setelah approval, dan invoice retry tidak membuat resource ganda",
+          "Regression teacher mine=true sebelum/sesudah assignment dan inactive/foreign membership rejection",
+          "Regression test happy path, validasi/error, dan authorization sesuai scope",
+          "Formatter, lint, type check, unit/integration test dan build repository terkait lulus",
+          "Required GitHub CI setiap PR ke main sukses sebelum merge",
+          "Perbarui kelolakelas-docs tentang perubahan behavior/contract; catat keputusan arsitektural pada ADR bila relevan"
+        ],
+        "outOfScope": [
+          "Perubahan kebijakan pembayaran/refund dan desain ulang sistem.",
+          "Perubahan repository yang tidak tercantum dalam kontrak."
+        ]
+      },
+      "source": {
+        "linearIssueId": "a4d0a180-79bf-47c1-97f1-701809da7dbf",
+        "linearIdentifier": "KEL-186",
+        "linearCreatedAt": "2026-10-12T14:08:27.408Z",
+        "gitBranchName": "skinel123/kel-186-tenant-dapat-menugaskan-teacher-pada-jadwal-private-hasil",
+        "linearBlockedByIdentifiers": [
+          "KEL-184"
+        ]
+      }
+    },
+    {
+      "draftKey": "web-security-header-policy",
+      "projectKey": null,
+      "title": "Tetapkan baseline security headers dan ownership app versus edge",
+      "type": "Improvement",
+      "priority": "Low",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "repositories": [
+        "web"
+      ],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "L5-04: localhost 200/404 tidak memiliki CSP/frame/nosniff/referrer headers; belum ada exploit dan production edge unknown.",
+        "goal": "Tetapkan baseline security headers dan ownership app versus edge",
+        "requirements": [
+          "Kelola baseline security headers pada aplikasi web agar behavior lokal dan deployment konsisten.",
+          "Terapkan X-Content-Type-Options: nosniff, Referrer-Policy yang membatasi kebocoran referrer lintas origin, dan penolakan embedding frame.",
+          "Mulai CSP dengan inventarisasi sumber dan mode report-only yang kompatibel; jangan enforce CSP sebelum bukti kompatibilitas tersedia.",
+          "Dokumentasikan ownership app/edge, boundary dev/production, serta cara memeriksa header pada response normal/error; hindari policy ganda yang konflik."
+        ],
+        "acceptanceCriteria": [
+          "Respons nyata 200 dan 404 aplikasi memiliki baseline nosniff/referrer/frame-denial.",
+          "Ownership app dicatat dan dapat diuji tanpa bergantung pada konfigurasi edge.",
+          "CSP awal report-only: inventaris sumber Next.js/payment disertakan dan tidak memblokir fitur.",
+          "Hydration, devtools, assets dan hosted payment redirect tetap berfungsi.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Verifikasi ulang origin/main dilakukan melalui pembacaan kode; runtime QA berasal dari lane, bukan replay baru oleh consolidator. next.config.ts:3-5 config kosong. Direct web HTTP response, tidak melewati gateway; hanya web jika opsi app dipilih. Gateway hanya read-only reference kecuali tercantum di repositories. Perbarui kelolakelas-docs setelah implementasi. Risiko: perubahan boundary authorization/data terproteksi; jangan memperluas akses atau menghapus predicate scope. Keputusan owner disetujui pada 14 Oktober 2026 WIB melalui jawaban “setuju semua rekomendasi”. Ownership berada pada aplikasi. Baseline nosniff + Referrer-Policy + frame-denial; CSP dimulai inventory/report-only. Referrer-Policy strict-origin-when-cross-origin dan frame-denial X-Frame-Options DENY mengikuti baseline umum, perlu dicek kompatibilitas response aktual. CSP enforcement, HSTS production dan perubahan edge bukan asumsi/default scope issue. Risiko high: headers/CSP dapat merusak hydration atau provider flow; lakukan browser compatibility test dan pastikan tidak ada duplicate/conflicting header.",
+        "relevantAreas": [
+          "kelolakelas-web/app"
+        ],
+        "edgeCases": [
+          "Sesi kedaluwarsa atau assignment dicabut saat operasi berlangsung.",
+          "Data lama, foreign tenant/parent, input malformed dan request ulang."
+        ],
+        "testingValidation": [
+          "HTTP response tests dan browser hydration/payment compatibility.",
+          "Mitigasi risiko: uji scope tenant/parent dan permission tetap fail-closed.",
+          "Relevant unit tests are added or updated",
+          "Relevant integration tests are added or updated",
+          "Existing tests pass",
+          "Lint passes",
+          "Type checking passes",
+          "Acceptance criteria are manually or automatically verified",
+          "Inventaris sumber/script/frame/network yang dipakai web dan provider; uji CSP report-only tanpa memblokir hydration/checkout",
+          "Regression test happy path, validasi/error, dan authorization sesuai scope",
+          "Formatter, lint, type check, unit/integration test dan build repository terkait lulus",
+          "Required GitHub CI setiap PR ke main sukses sebelum merge",
+          "Perbarui kelolakelas-docs tentang perubahan behavior/contract; catat keputusan arsitektural pada ADR bila relevan"
+        ],
+        "outOfScope": [
+          "Perubahan kebijakan pembayaran/refund dan desain ulang sistem.",
+          "Perubahan repository yang tidak tercantum dalam kontrak.",
+          "CSP enforcement dan HSTS production",
+          "Provisioning/configuration edge atau layanan pelaporan CSP eksternal"
+        ]
+      },
+      "source": {
+        "linearIssueId": "da60be0b-6229-4d9e-9010-9a6bf68ab565",
+        "linearIdentifier": "KEL-187",
+        "linearCreatedAt": "2026-10-12T14:08:31.888Z",
+        "gitBranchName": "skinel123/kel-187-tetapkan-baseline-security-headers-dan-ownership-app-versus",
+        "linearBlockedByIdentifiers": []
+      }
+    },
+    {
+      "draftKey": "private-request-payment-channel",
+      "projectKey": "payment-experience-owned-page",
+      "title": "Parent memilih channel pembayaran untuk pembelian kelas private",
+      "type": "Improvement",
+      "priority": "Medium",
+      "estimate": "L",
+      "complexity": "critical",
+      "labels": [
+        "web",
+        "academic",
+        "ai-ready"
+      ],
+      "repositories": [
+        "web",
+        "academic"
+      ],
+      "blockedByDraftKeys": [
+        "billing-payment-channel-selection"
+      ],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "KEL-125 menyediakan channel opsional pada invoice billing, tetapi CreatePrivateScheduleRequest belum menyimpan pilihan parent dan private purchase belum meneruskan PaymentMethod. Approval/AcceptRecommendation langsung membuat invoice default VC. Keputusan owner disetujui pada 14 Oktober 2026 WIB melalui jawaban “setuju semua rekomendasi”. Parent memilih metode ketika mengajukan jadwal private; pilihan disimpan dan dipakai saat approval atau penerimaan rekomendasi.",
+        "goal": "Parent memilih VA/QRIS/kartu saat mengajukan jadwal private, dan approval tetap langsung menghasilkan satu invoice menggunakan pilihan tersebut.",
+        "requirements": [
+          "Tambahkan pilihan payment_method pada form request private, DTO dan persistence academic, memakai allowlist/normalisasi channel existing.",
+          "Request/row lama tanpa pilihan tetap default VC untuk kompatibilitas; migration additive dengan backfill/default yang sesuai.",
+          "Approve dan AcceptRecommendation meneruskan pilihan tersimpan ke billing.InvoiceRequest.PaymentMethod.",
+          "Metode request tidak berubah diam-diam karena rekomendasi jadwal; replay/retry memakai pilihan yang sama dan invoice aktif tidak diganti.",
+          "Pertahankan alur approval langsung membuat enrollment, jadwal, payment link dan email invoice existing; jangan menambah langkah checkout setelah approval."
+        ],
+        "acceptanceCriteria": [
+          "Parent dapat memilih VA/QRIS/kartu saat membuat private schedule request dan melihat pilihan tersimpan.",
+          "Approval tenant dan penerimaan rekomendasi menghasilkan tepat satu invoice dengan metode yang dipilih.",
+          "Request/row lama tetap berjalan sebagai VC; migrasi kompatibel deployment.",
+          "Channel tidak dikenal ditolak sebelum write/provider request.",
+          "Concurrent approval/retry tidak menghasilkan invoice/enrollment/schedule ganda atau mengganti invoice aktif.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Keputusan owner disetujui pada 14 Oktober 2026 WIB melalui jawaban “setuju semua rekomendasi”. Opsi C dipilih. Scope perubahan web + academic; billing existing sudah menerima PaymentMethod (VC VA BC SP NQ) dan academic pkg/billing client sudah meneruskannya. Billing/gateway adalah referensi read-only, bukan repo implementasi. Field aktual bernama payment_method; pakai helper channel existing supaya UI label VA/QRIS tidak disamakan dengan kode provider bebas. Risiko critical: metode berubah saat retry, invoice/resource ganda, fee snapshot atau status paid tidak konsisten. Pertahankan request-row lock, invoice idempotency key, existing claims dan fee policy. Dependency KEL-125 tetap native dan contract. Snapshot sandbox QA 14 Oktober inquiry 404 membatasi verifikasi provider live; regression/integration deterministic wajib dan jangan mengklaim pembayaran live teruji. Perbarui docs API academic, billing flow dan migration/deployment notes.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(public)/kelas/[id]/_components/ScheduleRequestForm.tsx",
+          "kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts",
+          "kelolakelas-web/lib/schedule-request.ts",
+          "kelolakelas-academic-service/internal/domain/private_schedule_request.go",
+          "kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go",
+          "kelolakelas-academic-service/internal/repository/private_schedule_request_repository.go",
+          "kelolakelas-academic-service/migrations",
+          "kelolakelas-academic-service/pkg/billing/client.go"
+        ],
+        "edgeCases": [
+          "Request lama tanpa field, null/default migration dan klien versi lama.",
+          "Rekomendasi jadwal diterima setelah gagal provider.",
+          "Concurrent approval/accept/retry dan replay dengan metode berbeda.",
+          "Channel allowlisted tetapi provider menolak/tidak tersedia.",
+          "Foreign tenant/parent dan invalid student."
+        ],
+        "testingValidation": [
+          "Integration dan race test approve/accept recommendation memakai setiap channel serta invoice idempotency; pastikan satu enrollment dan satu invoice.",
+          "Test kompatibilitas request/row lama default VC dan migrasi additive.",
+          "Test channel invalid, provider timeout/5xx, price/fee rejection dan authorization fail-closed.",
+          "Browser form selection → academic persistence → approval → billing payload/instructions dengan provider deterministic; verifikasi sandbox ketika tersedia, tanpa membagikan secret.",
+          "Regression test happy path, validasi/error, dan authorization sesuai scope",
+          "Formatter, lint, type check, unit/integration test dan build repository terkait lulus",
+          "Required GitHub CI setiap PR ke main sukses sebelum merge",
+          "Perbarui kelolakelas-docs tentang perubahan behavior/contract; catat keputusan arsitektural pada ADR bila relevan"
+        ],
+        "outOfScope": [
+          "Ganti channel invoice aktif.",
+          "Menunda invoice sampai checkout sesudah approval.",
+          "Menyimpan data kartu/CVV.",
+          "Perubahan implementasi billing, gateway atau kebijakan harga/fee."
+        ]
+      },
+      "source": {
+        "linearIssueId": "668770ff-1c6e-46c1-b004-55e169e2e005",
+        "linearIdentifier": "KEL-133",
+        "linearCreatedAt": "2026-09-29T06:09:43.425Z",
+        "gitBranchName": "skinel123/kel-133-parent-memilih-channel-pembayaran-untuk-pembelian-kelas",
+        "linearBlockedByIdentifiers": [
+          "KEL-125"
+        ]
+      }
+    },
+    {
+      "draftKey": "report-student-search-picker",
+      "projectKey": "tutor-session-operations",
+      "title": "Pilihan siswa di form laporan tidak terpotong pada 1000 sesi/enrollment",
+      "type": "Improvement",
+      "priority": "Low",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "repositories": [
+        "web"
+      ],
+      "blockedByDraftKeys": [
+        "web-tutor-student-reports"
+      ],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "KEL-139 memakai MAX_AUX_PAGES=10 untuk enrollment/session picker (maksimum 1000 record), sehingga student pada halaman berikutnya tidak tersedia. Keputusan owner disetujui pada 14 Oktober 2026 WIB melalui jawaban “setuju semua rekomendasi”. Pilih pencarian server: Creator mencari siswa/kelas; Teacher mencari/memilih kelas lalu siswa yang diajar melalui sessions?mine=true dan attendees existing.",
+        "goal": "Form laporan menyediakan pemilih siswa berbasis pencarian dan pagination eksplisit tanpa memuat seluruh riwayat atau memotong diam-diam pada 1000 record.",
+        "requirements": [
+          "Creator/custom role dengan enrollment:read menggunakan enrollment search server atas nama siswa/kelas dan hasil paginated.",
+          "Teacher tanpa enrollment:read memakai alur dua langkah: cari/pilih kelas yang diajar, lalu pilih siswa dari sesi mine=true dan attendees scoped.",
+          "Hasil dibaca bertahap saat pencarian/pagination, tanpa prefetch seluruh riwayat setiap buka form; deduplikasi siswa/enrollment yang muncul di beberapa sesi.",
+          "Jangan berhenti diam-diam pada MAX_AUX_PAGES=10; lanjutkan pagination matching-data sesuai batas API, tampilkan batas/error eksplisit bila batas API absolut tercapai.",
+          "Pertahankan permission, scope tenant, guard tutor dan validasi report enrollment existing; hasil stale tidak boleh mengganti pilihan baru."
+        ],
+        "acceptanceCriteria": [
+          "Creator dapat menemukan enrollment sah lewat pencarian nama siswa/kelas di luar 1000 record awal.",
+          "Teacher dapat mencari/memilih kelas dan menemukan siswa sah dari halaman sesi/attendees di luar 1000 record awal.",
+          "Form tidak mengunduh seluruh riwayat saat pertama dibuka; hasil pagination bisa dilanjutkan secara eksplisit.",
+          "Empty/loading/error serta batas API ditampilkan jelas; tidak ada truncation diam-diam.",
+          "Teacher tetap tanpa enrollment:read dan hanya melihat siswa yang diajar; custom role menggunakan jalur sesuai permission.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Keputusan owner disetujui pada 14 Oktober 2026 WIB melalui jawaban “setuju semua rekomendasi”. Opsi pencarian server dipilih. Backend existing enrollment search mencocokkan siswa/kelas, sessions search mencocokkan kelas saja. Jangan menjanjikan pencarian nama siswa global untuk Teacher atau menambah permission/enpoint baru. Implementasi web memakai existing scoped endpoints dengan pagination; API MaxPage=1000 dan MaxPageSize=100 tetap dihormati dan batas absolut ditampilkan bila tercapai. Risiko medium: fan-out attendees, latency dan stale-result mixing; batasi konkurensi/request pada halaman aktif dan cegah response lama menimpa query baru. Dependency KEL-139 tetap native/contract; klaim lama belum-merge pada issue diganti dengan status delivery yang harus diperiksa ulang sebelum implementasi. Perbarui docs report chooser.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/reports/_queries/queries.ts",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/reports/_components",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/reports/_actions",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/reports/_lib/schema.ts"
+        ],
+        "edgeCases": [
+          "Siswa hanya ada pada sesi halaman 11+ dan siswa yang muncul di banyak sesi.",
+          "Nama kelas serupa, hasil search kosong, custom role tanpa permission query terkait.",
+          "Query diganti saat response lama belum selesai atau anggota dicabut.",
+          "Enrolment dropped/student tidak lagi diajar; API pagination malformed/max-page."
+        ],
+        "testingValidation": [
+          "Fixture lebih dari 1000 session/enrollment, temukan siswa pada halaman berikutnya lewat search/pagination.",
+          "Test Teacher dua langkah kelas → siswa tanpa enrollment:read dan dengan sesi/attendees scoped.",
+          "Test stale results, request volume per halaman, dedup, API partial failure/batas paging.",
+          "Browser Creator/Teacher/custom role membuat laporan dari pilihan sah serta invalid enrollment ditolak.",
+          "Regression test happy path, validasi/error, dan authorization sesuai scope",
+          "Formatter, lint, type check, unit/integration test dan build repository terkait lulus",
+          "Required GitHub CI setiap PR ke main sukses sebelum merge",
+          "Perbarui kelolakelas-docs tentang perubahan behavior/contract; catat keputusan arsitektural pada ADR bila relevan"
+        ],
+        "outOfScope": [
+          "Perubahan backend atau permission Teacher.",
+          "Global student-name search API baru untuk Teacher.",
+          "Akses parent ke laporan dan ekspor PDF."
+        ]
+      },
+      "source": {
+        "linearIssueId": "e827444c-c1cd-4fc9-b53a-2d069f89357b",
+        "linearIdentifier": "KEL-167",
+        "linearCreatedAt": "2026-10-05T00:23:46.315Z",
+        "gitBranchName": "skinel123/kel-167-pilihan-siswa-di-form-laporan-tidak-terpotong-pada-1000",
+        "linearBlockedByIdentifiers": [
+          "KEL-139"
+        ]
+      }
+    },
+    {
+      "draftKey": "report-list-enrollment-identities",
+      "projectKey": "qa-teaching-recovery",
+      "title": "Respons report menyertakan identitas student dan class untuk daftar",
+      "type": "Improvement",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": [
+        "academic",
+        "ai-ready"
+      ],
+      "repositories": [
+        "academic"
+      ],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "L4-02: report normal tampil Siswa · Kelas walau enrollment picker mengenal nama. Tidak sama dengan KEL-167 yang membatasi pilihan >1000.",
+        "goal": "Respons report menyertakan identitas student dan class untuk daftar",
+        "requirements": [
+          "Lengkapi report list/detail tenant dan parent dengan relasi nama enrollment yang diperlukan consumer, tanpa membuka protected data tambahan.",
+          "Pertahankan tenant ownership, parent ownership dan tutor predicates; jangan gunakan unscoped lookup."
+        ],
+        "acceptanceCriteria": [
+          "Report daftar dapat membedakan student/class sebenarnya pada payload nyata.",
+          "Foreign tenant/parent tetap 404 atau scoped empty dan tidak ada data lain bocor.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Verifikasi ulang origin/main dilakukan melalui pembacaan kode; runtime QA berasal dari lane, bukan replay baru oleh consolidator. internal/repository/report_repository.go:26,33,76 hanya Preload Enrollment; web reports/_lib/schema.ts:423-454 mencari enrollment.student/class. Hop GET /reports → gateway router.go:197-201 → academic report repository; web/gateway read-only. Gateway hanya read-only reference kecuali tercantum di repositories. Perbarui kelolakelas-docs setelah implementasi. Risiko: perubahan boundary authorization/data terproteksi; jangan memperluas akses atau menghapus predicate scope. ",
+        "relevantAreas": [
+          "kelolakelas-academic-service/internal"
+        ],
+        "edgeCases": [
+          "Sesi kedaluwarsa atau assignment dicabut saat operasi berlangsung.",
+          "Data lama, foreign tenant/parent, input malformed dan request ulang."
+        ],
+        "testingValidation": [
+          "PostgreSQL tests scoped list/detail dan minimal fields yang diizinkan.",
+          "verifikasi manual terhadap stack lokal (web → gateway → academic)",
+          "Mitigasi risiko: uji scope tenant/parent dan permission tetap fail-closed.",
+          "Relevant unit tests are added or updated",
+          "Relevant integration tests are added or updated",
+          "Existing tests pass",
+          "Lint passes",
+          "Type checking passes",
+          "Acceptance criteria are manually or automatically verified"
+        ],
+        "outOfScope": [
+          "Perubahan kebijakan pembayaran/refund dan desain ulang sistem.",
+          "Perubahan repository yang tidak tercantum dalam kontrak."
+        ]
+      },
+      "source": {
+        "linearIssueId": "53c19894-1e8b-4810-b99e-ca427fad218e",
+        "linearIdentifier": "KEL-184",
+        "linearCreatedAt": "2026-10-12T14:08:18.698Z",
+        "gitBranchName": "skinel123/kel-184-respons-report-menyertakan-identitas-student-dan-class-untuk",
+        "linearBlockedByIdentifiers": []
+      }
+    },
+    {
+      "draftKey": "billing-payment-channel-selection",
+      "projectKey": "payment-experience-owned-page",
+      "title": "Billing menerima pilihan channel VA/QRIS atau kartu untuk invoice baru",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "critical",
+      "repositories": [
+        "academic",
+        "billing"
+      ],
+      "labels": [
+        "academic",
+        "billing",
+        "ai-ready"
+      ],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "Pembacaan statis menunjukkan `billing-service/internal/usecase/transaction_usecase.go:290` memaksa PaymentMethod VC, sementara `academic-service/internal/usecase/enrollment_usecase.go:197,270,400` dan private flow `private_schedule_request_usecase.go:209` membuat invoice tanpa pilihan channel.",
+        "goal": "Parent dapat memilih channel pembayaran sebelum invoice dibuat, tanpa mematahkan pemanggil lama atau idempotensi.",
+        "requirements": [
+          "Perluas request enrollment publik dan request invoice internal dengan channel opsional yang dibatasi ke channel Duitku yang benar-benar diverifikasi; pemanggil lama tanpa pilihan mempertahankan VC.",
+          "Tentukan dan validasi channel pada boundary tepercaya sebelum menulis transaksi; channel pada replay idempotency tidak boleh mengganti invoice yang telah diterbitkan.",
+          "Alur pembelian private tidak berubah (keputusan owner, opsi A): Approve dan AcceptRecommendation tetap menerbitkan invoice dengan channel default VC tanpa field channel; pilihan channel untuk private ada di issue follow-up terpisah. Pertahankan link lama dan aturan fee policy.",
+          "Jangan menerima data kartu atau CVV di sistem."
+        ],
+        "acceptanceCriteria": [
+          "Invoice VA dan QRIS baru menggunakan channel yang diminta dan terbukti aktif di sandbox; kartu tetap mengikuti mekanisme provider.",
+          "Request tanpa field channel dan transaksi yang sudah ada tetap berfungsi seperti sebelumnya.",
+          "Replay atau dua request serentak dengan channel berbeda tidak menghasilkan dua invoice atau perubahan channel transaksi yang sudah terbit.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko critical: harga/invoice ganda dan status paid yang tidak sesuai enrollment saat channel berubah atau request diulang. Jangan mengganti link transaksi existing. Tinjau `ClaimInvoice`, `ClaimReinvoice`, `merchant_order_id`, fee snapshot dan `PrivateScheduleRequest.purchase`; rancangan pemilihan ulang channel saat invoice belum lunas membutuhkan keputusan eksplisit, default: tolak perubahan terhadap invoice yang masih valid. Owner menyatakan merchant telah mengaktifkan semua channel; ini bukan bukti sandbox. Kontrak request harus kompatibel dengan klien lama. Perbarui docs API academic/billing, billing flow dan ADR bila model berubah.",
+        "relevantAreas": [
+          "kelolakelas-billing-service/internal/usecase/transaction_usecase.go",
+          "kelolakelas-billing-service/internal/domain/transaction.go",
+          "kelolakelas-academic-service/internal/usecase/enrollment_usecase.go",
+          "kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go",
+          "kelolakelas-academic-service/pkg/billing/client.go"
+        ],
+        "edgeCases": [
+          "Provider tidak mengaktifkan channel tertentu meski merchant menyatakan aktif.",
+          "Dua request checkout simultan memakai channel berbeda untuk enrollment sama.",
+          "Parent menerima rekomendasi jadwal setelah invoice lama diterbitkan."
+        ],
+        "testingValidation": [
+          "Uji sandbox provider dengan VA, QRIS dan kartu; catat kode channel dan respons aktual tanpa data rahasia.",
+          "Integration test idempotensi serta race dua channel, callback paid, expiry, dan fee snapshot tanpa duplikasi.",
+          "Uji kompatibilitas request lama tanpa channel dan penolakan channel tak dikenal; jalankan go test -race, go vet dan build.",
+          "Regresi alur private: approval tenant dan AcceptRecommendation tetap menerbitkan satu invoice VC seperti sebelumnya, tanpa enrollment kedua."
+        ],
+        "outOfScope": [
+          "Penyimpanan data kartu/PCI dan halaman payment UI.",
+          "Ganti channel pada invoice aktif sebelum keputusan produk terpisah.",
+          "Pilihan channel untuk pembelian kelas private (issue follow-up terpisah)."
+        ]
+      },
+      "source": {
+        "linearIssueId": "3f88fbc1-5ca3-49ca-8e1f-70621148f24b",
+        "linearIdentifier": "KEL-125",
+        "linearCreatedAt": "2026-09-28T19:14:45.334Z",
+        "gitBranchName": "skinel123/kel-125-billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk",
+        "linearBlockedByIdentifiers": []
+      }
+    },
+    {
+      "draftKey": "web-tutor-student-reports",
+      "projectKey": "tutor-session-operations",
+      "title": "Pengajar menulis dan mengelola laporan evaluasi siswa dari dashboard",
+      "type": "Feature",
+      "priority": "Medium",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "repositories": [
+        "web"
+      ],
+      "blockedByDraftKeys": [
+        "tutor-session-scope-guards",
+        "role-aware-tenant-nav"
+      ],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "API laporan (`/api/v1/reports`, model `Report` dengan title, evaluation_notes, score 0-100) sudah ada, tetapi web hanya memanggilnya dari picker chat (`app/(dashboard)/dashboard/tenant/chat/_queries/queries.ts:94`) dan tidak pernah menampilkan isi laporan.",
+        "goal": "Pengajar dapat membuat, membaca, mengubah, dan menghapus laporan evaluasi untuk siswa di kelas yang diajarnya.",
+        "requirements": [
+          "Halaman laporan dengan filter kelas, siswa, dan rentang tanggal.",
+          "Form buat dan ubah laporan (judul, catatan evaluasi, skor opsional 0-100) serta hapus dengan konfirmasi.",
+          "Pilihan enrollment hanya dari kelas yang dapat diakses pemanggil.",
+          "Item menu laporan mengikuti pemetaan permission."
+        ],
+        "acceptanceCriteria": [
+          "Pengajar dapat membuat laporan dan melihatnya di daftar.",
+          "Pengajar tidak dapat mengubah laporan kelas yang tidak diajarnya dan melihat pesan yang jelas.",
+          "Validasi skor di luar 0-100 dan judul kosong ditampilkan di form.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Gunakan kembali tipe laporan yang sudah ada di chat query bila cocok. Tambahkan tombol ke `ReportChatStarter` bila relevan, tanpa mengubah perilaku chat. Perbarui `kelolakelas-docs/docs/components/web.md`.",
+        "relevantAreas": [
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/chat/_queries/queries.ts"
+        ],
+        "edgeCases": [
+          "Siswa dengan enrollment dropped.",
+          "Catatan evaluasi panjang.",
+          "Laporan dihapus oleh anggota lain."
+        ],
+        "testingValidation": [
+          "Vitest untuk schema form, query, dan state forbidden.",
+          "Test, lint, type check, dan production build lulus.",
+          "Verifikasi manual CRUD laporan sebagai Teacher dan Creator."
+        ],
+        "outOfScope": [
+          "Akses parent ke laporan.",
+          "Ekspor rapor ke PDF."
+        ]
+      },
+      "source": {
+        "linearIssueId": "2e039e11-bf90-42e6-a9a8-494e17c9e59b",
+        "linearIdentifier": "KEL-139",
+        "linearCreatedAt": "2026-09-30T10:55:00.300Z",
+        "gitBranchName": "skinel123/kel-139-pengajar-menulis-dan-mengelola-laporan-evaluasi-siswa-dari",
+        "linearBlockedByIdentifiers": [
+          "KEL-135",
+          "KEL-136"
+        ]
+      }
+    },
+    {
+      "draftKey": "tutor-session-scope-guards",
+      "projectKey": "tutor-session-operations",
+      "title": "Pengajar melihat sesinya sendiri dan akses sesi, tutor pengganti, serta laporan dijaga konsisten",
+      "type": "Improvement",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "high",
+      "labels": [
+        "academic",
+        "identity",
+        "ai-ready"
+      ],
+      "repositories": [
+        "academic",
+        "identity"
+      ],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "`GET /sessions`, `/sessions/:id`, dan `/sessions/:id/attendees` hanya di-scope tenant tanpa permission (`cmd/server/routes.go:93,94,100`). Filter `tutor_id` ada (`internal/delivery/http/handler/session_handler.go:37`) tetapi tidak diturunkan dari JWT. Tutor pengganti hanya menimpa `tutor_id` tanpa memeriksa bahwa ia anggota aktif tenant (`internal/usecase/schedule_usecase.go:473-506`). Update dan delete laporan tidak memeriksa pengajar (`internal/usecase/report_usecase.go:65-85`), berbeda dengan create yang memeriksa `class_teachers` (`internal/repository/enrollment_repository.go:227-231`). Identity hanya mengekspos gRPC ValidateTenantStatus, GetTenantPublicInfo, dan CheckPermission yang membutuhkan roleID (`kelolakelas-identity-service/internal/delivery/grpc/permission_service.go:88`).",
+        "goal": "Pengajar dapat meminta daftar sesinya sendiri, dan akses baca sesi, penugasan tutor pengganti, serta perubahan laporan mengikuti aturan permission dan penugasan yang konsisten.",
+        "requirements": [
+          "Endpoint baca sesi mewajibkan permission `schedule:read` untuk anggota tenant.",
+          "Sediakan filter sesi milik pemanggil yang diturunkan dari `member_id` JWT, bukan dari input klien.",
+          "Tutor pengganti hanya dapat ditugaskan kepada anggota aktif tenant yang sama; identity menyediakan pemeriksaan keanggotaan aktif lewat gRPC internal.",
+          "Update dan delete laporan menerapkan aturan penugasan pengajar yang sama dengan create laporan.",
+          "Perilaku token parent tidak diubah pada issue ini."
+        ],
+        "acceptanceCriteria": [
+          "Anggota tanpa `schedule:read` ditolak 403 pada endpoint baca sesi; Creator dan Teacher tetap dapat membaca.",
+          "Filter sesi milik sendiri hanya mengembalikan sesi dengan `tutor_id` pemanggil.",
+          "Penugasan tutor pengganti ke member tenant lain, member nonaktif, atau ID acak ditolak dengan error validasi.",
+          "Pengajar yang tidak mengajar kelas terkait tidak dapat mengubah atau menghapus laporan.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Risiko high: pengetatan guard dapat memblokir role kustom tenant yang sebelumnya bisa membaca sesi, dan cek keanggotaan lintas service menambah titik gagal. Mitigasi: tolak secara fail-closed bila identity tidak tersedia untuk mutasi tutor pengganti, dan dokumentasikan permission baru yang diwajibkan untuk role kustom. Ikuti pola gRPC identity yang ada (TenantService/PermissionService dengan struct atau proto yang sudah dipakai academic di `pkg/proto/tenant`); keanggotaan aktif mengikuti ADR 0034. Tambahkan `@x-permission` dan perbarui swagger. Perbarui `kelolakelas-docs` (api/academic.md, components/identity-service.md, ADR bila kontrak gRPC baru) serta baris usang di `08-known-gaps-and-risks.md` tentang attendance/report tanpa permission.",
+        "relevantAreas": [
+          "kelolakelas-academic-service/cmd/server/routes.go",
+          "kelolakelas-academic-service/internal/delivery/http/handler/session_handler.go",
+          "kelolakelas-academic-service/internal/usecase/schedule_usecase.go",
+          "kelolakelas-academic-service/internal/usecase/report_usecase.go",
+          "kelolakelas-academic-service/pkg/grpcclient",
+          "kelolakelas-identity-service/internal/delivery/grpc"
+        ],
+        "edgeCases": [
+          "Pengajar yang juga Creator.",
+          "Anggota tanpa member_id pada token lama.",
+          "Identity gRPC tidak tersedia saat menugaskan tutor pengganti.",
+          "Laporan untuk enrollment yang kelasnya sudah tidak diajar pengajar tersebut."
+        ],
+        "testingValidation": [
+          "Unit test academic untuk setiap guard, filter sesi milik sendiri, dan jalur fail-closed identity.",
+          "Unit test gRPC identity untuk anggota aktif, nonaktif, dan lintas tenant sebagai mitigasi risiko akses lintas tenant.",
+          "Swagger contract test, go vet, go test -race, dan build lulus di kedua repo.",
+          "Acceptance criteria diverifikasi dengan token Creator, Teacher, dan role kustom."
+        ],
+        "outOfScope": [
+          "Akses parent ke sesi dan laporan.",
+          "Layar web sesi dan laporan.",
+          "Perubahan role sistem."
+        ]
+      },
+      "source": {
+        "linearIssueId": "c905570c-3dca-4ccf-81c5-2aecc8bfbc73",
+        "linearIdentifier": "KEL-135",
+        "linearCreatedAt": "2026-09-30T10:53:12.550Z",
+        "gitBranchName": "skinel123/kel-135-pengajar-melihat-sesinya-sendiri-dan-akses-sesi-tutor",
+        "linearBlockedByIdentifiers": []
+      }
+    },
+    {
+      "draftKey": "role-aware-tenant-nav",
+      "projectKey": "tutor-session-operations",
+      "title": "Menu dashboard tenant hanya menampilkan area yang diizinkan permission anggota",
+      "type": "Feature",
+      "priority": "High",
+      "estimate": "M",
+      "complexity": "medium",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "web",
+        "ai-ready"
+      ],
+      "repositories": [
+        "identity",
+        "api-gateway",
+        "web"
+      ],
+      "blockedByDraftKeys": [],
+      "externalDependencies": [],
+      "body": {
+        "backgroundProblem": "`TENANT_NAV_ITEMS` statis (`kelolakelas-web/app/(dashboard)/dashboard/tenant/_constants/constants.ts:7-48`) dirender penuh di `TenantSidebar.tsx:197` dan `MobileNav.tsx:378`, dengan footer tetap \"Tenant Admin / Organization Owner\" (`TenantSidebar.tsx:228-231`). JWT tidak membawa daftar permission (`kelolakelas-identity-service/pkg/jwt/jwt.go:17-29`) dan `GET /permissions` mengembalikan katalog, bukan permission pemanggil (`role_handler.go:45-61`).",
+        "goal": "Anggota tenant, termasuk pengajar, hanya melihat menu yang dapat dipakainya, beserta nama role yang benar.",
+        "requirements": [
+          "Identity menyediakan endpoint baca untuk anggota tenant yang mengembalikan nama role dan permission dari keanggotaan aktif pemanggil.",
+          "Gateway meneruskan endpoint tersebut di grup protected dengan tenant claim.",
+          "Web memfilter item sidebar dan mobile nav berdasarkan permission, dan menampilkan nama role di footer.",
+          "Backend tetap menjadi penegak akses; penyaringan menu hanya untuk kegunaan."
+        ],
+        "acceptanceCriteria": [
+          "Anggota role Teacher tidak melihat menu anggota, role, dan settings bila tidak memiliki permission-nya.",
+          "Creator melihat semua menu seperti sebelumnya.",
+          "Bila endpoint permission gagal, web menampilkan menu minimum yang aman dan pesan error, bukan seluruh menu admin.",
+          "Existing functionality remains unaffected",
+          "Error and validation scenarios are handled correctly"
+        ],
+        "technicalNotes": "Permission sudah di-cache di Redis oleh identity; gunakan sumber yang sama dengan CheckPermission agar hasil konsisten (keanggotaan aktif, ADR 0034). Token parent dan platform admin tidak dilayani endpoint ini. Pemetaan menu ke permission ditulis di satu tempat dan dipakai oleh sidebar maupun mobile nav, yang saat ini menduplikasi ikon. Ikuti pola `_queries` dan result type `{data, error}` di web serta docs Next.js lokal (`AGENTS.md`). Perbarui `kelolakelas-docs` (api/identity.md, api/gateway.md, components/web.md).",
+        "relevantAreas": [
+          "kelolakelas-identity-service/internal/delivery/http/handler/role_handler.go",
+          "kelolakelas-identity-service/cmd/server/main.go",
+          "kelolakelas-api-gateway/internal/delivery/http/router.go",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/_constants/constants.ts",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/TenantSidebar.tsx",
+          "kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/MobileNav.tsx"
+        ],
+        "edgeCases": [
+          "Role kustom tanpa permission apa pun.",
+          "Permission berubah saat sesi berjalan (cache).",
+          "Keanggotaan dinonaktifkan setelah login."
+        ],
+        "testingValidation": [
+          "Unit test handler identity untuk Creator, Teacher, role kustom, dan keanggotaan nonaktif.",
+          "Router test gateway untuk route baru.",
+          "Vitest untuk pemfilteran menu dan fallback error; test, lint, type check, dan build web lulus.",
+          "Verifikasi manual login sebagai Creator dan Teacher."
+        ],
+        "outOfScope": [
+          "Menambahkan menu sesi, laporan, atau keuangan (issue masing-masing).",
+          "Navigasi parent."
+        ]
+      },
+      "source": {
+        "linearIssueId": "df45106e-dfde-4a0a-8c95-76f33094bd5e",
+        "linearIdentifier": "KEL-136",
+        "linearCreatedAt": "2026-09-30T10:53:44.453Z",
+        "gitBranchName": "skinel123/kel-136-menu-dashboard-tenant-hanya-menampilkan-area-yang-diizinkan",
+        "linearBlockedByIdentifiers": []
+      }
+    }
+  ]
+}
