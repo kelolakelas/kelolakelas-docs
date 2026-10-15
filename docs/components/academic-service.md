@@ -109,3 +109,5 @@ design: [ADR 0054](../adr/0054-parent-scoped-session-attendance-report-reads.md)
 Evidence: `internal/repository/parent_scope_postgres_test.go`
 (`KEL140_TEST_DSN`) plus handler/route permission tests; academic PR [#44](https://github.com/kelolakelas/kelolakelas-academic-service/pull/44),
 squash `f7b0e0249af2a1c5a0a0103c0fa625ec224eac62`.
+
+**Implemented (KEL-190):** Tenant class list responses retain the already-preloaded category identity (`id`, `name`) instead of discarding it in the DTO mapper. `ListByTenant` scopes both class rows and category preload to the caller tenant; `ListClasses` only maps matching category references from that tenant. Missing/deleted categories stay absent. This adds an optional response field without changing write APIs or requiring a migration. Evidence: `internal/domain/class.go`, `internal/usecase/class_usecase.go`, `internal/repository/class_repository.go`, `internal/usecase/class_list_category_test.go`, `internal/repository/class_list_category_test.go`.
