@@ -2,6 +2,8 @@
 
 ## Implemented controls
 
+**Implemented (KEL-187):** the web app owns baseline response headers through `next.config.ts::headers()` and `lib/security-headers.ts`: nosniff, restricted cross-origin referrer, frame denial and report-only CSP. These do not replace backend authorization. Edge configuration is unknown and must preserve rather than duplicate/override app headers. See [ADR 0066](adr/0066-app-owned-security-headers.md) for local/production boundaries, inventory and direct 200/404 verification; web squash `afe2dcb636039b8faffd23834ed7c8d7b994ced0`.
+
 - HS256 JWTs carry user, email, tenant, role, member, and parent claims; identity sets a 24-hour token lifetime (`kelolakelas-identity-service/pkg/jwt/jwt.go:17-54`, `cmd/server/main.go:61`).
 - Gateway and services require `Authorization: Bearer <token>` on their protected route groups. Internal academic/billing routes require a static internal credential middleware (`internal/delivery/http/middleware/auth_middleware.go`).
 - The gateway access log deliberately excludes credentials. It logs `URL.Path` rather than the request URI, so the query string — which carries the invitation `?token=…` on the public invitation verification route (`internal/delivery/http/handler/invitation_handler.go:131`) — never reaches the log, and neither the `Authorization` header nor the request body is logged. An inbound `X-Request-ID` is reused only when it is bounded to 64 characters of `a-z A-Z 0-9 - _ .`, so a caller cannot inject newline-separated records into the log stream. See [ADR 0015](adr/0015-gateway-request-correlation-and-access-log.md); `internal/delivery/http/middleware/{request_id,access_log}_middleware.go`.
