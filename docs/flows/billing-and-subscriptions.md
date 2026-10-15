@@ -1,5 +1,11 @@
 # Billing and subscriptions
 
+## Failed group checkout retry (KEL-194)
+
+**Implemented:** a failed checkout keeps the parent's submitted student, schedule, period, payment method and voucher visible instead of reverting to empty/monthly/VC defaults. Retrying an unchanged intent retains the existing idempotency key and choices; editing the voucher rotates the key as before. Error messages and recovery links remain visible, and missing previous student/schedule options explicitly request a new selection. This UI behavior does not make an invalid backend choice valid or change invoice pricing/replay policy. Successful VA/QRIS instructions and hosted-card redirect behavior are unchanged.
+
+Evidence: web `app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx`, `_actions/actions.ts`, `lib/enrollment.ts` and regression tests; [PR #98](https://github.com/kelolakelas/kelolakelas-web/pull/98), squash `0b2babb189210460cbced845a80fa8bad4ab4c78`; real-stack/browser `.kel-autopilot/kel194/manual-e2e.md` PASS. 409/native-validation/happy-path checks ran live; 5xx retention uses deterministic unit coverage. See [web component](../components/web.md).
+
 ## Group checkout voucher lifecycle (KEL-162)
 
 Parent enters an optional code and obtains an advisory read-only preview through gateway → academic → billing. Checkout sends only the code; billing computes and persists discounted gross and applied fees, reserving one use under the voucher row lock in the same transaction. Failed/expired/cancelled invoices release once. A confirmed late paid callback retakes a released use even above the cap without changing the saved price. A replacement invoice must re-reserve or is refused when ineligible; valid replays do not take another use. Discounts are checkout-only and do not carry to renewals; private vouchers are out of scope. The existing `current_uses` displays over-cap late payment usage. See [ADR 0061](../adr/0061-group-checkout-voucher-reservations.md) and [billing API](../api/billing.md#group-checkout-vouchers-kel-162).
