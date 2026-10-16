@@ -231,3 +231,5 @@ Generated service Swagger (`docs/swagger.json`) was consulted as contract corrob
 | Response → UI | Error dialog retained; successful deletion removed both layout rows; no runtime exceptions |
 
 - **KEL-200:** accessible schedule layout, instance-unique labels, described validation errors and synthetic browser evidence: web PR [#110](https://github.com/kelolakelas/kelolakelas-web/pull/110), squash `23dec014c050b0b2e4b1570e937db6876e41a057`, required PR gate passed; `ScheduleForm.tsx`, `ClassConfigurationEditor.tsx`, `schedule-field-styles.ts`, adjacent tests; [component details and validation](../components/web.md#accessible-schedule-field-layout-kel-200).
+
+- **KEL-201:** local voucher day defaults and second-precision create/edit serialization: web voucher `VoucherDateTimeField.tsx`, `VoucherForm.tsx`, `_lib/datetime.ts`, form/action/datetime tests; [observed behavior and validation](../components/web.md#voucher-local-day-defaults-and-second-precision-kel-201).
