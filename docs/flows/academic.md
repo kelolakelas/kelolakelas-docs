@@ -1,5 +1,7 @@
 # Academic and enrollment flow
 
+**Implemented (KEL-199):** authorized tenant class rows provide a named deletion confirmation in both layouts. Cancel makes no request; confirm uses the existing `class:delete` API, refuses active enrollment conflicts and refreshes only on confirmed success. An uncertain network result keeps explicit failure feedback. No backend policy changed; see [web deletion flow](../components/web.md#class-deletion-kel-199).
+
 **Implemented (KEL-198):** tenant Edit Class now reloads complete configuration and supports category/details/Teacher assignments and group schedule creation, effective-date changes and confirmed deletion. Each operation commits separately and shows its own result; saved state is reread and unavailable reads block further writes. Capacity and attendance guards protect enrolled schedule versions, and price changes never rewrite sold snapshots. Private schedules stay enrollment-bound. See [API](../api/academic.md#complete-class-editing-kel-198) and [ADR 0069](../adr/0069-complete-class-editor.md).
 
 
