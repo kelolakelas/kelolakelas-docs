@@ -230,4 +230,4 @@ Generated service Swagger (`docs/swagger.json`) was consulted as contract corrob
 | Data → response | Active enrollment refusal, then soft deletion after test enrollment cancellation |
 | Response → UI | Error dialog retained; successful deletion removed both layout rows; no runtime exceptions |
 
-- **KEL-200:** accessible schedule layout, instance-unique labels, described validation errors and synthetic browser evidence: web `a7e3beb`, `ScheduleForm.tsx`, `ClassConfigurationEditor.tsx`, `schedule-field-styles.ts`, adjacent tests; [component details and validation](../components/web.md#accessible-schedule-field-layout-kel-200).
+- **KEL-200:** accessible schedule layout, instance-unique labels, described validation errors and synthetic browser evidence: web PR [#110](https://github.com/kelolakelas/kelolakelas-web/pull/110), squash `23dec014c050b0b2e4b1570e937db6876e41a057`, required PR gate passed; `ScheduleForm.tsx`, `ClassConfigurationEditor.tsx`, `schedule-field-styles.ts`, adjacent tests; [component details and validation](../components/web.md#accessible-schedule-field-layout-kel-200).
