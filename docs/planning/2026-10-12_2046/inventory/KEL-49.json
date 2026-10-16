@@ -1,0 +1,114 @@
+{
+  "id": "KEL-49",
+  "uuid": "d3c3e744-44b8-4195-8f75-a8d312fae6f0",
+  "title": "Jadikan transport model ai orchestrator dapat dikonfigurasi penuh untuk provider apa pun",
+  "description": "## Background / Problem\n\n`agents.runner.kind` hanya menerima `codex-cli`, dan seluruh asumsi transport Codex tersebar di luar batas adapter: flag `codex exec`, nama effort, event JSONL, variabel environment, bentuk kredensial, sampai sandbox perintah milik Codex sendiri. *Identifier* model memang sudah bebas (`models.tiers.<tier>.model`), tetapi transport-nya tidak \u2014 setiap run selalu `codex exec`. Akibatnya provider lain tidak dapat dipakai tanpa perubahan kode, dan menambah provider kedua berarti menyentuh banyak modul yang seharusnya netral, termasuk modul yang namanya terdengar generik.\n\n## Goal\n\nModel apa pun dari provider apa pun dapat dirutekan ke role agen mana pun hanya melalui konfigurasi, tanpa perubahan kode dan tanpa menurunkan jaminan confinement, determinisme, atau evidence milik orchestrator. `codex-cli` menjadi salah satu adapter yang dapat ditukar, bukan satu-satunya transport.\n\n## Requirements\n\n* Port `AgentRunner` menjadi port murni: stage hanya bergantung pada port ini, bukan pada adapter.\n* Registry provider membangun adapter per `models.providers.<alias>` berdasarkan `kind`.\n* `ModelSelection` menyebut provider-nya, sehingga tidak ada tebakan transport.\n* Kontrak capability dideklarasikan di dalam modul adapter; confinement yang berlaku diturunkan dari deklarasi tersebut plus `sandbox.kind`, tidak pernah dikonfigurasi. Konfigurasi boleh mempersempit capability, tidak boleh memperlebarnya.\n* Validasi fail-closed: role penulis (implementer, fixer) tidak boleh dilayani provider yang menjalankan perintah model tanpa confinement, dan tidak ada flag opt-out.\n* Routing, tier, effort, dan escalation menjadi data.\n* Vokabulari provider hanya boleh berada di modul adapter.\n* Konfigurasi lama tetap berjalan dengan jalur migrasi yang nyata, bukan peringatan tanpa jalan keluar.\n\n## Acceptance Criteria\n\nM1 (SELESAI \u2014 PR #7 merge `4729249`, CI `main` hijau; docs PR <pull-request id=\"ff95fcac-aa97-439a-9e0d-fd4006ae02b1\" href=\"https://linear.app/farid-zamani/review/docs-record-the-provider-agnostic-model-transport-adr-0011-83aff092bc65\">kelolakelas/kelolakelas-docs#20</pull-request> merge `34ba6ed`):\n\n- [X] Provider yang terdaftar di `models.providers` dapat melayani setiap role agen hanya dengan mengubah konfigurasi\n- [X] Menambah provider kedua tidak menyentuh satu pun file `src/execution/stages/`\n- [X] `models.providers` kosong tetap menjalankan `agents.runner` dan mencatat peringatan `legacy_runner_configuration` per provider\n- [X] Startup gagal ketika role penulis dilayani provider yang akan menjalankan perintah tanpa confinement\n- [X] Siklus analyzer, implementer, fixer, dan reviewer terbukti dilayani dua proses provider nyata\n- [X] Setiap attempt agen mencatat provider yang melayaninya\n- [X] Fence otomatis gagal ketika kosakata Codex/OpenAI muncul kembali di luar direktori adapter, modul kredensial, fixture, dan contoh konfigurasi\n- [X] Tier yang reachable wajib menyebut provider ketika lebih dari satu provider dikonfigurasi\n- [X] Existing functionality remains unaffected\n- [X] Error and validation scenarios are handled correctly\n\nM2 (SELESAI \u2014 PR #8 merge `4240252`; docs PR <pull-request id=\"29656592-9eaf-470c-9cd4-ffa54edd0ebf\" href=\"https://linear.app/farid-zamani/review/document-the-declarative-cli-transport-for-the-ai-orchestrator-49806e6a2e02\">kelolakelas/kelolakelas-docs#23</pull-request> merge `4074845`):\n\n- [X] Adapter CLI deklaratif (`kind: 'cli'`) memakai `createSandbox`/`verifySandbox` yang sudah ada\n- [X] `commandConfinement` menolak `none` untuk role penulis\n- [X] Contoh Claude Code terdokumentasi hanya dari keluaran `--help` yang terverifikasi\n\n## Technical Notes\n\nRisiko utama: memperlebar confinement. Mode kegagalan yang harus dihindari adalah adapter yang menyatakan dirinya aman ketika sebenarnya tidak, karena itu capability tinggal di modul adapter dan confinement diturunkan serta divalidasi, bukan dibaca dari konfigurasi. `codex-cli` diatur `wrappable: false` karena sandbox-nya tidak dapat bersarang di dalam sandbox orchestrator, sehingga confinement untuk provider Codex selalu berasal dari sandbox miliknya sendiri dan semantik sandbox Codex tidak berubah dari ADR 0006 dan ADR 0008.\n\nPelajaran yang sudah dikonfirmasi selama M1: modul yang namanya terdengar netral tetap dapat mengunci kosakata satu provider (`adapters/events.ts` diganti `codex-events.ts`); reachability tier harus diturunkan dari ekspresi fallback yang benar-benar dipakai router; menambah field wajib pada seleksi model tidak terlihat oleh fixture SQL mentah.\n\nRelevant areas:\n\n* `kelolakelas-ai-orchestrator/src/execution/agent-runner.ts`\n* `kelolakelas-ai-orchestrator/src/execution/provider-registry.ts`\n* `kelolakelas-ai-orchestrator/src/execution/dispatching-runner.ts`\n* `kelolakelas-ai-orchestrator/src/execution/adapters/`\n* `kelolakelas-ai-orchestrator/src/config/schema.ts`\n* `kelolakelas-ai-orchestrator/src/routing/`\n\n## Edge Cases\n\n* `models.providers` dideklarasikan sementara `agents.runner.executable` masih ada; provider yang dideklarasikan harus menang dan blok lama boleh dihapus seluruhnya.\n* `agents.runner.executable` dihapus tanpa provider apa pun dan `execution.runAgents` aktif; startup harus gagal, bukan diam-diam tidak punya transport.\n* Hanya satu provider dikonfigurasi; tier tanpa provider harus tetap dapat dijalankan alih-alih gagal karena ambiguitas.\n* `kind` salah ketik; startup harus menyebut daftar kind yang dikenal.\n* Provider tidak disebut tier, atau tier tidak ada.\n* Stage non-agen (`READY`, `TESTING`) mencatat attempt tanpa seleksi model.\n\n## Testing / Validation\n\n- [X] Relevant unit tests are added or updated\n- [X] Relevant integration tests are added or updated\n- [X] Existing tests pass\n- [X] Lint passes\n- [X] Type checking passes\n- [X] Acceptance criteria are manually or automatically verified\n- [X] Migration test: konfigurasi lama berjalan, dan blok `agents.runner` dapat dihapus setelah `models.providers` dideklarasikan\n- [X] Fence regresi provider dijalankan di CI\n- [X] Tidak ada drift migrasi Drizzle (`pause_reason` bertipe teks bebas)\n\n## Out of Scope\n\n* M3.\n* Adapter HTTP langsung ke API model; API model tanpa tool sandbox akan membuat orchestrator menjalankan perintah model di luar setiap sandbox provider.\n* Menambah provider kedua yang benar-benar dijalankan; M2 menyediakan adapter-nya, bukan provider-nya.\n* Perubahan semantik sandbox Codex dan kebijakan confinement yang sudah berlaku.\n* Risiko residual ADR 0006 dan ADR 0008: perintah kualitas menjalankan kode tulisan agen dengan permission user service, dan sandbox read-only membatasi tulisan tetapi bukan pembacaan.",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-49/jadikan-transport-model-ai-orchestrator-dapat-dikonfigurasi-penuh",
+  "gitBranchName": "skinel123/kel-49-jadikan-transport-model-ai-orchestrator-dapat-dikonfigurasi",
+  "createdAt": "2026-09-20T08:36:35.089Z",
+  "updatedAt": "2026-09-20T09:44:49.413Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-20T09:44:18.020Z",
+  "startedAt": "2026-09-20T08:37:11.211Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "Refactor"
+  ],
+  "attachments": [
+    {
+      "id": "890ee106-b0fb-4a27-b37a-3b2084defc86",
+      "title": "docs: document the declarative cli transport for the AI orchestrator",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/23"
+    },
+    {
+      "id": "3a37a36a-655f-4097-a47b-7207604e23ee",
+      "title": "Add a declarative cli transport so any model client is configuration",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-ai-orchestrator/pull/8"
+    },
+    {
+      "id": "14084d1a-8674-4b45-bc08-deedb073cf32",
+      "title": "docs: record the provider-agnostic model transport (ADR 0011)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/20"
+    },
+    {
+      "id": "2f3e64ed-825c-495c-bacd-36e27fc75120",
+      "title": "feat: provider-agnostic, fully configurable model transport",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-ai-orchestrator/pull/7"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-20T08:36:35.089Z",
+      "endedAt": "2026-09-20T08:37:11.221Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-20T08:37:11.221Z",
+      "endedAt": "2026-09-20T08:38:41.737Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-20T08:38:41.737Z",
+      "endedAt": "2026-09-20T08:39:18.420Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-20T08:39:18.420Z",
+      "endedAt": "2026-09-20T09:44:18.028Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-20T09:44:18.028Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

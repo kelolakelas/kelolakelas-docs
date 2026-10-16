@@ -1,0 +1,103 @@
+{
+  "id": "KEL-131",
+  "uuid": "ba8c5181-9cf9-4fe8-a84b-87b7b3c9c898",
+  "title": "Riwayat enrollment parent membaca envelope daftar API dengan benar",
+  "description": "## Background / Problem\n\nPembacaan statis `parent/enrollments/_queries/queries.ts:11-22` menunjukkan `getEnrollmentHistory` membaca `data.items`, sedangkan dua service mengembalikan `{status,data:{items,pagination}}`; fungsi return landing di file yang sama `:61-74` sudah memakai `normalizeListEnvelope`.\n\n## Goal\n\nParent melihat enrollment dan transaksi nyata di riwayat, bukan empty state palsu.\n\n## Requirements\n\n* Normalisasi envelope pada kedua list dengan helper yang sudah digunakan return landing.\n* Pertahankan status 401/403/error dan jangan ubah API/gateway.\n* Empty state hanya muncul bila kedua list yang valid memang kosong.\n\n## Acceptance Criteria\n\n- [ ] Respons `{status:'success',data:{items:[...]}}` menampilkan enrollment/transaksi.\n- [ ] Malformed/failed response tidak dianggap daftar kosong yang valid.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nGunakan helper `lib/list-envelope.ts`, cek kontrak handler academic/billing di main saat implementasi. Catat bahwa temuan ini statis, bukan hasil browser terhadap backend nyata. Perbarui docs known gaps bila diperbaiki.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/_queries/queries.ts`\n* `kelolakelas-web/lib/list-envelope.ts`\n\n## Edge Cases\n\n* Satu list kosong dan satu terisi.\n* Respons tidak valid atau akses ditolak.\n\n## Testing / Validation\n\n- [ ] Vitest kedua envelope nyata dari academic/billing dan error/malformed payload.\n- [ ] Jalankan test, lint, type check dan build; verifikasi tampilan dengan fixture non-kosong.\n\n## Out of Scope\n\n* Perubahan schema API dan laporan sales tenant.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"parent-enrollment-history-envelope\",\n  \"projectKey\": null,\n  \"title\": \"Riwayat enrollment parent membaca envelope daftar API dengan benar\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"repositories\": [\n    \"web\"\n  ],\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Pembacaan statis `parent/enrollments/_queries/queries.ts:11-22` menunjukkan `getEnrollmentHistory` membaca `data.items`, sedangkan dua service mengembalikan `{status,data:{items,pagination}}`; fungsi return landing di file yang sama `:61-74` sudah memakai `normalizeListEnvelope`.\",\n    \"goal\": \"Parent melihat enrollment dan transaksi nyata di riwayat, bukan empty state palsu.\",\n    \"requirements\": [\n      \"Normalisasi envelope pada kedua list dengan helper yang sudah digunakan return landing.\",\n      \"Pertahankan status 401/403/error dan jangan ubah API/gateway.\",\n      \"Empty state hanya muncul bila kedua list yang valid memang kosong.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Respons `{status:'success',data:{items:[...]}}` menampilkan enrollment/transaksi.\",\n      \"Malformed/failed response tidak dianggap daftar kosong yang valid.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Gunakan helper `lib/list-envelope.ts`, cek kontrak handler academic/billing di main saat implementasi. Catat bahwa temuan ini statis, bukan hasil browser terhadap backend nyata. Perbarui docs known gaps bila diperbaiki.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/_queries/queries.ts\",\n      \"kelolakelas-web/lib/list-envelope.ts\"\n    ],\n    \"edgeCases\": [\n      \"Satu list kosong dan satu terisi.\",\n      \"Respons tidak valid atau akses ditolak.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest kedua envelope nyata dari academic/billing dan error/malformed payload.\",\n      \"Jalankan test, lint, type check dan build; verifikasi tampilan dengan fixture non-kosong.\"\n    ],\n    \"outOfScope\": [\n      \"Perubahan schema API dan laporan sales tenant.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-131/riwayat-enrollment-parent-membaca-envelope-daftar-api-dengan-benar",
+  "gitBranchName": "skinel123/kel-131-riwayat-enrollment-parent-membaca-envelope-daftar-api-dengan",
+  "createdAt": "2026-09-28T19:15:11.203Z",
+  "updatedAt": "2026-09-29T08:18:29.778Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-29T08:12:43.347Z",
+  "startedAt": "2026-09-29T07:44:45.373Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "cf668d65-b522-41d4-b4bf-497849a82c92",
+      "title": "KEL-131: document parent enrollment history envelope reading",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/125"
+    },
+    {
+      "id": "58d5cc83-bb4c-4fe3-8f82-ac418ecf46e3",
+      "title": "KEL-131: riwayat enrollment parent membaca envelope daftar API dengan benar",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/54"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T19:15:11.203Z",
+      "endedAt": "2026-09-29T07:44:45.387Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-29T07:44:45.387Z",
+      "endedAt": "2026-09-29T08:12:43.354Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-29T08:12:43.354Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-44",
+        "title": "Sediakan halaman kembali dari pembayaran dengan pembaruan status otomatis"
+      },
+      {
+        "id": "KEL-126",
+        "title": "Billing menyimpan dan menyajikan instruksi pembayaran VA/QR untuk transaksi milik parent"
+      },
+      {
+        "id": "KEL-125",
+        "title": "Billing menerima pilihan channel VA/QRIS atau kartu untuk invoice baru"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

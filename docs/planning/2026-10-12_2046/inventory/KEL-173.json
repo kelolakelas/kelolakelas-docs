@@ -1,0 +1,107 @@
+{
+  "id": "KEL-173",
+  "uuid": "553e822a-f88c-4036-91e0-9b64eaf90440",
+  "title": "Form undang anggota menampilkan checkbox permission yang semuanya tercentang tetapi diabaikan",
+  "description": "## Background / Problem\n\nDi form Invite Member (`/dashboard/tenant/members`), seluruh checkbox \"Assigned Permissions\" (49 permission) sudah tercentang sebelum role dipilih, karena `activePermissions` jatuh ke semua permission tenant saat role kosong dan checkbox memakai `defaultChecked`. Server action membaca `permissionIds` tetapi hanya mengirim `{ email, role_id }` ke `POST /api/v1/invitations`, dan payload identity (`CreateInvitationPayload`) memang hanya menerima `role_id` dan `email`. Admin dapat mengira undangan memberi semua akses atau bahwa mencentang/menghapus centang berpengaruh, padahal undangan selalu memakai permission role terpilih.\n\n## Goal\n\nForm undang anggota menampilkan permission secara jujur: hanya permission milik role terpilih, sebagai informasi read-only, tanpa kesan bahwa permission per undangan dapat diatur.\n\n## Requirements\n\n* Sebelum role dipilih, form tidak menampilkan daftar semua permission sebagai terpilih.\n* Setelah role dipilih, form menampilkan permission role tersebut sebagai informasi read-only (bukan checkbox yang dapat diubah).\n* Server action dan schema tidak lagi menerima atau memvalidasi `permissionIds` yang diabaikan.\n* Payload ke `POST /api/v1/invitations` tetap `{ email, role_id }`, dan validasi email/role serta pesan error yang ada tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Membuka form Invite Member tanpa memilih role tidak menampilkan permission yang tercentang.\n- [ ] Memilih role \"Teacher\" menampilkan permission role Teacher sebagai daftar read-only.\n- [ ] Mengirim undangan tetap berhasil dan undangan memakai role terpilih.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nPermission per undangan tidak didukung identity (`internal/delivery/http/handler/invitation_handler.go` `CreateInvitationPayload`); menambah fitur itu adalah keputusan produk terpisah. Role yang permission-nya kosong perlu ditangani tanpa jatuh ke daftar semua permission. Perbarui kelolakelas-docs `docs/components/web.md` bila form undangan dijelaskan.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_components/InviteMemberForm.tsx`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_actions/actions.ts`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_schemas/schema.ts`\n\n## Edge Cases\n\n* Role tanpa permission.\n* Daftar role atau permission gagal dimuat.\n* Role diganti setelah dipilih.\n\n## Testing / Validation\n\n- [ ] Vitest untuk form: tidak ada permission tercentang sebelum role dipilih, dan permission role tampil read-only setelah dipilih.\n- [ ] Test action bahwa payload hanya berisi email dan role.\n- [ ] Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.\n\n## Out of Scope\n\n* Permission khusus per undangan atau per anggota.\n* Perubahan API identity.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"invite-member-permission-display\",\n  \"projectKey\": null,\n  \"title\": \"Form undang anggota menampilkan checkbox permission yang semuanya tercentang tetapi diabaikan\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Di form Invite Member (`/dashboard/tenant/members`), seluruh checkbox \\\"Assigned Permissions\\\" (49 permission) sudah tercentang sebelum role dipilih, karena `activePermissions` jatuh ke semua permission tenant saat role kosong dan checkbox memakai `defaultChecked`. Server action membaca `permissionIds` tetapi hanya mengirim `{ email, role_id }` ke `POST /api/v1/invitations`, dan payload identity (`CreateInvitationPayload`) memang hanya menerima `role_id` dan `email`. Admin dapat mengira undangan memberi semua akses atau bahwa mencentang/menghapus centang berpengaruh, padahal undangan selalu memakai permission role terpilih.\",\n    \"goal\": \"Form undang anggota menampilkan permission secara jujur: hanya permission milik role terpilih, sebagai informasi read-only, tanpa kesan bahwa permission per undangan dapat diatur.\",\n    \"requirements\": [\n      \"Sebelum role dipilih, form tidak menampilkan daftar semua permission sebagai terpilih.\",\n      \"Setelah role dipilih, form menampilkan permission role tersebut sebagai informasi read-only (bukan checkbox yang dapat diubah).\",\n      \"Server action dan schema tidak lagi menerima atau memvalidasi `permissionIds` yang diabaikan.\",\n      \"Payload ke `POST /api/v1/invitations` tetap `{ email, role_id }`, dan validasi email/role serta pesan error yang ada tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Membuka form Invite Member tanpa memilih role tidak menampilkan permission yang tercentang.\",\n      \"Memilih role \\\"Teacher\\\" menampilkan permission role Teacher sebagai daftar read-only.\",\n      \"Mengirim undangan tetap berhasil dan undangan memakai role terpilih.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Permission per undangan tidak didukung identity (`internal/delivery/http/handler/invitation_handler.go` `CreateInvitationPayload`); menambah fitur itu adalah keputusan produk terpisah. Role yang permission-nya kosong perlu ditangani tanpa jatuh ke daftar semua permission. Perbarui kelolakelas-docs `docs/components/web.md` bila form undangan dijelaskan.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_components/InviteMemberForm.tsx\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_actions/actions.ts\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_schemas/schema.ts\"\n    ],\n    \"edgeCases\": [\n      \"Role tanpa permission.\",\n      \"Daftar role atau permission gagal dimuat.\",\n      \"Role diganti setelah dipilih.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest untuk form: tidak ada permission tercentang sebelum role dipilih, dan permission role tampil read-only setelah dipilih.\",\n      \"Test action bahwa payload hanya berisi email dan role.\",\n      \"Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.\"\n    ],\n    \"outOfScope\": [\n      \"Permission khusus per undangan atau per anggota.\",\n      \"Perubahan API identity.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-173/form-undang-anggota-menampilkan-checkbox-permission-yang-semuanya",
+  "gitBranchName": "skinel123/kel-173-form-undang-anggota-menampilkan-checkbox-permission-yang",
+  "createdAt": "2026-10-08T17:48:02.961Z",
+  "updatedAt": "2026-10-09T12:51:43.916Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-09T12:48:54.837Z",
+  "startedAt": "2026-10-09T12:38:35.567Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "b68e580d-1db4-46d5-bd31-40ef00bfae1a",
+      "title": "KEL-173: document read-only invitation role permissions",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/171"
+    },
+    {
+      "id": "8c010a55-4dca-414f-b298-aa4df8f9b8a0",
+      "title": "KEL-173: show invite role permissions as read-only information",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/83"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-10-08T17:48:02.961Z",
+      "endedAt": "2026-10-09T12:38:35.580Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-09T12:38:35.580Z",
+      "endedAt": "2026-10-09T12:48:54.845Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-09T12:48:54.845Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-171",
+        "title": "Overview tenant menampilkan nama dan status sistem hardcoded, bukan data pengguna atau layanan nyata"
+      },
+      {
+        "id": "KEL-172",
+        "title": "Form registrasi dan login mengosongkan semua isian saat validasi atau login gagal"
+      },
+      {
+        "id": "KEL-169",
+        "title": "Batas waktu invoice dan undangan tampil bergeser +7 jam karena timestamp lokal disimpan tanpa zona"
+      },
+      {
+        "id": "KEL-168",
+        "title": "Pembatalan enrollment pending oleh parent selalu dijawab 409 padahal pembatalan berhasil"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

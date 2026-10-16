@@ -1,0 +1,113 @@
+{
+  "id": "KEL-165",
+  "uuid": "b6b54568-ea9b-4ebb-b4e5-2f90539396a3",
+  "title": "Daftar anggota tenant tidak gagal 500 saat dipanggil tanpa parameter sort",
+  "description": "## Background / Problem\n\n`GET /api/v1/members` tanpa parameter `sort` (atau dengan nilai yang tidak dikenal) menjawab 500. `kelolakelas-identity-service/internal/repository/member_repository.go` (ListMembers) memetakan `sort` ke kolom urutan dan, bila kosong, jatuh ke `tm.created_at`, padahal tabel `tenant_members` tidak punya kolom itu (yang ada `joined_at`). Ditemukan saat verifikasi manual <issue id=\"806bd637-6802-4c63-8c29-9826eab6d163\" href=\"https://linear.app/farid-zamani/issue/KEL-138/tenant-dapat-me-reschedule-sesi-dan-menugaskan-tutor-pengganti-dari\">KEL-138</issue> terhadap identity lokal `9ee07d3` (origin/main): tanpa `sort` 500, dengan `sort=joined_at` 200. Halaman anggota web memanggil endpoint ini tanpa `sort` (`kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_lib/schema.ts`, `membersQueryString`), sehingga daftar anggota dashboard terdampak.\n\n## Goal\n\nDaftar anggota tenant terbaca dengan urutan default yang terdokumentasi bila pemanggil tidak memberi `sort`.\n\n## Requirements\n\n* `sort` kosong mengurutkan menurut `joined_at` (sama dengan `sort=joined_at`), arah default tetap `asc`.\n* Nilai `sort` yang tidak dikenal dijawab 400 dengan pesan validasi, bukan 500 dan bukan diabaikan diam-diam.\n* Nilai `sort` yang sudah didukung (`joined_at`, `created_at`, `updated_at`, `email`, `name`) dan `order` tetap berperilaku sama.\n\n## Acceptance Criteria\n\n- [ ] `GET /api/v1/members` tanpa `sort` menjawab 200 dengan anggota terurut menurut waktu bergabung.\n- [ ] `sort` tidak dikenal menjawab 400.\n- [ ] Halaman anggota dashboard web menampilkan daftar anggota tanpa perubahan di web.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nDiamati saat verifikasi <issue id=\"806bd637-6802-4c63-8c29-9826eab6d163\" href=\"https://linear.app/farid-zamani/issue/KEL-138/tenant-dapat-me-reschedule-sesi-dan-menugaskan-tutor-pengganti-dari\">KEL-138</issue> (2026-10-03), belum diperbaiki: fallback `orderColumn = \"tm.created_at\"` di ListMembers. Perbaiki fallback ke `tm.joined_at` dan validasi `sort` di handler/usecase sebelum query. Tambahkan urutan sekunder `tm.id` agar paginasi stabil bila `joined_at` sama. Regenerasi Swagger bila anotasi berubah dan perbarui `kelolakelas-docs` (API identity) bila perilaku default didokumentasikan.\n\nRelevant areas:\n\n* `kelolakelas-identity-service/internal/repository/member_repository.go`\n* `kelolakelas-identity-service/internal/delivery/http/handler/member_handler.go`\n* `kelolakelas-identity-service/internal/usecase`\n\n## Edge Cases\n\n* Beberapa anggota bergabung pada waktu yang sama (urutan stabil antar halaman).\n* `sort` kosong dengan `order=desc`.\n* `sort` dengan huruf besar atau spasi.\n\n## Testing / Validation\n\n- [ ] Repository/handler test: tanpa sort 200 terurut joined_at, sort tidak dikenal 400, sort yang ada tidak berubah.\n- [ ] go vet, go test -race, dan build lulus.\n- [ ] Verifikasi manual terhadap identity lokal: GET /api/v1/members tanpa sort lalu dengan setiap sort yang didukung.\n\n## Out of Scope\n\n* Perubahan web (halaman anggota tetap memanggil tanpa sort).\n* Endpoint `/api/v1/tutors` dan bentuk id-nya.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"identity-members-list-default-sort\",\n  \"projectKey\": \"tenant-member-administration\",\n  \"title\": \"Daftar anggota tenant tidak gagal 500 saat dipanggil tanpa parameter sort\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"identity\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"identity\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`GET /api/v1/members` tanpa parameter `sort` (atau dengan nilai yang tidak dikenal) menjawab 500. `kelolakelas-identity-service/internal/repository/member_repository.go` (ListMembers) memetakan `sort` ke kolom urutan dan, bila kosong, jatuh ke `tm.created_at`, padahal tabel `tenant_members` tidak punya kolom itu (yang ada `joined_at`). Ditemukan saat verifikasi manual KEL-138 terhadap identity lokal `9ee07d3` (origin/main): tanpa `sort` 500, dengan `sort=joined_at` 200. Halaman anggota web memanggil endpoint ini tanpa `sort` (`kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_lib/schema.ts`, `membersQueryString`), sehingga daftar anggota dashboard terdampak.\",\n    \"goal\": \"Daftar anggota tenant terbaca dengan urutan default yang terdokumentasi bila pemanggil tidak memberi `sort`.\",\n    \"requirements\": [\n      \"`sort` kosong mengurutkan menurut `joined_at` (sama dengan `sort=joined_at`), arah default tetap `asc`.\",\n      \"Nilai `sort` yang tidak dikenal dijawab 400 dengan pesan validasi, bukan 500 dan bukan diabaikan diam-diam.\",\n      \"Nilai `sort` yang sudah didukung (`joined_at`, `created_at`, `updated_at`, `email`, `name`) dan `order` tetap berperilaku sama.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"`GET /api/v1/members` tanpa `sort` menjawab 200 dengan anggota terurut menurut waktu bergabung.\",\n      \"`sort` tidak dikenal menjawab 400.\",\n      \"Halaman anggota dashboard web menampilkan daftar anggota tanpa perubahan di web.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Diamati saat verifikasi KEL-138 (2026-10-03), belum diperbaiki: fallback `orderColumn = \\\"tm.created_at\\\"` di ListMembers. Perbaiki fallback ke `tm.joined_at` dan validasi `sort` di handler/usecase sebelum query. Tambahkan urutan sekunder `tm.id` agar paginasi stabil bila `joined_at` sama. Regenerasi Swagger bila anotasi berubah dan perbarui `kelolakelas-docs` (API identity) bila perilaku default didokumentasikan.\",\n    \"relevantAreas\": [\n      \"kelolakelas-identity-service/internal/repository/member_repository.go\",\n      \"kelolakelas-identity-service/internal/delivery/http/handler/member_handler.go\",\n      \"kelolakelas-identity-service/internal/usecase\"\n    ],\n    \"edgeCases\": [\n      \"Beberapa anggota bergabung pada waktu yang sama (urutan stabil antar halaman).\",\n      \"`sort` kosong dengan `order=desc`.\",\n      \"`sort` dengan huruf besar atau spasi.\"\n    ],\n    \"testingValidation\": [\n      \"Repository/handler test: tanpa sort 200 terurut joined_at, sort tidak dikenal 400, sort yang ada tidak berubah.\",\n      \"go vet, go test -race, dan build lulus.\",\n      \"Verifikasi manual terhadap identity lokal: GET /api/v1/members tanpa sort lalu dengan setiap sort yang didukung.\"\n    ],\n    \"outOfScope\": [\n      \"Perubahan web (halaman anggota tetap memanggil tanpa sort).\",\n      \"Endpoint `/api/v1/tutors` dan bentuk id-nya.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-165/daftar-anggota-tenant-tidak-gagal-500-saat-dipanggil-tanpa-parameter",
+  "gitBranchName": "skinel123/kel-165-daftar-anggota-tenant-tidak-gagal-500-saat-dipanggil-tanpa",
+  "createdAt": "2026-10-03T10:30:14.737Z",
+  "updatedAt": "2026-10-04T08:43:43.490Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-04T08:38:11.688Z",
+  "startedAt": "2026-10-04T07:35:38.496Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "identity",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "241af3ab-da47-473f-902b-ca02d779d177",
+      "title": "KEL-165: document member-list default sort and validation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/158"
+    },
+    {
+      "id": "be889fd6-8be1-4767-a990-85f9bdb429c1",
+      "title": "KEL-165: default member sort to joined_at and reject unknown sorts",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/38"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-10-03T10:30:14.737Z",
+      "endedAt": "2026-10-04T07:35:38.511Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-04T07:35:38.511Z",
+      "endedAt": "2026-10-04T08:38:11.696Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-04T08:38:11.696Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Administrasi anggota tenant yang andal dan aman",
+  "projectId": "24479f4a-98ab-4255-a1e8-954da9ba6360",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-148",
+        "title": "Tenant melihat daftar transaksi dengan filter dan mengunduh CSV"
+      },
+      {
+        "id": "KEL-152",
+        "title": "Tenant dapat mencatat refund manual untuk transaksi paid dan mengakhiri enrollment terkait"
+      },
+      {
+        "id": "KEL-158",
+        "title": "Calon parent dapat membuka profil publik tenant beserta kelas yang dipublikasikan"
+      },
+      {
+        "id": "KEL-139",
+        "title": "Pengajar menulis dan mengelola laporan evaluasi siswa dari dashboard"
+      },
+      {
+        "id": "KEL-138",
+        "title": "Tenant dapat me-reschedule sesi dan menugaskan tutor pengganti dari detail sesi"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

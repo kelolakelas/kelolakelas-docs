@@ -1,0 +1,110 @@
+{
+  "id": "KEL-175",
+  "uuid": "57b44d61-dc68-4a7b-a35c-9cbe23749565",
+  "title": "Tanggal lahir student di masa depan diterima tanpa validasi",
+  "description": "## Background / Problem\n\nParent dapat menyimpan student dengan tanggal lahir di masa depan (QA: 2030-01-15 pada 9 Okt 2026), dan daftar student menampilkannya tanpa error. Web `lib/students.ts` (`studentFormSchema.date_of_birth`) hanya memvalidasi format tanggal, input `type=\"date\"` di `StudentForm.tsx` tidak memiliki `max`, dan academic `internal/usecase/student_usecase.go` (create dan update) hanya melakukan `time.Parse(\"2006-01-02\", ...)` tanpa pengecekan tanggal.\n\n## Goal\n\nTanggal lahir student yang lebih besar dari hari ini ditolak di web dan di academic.\n\n## Requirements\n\n* Academic menolak create dan update student dengan tanggal lahir setelah tanggal hari ini (kalender `Asia/Jakarta`) dengan 400 \"Invalid student payload\".\n* Tanggal lahir hari ini dan tanggal lampau tetap diterima.\n* Form student web menampilkan pesan validasi per field untuk tanggal lahir di masa depan, dan input tanggal membatasi pilihan hingga hari ini.\n* Validasi format tanggal dan field lain yang ada tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Menyimpan student dengan tanggal lahir besok gagal dengan pesan validasi di form.\n- [ ] `POST` dan `PUT` student ke academic dengan tanggal lahir di masa depan dijawab 400.\n- [ ] Menyimpan student dengan tanggal lahir hari ini berhasil.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nAsumsi eksplisit: batas \"hari ini\" memakai kalender `Asia/Jakarta`, sesuai zona pengguna; batas usia minimum tidak termasuk. Handler academic memetakan error input lewat `isStudentInputError`, jadi error baru perlu ikut dipetakan ke 400. Data lama dengan tanggal di masa depan tidak dimigrasi. Perbarui kelolakelas-docs `docs/components/academic-service.md` dan `docs/components/web.md` pada bagian student.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/usecase/student_usecase.go`\n* `kelolakelas-academic-service/internal/domain/student.go`\n* `kelolakelas-academic-service/internal/delivery/http/handler/student_handler.go`\n* `kelolakelas-web/lib/students.ts`\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/students/_components/StudentForm.tsx`\n\n## Edge Cases\n\n* Submit tepat sekitar tengah malam WIB.\n* Edit student lama yang sudah tersimpan dengan tanggal di masa depan.\n* Tanggal tidak valid seperti 2026-02-30 tetap ditolak sebagai format tidak valid.\n\n## Testing / Validation\n\n- [ ] Unit test academic untuk tanggal besok (400), hari ini (sukses), dan tanggal lampau (sukses) pada create dan update.\n- [ ] Vitest `lib/students.test.ts` untuk tanggal di masa depan.\n- [ ] Existing tests pass, `go test ./...` dan `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.\n\n## Out of Scope\n\n* Batas usia minimum atau maksimum student.\n* Koreksi data student yang sudah tersimpan.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"student-dob-not-future\",\n  \"projectKey\": null,\n  \"title\": \"Tanggal lahir student di masa depan diterima tanpa validasi\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Low\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"academic\",\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\",\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Parent dapat menyimpan student dengan tanggal lahir di masa depan (QA: 2030-01-15 pada 9 Okt 2026), dan daftar student menampilkannya tanpa error. Web `lib/students.ts` (`studentFormSchema.date_of_birth`) hanya memvalidasi format tanggal, input `type=\\\"date\\\"` di `StudentForm.tsx` tidak memiliki `max`, dan academic `internal/usecase/student_usecase.go` (create dan update) hanya melakukan `time.Parse(\\\"2006-01-02\\\", ...)` tanpa pengecekan tanggal.\",\n    \"goal\": \"Tanggal lahir student yang lebih besar dari hari ini ditolak di web dan di academic.\",\n    \"requirements\": [\n      \"Academic menolak create dan update student dengan tanggal lahir setelah tanggal hari ini (kalender `Asia/Jakarta`) dengan 400 \\\"Invalid student payload\\\".\",\n      \"Tanggal lahir hari ini dan tanggal lampau tetap diterima.\",\n      \"Form student web menampilkan pesan validasi per field untuk tanggal lahir di masa depan, dan input tanggal membatasi pilihan hingga hari ini.\",\n      \"Validasi format tanggal dan field lain yang ada tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Menyimpan student dengan tanggal lahir besok gagal dengan pesan validasi di form.\",\n      \"`POST` dan `PUT` student ke academic dengan tanggal lahir di masa depan dijawab 400.\",\n      \"Menyimpan student dengan tanggal lahir hari ini berhasil.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Asumsi eksplisit: batas \\\"hari ini\\\" memakai kalender `Asia/Jakarta`, sesuai zona pengguna; batas usia minimum tidak termasuk. Handler academic memetakan error input lewat `isStudentInputError`, jadi error baru perlu ikut dipetakan ke 400. Data lama dengan tanggal di masa depan tidak dimigrasi. Perbarui kelolakelas-docs `docs/components/academic-service.md` dan `docs/components/web.md` pada bagian student.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/usecase/student_usecase.go\",\n      \"kelolakelas-academic-service/internal/domain/student.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/handler/student_handler.go\",\n      \"kelolakelas-web/lib/students.ts\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/students/_components/StudentForm.tsx\"\n    ],\n    \"edgeCases\": [\n      \"Submit tepat sekitar tengah malam WIB.\",\n      \"Edit student lama yang sudah tersimpan dengan tanggal di masa depan.\",\n      \"Tanggal tidak valid seperti 2026-02-30 tetap ditolak sebagai format tidak valid.\"\n    ],\n    \"testingValidation\": [\n      \"Unit test academic untuk tanggal besok (400), hari ini (sukses), dan tanggal lampau (sukses) pada create dan update.\",\n      \"Vitest `lib/students.test.ts` untuk tanggal di masa depan.\",\n      \"Existing tests pass, `go test ./...` dan `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.\"\n    ],\n    \"outOfScope\": [\n      \"Batas usia minimum atau maksimum student.\",\n      \"Koreksi data student yang sudah tersimpan.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 4,
+    "name": "Low"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-175/tanggal-lahir-student-di-masa-depan-diterima-tanpa-validasi",
+  "gitBranchName": "skinel123/kel-175-tanggal-lahir-student-di-masa-depan-diterima-tanpa-validasi",
+  "createdAt": "2026-10-08T17:48:08.510Z",
+  "updatedAt": "2026-10-09T16:25:45.760Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-09T16:20:49.405Z",
+  "startedAt": "2026-10-09T14:32:00.025Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "academic",
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "bd5040ce-0971-45a7-9580-04e5a17b41cd",
+      "title": "KEL-175: document student birth date validation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/174"
+    },
+    {
+      "id": "ab3661b1-2497-4243-a322-bdd0452fde3e",
+      "title": "KEL-175: validate student birth date in forms",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/86"
+    },
+    {
+      "id": "d8546a3c-b64b-4e31-8cab-85d81d185086",
+      "title": "KEL-175: reject future student birth dates",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/49"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-10-08T17:48:08.510Z",
+      "endedAt": "2026-10-09T14:32:00.042Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-09T14:32:00.042Z",
+      "endedAt": "2026-10-09T16:20:49.416Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-09T16:20:49.416Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-174",
+        "title": "Pesan sukses \"Lokasi tenant berhasil disimpan\" tidak pernah tampil setelah simpan lokasi"
+      },
+      {
+        "id": "KEL-171",
+        "title": "Overview tenant menampilkan nama dan status sistem hardcoded, bukan data pengguna atau layanan nyata"
+      },
+      {
+        "id": "KEL-172",
+        "title": "Form registrasi dan login mengosongkan semua isian saat validasi atau login gagal"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

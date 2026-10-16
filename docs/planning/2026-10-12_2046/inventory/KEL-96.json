@@ -1,0 +1,141 @@
+{
+  "id": "KEL-96",
+  "uuid": "d831a14b-e90e-460b-9dde-e47a1949b092",
+  "title": "Platform admin memiliki katalog konfigurasi terpusat dengan audit dan status penerapan",
+  "description": "## Background / Problem\n\nKonfigurasi aplikasi tersebar di environment web, gateway, identity, academic, dan billing. Tidak ada inventory managed settings, API platform, history, atau penanda nilai sudah diterapkan; secret tidak boleh dibaca kembali.\n\n## Goal\n\nAdmin platform dapat mengetahui seluruh konfigurasi aplikasi yang didukung, mengajukan perubahan bertipe, serta melihat audit dan status penerapannya.\n\n## Requirements\n\n* Inventaris setiap setting aktif pada lima aplikasi dengan owner, tipe, default, sensitivitas, validasi, dan cara penerapan (dinamis/restart/rotasi), termasuk bootstrap-only yang tetap butuh jalur operator terkontrol. Inventaris disimpan sebagai katalog metadata read-only di identity; key milik web, academic, dan billing hanya dicatat sebagai metadata, dan repo tersebut hanya dibaca, tidak diubah.\n* Sediakan control plane hanya untuk admin, allowlist key dan typed validation, optimistic versioning, audit aktor dan perubahan; secret hanya metadata/referensi dan never-read-back.\n* Bedakan requested, applied, failed, dan rollback state sehingga UI tidak mengklaim nilai aktif sebelum consumer menerapkannya.\n* Pertahankan nilai efektif lama selama migrasi; definisikan kontrak konsumsi dan prosedur pemulihan bila control plane tidak tersedia. Kontrak konsumsi, termasuk cara consumer melaporkan applied/failed/rollback, didefinisikan dan diekspos oleh control plane di identity + api-gateway; adapter consumer per layanan tetap out of scope.\n\n## Acceptance Criteria\n\n- [ ] Admin dapat melihat inventory lengkap dan status setiap setting tanpa nilai secret plaintext.\n- [ ] Perubahan non-secret yang valid menghasilkan versi dan audit; key tidak dikenal atau nilai invalid ditolak.\n- [ ] Konflik versi dan kegagalan penerapan dilaporkan tanpa mengklaim sukses.\n- [ ] Tenant dan parent tidak dapat membaca metadata sensitif atau mengubah setting.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko utama control plane menjadi single point of failure dan membuka secret. Pisahkan desired/applied state, gunakan allowlist, redaksi, dan last-known-good untuk consumer sesuai kelas setting. Topologi deployment belum ditemukan, sehingga mekanisme penerapan lintas proses memerlukan ADR dan bukti integrasi sebelum rotasi secret. Inventaris harus dibandingkan dengan docs/reference/environment-variables.md dan source saat implementasi.\n\nRelevant areas:\n\n* `kelolakelas-identity-service/migrations`\n* `kelolakelas-identity-service/internal/config/config.go`\n* `kelolakelas-api-gateway/internal/delivery/http/router.go`\n* `kelolakelas-docs/docs/reference/environment-variables.md`\n\n## Edge Cases\n\n* Dua admin mengubah setting bersamaan.\n* Control plane mati ketika service mulai atau berjalan.\n* Secret diubah tetapi konsumen belum menerapkan versi baru.\n\n## Testing / Validation\n\n- [ ] Mitigasi risiko: test redaksi secret, akses tenant/parent, version conflict, dan last-known-good.\n- [ ] Validasi inventory terhadap seluruh key yang dibaca oleh lima aplikasi (dengan membaca source kelimanya; tanpa edit di web, academic, dan billing).\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Implementasi adapter consumer per layanan.\n* Rotasi secret pada deployment.\n* UI pengaturan.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"platform-config-control-plane\",\n  \"projectKey\": \"platform-admin-control-plane\",\n  \"title\": \"Platform admin memiliki katalog konfigurasi terpusat dengan audit dan status penerapan\",\n  \"type\": \"Feature\",\n  \"priority\": \"Urgent\",\n  \"estimate\": \"L\",\n  \"complexity\": \"very-high\",\n  \"labels\": [\n    \"identity\",\n    \"api-gateway\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"identity\",\n    \"api-gateway\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"platform-admin-principal\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Konfigurasi aplikasi tersebar di environment web, gateway, identity, academic, dan billing. Tidak ada inventory managed settings, API platform, history, atau penanda nilai sudah diterapkan; secret tidak boleh dibaca kembali.\",\n    \"goal\": \"Admin platform dapat mengetahui seluruh konfigurasi aplikasi yang didukung, mengajukan perubahan bertipe, serta melihat audit dan status penerapannya.\",\n    \"requirements\": [\n      \"Inventaris setiap setting aktif pada lima aplikasi dengan owner, tipe, default, sensitivitas, validasi, dan cara penerapan (dinamis/restart/rotasi), termasuk bootstrap-only yang tetap butuh jalur operator terkontrol. Inventaris disimpan sebagai katalog metadata read-only di identity; key milik web, academic, dan billing hanya dicatat sebagai metadata, dan repo tersebut hanya dibaca, tidak diubah.\",\n      \"Sediakan control plane hanya untuk admin, allowlist key dan typed validation, optimistic versioning, audit aktor dan perubahan; secret hanya metadata/referensi dan never-read-back.\",\n      \"Bedakan requested, applied, failed, dan rollback state sehingga UI tidak mengklaim nilai aktif sebelum consumer menerapkannya.\",\n      \"Pertahankan nilai efektif lama selama migrasi; definisikan kontrak konsumsi dan prosedur pemulihan bila control plane tidak tersedia. Kontrak konsumsi, termasuk cara consumer melaporkan applied/failed/rollback, didefinisikan dan diekspos oleh control plane di identity + api-gateway; adapter consumer per layanan tetap out of scope.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Admin dapat melihat inventory lengkap dan status setiap setting tanpa nilai secret plaintext.\",\n      \"Perubahan non-secret yang valid menghasilkan versi dan audit; key tidak dikenal atau nilai invalid ditolak.\",\n      \"Konflik versi dan kegagalan penerapan dilaporkan tanpa mengklaim sukses.\",\n      \"Tenant dan parent tidak dapat membaca metadata sensitif atau mengubah setting.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko utama control plane menjadi single point of failure dan membuka secret. Pisahkan desired/applied state, gunakan allowlist, redaksi, dan last-known-good untuk consumer sesuai kelas setting. Topologi deployment belum ditemukan, sehingga mekanisme penerapan lintas proses memerlukan ADR dan bukti integrasi sebelum rotasi secret. Inventaris harus dibandingkan dengan docs/reference/environment-variables.md dan source saat implementasi.\",\n    \"relevantAreas\": [\n      \"kelolakelas-identity-service/migrations\",\n      \"kelolakelas-identity-service/internal/config/config.go\",\n      \"kelolakelas-api-gateway/internal/delivery/http/router.go\",\n      \"kelolakelas-docs/docs/reference/environment-variables.md\"\n    ],\n    \"edgeCases\": [\n      \"Dua admin mengubah setting bersamaan.\",\n      \"Control plane mati ketika service mulai atau berjalan.\",\n      \"Secret diubah tetapi konsumen belum menerapkan versi baru.\"\n    ],\n    \"testingValidation\": [\n      \"Mitigasi risiko: test redaksi secret, akses tenant/parent, version conflict, dan last-known-good.\",\n      \"Validasi inventory terhadap seluruh key yang dibaca oleh lima aplikasi (dengan membaca source kelimanya; tanpa edit di web, academic, dan billing).\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Implementasi adapter consumer per layanan.\",\n      \"Rotasi secret pada deployment.\",\n      \"UI pengaturan.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 1,
+    "name": "Urgent"
+  },
+  "estimate": {
+    "value": 3,
+    "name": "3 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-96/platform-admin-memiliki-katalog-konfigurasi-terpusat-dengan-audit-dan",
+  "gitBranchName": "skinel123/kel-96-platform-admin-memiliki-katalog-konfigurasi-terpusat-dengan",
+  "createdAt": "2026-09-24T13:34:41.678Z",
+  "updatedAt": "2026-09-26T09:58:08.934Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-25T09:20:57.532Z",
+  "startedAt": "2026-09-24T22:26:06.495Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "identity",
+    "api-gateway",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "9358e2bf-b8d7-468b-97f3-f2091a21d108",
+      "title": "KEL-96: document record-only configuration control plane",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/53"
+    },
+    {
+      "id": "7c57462e-9115-4f54-b833-a73333e58481",
+      "title": "KEL-96: proxy platform configuration routes",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/12"
+    },
+    {
+      "id": "799f82d5-b356-48b3-aea5-a6dce4ffd2a9",
+      "title": "KEL-96: record-only platform configuration control plane",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/10"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T13:34:41.678Z",
+      "endedAt": "2026-09-24T22:26:06.513Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-24T22:26:06.513Z",
+      "endedAt": "2026-09-25T09:20:57.539Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-25T09:20:57.539Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Kontrol platform terpusat oleh platform admin",
+  "projectId": "ec13327b-4cd2-4226-84c1-019b5e88a53e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-102",
+        "title": "Platform admin dapat merotasi secret layanan tanpa menampilkan nilainya kembali"
+      },
+      {
+        "id": "KEL-101",
+        "title": "Konfigurasi operasional identity, academic, dan billing dapat diterapkan dengan rollback"
+      },
+      {
+        "id": "KEL-100",
+        "title": "Konfigurasi operasional web dan gateway dapat diterapkan dengan rollback"
+      },
+      {
+        "id": "KEL-99",
+        "title": "Platform admin dapat menetapkan biaya platform untuk transaksi baru secara aman"
+      },
+      {
+        "id": "KEL-98",
+        "title": "Platform admin dapat mengatur visibilitas katalog publik secara konsisten"
+      },
+      {
+        "id": "KEL-97",
+        "title": "Platform admin dapat membuka dan menutup pendaftaran tenant baru"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-93",
+        "title": "Platform admin dapat masuk dan hanya mengakses route platform"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-94",
+        "title": "Creator tenant dapat meminta penambahan Creator untuk tenant sendiri"
+      },
+      {
+        "id": "KEL-78",
+        "title": "Pemeriksaan permission academic dibatasi waktu ketika identity lambat atau tidak merespons"
+      },
+      {
+        "id": "KEL-63",
+        "title": "Service Go dibangun dengan toolchain dan modul yang bebas vulnerability reachable"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

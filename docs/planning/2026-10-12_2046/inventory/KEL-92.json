@@ -1,0 +1,112 @@
+{
+  "id": "KEL-92",
+  "uuid": "b9bbea28-dfca-44a4-84cb-128715ef30f6",
+  "title": "Filter katalog serta halaman login dan registrasi dapat digunakan dengan pembaca layar",
+  "description": "## Background / Problem\n\nSemua kontrol filter `/kelas` (pencarian, tipe, harga minimum/maksimum, urutan) hanya memakai placeholder atau tidak memiliki label, dan form tidak memiliki nama aksesibel (`kelolakelas-web/app/(public)/kelas/page.tsx:24`). Halaman login dan registrasi tidak memiliki `<h1>` karena judul form memakai `<h2>` (`app/(auth)/login/_components/LoginForm.tsx:60`, `app/(auth)/register/_components/ParentRegisterForm.tsx:68`). Tombol pilihan peran registrasi hanya membedakan pilihan lewat warna tanpa `aria-pressed` (`app/(auth)/register/_components/RegisterFormSwitch.tsx:28-48`). <issue id=\"a6e49ffb-f05b-4147-a12f-3fef88936633\" href=\"https://linear.app/farid-zamani/issue/KEL-47/rapikan-metadata-halaman-publik-bahasa-dokumen-dan-branding-web\">KEL-47</issue> (selesai) menangani bahasa dokumen dan metadata; <issue id=\"f9efa138-48b5-4f05-a885-14ff8290ab34\" href=\"https://linear.app/farid-zamani/issue/KEL-73/konfirmasi-hapus-profil-student-dapat-diakses-dan-konsisten-dengan\">KEL-73</issue> hanya menangani dialog hapus student.\n\n## Goal\n\nPengguna pembaca layar dapat mengenali dan mengoperasikan filter katalog, serta memahami struktur halaman login dan registrasi.\n\n## Requirements\n\n* Setiap kontrol filter katalog memiliki label yang terasosiasi, dan form filter memiliki nama aksesibel.\n* Halaman login dan registrasi memiliki tepat satu `<h1>`.\n* Tombol pilihan peran registrasi mengekspos status terpilih.\n* Tampilan visual dan perilaku form tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Pemeriksaan aksesibilitas otomatis tidak melaporkan kontrol form tanpa label di `/kelas`.\n- [ ] Halaman login dan registrasi masing-masing memiliki satu heading level 1.\n- [ ] Status tombol peran terbaca oleh pembaca layar.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nMenyentuh `kelas/page.tsx` yang juga diubah oleh web-tenant-class-listing-link sehingga dikerjakan setelahnya. Teks antarmuka berbahasa Inggris di halaman auth tidak diterjemahkan dalam issue ini. Complexity rationale: perubahan markup dan atribut ARIA pada tiga halaman web tanpa perubahan logika atau API.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(public)/kelas/page.tsx`\n* `kelolakelas-web/app/(auth)/login`\n* `kelolakelas-web/app/(auth)/register`\n\n## Edge Cases\n\n* Label visual yang disembunyikan tetap terbaca pembaca layar.\n* Pesan error field tetap terasosiasi setelah perubahan heading.\n\n## Testing / Validation\n\n- [ ] Test komponen yang memverifikasi label, heading, dan aria-pressed.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Penerjemahan teks halaman auth.\n* Perubahan desain visual.\n* Aksesibilitas dashboard tenant.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-catalog-auth-accessibility\",\n  \"projectKey\": null,\n  \"title\": \"Filter katalog serta halaman login dan registrasi dapat digunakan dengan pembaca layar\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Low\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"web-tenant-class-listing-link\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Semua kontrol filter `/kelas` (pencarian, tipe, harga minimum/maksimum, urutan) hanya memakai placeholder atau tidak memiliki label, dan form tidak memiliki nama aksesibel (`kelolakelas-web/app/(public)/kelas/page.tsx:24`). Halaman login dan registrasi tidak memiliki `<h1>` karena judul form memakai `<h2>` (`app/(auth)/login/_components/LoginForm.tsx:60`, `app/(auth)/register/_components/ParentRegisterForm.tsx:68`). Tombol pilihan peran registrasi hanya membedakan pilihan lewat warna tanpa `aria-pressed` (`app/(auth)/register/_components/RegisterFormSwitch.tsx:28-48`). KEL-47 (selesai) menangani bahasa dokumen dan metadata; KEL-73 hanya menangani dialog hapus student.\",\n    \"goal\": \"Pengguna pembaca layar dapat mengenali dan mengoperasikan filter katalog, serta memahami struktur halaman login dan registrasi.\",\n    \"requirements\": [\n      \"Setiap kontrol filter katalog memiliki label yang terasosiasi, dan form filter memiliki nama aksesibel.\",\n      \"Halaman login dan registrasi memiliki tepat satu `<h1>`.\",\n      \"Tombol pilihan peran registrasi mengekspos status terpilih.\",\n      \"Tampilan visual dan perilaku form tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Pemeriksaan aksesibilitas otomatis tidak melaporkan kontrol form tanpa label di `/kelas`.\",\n      \"Halaman login dan registrasi masing-masing memiliki satu heading level 1.\",\n      \"Status tombol peran terbaca oleh pembaca layar.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Menyentuh `kelas/page.tsx` yang juga diubah oleh web-tenant-class-listing-link sehingga dikerjakan setelahnya. Teks antarmuka berbahasa Inggris di halaman auth tidak diterjemahkan dalam issue ini. Complexity rationale: perubahan markup dan atribut ARIA pada tiga halaman web tanpa perubahan logika atau API.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(public)/kelas/page.tsx\",\n      \"kelolakelas-web/app/(auth)/login\",\n      \"kelolakelas-web/app/(auth)/register\"\n    ],\n    \"edgeCases\": [\n      \"Label visual yang disembunyikan tetap terbaca pembaca layar.\",\n      \"Pesan error field tetap terasosiasi setelah perubahan heading.\"\n    ],\n    \"testingValidation\": [\n      \"Test komponen yang memverifikasi label, heading, dan aria-pressed.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Penerjemahan teks halaman auth.\",\n      \"Perubahan desain visual.\",\n      \"Aksesibilitas dashboard tenant.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 4,
+    "name": "Low"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-92/filter-katalog-serta-halaman-login-dan-registrasi-dapat-digunakan",
+  "gitBranchName": "skinel123/kel-92-filter-katalog-serta-halaman-login-dan-registrasi-dapat",
+  "createdAt": "2026-09-24T12:27:20.551Z",
+  "updatedAt": "2026-09-27T11:53:43.036Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-27T11:51:35.860Z",
+  "startedAt": "2026-09-27T11:38:43.293Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "8a73a229-c48b-4706-a976-f23463268708",
+      "title": "KEL-92: document catalog filter labels and auth page headings",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/105"
+    },
+    {
+      "id": "9bfd08f9-8cda-4d9e-ba14-da0fa6e3cb5f",
+      "title": "KEL-92: label catalog filters and fix auth page headings for screen readers",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/46"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T12:27:20.551Z",
+      "endedAt": "2026-09-27T11:38:43.305Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-27T11:38:43.305Z",
+      "endedAt": "2026-09-27T11:51:35.866Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-27T11:51:35.866Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-86",
+        "title": "Pembeli dapat membuka daftar kelas dari tenant yang sama melalui kartu dan detail kelas"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-47",
+        "title": "Rapikan metadata halaman publik, bahasa dokumen, dan branding web"
+      },
+      {
+        "id": "KEL-73",
+        "title": "Konfirmasi hapus profil student dapat diakses dan konsisten dengan dialog pembatalan enrollment"
+      },
+      {
+        "id": "KEL-71",
+        "title": "Gateway berhenti secara graceful dan server HTTP billing memiliki timeout koneksi"
+      },
+      {
+        "id": "KEL-55",
+        "title": "Panggilan keluar billing dibatasi waktu dan worker renewal tidak menimpa status transaksi"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

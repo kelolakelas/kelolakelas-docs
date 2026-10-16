@@ -1,0 +1,67 @@
+{
+  "id": "KEL-167",
+  "uuid": "e827444c-c1cd-4fc9-b53a-2d069f89357b",
+  "title": "Pilihan siswa di form laporan tidak terpotong pada 1000 sesi/enrollment",
+  "description": "## Background / Problem\n\n<issue id=\"2e039e11-bf90-42e6-a9a8-494e17c9e59b\" href=\"https://linear.app/farid-zamani/issue/KEL-139/pengajar-menulis-dan-mengelola-laporan-evaluasi-siswa-dari-dashboard\">KEL-139</issue> menambahkan halaman laporan evaluasi siswa. Pilihan siswa di form buat laporan dibangun dengan membaca seluruh halaman `/api/v1/enrollments?status=active` (Creator) atau `/api/v1/sessions?mine=true` + attendees (Teacher default), tetapi dibatasi `MAX_AUX_PAGES = 10` (10 x 100 = 1000 record) di `kelolakelas-web/app/(dashboard)/dashboard/tenant/reports/_queries/queries.ts`.\n\nOwner decision (Zam, 2026-10-05, <issue id=\"2e039e11-bf90-42e6-a9a8-494e17c9e59b\" href=\"https://linear.app/farid-zamani/issue/KEL-139/pengajar-menulis-dan-mengelola-laporan-evaluasi-siswa-dari-dashboard\">KEL-139</issue> land r2 `[DECISION_REQUIRED]`): batas 1000 record diterima dan didokumentasikan untuk <issue id=\"2e039e11-bf90-42e6-a9a8-494e17c9e59b\" href=\"https://linear.app/farid-zamani/issue/KEL-139/pengajar-menulis-dan-mengelola-laporan-evaluasi-siswa-dari-dashboard\">KEL-139</issue>; pemilih lengkap dipindah ke issue ini. Akibat batas itu: Teacher tanpa laporan yang siswanya hanya muncul di sesi halaman ke-11 ke atas (sesi diurutkan `session_date DESC`) tidak mendapat pilihan siswa tersebut; Creator dengan lebih dari 1000 enrollment aktif juga terpotong.\n\nFakta backend (academic-service `origin/main` 641311f, dibaca, belum dijalankan):\n\n* `internal/delivery/http/handler/enrollment_query_handler.go:37` menerima `search`; `internal/repository/enrollment_repository.go:254-258` mencocokkan nama depan/belakang/panggilan siswa dan nama kelas (ILIKE).\n* `internal/delivery/http/handler/session_handler.go:24` menerima `search`; `internal/repository/session_repository.go:136-137,199-200` mencocokkan nama kelas saja.\n* `internal/domain/validation.go:7-8` `MaxPage = 1000`, `MaxPageSize = 100`.\n\n## Goal\n\nPengajar dan Creator dapat memilih siswa mana pun yang sah untuk laporan, tanpa batas diam-diam 1000 record dan tanpa membaca seluruh riwayat di setiap pembukaan halaman.\n\n## Open product/UX choices (owner must decide before `ai-ready`)\n\n1. Pemilih dengan pencarian sisi server (ketik nama siswa/kelas, query `search`) \u2014 Inferred rekomendasi: cocok untuk Creator (enrollment search mencakup nama siswa); untuk Teacher, `sessions?mine=true&search=` hanya mencocokkan nama kelas, jadi alurnya dua langkah (pilih kelas lalu siswa).\n2. Muat bertahap (\"muat lebih banyak\") di atas daftar saat ini.\n3. Tetap bounded, tetapi tampilkan pemberitahuan eksplisit saat batas tercapai.\n\n## Out of Scope\n\n* Perubahan permission (Teacher tetap tanpa `enrollment:read`).\n* Perubahan backend.\n* Akses parent ke laporan, ekspor PDF.\n\n## Notes\n\nBlocked by <issue id=\"2e039e11-bf90-42e6-a9a8-494e17c9e59b\" href=\"https://linear.app/farid-zamani/issue/KEL-139/pengajar-menulis-dan-mengelola-laporan-evaluasi-siswa-dari-dashboard\">KEL-139</issue> (kode yang diubah belum merge). Sengaja tanpa label `ai-ready` dan tanpa AI Orchestrator Contract sampai owner memilih opsi di atas.",
+  "priority": {
+    "value": 4,
+    "name": "Low"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-167/pilihan-siswa-di-form-laporan-tidak-terpotong-pada-1000-sesienrollment",
+  "gitBranchName": "skinel123/kel-167-pilihan-siswa-di-form-laporan-tidak-terpotong-pada-1000",
+  "createdAt": "2026-10-05T00:23:46.315Z",
+  "updatedAt": "2026-10-12T14:08:18.837Z",
+  "archivedAt": null,
+  "completedAt": null,
+  "startedAt": null,
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Backlog",
+  "statusType": "backlog",
+  "labels": [
+    "web"
+  ],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-10-05T00:23:46.315Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Operasional sesi, absensi, dan laporan oleh pengajar",
+  "projectId": "7e1ccc42-2a77-480b-941b-4db7141c4716",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-139",
+        "title": "Pengajar menulis dan mengelola laporan evaluasi siswa dari dashboard"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-184",
+        "title": "Respons report menyertakan identitas student dan class untuk daftar"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

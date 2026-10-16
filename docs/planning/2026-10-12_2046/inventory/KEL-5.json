@@ -1,0 +1,114 @@
+{
+  "id": "KEL-5",
+  "uuid": "66e750f1-3104-4f07-b97d-05cfd963d30c",
+  "title": "Wajibkan JWT secret eksplisit pada seluruh boundary terkait",
+  "description": "## Background / Problem\n\nIdentity, API gateway, dan academic memakai fallback `supersecretjwtkey123!` ketika `JWT_SECRET` kosong. Karena ketiganya mempercayai secret yang sama, runtime yang salah konfigurasi dapat menerima token yang dibuat menggunakan nilai fallback yang diketahui. Billing sudah menunjukkan pola yang diinginkan dengan menolak startup tanpa `JWT_SECRET`.\n\n## Goal\n\nSeluruh boundary JWT hanya dapat berjalan dengan secret yang dikonfigurasi secara eksplisit dan konsisten.\n\n## Requirements\n\n* Identity, gateway, dan academic tidak boleh menggunakan fallback JWT secret.\n* Konfigurasi kosong atau hanya whitespace harus menghasilkan startup/configuration error.\n* Test konfigurasi harus mencakup missing, blank, dan valid secret.\n* Perilaku validasi serta claim JWT yang sudah ada harus tetap terjaga.\n\n## Acceptance Criteria\n\n- [ ] Identity, gateway, dan academic gagal memuat konfigurasi ketika `JWT_SECRET` tidak tersedia\n- [ ] Ketiga komponen berhasil memuat konfigurasi dengan secret eksplisit yang valid\n- [ ] Dokumentasi environment dan local-development menjelaskan secret yang wajib disediakan\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nBilling sudah memiliki validasi fail-fast dan test yang dapat dijadikan pola. Perubahan tidak mencakup algoritma token baru atau rotasi secret otomatis.\n\nRelevant areas:\n\n* `kelolakelas-api-gateway/internal/config/config.go`\n* `kelolakelas-identity-service/internal/config/config.go`\n* `kelolakelas-academic-service/internal/config/config.go`\n\n## Edge Cases\n\n* Variable tersedia tetapi bernilai whitespace.\n* Secret berbeda antar-issuer dan verifier.\n* Test lokal sebelumnya bergantung pada fallback.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Rotasi secret tanpa downtime.\n* Migrasi ke asymmetric signing.\n* Refresh token dan session revocation.",
+  "priority": {
+    "value": 1,
+    "name": "Urgent"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-5/wajibkan-jwt-secret-eksplisit-pada-seluruh-boundary-terkait",
+  "gitBranchName": "skinel123/kel-5-wajibkan-jwt-secret-eksplisit-pada-seluruh-boundary-terkait",
+  "createdAt": "2026-09-13T19:01:37.659Z",
+  "updatedAt": "2026-09-13T20:42:45.796Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-13T20:42:45.785Z",
+  "startedAt": "2026-09-13T20:40:27.734Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "identity",
+    "academic",
+    "api-gateway",
+    "Improvement"
+  ],
+  "attachments": [
+    {
+      "id": "644bc0b2-d66a-4e64-a81e-8ccc25dd49bc",
+      "title": "KEL-5: require explicit JWT secret",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/1"
+    },
+    {
+      "id": "3395579e-2e6d-4b71-ba65-298cdbedb3fc",
+      "title": "KEL-5: require explicit JWT secret",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/2"
+    },
+    {
+      "id": "dea48a2b-c394-42bc-b96d-0a44705e12a7",
+      "title": "KEL-5: require explicit JWT secret",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/2"
+    },
+    {
+      "id": "b09941d1-8127-4f1e-903d-c1f165b44bc2",
+      "title": "KEL-5: require explicit JWT secret",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/2"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:01:37.659Z",
+      "endedAt": "2026-09-13T20:40:27.746Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-13T20:40:27.746Z",
+      "endedAt": "2026-09-13T20:42:45.792Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-13T20:42:45.792Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Fondasi otorisasi multi-tenant",
+  "projectId": "c75be77a-273e-4882-9242-c6a3abd34372",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-9",
+        "title": "Jadikan koneksi web ke gateway eksplisit dan dapat diuji"
+      },
+      {
+        "id": "KEL-7",
+        "title": "Terapkan permission pada administrasi tenant dan role"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

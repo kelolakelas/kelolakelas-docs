@@ -1,0 +1,1171 @@
+
+### internal/repository/platform_factor.go
+1|package repository
+2|
+3|import (
+4|	"context"
+5|	"crypto/aes"
+6|	"crypto/cipher"
+7|	"crypto/rand"
+8|	"crypto/sha256"
+9|	"errors"
+10|	"time"
+11|
+12|	"github.com/google/uuid"
+13|	"github.com/kelolakelas/kelolakelas-identity-service/internal/domain"
+14|	"gorm.io/gorm"
+15|	"gorm.io/gorm/clause"
+16|)
+17|
+18|var errFactorUnavailable = errors.New("platform factor unavailable")
+19|
+20|type platformFactorStore struct {
+21|	db  *gorm.DB
+22|	key []byte
+23|}
+24|
+25|func NewPlatformFactorStore(db *gorm.DB, key []byte) domain.PlatformFactorStore {
+26|	return &platformFactorStore{db: db, key: key}
+27|}
+28|func (s *platformFactorStore) seal(value []byte) ([]byte, error) {
+29|	if len(s.key) != 32 {
+30|		return nil, errFactorUnavailable
+31|	}
+32|	block, err := aes.NewCipher(s.key)
+33|	if err != nil {
+34|		return nil, err
+35|	}
+36|	aead, err := cipher.NewGCM(block)
+37|	if err != nil {
+38|		return nil, err
+39|	}
+40|	nonce := make([]byte, aead.NonceSize())
+41|	if _, err = rand.Read(nonce); err != nil {
+42|		return nil, err
+43|	}
+44|	return aead.Seal(nonce, nonce, value, nil), nil
+45|}
+46|func (s *platformFactorStore) open(value []byte) ([]byte, error) {
+47|	if len(s.key) != 32 {
+48|		return nil, errFactorUnavailable
+49|	}
+50|	block, err := aes.NewCipher(s.key)
+51|	if err != nil {
+52|		return nil, err
+53|	}
+54|	aead, err := cipher.NewGCM(block)
+55|	if err != nil {
+56|		return nil, err
+57|	}
+58|	if len(value) < aead.NonceSize() {
+59|		return nil, errFactorUnavailable
+60|	}
+61|	return aead.Open(nil, value[:aead.NonceSize()], value[aead.NonceSize():], nil)
+62|}
+63|
+64|type factorAssignment struct {
+65|	UserID            uuid.UUID `gorm:"primaryKey"`
+66|	IsActive          bool
+67|	FactorSecret      []byte
+68|	EnrollmentAllowed bool
+69|	FactorVersion     int64
+70|}
+71|
+72|func (factorAssignment) TableName() string { return "platform_admin_assignments" }
+73|
+74|type factorChallengeRow struct {
+75|	TokenHash     []byte `gorm:"primaryKey"`
+76|	UserID        uuid.UUID
+77|	Purpose       string
+78|	PendingSecret []byte
+79|	FactorVersion int64
+80|	ExpiresAt     time.Time
+81|	Attempts      int
+82|	ConsumedAt    *time.Time
+83|}
+84|
+85|func (factorChallengeRow) TableName() string { return "platform_factor_challenges" }
+86|func (s *platformFactorStore) Begin(ctx context.Context, id uuid.UUID, purpose string, token, secret []byte, expires time.Time) (int64, error) {
+87|	if len(s.key) != 32 {
+88|		return 0, errFactorUnavailable
+89|	}
+90|	var version int64
+91|	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+92|		var a factorAssignment
+93|		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("user_id = ?", id).First(&a).Error; err != nil {
+94|			return err
+95|		}
+96|		if !a.IsActive {
+97|			return errFactorUnavailable
+98|		}
+99|		if purpose == "enroll" {
+100|			if !a.EnrollmentAllowed || len(a.FactorSecret) != 0 {
+101|				return errFactorUnavailable
+102|			}
+103|		} else if purpose == "verify" {
+104|			if len(a.FactorSecret) == 0 {
+105|				return errFactorUnavailable
+106|			}
+107|		} else {
+108|			return errFactorUnavailable
+109|		}
+110|		var encrypted []byte
+111|		var err error
+112|		if purpose == "enroll" {
+113|			encrypted, err = s.seal(secret)
+114|			if err != nil {
+115|				return err
+116|			}
+117|		}
+118|		h := sha256.Sum256(token)
+119|		version = a.FactorVersion
+120|		return tx.Create(&factorChallengeRow{TokenHash: h[:], UserID: id, Purpose: purpose, PendingSecret: encrypted, FactorVersion: version, ExpiresAt: expires}).Error
+121|	})
+122|	return version, err
+123|}
+124|func (s *platformFactorStore) Consume(ctx context.Context, id uuid.UUID, purpose string, token []byte, now time.Time, verify func([]byte) (bool, error)) (bool, int64, error) {
+125|	if len(s.key) != 32 {
+126|		return false, 0, errFactorUnavailable
+127|	}
+128|	var accepted bool
+129|	var version int64
+130|	err := s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+131|		var a factorAssignment
+132|		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("user_id = ?", id).First(&a).Error; err != nil {
+133|			return err
+134|		}
+135|		if !a.IsActive {
+136|			return errFactorUnavailable
+137|		}
+138|		h := sha256.Sum256(token)
+139|		var ch factorChallengeRow
+140|		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("token_hash = ? AND user_id = ? AND purpose = ?", h[:], id, purpose).First(&ch).Error
+141|		if errors.Is(err, gorm.ErrRecordNotFound) {
+142|			return nil
+143|		}
+144|		if err != nil {
+145|			return err
+146|		}
+147|		if ch.ConsumedAt != nil || !ch.ExpiresAt.After(now) || ch.Attempts >= 5 || ch.FactorVersion != a.FactorVersion {
+148|			return nil
+149|		}
+150|		var secret []byte
+151|		if purpose == "enroll" {
+152|			if !a.EnrollmentAllowed || len(a.FactorSecret) != 0 {
+153|				return nil
+154|			}
+155|			secret, err = s.open(ch.PendingSecret)
+156|		} else if purpose == "verify" {
+157|			if len(a.FactorSecret) == 0 {
+158|				return nil
+159|			}
+160|			secret, err = s.open(a.FactorSecret)
+161|		} else {
+162|			return nil
+163|		}
+164|		if err != nil {
+165|			return err
+166|		}
+167|		ok, err := verify(secret)
+168|		if err != nil {
+169|			return err
+170|		}
+171|		if !ok {
+172|			return tx.Model(&ch).Update("attempts", ch.Attempts+1).Error
+173|		}
+174|		if purpose == "enroll" {
+175|			if err := tx.Model(&a).Updates(map[string]any{"factor_secret": ch.PendingSecret, "enrollment_allowed": false, "factor_version": a.FactorVersion + 1}).Error; err != nil {
+176|				return err
+177|			}
+178|			version = a.FactorVersion + 1
+179|		} else {
+180|			version = a.FactorVersion
+181|		}
+182|		if err := tx.Model(&ch).Updates(map[string]any{"consumed_at": now, "pending_secret": nil}).Error; err != nil {
+183|			return err
+184|		}
+185|		accepted = true
+186|		return nil
+187|	})
+188|	return accepted, version, err
+189|}
+190|func (s *platformFactorStore) AssignmentVersion(ctx context.Context, id uuid.UUID) (int64, error) {
+191|	if len(s.key) != 32 {
+192|		return 0, errFactorUnavailable
+193|	}
+194|	var a factorAssignment
+195|	err := s.db.WithContext(ctx).Where("user_id = ?", id).First(&a).Error
+196|	if err != nil {
+197|		return 0, err
+198|	}
+199|	if !a.IsActive {
+200|		return 0, errFactorUnavailable
+201|	}
+202|	return a.FactorVersion, nil
+203|}
+204|func (s *platformFactorStore) Version(ctx context.Context, id uuid.UUID) (int64, error) {
+205|	if len(s.key) != 32 {
+206|		return 0, errFactorUnavailable
+207|	}
+208|	var a factorAssignment
+209|	err := s.db.WithContext(ctx).Where("user_id = ?", id).First(&a).Error
+210|	if err != nil {
+211|		return 0, err
+212|	}
+213|	if !a.IsActive || len(a.FactorSecret) == 0 {
+214|		return 0, errFactorUnavailable
+215|	}
+216|	return a.FactorVersion, nil
+217|}
+
+### internal/repository/creator_decision_repository.go
+1|package repository
+2|
+3|import (
+4|	"context"
+5|	"errors"
+6|	"strings"
+7|	"time"
+8|
+9|	"github.com/google/uuid"
+10|	"github.com/kelolakelas/kelolakelas-identity-service/internal/domain"
+11|	"gorm.io/gorm"
+12|	"gorm.io/gorm/clause"
+13|)
+14|
+15|type CreatorDecisionRepository interface {
+16|	Decide(ctx context.Context, requestID, actorID uuid.UUID, approve bool, reason string) (*domain.CreatorRequest, *domain.TenantInvitation, string, error)
+17|}
+18|
+19|type creatorDecisionRepository struct{ db *gorm.DB }
+20|
+21|func NewCreatorDecisionRepository(db *gorm.DB) CreatorDecisionRepository {
+22|	return &creatorDecisionRepository{db: db}
+23|}
+24|
+25|func (r *creatorDecisionRepository) Decide(ctx context.Context, requestID, actorID uuid.UUID, approve bool, reason string) (*domain.CreatorRequest, *domain.TenantInvitation, string, error) {
+26|	var request domain.CreatorRequest
+27|	var invitation *domain.TenantInvitation
+28|	var tenantName string
+29|	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+30|		// Lock the live admin assignment for the whole decision; revocation cannot race the grant.
+31|		var adminID string
+32|		if err := tx.Raw(`SELECT id FROM platform_admin_assignments WHERE user_id = ? AND is_active = true FOR SHARE`, actorID).Scan(&adminID).Error; err != nil {
+33|			return err
+34|		}
+35|		if adminID == "" {
+36|			return domain.ErrCreatorRequestForbidden
+37|		}
+38|		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", requestID).First(&request).Error; err != nil {
+39|			if errors.Is(err, gorm.ErrRecordNotFound) {
+40|				return domain.ErrCreatorRequestNotFound
+41|			}
+42|			return err
+43|		}
+44|		if request.Status != "pending" {
+45|			return domain.ErrCreatorRequestDecided
+46|		}
+47|		var tenant domain.Tenant
+48|		if err := tx.Clauses(clause.Locking{Strength: "SHARE"}).Where("id = ? AND status = ? AND deleted_at IS NULL", request.TenantID, "active").First(&tenant).Error; err != nil {
+49|			if errors.Is(err, gorm.ErrRecordNotFound) {
+50|				return domain.ErrCreatorRequestStale
+51|			}
+52|			return err
+53|		}
+54|		tenantName = tenant.Name
+55|		now := time.Now().UTC()
+56|		if approve {
+57|			// Re-resolve the email under lock: a target ID or account appearing after submission must never redirect a grant.
+58|			var user domain.User
+59|			lookup := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("LOWER(email) = ? AND deleted_at IS NULL", request.TargetEmail).First(&user).Error
+60|			if lookup != nil && !errors.Is(lookup, gorm.ErrRecordNotFound) {
+61|				return lookup
+62|			}
+63|			if request.TargetUserID != nil {
+64|				if lookup != nil || user.ID != *request.TargetUserID {
+65|					return domain.ErrCreatorRequestStale
+66|				}
+67|			}
+68|			if lookup == nil {
+69|				if request.TargetUserID == nil {
+70|					return domain.ErrCreatorRequestStale
+71|				}
+72|				if user.IsParent {
+73|					return domain.ErrCreatorRequestStale
+74|				}
+75|				var role domain.Role
+76|				if err := tx.Where("name = ? AND tenant_id IS NULL", "Creator").First(&role).Error; err != nil {
+77|					return err
+78|				}
+79|				var member domain.TenantMember
+80|				err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("tenant_id = ? AND user_id = ?", request.TenantID, user.ID).First(&member).Error
+81|				switch {
+82|				case errors.Is(err, gorm.ErrRecordNotFound):
+83|					member = domain.TenantMember{ID: uuid.New(), TenantID: request.TenantID, UserID: user.ID, RoleID: role.ID, IsActive: true}
+84|					if err := tx.Create(&member).Error; err != nil {
+85|						return err
+86|					}
+87|				case err != nil:
+88|					return err
+89|				case member.DeletedAt.Valid || !member.IsActive:
+90|					return domain.ErrCreatorRequestStale
+91|				default:
+92|					if member.RoleID == role.ID {
+93|						return domain.ErrCreatorTargetAlreadyCreator
+94|					}
+95|					if err := tx.Model(&member).Update("role_id", role.ID).Error; err != nil {
+96|						return err
+97|					}
+98|				}
+99|				request.TargetUserID = &user.ID
+100|			} else {
+101|				if request.TargetUserID != nil {
+102|					return domain.ErrCreatorRequestStale
+103|				}
+104|				var role domain.Role
+105|				if err := tx.Where("name = ? AND tenant_id IS NULL", "Creator").First(&role).Error; err != nil {
+106|					return err
+107|				}
+108|				inv := &domain.TenantInvitation{ID: uuid.New(), TenantID: request.TenantID, RoleID: role.ID, Email: request.TargetEmail, Token: uuid.NewString(), ExpiresAt: now.Add(48 * time.Hour), CreatedAt: now, UpdatedAt: now}
+109|				if err := tx.Create(inv).Error; err != nil {
+110|					return err
+111|				}
+112|				request.InvitationID = &inv.ID
+113|				invitation = inv
+114|			}
+115|			request.Status = "approved"
+116|		} else {
+117|			if strings.TrimSpace(reason) == "" || len(reason) > 2000 {
+118|				return domain.ErrCreatorRequestInvalid
+119|			}
+120|			reason = strings.TrimSpace(reason)
+121|			request.Status = "rejected"
+122|			request.RejectionReason = &reason
+123|		}
+124|		request.DecidedBy = &actorID
+125|		request.DecidedAt = &now
+126|		request.UpdatedAt = now
+127|		if err := tx.Save(&request).Error; err != nil {
+128|			return err
+129|		}
+130|		return tx.Exec(`INSERT INTO creator_request_audit (id, request_id, tenant_id, actor_user_id, decision, rejection_reason, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)`, uuid.New(), request.ID, request.TenantID, actorID, request.Status, request.RejectionReason, now).Error
+131|	})
+132|	if err != nil {
+133|		return nil, nil, "", err
+134|	}
+135|	return &request, invitation, tenantName, nil
+136|}
+
+### migrations/000002_platform_admin.up.sql
+1|CREATE TABLE platform_admin_assignments (
+2|    user_id uuid PRIMARY KEY REFERENCES users(id),
+3|    is_active boolean NOT NULL DEFAULT true,
+4|    created_at timestamp NOT NULL DEFAULT now(),
+5|    updated_at timestamp NOT NULL DEFAULT now()
+6|);
+
+### internal/delivery/http/handler/member_handler.go
+1|package handler
+2|
+3|import (
+4|	"errors"
+5|	"net/http"
+6|	"strconv"
+7|	"strings"
+8|
+9|	"github.com/gin-gonic/gin"
+10|	"github.com/google/uuid"
+11|
+12|	"github.com/kelolakelas/kelolakelas-identity-service/internal/domain"
+13|)
+14|
+15|// ListTutors godoc
+16|// @Summary List tenant tutors
+17|// @Description List active teacher/tutor members in the active tenant
+18|// @Tags Tutors
+19|// @Produce json
+20|// @Security BearerAuth
+21|// @Param page query int false "Page number"
+22|// @Param page_size query int false "Items per page"
+23|// @Param search query string false "Search tutor"
+24|// @Param status query string false "active or inactive"
+25|// @Success 200 {object} domain.HTTPResponse{data=domain.TutorListResponse}
+26|// @Failure 401,403,500 {object} domain.ErrorResponse
+27|// @Router /api/v1/tutors [get]
+28|func (h *MemberHandler) ListTutors(c *gin.Context) {
+29|	tenantID, err := tenantIDFromContext(c)
+30|	if err != nil {
+31|		writeTenantError(c, err)
+32|		return
+33|	}
+34|	query := domain.TutorQuery{Page: 1, PageSize: 20, Search: c.Query("search"), Status: c.Query("status")}
+35|	if value := c.Query("page"); value != "" {
+36|		query.Page, err = strconv.Atoi(value)
+37|	}
+38|	if err == nil {
+39|		if value := c.Query("page_size"); value != "" {
+40|			query.PageSize, err = strconv.Atoi(value)
+41|		}
+42|	}
+43|	if err != nil || query.Page < 1 || query.PageSize < 1 || query.PageSize > 100 {
+44|		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid pagination", "data": nil})
+45|		return
+46|	}
+47|	result, err := h.usecase.ListTutors(c.Request.Context(), tenantID, query)
+48|	if err != nil {
+49|		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to fetch tutors", "data": nil})
+50|		return
+51|	}
+52|	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Tutors fetched successfully", "data": result})
+53|}
+54|
+55|type MemberHandler struct {
+56|	usecase domain.MemberUsecase
+57|}
+58|
+59|func NewMemberHandler(usecase domain.MemberUsecase) *MemberHandler {
+60|	return &MemberHandler{usecase: usecase}
+61|}
+62|
+63|// ListMembers godoc
+64|// @Summary List tenant members
+65|// @Description Fetch members belonging to the active tenant.
+66|// @Tags Members
+67|// @Produce json
+68|// @Security BearerAuth
+69|// @Param page query int false "Page number"
+70|// @Param page_size query int false "Items per page"
+71|// @Param search query string false "Search email or name"
+72|// @Param status query string false "active or inactive"
+73|// @Param role_id query string false "Role UUID"
+74|// @Param sort query string false "joined_at, created_at, updated_at, email, or name"
+75|// @Param order query string false "asc or desc"
+76|// @Success 200 {object} domain.HTTPResponse{data=domain.MemberListResponse}
+77|// @Failure 400 {object} domain.ErrorResponse
+78|// @Failure 401 {object} domain.ErrorResponse
+79|// @Failure 403 {object} domain.ErrorResponse
+80|// @Failure 500 {object} domain.ErrorResponse
+81|// @Router /api/v1/members [get]
+82|func (h *MemberHandler) ListMembers(c *gin.Context) {
+83|	tenantID, err := tenantIDFromContext(c)
+84|	if err != nil {
+85|		writeTenantError(c, err)
+86|		return
+87|	}
+88|
+89|	query := domain.MemberQuery{
+90|		Search: c.Query("search"),
+91|		Status: c.Query("status"), Sort: c.Query("sort"), Order: c.Query("order"),
+92|	}
+93|	if value := c.Query("page"); value != "" {
+94|		page, parseErr := strconv.Atoi(value)
+95|		if parseErr != nil || page < 1 {
+96|			c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid page", "data": nil})
+97|			return
+98|		}
+99|		query.Page = page
+100|	}
+101|	if value := c.Query("page_size"); value != "" {
+102|		pageSize, parseErr := strconv.Atoi(value)
+103|		if parseErr != nil || pageSize < 1 || pageSize > 100 {
+104|			c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid page_size", "data": nil})
+105|			return
+106|		}
+107|		query.PageSize = pageSize
+108|	}
+109|	if value := c.Query("role_id"); value != "" {
+110|		roleID, parseErr := uuid.Parse(value)
+111|		if parseErr != nil {
+112|			c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid role_id format", "data": nil})
+113|			return
+114|		}
+115|		query.RoleID = &roleID
+116|	}
+117|	// KEL-165: an empty sort is joined_at with the default asc direction, and
+118|	// an unknown sort is a 400 validation error rather than a database error.
+119|	// TrimSpace keeps " joined_at " working the same as "joined_at".
+120|	query.Sort = strings.TrimSpace(query.Sort)
+121|	if query.Sort == "" {
+122|		query.Sort = "joined_at"
+123|	}
+124|	switch query.Sort {
+125|	case "joined_at", "created_at", "updated_at", "email", "name":
+126|	default:
+127|		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid sort", "data": nil})
+128|		return
+129|	}
+130|	result, err := h.usecase.List(c.Request.Context(), tenantID, query)
+131|	if err != nil {
+132|		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to fetch members", "data": nil})
+133|		return
+134|	}
+135|	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Members fetched successfully", "data": result})
+136|}
+137|
+138|// GetMember godoc
+139|// @Summary Get tenant member
+140|// @Tags Members
+141|// @Produce json
+142|// @Security BearerAuth
+143|// @Param id path string true "Member UUID"
+144|// @Success 200 {object} domain.HTTPResponse{data=domain.MemberResponse}
+145|// @Failure 400 {object} domain.ErrorResponse
+146|// @Failure 401 {object} domain.ErrorResponse
+147|// @Failure 403 {object} domain.ErrorResponse
+148|// @Failure 404 {object} domain.ErrorResponse
+149|// @Failure 500 {object} domain.ErrorResponse
+150|// @Router /api/v1/members/{id} [get]
+151|func (h *MemberHandler) GetMember(c *gin.Context) {
+152|	tenantID, err := tenantIDFromContext(c)
+153|	if err != nil {
+154|		writeTenantError(c, err)
+155|		return
+156|	}
+157|	memberID, err := uuid.Parse(c.Param("id"))
+158|	if err != nil {
+159|		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid member ID", "data": nil})
+160|		return
+161|	}
+162|	member, err := h.usecase.GetByID(c.Request.Context(), tenantID, memberID)
+163|	if errors.Is(err, domain.ErrMemberNotFound) {
+164|		c.JSON(http.StatusNotFound, gin.H{"status": "error", "message": "Member not found", "data": nil})
+165|		return
+166|	}
+167|	if err != nil {
+168|		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to fetch member", "data": nil})
+169|		return
+170|	}
+171|	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Member fetched successfully", "data": member})
+172|}
+173|
+174|// UpdateMemberRole godoc
+175|// @Summary Update member role
+176|// @Tags Members
+177|// @Accept json
+178|// @Produce json
+179|// @Security BearerAuth
+180|// @Param id path string true "Member UUID"
+181|// @Param request body domain.UpdateMemberRoleRequest true "Role payload"
+182|// @Success 200 {object} domain.HTTPResponse{data=domain.MemberResponse}
+183|// @Failure 400,401,403,404,409 {object} domain.ErrorResponse
+184|// @Router /api/v1/members/{id}/role [put]
+185|func (h *MemberHandler) UpdateMemberRole(c *gin.Context) {
+186|	tenantID, err := tenantIDFromContext(c)
+187|	if err != nil {
+188|		writeTenantError(c, err)
+189|		return
+190|	}
+191|	memberID, err := uuid.Parse(c.Param("id"))
+192|	if err != nil {
+193|		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid member ID", "data": nil})
+194|		return
+195|	}
+196|	var req domain.UpdateMemberRoleRequest
+197|	if err := c.ShouldBindJSON(&req); err != nil {
+198|		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error(), "data": nil})
+199|		return
+200|	}
+201|	callerRole, ok := c.Get("role_id")
+202|	if !ok {
+203|		c.JSON(http.StatusUnauthorized, gin.H{"status": "error", "message": "Role context required", "data": nil})
+204|		return
+205|	}
+206|	callerRoleID, ok := callerRole.(uuid.UUID)
+207|	if !ok || callerRoleID == uuid.Nil {
+208|		c.JSON(http.StatusUnauthorized, gin.H{"status": "error", "message": "Invalid role context", "data": nil})
+209|		return
+210|	}
+211|	member, err := h.usecase.UpdateRole(c.Request.Context(), tenantID, callerRoleID, memberID, req.RoleID)
+212|	status, message := http.StatusInternalServerError, "Failed to update member role"
+213|	if errors.Is(err, domain.ErrMemberPermission) {
+214|		status, message = http.StatusForbidden, "Permission denied"
+215|	}
+216|	if errors.Is(err, domain.ErrMemberNotFound) {
+217|		status, message = http.StatusNotFound, "Member not found"
+218|	}
+219|	if errors.Is(err, domain.ErrMemberRoleConflict) {
+220|		status, message = http.StatusConflict, "Role does not belong to tenant"
+221|	}
+222|	if errors.Is(err, domain.ErrMemberSelfRoleChange) {
+223|		status, message = http.StatusConflict, "You cannot change your own member role"
+224|	}
+225|	if errors.Is(err, domain.ErrMemberRoleForbidden) {
+226|		status, message = http.StatusForbidden, "Creator role cannot be changed"
+227|	}
+228|	if errors.Is(err, domain.ErrCreatorGrantForbidden) {
+229|		status, message = http.StatusForbidden, "Creator role requires platform approval"
+230|	}
+231|	if err != nil {
+232|		c.JSON(status, gin.H{"status": "error", "message": message, "data": nil})
+233|		return
+234|	}
+235|	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Member role updated successfully", "data": member})
+236|}
+237|
+238|// DeleteMember godoc
+239|// @Summary Remove a tenant member
+240|// @Description Soft delete a member from the active tenant. Requires member:delete. The caller's
+241|// @Description own membership cannot be removed (409).
+242|// @Tags Members
+243|// @Produce json
+244|// @Security BearerAuth
+245|// @Param id path string true "Member UUID"
+246|// @Success 200 {object} domain.HTTPResponse
+247|// @Failure 400,401,403,404,409,500 {object} domain.ErrorResponse
+248|// @Router /api/v1/members/{id} [delete]
+249|func (h *MemberHandler) DeleteMember(c *gin.Context) {
+250|	tenantID, err := tenantIDFromContext(c)
+251|	if err != nil {
+252|		writeTenantError(c, err)
+253|		return
+254|	}
+255|	memberID, err := uuid.Parse(c.Param("id"))
+256|	if err != nil {
+257|		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Invalid member ID", "data": nil})
+258|		return
+259|	}
+260|	callerRole, ok := c.Get("role_id")
+261|	if !ok {
+262|		c.JSON(http.StatusUnauthorized, gin.H{"status": "error", "message": "Role context required", "data": nil})
+263|		return
+264|	}
+265|	callerRoleID, ok := callerRole.(uuid.UUID)
+266|	if !ok || callerRoleID == uuid.Nil {
+267|		c.JSON(http.StatusUnauthorized, gin.H{"status": "error", "message": "Invalid role context", "data": nil})
+268|		return
+269|	}
+270|	err = h.usecase.Delete(c.Request.Context(), tenantID, callerRoleID, memberID)
+271|	status, message := http.StatusInternalServerError, "Failed to remove member"
+272|	if errors.Is(err, domain.ErrMemberDeletePermission) {
+273|		status, message = http.StatusForbidden, "Permission denied"
+274|	}
+275|	if errors.Is(err, domain.ErrMemberNotFound) {
+276|		status, message = http.StatusNotFound, "Member not found"
+277|	}
+278|	if errors.Is(err, domain.ErrMemberSelfRemoval) {
+279|		status, message = http.StatusConflict, "You cannot remove your own membership"
+280|	}
+281|	if err != nil {
+282|		c.JSON(status, gin.H{"status": "error", "message": message, "data": nil})
+283|		return
+284|	}
+285|	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "Member removed successfully", "data": nil})
+286|}
+
+### internal/delivery/http/handler/role_handler.go
+1|package handler
+2|
+3|import (
+4|	"errors"
+5|	"net/http"
+6|
+7|	"github.com/gin-gonic/gin"
+8|	"github.com/google/uuid"
+9|
+10|	"github.com/kelolakelas/kelolakelas-identity-service/internal/domain"
+11|	"github.com/kelolakelas/kelolakelas-identity-service/internal/usecase"
+12|)
+13|
+14|type RoleHandler struct {
+15|	roleUsecase usecase.RoleUsecase
+16|}
+17|
+18|func NewRoleHandler(roleUsecase usecase.RoleUsecase) *RoleHandler {
+19|	return &RoleHandler{roleUsecase: roleUsecase}
+20|}
+21|
+22|func extractCallerRoleID(c *gin.Context) uuid.UUID {
+23|	roleID, ok := c.Get("role_id")
+24|	if !ok {
+25|		return uuid.Nil
+26|	}
+27|	parsedRoleID, ok := roleID.(uuid.UUID)
+28|	if !ok {
+29|		return uuid.Nil
+30|	}
+31|	return parsedRoleID
+32|}
+33|
+34|// GetPermissions godoc
+35|// @Summary Get all system permissions
+36|// @Description Retrieve a list of all available permissions in the system
+37|// @Tags Roles & Permissions
+38|// @Accept json
+39|// @Produce json
+40|// @Security BearerAuth
+41|// @Success 200 {object} domain.HTTPResponse{data=[]domain.PermissionResponse}
+42|// @Failure 401 {object} domain.ErrorResponse
+43|// @Failure 500 {object} domain.ErrorResponse
+44|// @Router /api/v1/permissions [get]
+45|func (h *RoleHandler) GetPermissions(c *gin.Context) {
+46|	permissions, err := h.roleUsecase.FetchAllPermissions(c.Request.Context())
+47|	if err != nil {
+48|		c.JSON(http.StatusInternalServerError, gin.H{
+49|			"status":  "error",
+50|			"message": "Failed to fetch permissions",
+51|			"data":    nil,
+52|		})
+53|		return
+54|	}
+55|
+56|	c.JSON(http.StatusOK, gin.H{
+57|		"status":  "success",
+58|		"message": "Permissions retrieved successfully",
+59|		"data":    permissions,
+60|	})
+61|}
+62|
+63|// GetMyMembership godoc
+64|// @Summary Get the caller's own membership, role, and permissions
+65|// @Description Return the role name and permission names of the caller's active membership in the tenant carried by the access token
+66|// @Description The tenant is resolved from the verified JWT claim only; any X-Tenant-ID header is ignored
+67|// @Description Parent and platform tokens are not served (403); an inactive membership is 403 as well
+68|// @Tags Members
+69|// @Accept json
+70|// @Produce json
+71|// @Security BearerAuth
+72|// @Success 200 {object} domain.HTTPResponse{data=domain.MyMembershipResponse}
+73|// @Failure 401 {object} domain.ErrorResponse
+74|// @Failure 403 {object} domain.ErrorResponse
+75|// @Failure 500 {object} domain.ErrorResponse
+76|// @Router /api/v1/members/me/membership [get]
+77|func (h *MemberHandler) GetMyMembership(c *gin.Context) {
+78|	tenantID, err := tenantIDFromContext(c)
+79|	if err != nil {
+80|		writeTenantError(c, err)
+81|		return
+82|	}
+83|
+84|	membership, err := h.usecase.FetchMyMembership(c.Request.Context(), tenantID, extractCallerRoleID(c))
+85|	if err != nil {
+86|		if errors.Is(err, domain.ErrMembershipInactive) {
+87|			c.JSON(http.StatusForbidden, gin.H{
+88|				"status":  "error",
+89|				"message": "Active membership is required",
+90|				"data":    nil,
+91|			})
+92|			return
+93|		}
+94|		c.JSON(http.StatusInternalServerError, gin.H{
+95|			"status":  "error",
+96|			"message": "Failed to fetch membership",
+97|			"data":    nil,
+98|		})
+99|		return
+100|	}
+101|
+102|	c.JSON(http.StatusOK, gin.H{
+103|		"status":  "success",
+104|		"message": "Membership fetched successfully",
+105|		"data":    membership,
+106|	})
+107|}
+108|
+109|// GetRoles godoc
+110|// @Summary Get tenant roles
+111|// @Description Fetch all custom and system roles for the tenant carried by the caller's access token
+112|// @Description The tenant is resolved from the verified JWT claim only; any X-Tenant-ID header is ignored
+113|// @Tags Roles & Permissions
+114|// @Accept json
+115|// @Produce json
+116|// @Security BearerAuth
+117|// @Success 200 {object} domain.HTTPResponse{data=[]domain.RoleResponse}
+118|// @Failure 401 {object} domain.ErrorResponse
+119|// @Failure 403 {object} domain.ErrorResponse
+120|// @Failure 500 {object} domain.ErrorResponse
+121|// @Router /api/v1/roles [get]
+122|func (h *RoleHandler) GetRoles(c *gin.Context) {
+123|	tenantID, err := tenantIDFromContext(c)
+124|	if err != nil {
+125|		writeTenantError(c, err)
+126|		return
+127|	}
+128|
+129|	roles, err := h.roleUsecase.FetchTenantRoles(c.Request.Context(), tenantID)
+130|	if err != nil {
+131|		c.JSON(http.StatusInternalServerError, gin.H{
+132|			"status":  "error",
+133|			"message": "Failed to fetch roles",
+134|			"data":    nil,
+135|		})
+136|		return
+137|	}
+138|
+139|	c.JSON(http.StatusOK, gin.H{
+140|		"status":  "success",
+141|		"message": "Roles retrieved successfully",
+142|		"data":    roles,
+143|	})
+144|}
+145|
+146|// CreateRole godoc
+147|// @Summary Create a custom role
+148|// @Description Create a new custom role with assigned permissions for the tenant carried by the caller's access token
+149|// @Description The tenant is resolved from the verified JWT claim only; any X-Tenant-ID header is ignored
+150|// @Tags Roles & Permissions
+151|// @Accept json
+152|// @Produce json
+153|// @Security BearerAuth
+154|// @Param request body domain.CreateRoleRequest true "Create role payload"
+155|// @Success 201 {object} domain.HTTPResponse{data=domain.RoleResponse}
+156|// @Failure 400 {object} domain.ErrorResponse
+157|// @Failure 401 {object} domain.ErrorResponse
+158|// @Failure 403 {object} domain.ErrorResponse
+159|// @Failure 409 {object} domain.ErrorResponse
+160|// @Failure 500 {object} domain.ErrorResponse
+161|// @Router /api/v1/roles [post]
+162|func (h *RoleHandler) CreateRole(c *gin.Context) {
+163|	tenantID, err := tenantIDFromContext(c)
+164|	if err != nil {
+165|		writeTenantError(c, err)
+166|		return
+167|	}
+168|
+169|	var req domain.CreateRoleRequest
+170|	if err := c.ShouldBindJSON(&req); err != nil {
+171|		c.JSON(http.StatusBadRequest, gin.H{
+172|			"status":  "error",
+173|			"message": err.Error(),
+174|			"data":    nil,
+175|		})
+176|		return
+177|	}
+178|
+179|	role, err := h.roleUsecase.CreateCustomRole(c.Request.Context(), tenantID, extractCallerRoleID(c), &req)
+180|	if err != nil {
+181|		if errors.Is(err, domain.ErrPermissionDenied) {
+182|			c.JSON(http.StatusForbidden, gin.H{
+183|				"status":  "error",
+184|				"message": "Permission denied",
+185|				"data":    nil,
+186|			})
+187|			return
+188|		}
+189|		if errors.Is(err, domain.ErrRoleNameExists) {
+190|			c.JSON(http.StatusConflict, gin.H{
+191|				"status":  "error",
+192|				"message": err.Error(),
+193|				"data":    nil,
+194|			})
+195|			return
+196|		}
+197|		c.JSON(http.StatusInternalServerError, gin.H{
+198|			"status":  "error",
+199|			"message": "Failed to create role",
+200|			"data":    nil,
+201|		})
+202|		return
+203|	}
+204|
+205|	c.JSON(http.StatusCreated, gin.H{
+206|		"status":  "success",
+207|		"message": "Role created successfully",
+208|		"data":    role,
+209|	})
+210|}
+211|
+212|// UpdateRole godoc
+213|// @Summary Update a custom role
+214|// @Description Update name, description, or permissions of an existing custom role
+215|// @Description The tenant is resolved from the verified JWT claim only; any X-Tenant-ID header is ignored
+216|// @Tags Roles & Permissions
+217|// @Accept json
+218|// @Produce json
+219|// @Security BearerAuth
+220|// @Param id path string true "Role ID (UUID)"
+221|// @Param request body domain.UpdateRoleRequest true "Update role payload"
+222|// @Success 200 {object} domain.HTTPResponse{data=domain.RoleResponse}
+223|// @Failure 400 {object} domain.ErrorResponse
+224|// @Failure 401 {object} domain.ErrorResponse
+225|// @Failure 403 {object} domain.ErrorResponse
+226|// @Failure 404 {object} domain.ErrorResponse
+227|// @Failure 409 {object} domain.ErrorResponse
+228|// @Failure 500 {object} domain.ErrorResponse
+229|// @Router /api/v1/roles/{id} [put]
+230|func (h *RoleHandler) UpdateRole(c *gin.Context) {
+231|	tenantID, err := tenantIDFromContext(c)
+232|	if err != nil {
+233|		writeTenantError(c, err)
+234|		return
+235|	}
+236|
+237|	roleIDStr := c.Param("id")
+238|	roleID, err := uuid.Parse(roleIDStr)
+239|	if err != nil {
+240|		c.JSON(http.StatusBadRequest, gin.H{
+241|			"status":  "error",
+242|			"message": "Invalid role ID format",
+243|			"data":    nil,
+244|		})
+245|		return
+246|	}
+247|
+248|	var req domain.UpdateRoleRequest
+249|	if err := c.ShouldBindJSON(&req); err != nil {
+250|		c.JSON(http.StatusBadRequest, gin.H{
+251|			"status":  "error",
+252|			"message": err.Error(),
+253|			"data":    nil,
+254|		})
+255|		return
+256|	}
+257|
+258|	role, err := h.roleUsecase.UpdateCustomRole(c.Request.Context(), tenantID, extractCallerRoleID(c), roleID, &req)
+259|	if err != nil {
+260|		if errors.Is(err, domain.ErrPermissionDenied) {
+261|			c.JSON(http.StatusForbidden, gin.H{
+262|				"status":  "error",
+263|				"message": "Permission denied",
+264|				"data":    nil,
+265|			})
+266|			return
+267|		}
+268|		if errors.Is(err, domain.ErrRoleNotFound) {
+269|			c.JSON(http.StatusNotFound, gin.H{
+270|				"status":  "error",
+271|				"message": err.Error(),
+272|				"data":    nil,
+273|			})
+274|			return
+275|		}
+276|		if errors.Is(err, domain.ErrSystemRoleCannotBeModified) || errors.Is(err, domain.ErrForbiddenRoleAccess) {
+277|			c.JSON(http.StatusForbidden, gin.H{
+278|				"status":  "error",
+279|				"message": err.Error(),
+280|				"data":    nil,
+281|			})
+282|			return
+283|		}
+284|		if errors.Is(err, domain.ErrRoleNameExists) {
+285|			c.JSON(http.StatusConflict, gin.H{
+286|				"status":  "error",
+287|				"message": err.Error(),
+288|				"data":    nil,
+289|			})
+290|			return
+291|		}
+292|		c.JSON(http.StatusInternalServerError, gin.H{
+293|			"status":  "error",
+294|			"message": "Failed to update role",
+295|			"data":    nil,
+296|		})
+297|		return
+298|	}
+299|
+300|	c.JSON(http.StatusOK, gin.H{
+301|		"status":  "success",
+302|		"message": "Role updated successfully",
+303|		"data":    role,
+304|	})
+305|}
+306|
+307|// DeleteRole godoc
+308|// @Summary Delete a custom role
+309|// @Description Delete an existing custom role from a tenant
+310|// @Description The tenant is resolved from the verified JWT claim only; any X-Tenant-ID header is ignored
+311|// @Tags Roles & Permissions
+312|// @Accept json
+313|// @Produce json
+314|// @Security BearerAuth
+315|// @Param id path string true "Role ID (UUID)"
+316|// @Success 200 {object} domain.HTTPResponse
+317|// @Failure 400 {object} domain.ErrorResponse
+318|// @Failure 401 {object} domain.ErrorResponse
+319|// @Failure 403 {object} domain.ErrorResponse
+320|// @Failure 404 {object} domain.ErrorResponse
+321|// @Failure 409 {object} domain.ErrorResponse
+322|// @Failure 500 {object} domain.ErrorResponse
+323|// @Router /api/v1/roles/{id} [delete]
+324|func (h *RoleHandler) DeleteRole(c *gin.Context) {
+325|	tenantID, err := tenantIDFromContext(c)
+326|	if err != nil {
+327|		writeTenantError(c, err)
+328|		return
+329|	}
+330|
+331|	roleIDStr := c.Param("id")
+332|	roleID, err := uuid.Parse(roleIDStr)
+333|	if err != nil {
+334|		c.JSON(http.StatusBadRequest, gin.H{
+335|			"status":  "error",
+336|			"message": "Invalid role ID format",
+337|			"data":    nil,
+338|		})
+339|		return
+340|	}
+341|
+342|	err = h.roleUsecase.DeleteCustomRole(c.Request.Context(), tenantID, extractCallerRoleID(c), roleID)
+343|	if err != nil {
+344|		if errors.Is(err, domain.ErrPermissionDenied) {
+345|			c.JSON(http.StatusForbidden, gin.H{
+346|				"status":  "error",
+347|				"message": "Permission denied",
+348|				"data":    nil,
+349|			})
+350|			return
+351|		}
+352|		if errors.Is(err, domain.ErrRoleNotFound) {
+353|			c.JSON(http.StatusNotFound, gin.H{
+354|				"status":  "error",
+355|				"message": err.Error(),
+356|				"data":    nil,
+357|			})
+358|			return
+359|		}
+360|		if errors.Is(err, domain.ErrSystemRoleCannotBeModified) || errors.Is(err, domain.ErrForbiddenRoleAccess) {
+361|			c.JSON(http.StatusForbidden, gin.H{
+362|				"status":  "error",
+363|				"message": err.Error(),
+364|				"data":    nil,
+365|			})
+366|			return
+367|		}
+368|		if errors.Is(err, domain.ErrRoleAssignedToActiveMembers) {
+369|			c.JSON(http.StatusConflict, gin.H{
+370|				"status":  "error",
+371|				"message": err.Error(),
+372|				"data":    nil,
+373|			})
+374|			return
+375|		}
+376|		c.JSON(http.StatusInternalServerError, gin.H{
+377|			"status":  "error",
+378|			"message": "Failed to delete role",
+379|			"data":    nil,
+380|		})
+381|		return
+382|	}
+383|
+384|	c.JSON(http.StatusOK, gin.H{
+385|		"status":  "success",
+386|		"message": "Role deleted successfully",
+387|		"data":    nil,
+388|	})
+389|}
+
+### pkg/jwt/jwt.go
+1|package jwt
+2|
+3|import (
+4|	"errors"
+5|	"strings"
+6|	"time"
+7|
+8|	"github.com/golang-jwt/jwt/v5"
+9|	"github.com/google/uuid"
+10|)
+11|
+12|var (
+13|	ErrInvalidToken = errors.New("invalid token")
+14|	ErrExpiredToken = errors.New("token has expired")
+15|)
+16|
+17|type Claims struct {
+18|	UserID                 uuid.UUID `json:"user_id"`
+19|	Email                  string    `json:"email"`
+20|	TenantID               uuid.UUID `json:"tenant_id,omitempty"`
+21|	RoleID                 uuid.UUID `json:"role_id,omitempty"`
+22|	MemberID               uuid.UUID `json:"member_id,omitempty"`
+23|	IsParent               bool      `json:"is_parent,omitempty"`
+24|	IsPlatformAdmin        bool      `json:"is_platform_admin,omitempty"`
+25|	PlatformFactorVersion  int64     `json:"platform_factor_version,omitempty"`
+26|	PlatformPending        bool      `json:"platform_pending,omitempty"`
+27|	PlatformPendingVersion int64     `json:"platform_pending_version,omitempty"`
+28|	jwt.RegisteredClaims
+29|}
+30|
+31|type JWTService struct {
+32|	secretKey     []byte
+33|	tokenDuration time.Duration
+34|}
+35|
+36|func NewJWTService(secretKey string, duration time.Duration) *JWTService {
+37|	return &JWTService{
+38|		secretKey:     []byte(secretKey),
+39|		tokenDuration: duration,
+40|	}
+41|}
+42|
+43|func (s *JWTService) GenerateToken(userID uuid.UUID, email string, tenantID, roleID, memberID uuid.UUID, isParent bool) (string, error) {
+44|	return s.GenerateTokenAfter(userID, email, tenantID, roleID, memberID, isParent, nil)
+45|}
+46|
+47|func (s *JWTService) GenerateTokenAfter(userID uuid.UUID, email string, tenantID, roleID, memberID uuid.UUID, isParent bool, validAfter *time.Time) (string, error) {
+48|	issued := time.Now()
+49|	if validAfter != nil && issued.Before(*validAfter) {
+50|		issued = *validAfter
+51|	}
+52|	claims := Claims{
+53|		UserID:   userID,
+54|		Email:    email,
+55|		TenantID: tenantID,
+56|		RoleID:   roleID,
+57|		MemberID: memberID,
+58|		IsParent: isParent,
+59|		RegisteredClaims: jwt.RegisteredClaims{
+60|			ExpiresAt: jwt.NewNumericDate(issued.Add(s.tokenDuration)),
+61|			IssuedAt:  jwt.NewNumericDate(issued),
+62|		},
+63|	}
+64|
+65|	return s.sign(claims)
+66|}
+67|
+68|// GeneratePlatformToken issues a tenantless platform principal. Ordinary tenant
+69|// tokens cannot gain this claim through public registration or tenant roles.
+70|func (s *JWTService) GeneratePlatformToken(userID uuid.UUID, email string) (string, error) {
+71|	return s.GeneratePlatformTokenAfter(userID, email, nil)
+72|}
+73|
+74|func (s *JWTService) GeneratePlatformTokenAfter(userID uuid.UUID, email string, validAfter *time.Time) (string, error) {
+75|	return s.GenerateVerifiedPlatformToken(userID, email, validAfter, 0)
+76|}
+77|
+78|func (s *JWTService) GeneratePendingPlatformToken(userID uuid.UUID, email string, version int64) (string, error) {
+79|	return s.sign(Claims{UserID: userID, Email: email, PlatformPending: true, PlatformPendingVersion: version, RegisteredClaims: jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(5 * time.Minute)), IssuedAt: jwt.NewNumericDate(time.Now())}})
+80|}
+81|
+82|func (s *JWTService) GenerateVerifiedPlatformToken(userID uuid.UUID, email string, validAfter *time.Time, version int64) (string, error) {
+83|	issued := time.Now()
+84|	if validAfter != nil && issued.Before(*validAfter) {
+85|		issued = *validAfter
+86|	}
+87|	return s.sign(Claims{
+88|		UserID: userID, Email: email, IsPlatformAdmin: true, PlatformFactorVersion: version,
+89|		RegisteredClaims: jwt.RegisteredClaims{
+90|			ExpiresAt: jwt.NewNumericDate(issued.Add(s.tokenDuration)),
+91|			IssuedAt:  jwt.NewNumericDate(issued),
+92|		},
+93|	})
+94|}
+95|
+96|func (s *JWTService) sign(claims Claims) (string, error) {
+97|	// Accounts are identified case-insensitively (KEL-89) and legacy rows may be
+98|	// stored mixed-case, so every issued token carries the canonical form.
+99|	claims.Email = strings.ToLower(strings.TrimSpace(claims.Email))
+100|	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+101|	return token.SignedString(s.secretKey)
+102|}
+103|
+104|func (s *JWTService) ValidateToken(tokenStr string) (*Claims, error) {
+105|	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+106|		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+107|			return nil, ErrInvalidToken
+108|		}
+109|		return s.secretKey, nil
+110|	})
+111|
+112|	if err != nil {
+113|		if errors.Is(err, jwt.ErrTokenExpired) {
+114|			return nil, ErrExpiredToken
+115|		}
+116|		return nil, ErrInvalidToken
+117|	}
+118|
+119|	claims, ok := token.Claims.(*Claims)
+120|	if !ok || !token.Valid {
+121|		return nil, ErrInvalidToken
+122|	}
+123|
+124|	return claims, nil
+125|}

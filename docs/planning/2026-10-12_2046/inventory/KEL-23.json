@@ -1,0 +1,129 @@
+{
+  "id": "KEL-23",
+  "uuid": "df0b74cb-e337-4383-bcba-dbe39469af8e",
+  "title": "Lindungi login dari brute force dan enumerasi akun",
+  "description": "## Background / Problem\n\nIdentity tidak memiliki pelacakan percobaan gagal, lockout, atau throttling per akun (pencarian repo-wide tidak menemukan apa pun). Satu-satunya pembatas adalah rate limit gateway 5 request per menit per IP yang fail-open saat Redis bermasalah dan, dengan `SetTrustedProxies(nil)`, menggabungkan semua klien di belakang load balancer ke satu IP. `Login` mengembalikan lebih cepat untuk email yang tidak terdaftar karena bcrypt tidak dijalankan (`internal/usecase/auth_usecase.go:63-74`), sehingga keberadaan akun dapat ditebak dari waktu respons.\n\n## Goal\n\nPercobaan login gagal berulang pada satu akun dibatasi secara sementara dan terobservasi, dan respons login tidak membedakan akun yang ada dari yang tidak ada.\n\n## Requirements\n\n* Percobaan gagal dicatat per akun; setelah ambang yang dapat dikonfigurasi, login akun tersebut ditolak sementara dengan respons yang sama seperti kredensial salah.\n* Login berhasil mengatur ulang hitungan; lockout kedaluwarsa otomatis.\n* Jalur email tidak terdaftar dan password salah memiliki biaya komputasi dan respons yang setara.\n* Login valid, klaim JWT, dan penyimpanan cache permission tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Setelah N kegagalan berturut-turut, login akun tersebut ditolak selama periode lockout meskipun password benar\n- [ ] Setelah periode lockout berakhir atau login berhasil, akun dapat login kembali\n- [ ] Respons dan waktu untuk email tidak terdaftar setara dengan password salah\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRedis bersifat opsional di identity; mekanisme pelacakan tidak boleh membuat login gagal ketika Redis tidak tersedia. Ambang dan durasi harus dapat dikonfigurasi dengan default yang aman dan didokumentasikan. Jangan mengungkap status lockout secara berbeda dari kredensial salah.\n\nRelevant areas:\n\n* `kelolakelas-identity-service/internal/usecase/auth_usecase.go`\n* `kelolakelas-identity-service/internal/delivery/http/handler/auth_handler.go`\n* `kelolakelas-identity-service/internal/config/config.go`\n\n## Edge Cases\n\n* Percobaan paralel pada akun yang sama.\n* Email dengan perbedaan kapitalisasi.\n* Restart service di tengah periode lockout.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* CAPTCHA, MFA, dan password reset.\n* Kebijakan fail-closed rate limiter gateway.\n* Notifikasi email lockout.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"identity-login-abuse-protection\",\n  \"projectKey\": \"tenant-isolation-and-authorization\",\n  \"title\": \"Lindungi login dari brute force dan enumerasi akun\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"identity\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"identity\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Identity tidak memiliki pelacakan percobaan gagal, lockout, atau throttling per akun (pencarian repo-wide tidak menemukan apa pun). Satu-satunya pembatas adalah rate limit gateway 5 request per menit per IP yang fail-open saat Redis bermasalah dan, dengan `SetTrustedProxies(nil)`, menggabungkan semua klien di belakang load balancer ke satu IP. `Login` mengembalikan lebih cepat untuk email yang tidak terdaftar karena bcrypt tidak dijalankan (`internal/usecase/auth_usecase.go:63-74`), sehingga keberadaan akun dapat ditebak dari waktu respons.\",\n    \"goal\": \"Percobaan login gagal berulang pada satu akun dibatasi secara sementara dan terobservasi, dan respons login tidak membedakan akun yang ada dari yang tidak ada.\",\n    \"requirements\": [\n      \"Percobaan gagal dicatat per akun; setelah ambang yang dapat dikonfigurasi, login akun tersebut ditolak sementara dengan respons yang sama seperti kredensial salah.\",\n      \"Login berhasil mengatur ulang hitungan; lockout kedaluwarsa otomatis.\",\n      \"Jalur email tidak terdaftar dan password salah memiliki biaya komputasi dan respons yang setara.\",\n      \"Login valid, klaim JWT, dan penyimpanan cache permission tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Setelah N kegagalan berturut-turut, login akun tersebut ditolak selama periode lockout meskipun password benar\",\n      \"Setelah periode lockout berakhir atau login berhasil, akun dapat login kembali\",\n      \"Respons dan waktu untuk email tidak terdaftar setara dengan password salah\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Redis bersifat opsional di identity; mekanisme pelacakan tidak boleh membuat login gagal ketika Redis tidak tersedia. Ambang dan durasi harus dapat dikonfigurasi dengan default yang aman dan didokumentasikan. Jangan mengungkap status lockout secara berbeda dari kredensial salah.\",\n    \"relevantAreas\": [\n      \"kelolakelas-identity-service/internal/usecase/auth_usecase.go\",\n      \"kelolakelas-identity-service/internal/delivery/http/handler/auth_handler.go\",\n      \"kelolakelas-identity-service/internal/config/config.go\"\n    ],\n    \"edgeCases\": [\n      \"Percobaan paralel pada akun yang sama.\",\n      \"Email dengan perbedaan kapitalisasi.\",\n      \"Restart service di tengah periode lockout.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"CAPTCHA, MFA, dan password reset.\",\n      \"Kebijakan fail-closed rate limiter gateway.\",\n      \"Notifikasi email lockout.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-23/lindungi-login-dari-brute-force-dan-enumerasi-akun",
+  "gitBranchName": "skinel123/kel-23-lindungi-login-dari-brute-force-dan-enumerasi-akun",
+  "createdAt": "2026-09-16T11:44:46.809Z",
+  "updatedAt": "2026-09-26T17:32:41.651Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T17:29:05.838Z",
+  "startedAt": "2026-09-26T17:08:58.087Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "identity",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "a0311ba1-c630-42d1-b6cc-da2019d489f7",
+      "title": "docs: record KEL-23 account login protection",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/89"
+    },
+    {
+      "id": "736b86a3-e229-4660-a41d-bb0dab6bfe16",
+      "title": "KEL-23: protect login against brute force and enumeration",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/26"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:44:46.809Z",
+      "endedAt": "2026-09-26T17:08:58.113Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T17:08:58.113Z",
+      "endedAt": "2026-09-26T17:29:05.843Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T17:29:05.843Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Isolasi tenant dan otorisasi menyeluruh",
+  "projectId": "617bb373-7df5-49dc-b9c7-38cf9ca0df5e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-28",
+        "title": "Kirim email konfirmasi pembayaran berhasil dan gagal kepada parent"
+      },
+      {
+        "id": "KEL-39",
+        "title": "Catat request dan event domain dengan request ID di identity, academic, dan billing"
+      },
+      {
+        "id": "KEL-22",
+        "title": "Terapkan permission pada attendance dan report"
+      },
+      {
+        "id": "KEL-91",
+        "title": "CI web menjalankan lint seluruh repository dan melaporkan status pada merge queue dan main"
+      },
+      {
+        "id": "KEL-84",
+        "title": "Tenant melihat, mencabut, dan mengirim ulang undangan pending dari dashboard"
+      },
+      {
+        "id": "KEL-83",
+        "title": "Tenant dapat mengubah dan menghapus role custom dari web"
+      },
+      {
+        "id": "KEL-105",
+        "title": "Akses platform admin memerlukan faktor kedua sebelum sesi privileged diterbitkan"
+      },
+      {
+        "id": "KEL-66",
+        "title": "Pengguna dapat meminta dan mengonfirmasi reset password lewat token email sekali pakai"
+      },
+      {
+        "id": "KEL-62",
+        "title": "Gateway dapat menentukan IP klien asli dari proxy tepercaya untuk rate limit dan access log"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

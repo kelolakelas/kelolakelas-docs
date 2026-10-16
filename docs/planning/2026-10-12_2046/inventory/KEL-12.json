@@ -1,0 +1,101 @@
+{
+  "id": "KEL-12",
+  "uuid": "ec582cce-c7ca-4b31-8f3d-4eb82db66c67",
+  "title": "Selesaikan session entry dan navigasi parent",
+  "description": "## Background / Problem\n\nIdentity secara eksplisit tidak melakukan auto-login setelah parent registration. Web tetap memeriksa token opsional dan mengarahkan user ke `/dashboard/parent`, yang tidak ada. Login mengarahkan semua user ke `/dashboard`, yang juga tidak memiliki page langsung. Proxy hanya memeriksa keberadaan cookie.\n\n## Goal\n\nParent dan tenant memperoleh navigasi pasca-registrasi/login yang valid dan sesuai konteks akun.\n\n## Requirements\n\n* Parent registration tanpa token harus mengarahkan ke login dengan konfirmasi sukses.\n* Login harus memilih destination yang tersedia berdasarkan response identity.\n* Parent yang login harus dapat melanjutkan ke katalog atau perjalanan pembelian.\n* Tenant registration dan dashboard tenant yang sudah berfungsi harus tetap terjaga.\n\n## Acceptance Criteria\n\n- [ ] Parent registration tidak lagi menuju protected route tanpa session\n- [ ] Parent dan tenant yang login diarahkan ke destination yang valid\n- [ ] Invalid atau expired session tidak menyebabkan redirect loop\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nJangan mengubah kontrak identity register tanpa kebutuhan baru; handler saat ini mendokumentasikan registration-does-not-auto-login. Validasi cookie lebih kuat dapat menjadi follow-up terpisah.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(auth)/register/_actions/actions.ts`\n* `kelolakelas-web/app/(auth)/login/_actions/actions.ts`\n* `kelolakelas-web/proxy.ts`\n\n## Edge Cases\n\n* Akun parent memiliki cookie lama yang invalid.\n* Login response tidak memiliki tenant ID.\n* `redirectTo` mengarah ke route yang tidak sesuai role.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Refresh token.\n* Logout backend atau token denylist.\n* MFA dan social login.",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-12/selesaikan-session-entry-dan-navigasi-parent",
+  "gitBranchName": "skinel123/kel-12-selesaikan-session-entry-dan-navigasi-parent",
+  "createdAt": "2026-09-13T19:03:33.489Z",
+  "updatedAt": "2026-09-14T08:52:03.863Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-14T08:52:03.852Z",
+  "startedAt": "2026-09-14T08:31:37.044Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Improvement"
+  ],
+  "attachments": [
+    {
+      "id": "d04ec8dc-2c92-4c4d-aa1f-c558eeb8bb92",
+      "title": "docs(KEL-12): document parent session entry flow",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/6"
+    },
+    {
+      "id": "bed49d42-ffc9-44ce-8bd0-85f70b9e2b35",
+      "title": "feat(KEL-12): fix parent session entry and navigation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/4"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:03:33.489Z",
+      "endedAt": "2026-09-14T08:31:37.056Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-14T08:31:37.056Z",
+      "endedAt": "2026-09-14T08:52:03.859Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-14T08:52:03.859Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Perjalanan pembelian kelas untuk parent",
+  "projectId": "f80b0535-5536-4f54-8f09-7a93f01a9f24",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-13",
+        "title": "Hadirkan pengelolaan profil student untuk parent"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-11",
+        "title": "Hadirkan discovery dan detail kelas publik"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

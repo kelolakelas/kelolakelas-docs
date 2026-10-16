@@ -1,0 +1,114 @@
+{
+  "id": "KEL-10",
+  "uuid": "9b6a4967-6fd6-43b5-a2d3-c273016d26c7",
+  "title": "Terapkan permission pada mutasi katalog kelas",
+  "description": "## Background / Problem\n\nPermission kategori, kelas, dan jadwal sudah didefinisikan di identity, tetapi academic hanya menerima JWT dan menerapkan tenant/resource scoping. Setiap member tenant yang memiliki token berpotensi mencapai mutasi katalog tanpa pemeriksaan permission granular.\n\n## Goal\n\nPerubahan kategori, kelas, publication state, dan jadwal hanya dapat dilakukan oleh role yang memiliki permission terkait.\n\n## Requirements\n\n* Mutasi kategori, kelas, publication, dan jadwal memerlukan permission yang sesuai dengan action.\n* Sumber keputusan permission harus konsisten dengan role/permission identity.\n* Denial menghasilkan 403 tanpa memodifikasi resource.\n* Public catalog read dan tenant/resource isolation yang ada harus tetap terjaga.\n\n## Acceptance Criteria\n\n- [ ] Member tanpa permission tidak dapat membuat, mengubah, memublikasikan, atau menghapus resource katalog\n- [ ] Member dengan permission tepat dapat menjalankan action pada tenant-nya\n- [ ] Public catalog list/detail tetap tidak memerlukan autentikasi\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nBuat ADR ringan untuk memilih kontrak permission lintas service, termasuk dampak cache dan perubahan role terhadap token aktif. Jangan mengandalkan enforcement gateway saja selama direct service exposure masih mungkin.\n\nRelevant areas:\n\n* `kelolakelas-identity-service/seeders/000001_default_permissions_and_roles.sql`\n* `kelolakelas-academic-service/internal/delivery/http/handler`\n* `kelolakelas-academic-service/internal/usecase`\n\n## Edge Cases\n\n* Token parent tanpa tenant role mencoba mutasi katalog.\n* Role kehilangan permission ketika token masih valid.\n* Resource ID valid tetapi berasal dari tenant lain.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Permission student, attendance, dan report.\n* Redesign seluruh JWT format tanpa ADR.\n* Perubahan tampilan role-management web.",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 3,
+    "name": "3 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-10/terapkan-permission-pada-mutasi-katalog-kelas",
+  "gitBranchName": "skinel123/kel-10-terapkan-permission-pada-mutasi-katalog-kelas",
+  "createdAt": "2026-09-13T19:03:05.670Z",
+  "updatedAt": "2026-09-16T11:44:03.379Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-15T14:12:59.905Z",
+  "startedAt": "2026-09-15T06:24:48.430Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "identity",
+    "academic",
+    "Improvement"
+  ],
+  "attachments": [
+    {
+      "id": "6d5b1f2e-599e-46bb-9807-0615b2504e66",
+      "title": "docs(KEL-10): refresh current-state snapshot",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/12"
+    },
+    {
+      "id": "27563874-f444-4e50-98ef-e8e5d279d65c",
+      "title": "docs(KEL-10): document academic permission enforcement",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/11"
+    },
+    {
+      "id": "81d9ff93-22c1-4765-8d16-551324d2718a",
+      "title": "feat(KEL-10): expose persisted catalog permission checks",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/4"
+    },
+    {
+      "id": "20fe8885-cafa-49f8-b74c-fc22813a03f2",
+      "title": "feat(KEL-10): enforce permissions on academic mutations",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/4"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:03:05.670Z",
+      "endedAt": "2026-09-15T06:24:48.442Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-15T06:24:48.442Z",
+      "endedAt": "2026-09-15T14:12:59.912Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-15T14:12:59.912Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Fondasi otorisasi multi-tenant",
+  "projectId": "c75be77a-273e-4882-9242-c6a3abd34372",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-7",
+        "title": "Terapkan permission pada administrasi tenant dan role"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-21",
+        "title": "Terapkan permission pada operasi student dan enrollment sisi tenant"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

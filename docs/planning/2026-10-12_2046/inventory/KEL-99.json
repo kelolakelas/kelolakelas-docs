@@ -1,0 +1,119 @@
+{
+  "id": "KEL-99",
+  "uuid": "df8c080e-3071-4421-88a7-9d6acff931c3",
+  "title": "Platform admin dapat menetapkan biaya platform untuk transaksi baru secara aman",
+  "description": "## Background / Problem\n\nBilling saat ini menerima platform_fee dari request internal dan menghitung net_amount dari nilai tersebut. Belum ada formula atau sumber kebijakan platform yang disetujui.\n\n## Goal\n\nAdmin dapat mengubah biaya platform yang hanya berlaku pada transaksi baru menurut kebijakan bisnis yang disetujui, dengan jejak versi.\n\n## Owner Decision (Zam, 2026-09-28): ADR kebijakan biaya platform disetujui\n\nKeputusan ini memenuhi external dependency `platform-fee-business-policy`.\n\n* **Model (opsi A):** biaya platform = floor(gross_amount \u00d7 persen_bps / 10000) + biaya tetap per transaksi. gross_amount = subtotal \u2212 diskon (jumlah yang dibayar parent). Persen disimpan sebagai basis point integer (0\u20132000 = 0\u201320%), biaya tetap sebagai integer rupiah (Rp0\u2013Rp50.000). Nilai awal 0 bps + Rp0, jadi tidak ada perubahan untuk tenant saat rilis. Nilai sebenarnya diatur admin lewat editor.\n* **Penanggung:** tenant. Fee dipotong dari net_amount; harga yang dibayar parent tidak berubah.\n* **Pembulatan:** ke bawah ke rupiah penuh.\n* **Waktu efektif & audit:** hanya invoice yang dibuat setelah versi kebijakan applied. Setiap transaksi menyimpan snapshot immutable kebijakan yang dipakai (versi, persen bps, biaya tetap, hasil fee), sehingga invoice lama tetap dapat diaudit terhadap aturan lamanya. Tidak ada perhitungan ulang.\n* **Renewal:** memakai kebijakan applied saat invoice renewal dibuat (menggantikan penyalinan platform_fee dari transaksi awal).\n* **Fee melebihi gross:** invoice ditolak tanpa record, dengan error message stabil (HTTP 422, kode `platform_fee_exceeds_gross`, pesan \"Biaya platform melebihi jumlah pembayaran\"), bukan 500 generik.\n* **Kebijakan belum applied / tidak terbaca:** invoice ditolak (fail closed). Tidak pernah jatuh ke 0% diam-diam: nilai 0 hanya berasal dari versi 0 yang tercatat eksplisit sebagai baseline applied.\n\nContoh invoice sebelum/sesudah (payment_gateway_fee Rp0 kecuali disebut):\n\n* Sebelum, versi 0 (0 bps + Rp0): gross Rp180.000 \u2192 platform_fee Rp0 \u2192 net Rp180.000.\n* Sesudah, versi 1 (500 bps + Rp1.000): gross Rp180.000 \u2192 platform_fee 9.000 + 1.000 = Rp10.000 \u2192 net Rp170.000. Invoice yang dibuat saat versi 0 tetap Rp0 dan tetap menyimpan versi 0.\n* Pembulatan (250 bps + Rp0): gross Rp99.999 \u2192 2.499,975 \u2192 Rp2.499.\n* Ditolak (0 bps + Rp2.500, gateway Rp1.000): gross Rp2.000 \u2192 2.500 + 1.000 > 2.000 \u2192 invoice ditolak dengan kode `platform_fee_exceeds_gross`.\n\n## Requirements\n\n* Fee = floor(gross_amount \u00d7 persen_bps / 10000) + biaya_tetap_rupiah, dengan gross_amount = subtotal - diskon; persen disimpan sebagai basis point integer 0-2000 (0-20%) dan biaya tetap sebagai integer rupiah 0-50000, nilai awal 0 dan 0; satu versi kebijakan mengikat kedua nilai; editor hanya menerima nilai dalam batas itu.\n* Billing memakai kebijakan terpusat sebagai sumber otoritatif untuk transaksi baru dan menyimpan versi yang dipakai.\n* Invoice/transaksi lama tidak dihitung ulang ketika nilai fee berubah.\n* Admin dapat melihat nilai efektif, histori, dan status penerapan billing.\n* Biaya ditanggung tenant: platform_fee dipotong dari net_amount; gross_amount yang dibayar parent tidak berubah.\n* Setiap transaksi baru menyimpan snapshot immutable kebijakan yang dipakai (versi policy, persen bps, biaya tetap, platform_fee hasil) agar invoice lama dapat diaudit terhadap aturan lamanya; transaksi sebelum fitur ini tidak diubah dan ditandai tanpa versi policy.\n* Renewal langganan menghitung ulang fee dengan kebijakan applied saat invoice renewal dibuat dan menyimpan snapshotnya, bukan menyalin platform_fee transaksi awal.\n* Jika platform_fee + payment_gateway_fee melebihi gross_amount, invoice ditolak tanpa record dengan error stabil (HTTP 422, kode platform_fee_exceeds_gross, pesan Biaya platform melebihi jumlah pembayaran), bukan 500 generik.\n* Kebijakan efektif adalah versi applied terbaru; seed versi 0 (0 bps + Rp0) adalah baseline applied yang tercatat eksplisit. Versi desired yang belum applied tidak berlaku. Jika kebijakan tidak terbaca, malformed, atau hilang, billing menolak invoice (fail closed) dan tidak pernah memakai 0 sebagai fallback diam-diam.\n* Untuk transaksi baru billing tidak memakai platform_fee dari request internal; sumber otoritatif hanya kebijakan terpusat.\n\n## Acceptance Criteria\n\n- [ ] Transaksi baru memakai fee dan versi policy yang benar.\n- [ ] Transaksi lama dan invoice yang sudah dibuat tidak berubah.\n- [ ] Input fee invalid atau policy belum applied tidak menghasilkan invoice dengan fee salah.\n- [ ] Invoice dengan platform_fee + payment_gateway_fee melebihi gross_amount ditolak dengan kode dan pesan error yang stabil.\n- [ ] Renewal memakai versi kebijakan applied saat renewal dibuat, dan setiap transaksi menyimpan snapshot versi, persen, biaya tetap, dan fee yang dipakai.\n- [ ] Kebijakan yang tidak terbaca atau malformed menolak invoice; tidak ada fallback 0% diam-diam.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko utama financial correctness. Formula ditetapkan owner pada 2026-09-28 (lihat Owner Decision) dan tidak boleh diasumsikan dari field platform_fee request. Tulis ADR di kelolakelas-docs yang memuat keputusan ini beserta contoh invoice sebelum/sesudah. Detail implementasi yang tidak diputuskan owner (bentuk key katalog, bentuk endpoint admin): pilih opsi terkecil yang reversibel, ikuti pola ADR 0031/0036 (kebijakan applied di identity, dibaca billing lewat channel gRPC identity yang sudah ada, fail closed), dan catat di ADR. Menampilkan pesan error khusus ke parent di web membutuhkan academic dan web, di luar scope issue ini. Uji rounding, batas, perubahan di tengah checkout, dan rollback.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/internal/usecase/transaction_usecase.go`\n* `kelolakelas-billing-service/internal/domain/transaction.go`\n* `kelolakelas-identity-service/migrations`\n* `kelolakelas-api-gateway/internal/delivery/http/router.go`\n\n## Edge Cases\n\n* Checkout dimulai sebelum fee berubah dan selesai sesudahnya.\n* Fee melebihi gross amount.\n* Subscription renewal memakai versi berbeda dari transaksi awal.\n* Identity tidak tersedia, timeout, atau mengembalikan kebijakan malformed saat invoice dibuat.\n\n## Testing / Validation\n\n- [ ] Mitigasi risiko: test invoice, callback, renewal, dan rollback pada batas perubahan fee menggunakan contoh ADR.\n- [ ] Uji angka keputusan owner: gross 180000 dengan 500 bps + Rp1000 menghasilkan platform_fee 10000; gross 99999 dengan 250 bps menghasilkan 2499 (floor); gross 2000 dengan Rp2500 + gateway 1000 ditolak; invoice versi 0 tetap 0 setelah versi 1 applied.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Refund dan settlement otomatis.\n* Perubahan harga kelas tenant.\n* Kredensial Duitku.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"platform-fee-policy\",\n  \"projectKey\": \"platform-admin-control-plane\",\n  \"title\": \"Platform admin dapat menetapkan biaya platform untuk transaksi baru secara aman\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"critical\",\n  \"labels\": [\n    \"identity\",\n    \"billing\",\n    \"api-gateway\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"identity\",\n    \"billing\",\n    \"api-gateway\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"platform-config-control-plane\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Billing saat ini menerima platform_fee dari request internal dan menghitung net_amount dari nilai tersebut. Belum ada formula atau sumber kebijakan platform yang disetujui.\",\n    \"goal\": \"Admin dapat mengubah biaya platform yang hanya berlaku pada transaksi baru menurut kebijakan bisnis yang disetujui, dengan jejak versi.\",\n    \"requirements\": [\n      \"Fee = floor(gross_amount \u00d7 persen_bps / 10000) + biaya_tetap_rupiah, dengan gross_amount = subtotal - diskon; persen disimpan sebagai basis point integer 0-2000 (0-20%) dan biaya tetap sebagai integer rupiah 0-50000, nilai awal 0 dan 0; satu versi kebijakan mengikat kedua nilai; editor hanya menerima nilai dalam batas itu.\",\n      \"Billing memakai kebijakan terpusat sebagai sumber otoritatif untuk transaksi baru dan menyimpan versi yang dipakai.\",\n      \"Invoice/transaksi lama tidak dihitung ulang ketika nilai fee berubah.\",\n      \"Admin dapat melihat nilai efektif, histori, dan status penerapan billing.\",\n      \"Biaya ditanggung tenant: platform_fee dipotong dari net_amount; gross_amount yang dibayar parent tidak berubah.\",\n      \"Setiap transaksi baru menyimpan snapshot immutable kebijakan yang dipakai (versi policy, persen bps, biaya tetap, platform_fee hasil) agar invoice lama dapat diaudit terhadap aturan lamanya; transaksi sebelum fitur ini tidak diubah dan ditandai tanpa versi policy.\",\n      \"Renewal langganan menghitung ulang fee dengan kebijakan applied saat invoice renewal dibuat dan menyimpan snapshotnya, bukan menyalin platform_fee transaksi awal.\",\n      \"Jika platform_fee + payment_gateway_fee melebihi gross_amount, invoice ditolak tanpa record dengan error stabil (HTTP 422, kode platform_fee_exceeds_gross, pesan Biaya platform melebihi jumlah pembayaran), bukan 500 generik.\",\n      \"Kebijakan efektif adalah versi applied terbaru; seed versi 0 (0 bps + Rp0) adalah baseline applied yang tercatat eksplisit. Versi desired yang belum applied tidak berlaku. Jika kebijakan tidak terbaca, malformed, atau hilang, billing menolak invoice (fail closed) dan tidak pernah memakai 0 sebagai fallback diam-diam.\",\n      \"Untuk transaksi baru billing tidak memakai platform_fee dari request internal; sumber otoritatif hanya kebijakan terpusat.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Transaksi baru memakai fee dan versi policy yang benar.\",\n      \"Transaksi lama dan invoice yang sudah dibuat tidak berubah.\",\n      \"Input fee invalid atau policy belum applied tidak menghasilkan invoice dengan fee salah.\",\n      \"Invoice dengan platform_fee + payment_gateway_fee melebihi gross_amount ditolak dengan kode dan pesan error yang stabil.\",\n      \"Renewal memakai versi kebijakan applied saat renewal dibuat, dan setiap transaksi menyimpan snapshot versi, persen, biaya tetap, dan fee yang dipakai.\",\n      \"Kebijakan yang tidak terbaca atau malformed menolak invoice; tidak ada fallback 0% diam-diam.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko utama financial correctness. Formula ditetapkan owner pada 2026-09-28 (lihat Owner Decision) dan tidak boleh diasumsikan dari field platform_fee request. Tulis ADR di kelolakelas-docs yang memuat keputusan ini beserta contoh invoice sebelum/sesudah. Detail implementasi yang tidak diputuskan owner (bentuk key katalog, bentuk endpoint admin): pilih opsi terkecil yang reversibel, ikuti pola ADR 0031/0036 (kebijakan applied di identity, dibaca billing lewat channel gRPC identity yang sudah ada, fail closed), dan catat di ADR. Menampilkan pesan error khusus ke parent di web membutuhkan academic dan web, di luar scope issue ini. Uji rounding, batas, perubahan di tengah checkout, dan rollback.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/internal/usecase/transaction_usecase.go\",\n      \"kelolakelas-billing-service/internal/domain/transaction.go\",\n      \"kelolakelas-identity-service/migrations\",\n      \"kelolakelas-api-gateway/internal/delivery/http/router.go\"\n    ],\n    \"edgeCases\": [\n      \"Checkout dimulai sebelum fee berubah dan selesai sesudahnya.\",\n      \"Fee melebihi gross amount.\",\n      \"Subscription renewal memakai versi berbeda dari transaksi awal.\",\n      \"Identity tidak tersedia, timeout, atau mengembalikan kebijakan malformed saat invoice dibuat.\"\n    ],\n    \"testingValidation\": [\n      \"Mitigasi risiko: test invoice, callback, renewal, dan rollback pada batas perubahan fee menggunakan contoh ADR.\",\n      \"Uji angka keputusan owner: gross 180000 dengan 500 bps + Rp1000 menghasilkan platform_fee 10000; gross 99999 dengan 250 bps menghasilkan 2499 (floor); gross 2000 dengan Rp2500 + gateway 1000 ditolak; invoice versi 0 tetap 0 setelah versi 1 applied.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Refund dan settlement otomatis.\",\n      \"Perubahan harga kelas tenant.\",\n      \"Kredensial Duitku.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-99/platform-admin-dapat-menetapkan-biaya-platform-untuk-transaksi-baru",
+  "gitBranchName": "skinel123/kel-99-platform-admin-dapat-menetapkan-biaya-platform-untuk",
+  "createdAt": "2026-09-24T13:35:12.229Z",
+  "updatedAt": "2026-09-27T18:45:05.336Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-27T18:36:59.589Z",
+  "startedAt": "2026-09-27T17:33:38.210Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "identity",
+    "api-gateway",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "7e1f42e4-11c8-4f24-9f25-58384989cfb1",
+      "title": "KEL-99: docs for platform fee policy (ADR 0044)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/107"
+    },
+    {
+      "id": "15a400f2-aff5-4fd8-8ed9-f17f82904de0",
+      "title": "KEL-99: route platform fee policy to identity for platform admins",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/27"
+    },
+    {
+      "id": "6a336acb-8837-49da-9d0f-f616283df6cc",
+      "title": "KEL-99: price new transactions from the applied platform fee policy",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/24"
+    },
+    {
+      "id": "fde6b0a6-81aa-4cc9-a0f5-0532e44a43a0",
+      "title": "KEL-99: platform fee policy in identity configuration control plane",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/33"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T13:35:12.229Z",
+      "endedAt": "2026-09-27T17:33:38.221Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-27T17:33:38.221Z",
+      "endedAt": "2026-09-27T18:36:59.594Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-27T18:36:59.594Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Kontrol platform terpusat oleh platform admin",
+  "projectId": "ec13327b-4cd2-4226-84c1-019b5e88a53e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-106",
+        "title": "Parent dan tenant mendapat pesan jelas saat checkout ditolak karena biaya platform melebihi pembayaran"
+      },
+      {
+        "id": "KEL-104",
+        "title": "Platform admin dapat meninjau, mengubah, dan memantau konfigurasi dari dashboard"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-96",
+        "title": "Platform admin memiliki katalog konfigurasi terpusat dengan audit dan status penerapan"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

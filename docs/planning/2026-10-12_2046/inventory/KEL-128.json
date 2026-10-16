@@ -1,0 +1,137 @@
+{
+  "id": "KEL-128",
+  "uuid": "231ce0ca-9c77-4433-bf79-6661438464f6",
+  "title": "Parent menerima email payment link setelah jadwal private disetujui",
+  "description": "## Background / Problem\n\n<issue id=\"64bcb38d-294e-426b-b773-36fa1f5033f6\" href=\"https://linear.app/farid-zamani/issue/KEL-108/persetujuan-tenant-atas-permintaan-jadwal-private-membuat-enrollment\">KEL-108</issue> membuat invoice di `academic-service/internal/usecase/private_schedule_request_usecase.go:209` dan menyimpan email parent dari token; billing hanya mengirim link pada worker renewal `subscription_worker.go:210-234`. Persetujuan pertama tidak mengirim link.\n\n## Goal\n\nPayment link private sampai ke email parent yang benar setelah invoice berhasil dibuat, tanpa mengubah keputusan approval bila email gagal.\n\n## Requirements\n\n* Kirim hanya setelah invoice berhasil tersedia dan email berasal dari data parent terverifikasi; jangan menerima alamat tujuan arbitrer dari tenant.\n* Buat dispatch tahan retry dengan deduplikasi yang sesuai batasan provider; laporkan kegagalan delivery terpisah dari status enrollment/approval.\n* Link aman dan expiry yang dikirim harus cocok dengan transaksi yang masih relevan; jangan kirim link bila invoice batal, expired, atau gagal dibuat.\n* Pertahankan akses manual parent ke link checkout yang sudah ada.\n\n## Acceptance Criteria\n\n- [ ] Parent pemilik request menerima email dengan link, nominal dan expiry transaksi yang tepat.\n- [ ] Approval berulang atau worker retry tidak menggandakan invoice dan tidak mengirim email berulang tanpa alasan.\n- [ ] Kegagalan Resend tidak menggagalkan persetujuan atau kehilangan kesempatan retry yang terobservasi.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko high: email lintas parent dan efek samping duplikat setelah crash. Billing memiliki `ClaimPaymentLinkEmail` pada subscription_worker untuk referensi; tinjau apakah dipakai untuk invoice pertama tanpa memicu reminder keliru. Pesan ke external provider tidak atomik dengan DB: dokumentasikan at-least-once dan idempotency/claim. Audit lokasi kebenaran transaksi sebelum memilih service pengirim. Perbarui docs billing/academic flow dan konfigurasi.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go`\n* `kelolakelas-billing-service/internal/usecase/subscription_worker.go`\n* `kelolakelas-billing-service/internal/repository/transaction_repository.go`\n* `kelolakelas-billing-service/pkg/email/resend.go`\n\n## Edge Cases\n\n* Email claim kosong pada token lama, atau alamat tidak valid.\n* Crash setelah email terkirim namun sebelum ack tersimpan.\n* Invoice berhasil tetapi callback paid tiba sebelum dispatch.\n\n## Testing / Validation\n\n- [ ] Integration test approval/retry/crash/replayed request dengan fake email provider dan pemeriksaan penerima.\n- [ ] Uji bila Resend gagal, status approval/payment tetap benar dan delivery dapat di-retry/diamati.\n- [ ] Jalankan go test -race, go vet dan build pada dua repo; verifikasi sandbox email tanpa mengirim ke alamat produksi.\n\n## Out of Scope\n\n* Reminder marketing atau broadcast.\n* Mengirim detail student sensitif dalam email.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"private-payment-link-email\",\n  \"projectKey\": \"private-payment-link-delivery\",\n  \"title\": \"Parent menerima email payment link setelah jadwal private disetujui\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"high\",\n  \"repositories\": [\n    \"academic\",\n    \"billing\"\n  ],\n  \"labels\": [\n    \"academic\",\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"KEL-108 membuat invoice di `academic-service/internal/usecase/private_schedule_request_usecase.go:209` dan menyimpan email parent dari token; billing hanya mengirim link pada worker renewal `subscription_worker.go:210-234`. Persetujuan pertama tidak mengirim link.\",\n    \"goal\": \"Payment link private sampai ke email parent yang benar setelah invoice berhasil dibuat, tanpa mengubah keputusan approval bila email gagal.\",\n    \"requirements\": [\n      \"Kirim hanya setelah invoice berhasil tersedia dan email berasal dari data parent terverifikasi; jangan menerima alamat tujuan arbitrer dari tenant.\",\n      \"Buat dispatch tahan retry dengan deduplikasi yang sesuai batasan provider; laporkan kegagalan delivery terpisah dari status enrollment/approval.\",\n      \"Link aman dan expiry yang dikirim harus cocok dengan transaksi yang masih relevan; jangan kirim link bila invoice batal, expired, atau gagal dibuat.\",\n      \"Pertahankan akses manual parent ke link checkout yang sudah ada.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Parent pemilik request menerima email dengan link, nominal dan expiry transaksi yang tepat.\",\n      \"Approval berulang atau worker retry tidak menggandakan invoice dan tidak mengirim email berulang tanpa alasan.\",\n      \"Kegagalan Resend tidak menggagalkan persetujuan atau kehilangan kesempatan retry yang terobservasi.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko high: email lintas parent dan efek samping duplikat setelah crash. Billing memiliki `ClaimPaymentLinkEmail` pada subscription_worker untuk referensi; tinjau apakah dipakai untuk invoice pertama tanpa memicu reminder keliru. Pesan ke external provider tidak atomik dengan DB: dokumentasikan at-least-once dan idempotency/claim. Audit lokasi kebenaran transaksi sebelum memilih service pengirim. Perbarui docs billing/academic flow dan konfigurasi.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go\",\n      \"kelolakelas-billing-service/internal/usecase/subscription_worker.go\",\n      \"kelolakelas-billing-service/internal/repository/transaction_repository.go\",\n      \"kelolakelas-billing-service/pkg/email/resend.go\"\n    ],\n    \"edgeCases\": [\n      \"Email claim kosong pada token lama, atau alamat tidak valid.\",\n      \"Crash setelah email terkirim namun sebelum ack tersimpan.\",\n      \"Invoice berhasil tetapi callback paid tiba sebelum dispatch.\"\n    ],\n    \"testingValidation\": [\n      \"Integration test approval/retry/crash/replayed request dengan fake email provider dan pemeriksaan penerima.\",\n      \"Uji bila Resend gagal, status approval/payment tetap benar dan delivery dapat di-retry/diamati.\",\n      \"Jalankan go test -race, go vet dan build pada dua repo; verifikasi sandbox email tanpa mengirim ke alamat produksi.\"\n    ],\n    \"outOfScope\": [\n      \"Reminder marketing atau broadcast.\",\n      \"Mengirim detail student sensitif dalam email.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-128/parent-menerima-email-payment-link-setelah-jadwal-private-disetujui",
+  "gitBranchName": "skinel123/kel-128-parent-menerima-email-payment-link-setelah-jadwal-private",
+  "createdAt": "2026-09-28T19:14:58.786Z",
+  "updatedAt": "2026-09-29T12:39:34.289Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-29T12:25:52.584Z",
+  "startedAt": "2026-09-29T12:03:06.725Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "academic",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "fcaa4971-8648-43c3-802b-0a4b7c9b6de7",
+      "title": "KEL-128: Document private approval payment-link email",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/128"
+    },
+    {
+      "id": "9adde24b-e9e6-474c-a087-a3bcc1bf56bf",
+      "title": "KEL-128: Mark private approved invoices for parent email",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/39"
+    },
+    {
+      "id": "a0616f23-8fc6-478b-8eeb-b4a7acf31fb6",
+      "title": "KEL-128: Email private approval payment links",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/27"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T19:14:58.786Z",
+      "endedAt": "2026-09-29T12:03:06.737Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-29T12:03:06.737Z",
+      "endedAt": "2026-09-29T12:25:52.591Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-29T12:25:52.591Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Distribusi aman payment link kelas private",
+  "projectId": "a8a950c3-945c-4daa-b266-53e3d61e394e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-129",
+        "title": "Payment link private dapat dikirim lewat percakapan request yang tepat"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-133",
+        "title": "Parent memilih channel pembayaran untuk pembelian kelas private"
+      },
+      {
+        "id": "KEL-132",
+        "title": "Academic menolak kapasitas jadwal private yang tidak sesuai satu student"
+      },
+      {
+        "id": "KEL-113",
+        "title": "Form buat kelas tidak lagi menampilkan field kapasitas karena kapasitas diatur per jadwal"
+      },
+      {
+        "id": "KEL-112",
+        "title": "Tenant dapat menghasilkan slot jadwal mingguan dari pilihan hari, jam, lama sesi, dan jeda"
+      },
+      {
+        "id": "KEL-130",
+        "title": "Parent yang sudah memiliki student dapat menambah student lain dari detail kelas"
+      },
+      {
+        "id": "KEL-108",
+        "title": "Persetujuan tenant atas permintaan jadwal private membuat enrollment, jadwal, dan payment link"
+      },
+      {
+        "id": "KEL-126",
+        "title": "Billing menyimpan dan menyajikan instruksi pembayaran VA/QR untuk transaksi milik parent"
+      },
+      {
+        "id": "KEL-125",
+        "title": "Billing menerima pilihan channel VA/QRIS atau kartu untuk invoice baru"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

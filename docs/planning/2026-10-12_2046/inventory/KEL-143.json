@@ -1,0 +1,141 @@
+{
+  "id": "KEL-143",
+  "uuid": "1670fa70-f1ec-43f4-813e-32f5d0d31282",
+  "title": "Tenant dapat mengajukan dan membatalkan penarikan dengan saldo yang ditahan secara atomik",
+  "description": "## Background / Problem\n\nDomain `Withdrawal` (amount, admin_fee, net_amount, status, provider_payout_id, requested_at, processed_at) dan tabel `withdrawals` sudah ada, tetapi `WithdrawalUsecase.RequestWithdrawal` hanya interface (`internal/usecase/interfaces.go:32`). `PendingBalance` wallet tidak pernah dipakai.\n\n## Goal\n\nTenant dapat mengajukan penarikan ke rekening utama tanpa kemungkinan saldo dipakai dua kali, dan dapat membatalkannya selama belum diproses.\n\n## Requirements\n\n* Pengajuan dengan `billing:withdraw` memindahkan jumlah dari saldo tersedia ke saldo tertahan dalam satu transaksi database dengan lock wallet dan entri ledger yang dapat ditelusuri.\n* Tolak jumlah di bawah minimum yang dapat dikonfigurasi, melebihi saldo tersedia, atau bila tenant belum punya rekening utama; hanya satu pengajuan terbuka per tenant.\n* Pengajuan menyimpan snapshot rekening tujuan.\n* Pembatalan oleh tenant hanya pada status requested dan mengembalikan saldo dengan entri ledger pembalik.\n* Pengajuan idempoten terhadap retry klien, dan daftar riwayat penarikan tersedia bagi tenant.\n\n## Acceptance Criteria\n\n- [ ] Dua pengajuan serentak yang total melebihi saldo hanya satu yang berhasil.\n- [ ] Setelah pengajuan dan pembatalan, saldo tersedia kembali ke nilai awal dan ledger mencatat kedua mutasi.\n- [ ] Perubahan rekening utama setelah pengajuan tidak mengubah rekening tujuan pengajuan.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko critical: kebenaran finansial (double spend dan saldo negatif). Gunakan pola lock wallet yang sudah dipakai pada callback pembayaran dan unique index ledger `(reference_id, reference_type, entry_type)` untuk idempotensi. Biaya admin penarikan bernilai nol sampai ada kebijakan. Minimum penarikan diatur lewat konfigurasi service yang terdokumentasi. Perbarui `kelolakelas-docs` (api/billing.md, flows/billing-and-subscriptions.md, data/billing-schema.md) dan ADR alur penarikan manual.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/internal/domain/withdrawal.go`\n* `kelolakelas-billing-service/internal/domain/wallet.go`\n* `kelolakelas-billing-service/internal/usecase/interfaces.go`\n* `kelolakelas-billing-service/internal/usecase/transaction_usecase.go`\n* `kelolakelas-billing-service/cmd/server/routes.go`\n* `kelolakelas-api-gateway/internal/delivery/http/router.go`\n\n## Edge Cases\n\n* Pembayaran baru dikreditkan saat pengajuan sedang dibuat.\n* Retry klien setelah timeout gateway.\n* Pembatalan bersamaan dengan pemrosesan oleh platform admin.\n\n## Testing / Validation\n\n- [ ] Postgres integration test untuk pengajuan serentak, retry idempoten, dan pembatalan serentak dengan pemrosesan, sebagai mitigasi risiko double spend.\n- [ ] Unit test invariant saldo tersedia + tertahan terhadap jumlah ledger.\n- [ ] Router test gateway, go vet, go test -race, dan build lulus.\n- [ ] Acceptance criteria diverifikasi lewat API lokal.\n\n## Out of Scope\n\n* Pemrosesan oleh platform admin.\n* Disbursement otomatis.\n* Biaya admin penarikan.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"billing-tenant-withdrawal-request\",\n  \"projectKey\": \"tenant-finance-payout\",\n  \"title\": \"Tenant dapat mengajukan dan membatalkan penarikan dengan saldo yang ditahan secara atomik\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"critical\",\n  \"labels\": [\n    \"billing\",\n    \"api-gateway\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"billing\",\n    \"api-gateway\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"billing-tenant-balance-bank-account\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Domain `Withdrawal` (amount, admin_fee, net_amount, status, provider_payout_id, requested_at, processed_at) dan tabel `withdrawals` sudah ada, tetapi `WithdrawalUsecase.RequestWithdrawal` hanya interface (`internal/usecase/interfaces.go:32`). `PendingBalance` wallet tidak pernah dipakai.\",\n    \"goal\": \"Tenant dapat mengajukan penarikan ke rekening utama tanpa kemungkinan saldo dipakai dua kali, dan dapat membatalkannya selama belum diproses.\",\n    \"requirements\": [\n      \"Pengajuan dengan `billing:withdraw` memindahkan jumlah dari saldo tersedia ke saldo tertahan dalam satu transaksi database dengan lock wallet dan entri ledger yang dapat ditelusuri.\",\n      \"Tolak jumlah di bawah minimum yang dapat dikonfigurasi, melebihi saldo tersedia, atau bila tenant belum punya rekening utama; hanya satu pengajuan terbuka per tenant.\",\n      \"Pengajuan menyimpan snapshot rekening tujuan.\",\n      \"Pembatalan oleh tenant hanya pada status requested dan mengembalikan saldo dengan entri ledger pembalik.\",\n      \"Pengajuan idempoten terhadap retry klien, dan daftar riwayat penarikan tersedia bagi tenant.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Dua pengajuan serentak yang total melebihi saldo hanya satu yang berhasil.\",\n      \"Setelah pengajuan dan pembatalan, saldo tersedia kembali ke nilai awal dan ledger mencatat kedua mutasi.\",\n      \"Perubahan rekening utama setelah pengajuan tidak mengubah rekening tujuan pengajuan.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko critical: kebenaran finansial (double spend dan saldo negatif). Gunakan pola lock wallet yang sudah dipakai pada callback pembayaran dan unique index ledger `(reference_id, reference_type, entry_type)` untuk idempotensi. Biaya admin penarikan bernilai nol sampai ada kebijakan. Minimum penarikan diatur lewat konfigurasi service yang terdokumentasi. Perbarui `kelolakelas-docs` (api/billing.md, flows/billing-and-subscriptions.md, data/billing-schema.md) dan ADR alur penarikan manual.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/internal/domain/withdrawal.go\",\n      \"kelolakelas-billing-service/internal/domain/wallet.go\",\n      \"kelolakelas-billing-service/internal/usecase/interfaces.go\",\n      \"kelolakelas-billing-service/internal/usecase/transaction_usecase.go\",\n      \"kelolakelas-billing-service/cmd/server/routes.go\",\n      \"kelolakelas-api-gateway/internal/delivery/http/router.go\"\n    ],\n    \"edgeCases\": [\n      \"Pembayaran baru dikreditkan saat pengajuan sedang dibuat.\",\n      \"Retry klien setelah timeout gateway.\",\n      \"Pembatalan bersamaan dengan pemrosesan oleh platform admin.\"\n    ],\n    \"testingValidation\": [\n      \"Postgres integration test untuk pengajuan serentak, retry idempoten, dan pembatalan serentak dengan pemrosesan, sebagai mitigasi risiko double spend.\",\n      \"Unit test invariant saldo tersedia + tertahan terhadap jumlah ledger.\",\n      \"Router test gateway, go vet, go test -race, dan build lulus.\",\n      \"Acceptance criteria diverifikasi lewat API lokal.\"\n    ],\n    \"outOfScope\": [\n      \"Pemrosesan oleh platform admin.\",\n      \"Disbursement otomatis.\",\n      \"Biaya admin penarikan.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-143/tenant-dapat-mengajukan-dan-membatalkan-penarikan-dengan-saldo-yang",
+  "gitBranchName": "skinel123/kel-143-tenant-dapat-mengajukan-dan-membatalkan-penarikan-dengan",
+  "createdAt": "2026-09-30T10:56:58.796Z",
+  "updatedAt": "2026-10-01T17:14:13.786Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-01T17:06:07.832Z",
+  "startedAt": "2026-10-01T13:46:55.392Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "api-gateway",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "17cc2dca-a9fa-4af5-84b7-98237d85b7e6",
+      "title": "KEL-143 docs: Tenant manual withdrawal hold and cancel",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/143"
+    },
+    {
+      "id": "b2ff7a6b-41d5-40d2-91c6-301d95ff2c78",
+      "title": "KEL-143: Proxy tenant withdrawal request and history routes",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/34"
+    },
+    {
+      "id": "55627bcc-8458-4505-94b2-994f5e470d44",
+      "title": "KEL-143: Atomic tenant withdrawal request and cancellation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/29"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T10:56:58.796Z",
+      "endedAt": "2026-10-01T13:46:55.408Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-01T13:46:55.408Z",
+      "endedAt": "2026-10-01T17:06:07.841Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-01T17:06:07.841Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Keuangan tenant: laporan transaksi dan pencairan dana manual",
+  "projectId": "6bf64982-2039-4ab0-afe2-4c92c2ec79c0",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-145",
+        "title": "Tenant melihat saldo, mutasi, rekening, dan mengajukan penarikan dari halaman keuangan"
+      },
+      {
+        "id": "KEL-144",
+        "title": "Platform admin memproses penarikan tenant secara manual dengan jejak audit"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-142",
+        "title": "Tenant dapat melihat saldo dan mutasi ledger serta mengelola rekening pencairan"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-159",
+        "title": "Parent yang pernah terdaftar dapat memberi rating dan ulasan kelas"
+      },
+      {
+        "id": "KEL-161",
+        "title": "Tenant dapat membuat, mengubah, dan menonaktifkan voucher"
+      },
+      {
+        "id": "KEL-151",
+        "title": "Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment"
+      },
+      {
+        "id": "KEL-147",
+        "title": "Tenant dapat memfilter transaksi berdasarkan tanggal bayar dan mengekspornya ke CSV"
+      },
+      {
+        "id": "KEL-134",
+        "title": "Absensi dapat dicatat per sesi, termasuk sesi reschedule dan secara massal"
+      },
+      {
+        "id": "KEL-136",
+        "title": "Menu dashboard tenant hanya menampilkan area yang diizinkan permission anggota"
+      },
+      {
+        "id": "KEL-149",
+        "title": "Enrollment dapat ditangguhkan, dipulihkan, dan diakhiri melalui endpoint internal"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "id": "KEL-53",
+  "uuid": "120692ee-3b0d-48c8-bafe-4cc1a59a5695",
+  "title": "Parent dapat melanjutkan pembayaran yang masih menunggu dari halaman status enrollment",
+  "description": "## Background / Problem\n\n`/dashboard/parent/enrollments` membaca transaksi parent (`_queries/queries.ts:18`), dan respons billing sudah memuat `checkout_session_url` serta `invoice_expires_at` (`billing internal/domain/transaction.go:204-205`). Namun `TransactionRecord` (`lib/payment-status.ts:9-18`) tidak memuat kedua field itu dan halaman tidak menampilkan tautan pembayaran. Parent yang menutup halaman Duitku tidak memiliki jalan untuk membayar invoice yang masih berlaku. Kembali ke halaman kelas membuat idempotency key baru pada setiap render (`kelas/[id]/page.tsx`, `randomUUID()`), sehingga yang terjadi adalah percobaan enrollment baru.\n\n## Goal\n\nParent dengan pembayaran pending yang masih berlaku dapat membuka kembali checkout dari halaman status enrollment.\n\n## Requirements\n\n* Transaksi pending dengan `checkout_session_url` http(s) yang valid dan `invoice_expires_at` di masa depan menampilkan tautan \"Lanjutkan pembayaran\" beserta batas waktunya.\n* Tautan tidak ditampilkan untuk transaksi paid, failed, expired, cancelled, atau pending yang sudah melewati `invoice_expires_at`.\n* URL checkout divalidasi hanya http/https sebelum dirender, dan tautan eksternal memakai atribut aman.\n* Status, nominal, dan aksi pembatalan (<issue id=\"837cee6c-af51-450f-b186-94fa6cd475d3\" href=\"https://linear.app/farid-zamani/issue/KEL-45/sediakan-pembatalan-enrollment-pending-dari-halaman-parent\">KEL-45</issue>) yang ada tetap tampil sama.\n\n## Acceptance Criteria\n\n- [ ] Enrollment pending dengan invoice yang masih berlaku menampilkan tautan menuju `checkout_session_url` dari billing.\n- [ ] Invoice kedaluwarsa atau transaksi non-pending tidak menampilkan tautan.\n- [ ] `checkout_session_url` dengan skema selain http/https tidak dirender.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nPerubahan hanya di web; billing sudah mengembalikan field yang dibutuhkan. Koordinasikan dengan <issue id=\"9eae8dac-a2af-4613-a96c-d27fc4df9f58\" href=\"https://linear.app/farid-zamani/issue/KEL-44/sediakan-halaman-kembali-dari-pembayaran-dengan-pembaruan-status\">KEL-44</issue> (halaman kembali dari pembayaran), yang menyentuh area parent enrollments, dengan mengerjakannya berurutan. Pembandingan waktu memakai waktu server saat render; status akhir tetap berasal dari backend. Validator URL checkout yang ada di `kelas/[id]/_actions/actions.ts:29-37` dapat dijadikan acuan.\n\nComplexity rationale: Presentasi web saja memakai field yang sudah dikembalikan billing; risiko terbatas pada validasi URL eksternal.\n\nRelevant areas:\n\n* `kelolakelas-web/lib/payment-status.ts`\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/page.tsx`\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/_queries/queries.ts`\n* `kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts`\n\n## Edge Cases\n\n* Transaksi lama tanpa `invoice_expires_at` tidak menampilkan tautan.\n* Invoice yang kedaluwarsa beberapa detik setelah render dapat ditolak provider; halaman status tetap menjadi sumber kebenaran.\n* Enrollment dengan beberapa transaksi memakai transaksi yang sudah dipilih oleh halaman.\n\n## Testing / Validation\n\n- [ ] Test unit presentasi status untuk kombinasi status transaksi, kedaluwarsa, dan URL tidak valid.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Penerbitan ulang invoice untuk transaksi expired.\n* Perubahan billing.\n* Halaman kembali dari pembayaran (<issue id=\"9eae8dac-a2af-4613-a96c-d27fc4df9f58\" href=\"https://linear.app/farid-zamani/issue/KEL-44/sediakan-halaman-kembali-dari-pembayaran-dengan-pembaruan-status\">KEL-44</issue>).\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-parent-resume-pending-payment\",\n  \"projectKey\": \"buyer-purchase-continuity\",\n  \"title\": \"Parent dapat melanjutkan pembayaran yang masih menunggu dari halaman status enrollment\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`/dashboard/parent/enrollments` membaca transaksi parent (`_queries/queries.ts:18`), dan respons billing sudah memuat `checkout_session_url` serta `invoice_expires_at` (`billing internal/domain/transaction.go:204-205`). Namun `TransactionRecord` (`lib/payment-status.ts:9-18`) tidak memuat kedua field itu dan halaman tidak menampilkan tautan pembayaran. Parent yang menutup halaman Duitku tidak memiliki jalan untuk membayar invoice yang masih berlaku. Kembali ke halaman kelas membuat idempotency key baru pada setiap render (`kelas/[id]/page.tsx`, `randomUUID()`), sehingga yang terjadi adalah percobaan enrollment baru.\",\n    \"goal\": \"Parent dengan pembayaran pending yang masih berlaku dapat membuka kembali checkout dari halaman status enrollment.\",\n    \"requirements\": [\n      \"Transaksi pending dengan `checkout_session_url` http(s) yang valid dan `invoice_expires_at` di masa depan menampilkan tautan \\\"Lanjutkan pembayaran\\\" beserta batas waktunya.\",\n      \"Tautan tidak ditampilkan untuk transaksi paid, failed, expired, cancelled, atau pending yang sudah melewati `invoice_expires_at`.\",\n      \"URL checkout divalidasi hanya http/https sebelum dirender, dan tautan eksternal memakai atribut aman.\",\n      \"Status, nominal, dan aksi pembatalan (KEL-45) yang ada tetap tampil sama.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Enrollment pending dengan invoice yang masih berlaku menampilkan tautan menuju `checkout_session_url` dari billing.\",\n      \"Invoice kedaluwarsa atau transaksi non-pending tidak menampilkan tautan.\",\n      \"`checkout_session_url` dengan skema selain http/https tidak dirender.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Perubahan hanya di web; billing sudah mengembalikan field yang dibutuhkan. Koordinasikan dengan KEL-44 (halaman kembali dari pembayaran), yang menyentuh area parent enrollments, dengan mengerjakannya berurutan. Pembandingan waktu memakai waktu server saat render; status akhir tetap berasal dari backend. Validator URL checkout yang ada di `kelas/[id]/_actions/actions.ts:29-37` dapat dijadikan acuan.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/lib/payment-status.ts\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/page.tsx\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/_queries/queries.ts\",\n      \"kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts\"\n    ],\n    \"edgeCases\": [\n      \"Transaksi lama tanpa `invoice_expires_at` tidak menampilkan tautan.\",\n      \"Invoice yang kedaluwarsa beberapa detik setelah render dapat ditolak provider; halaman status tetap menjadi sumber kebenaran.\",\n      \"Enrollment dengan beberapa transaksi memakai transaksi yang sudah dipilih oleh halaman.\"\n    ],\n    \"testingValidation\": [\n      \"Test unit presentasi status untuk kombinasi status transaksi, kedaluwarsa, dan URL tidak valid.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Penerbitan ulang invoice untuk transaksi expired.\",\n      \"Perubahan billing.\",\n      \"Halaman kembali dari pembayaran (KEL-44).\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-53/parent-dapat-melanjutkan-pembayaran-yang-masih-menunggu-dari-halaman",
+  "gitBranchName": "skinel123/kel-53-parent-dapat-melanjutkan-pembayaran-yang-masih-menunggu-dari",
+  "createdAt": "2026-09-23T22:25:38.207Z",
+  "updatedAt": "2026-09-27T23:46:03.409Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-25T22:51:11.221Z",
+  "startedAt": "2026-09-25T22:27:23.469Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "64ad608d-89cd-4589-ba70-94a23e19ad0f",
+      "title": "docs: describe parent resume-payment link on the enrollment status screen (KEL-53)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/67"
+    },
+    {
+      "id": "6f5c4e5b-5d0d-4d68-aaa5-7cdcf0deed77",
+      "title": "KEL-53: parent dapat melanjutkan pembayaran yang masih menunggu dari halaman status enrollment",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/29"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-23T22:25:38.207Z",
+      "endedAt": "2026-09-25T22:27:23.481Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-25T22:27:23.481Z",
+      "endedAt": "2026-09-25T22:51:11.227Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-25T22:51:11.227Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Kelanjutan pembelian parent tanpa jalan buntu",
+  "projectId": "e021260a-3b44-4e8b-852c-28d42ed3ae6e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-61",
+        "title": "Respons 5xx identity dan billing tidak lagi membocorkan detail error internal"
+      },
+      {
+        "id": "KEL-75",
+        "title": "Invoice checkout parent menyimpan email parent sehingga email tagihan dan pengingat dapat terkirim"
+      },
+      {
+        "id": "KEL-50",
+        "title": "Tenant dapat menetapkan kapasitas jadwal dan menambah jadwal kelas grup dari dashboard"
+      },
+      {
+        "id": "KEL-51",
+        "title": "Perubahan jadwal dan tutor permanen menghasilkan jadwal pengganti yang valid dan mempertahankan peserta"
+      },
+      {
+        "id": "KEL-45",
+        "title": "Sediakan pembatalan enrollment pending dari halaman parent"
+      },
+      {
+        "id": "KEL-44",
+        "title": "Sediakan halaman kembali dari pembayaran dengan pembaruan status otomatis"
+      },
+      {
+        "id": "KEL-109",
+        "title": "Parent mengajukan jadwal kelas private dari detail kelas dan memantau status permintaannya"
+      },
+      {
+        "id": "KEL-108",
+        "title": "Persetujuan tenant atas permintaan jadwal private membuat enrollment, jadwal, dan payment link"
+      },
+      {
+        "id": "KEL-105",
+        "title": "Akses platform admin memerlukan faktor kedua sebelum sesi privileged diterbitkan"
+      },
+      {
+        "id": "KEL-97",
+        "title": "Platform admin dapat membuka dan menutup pendaftaran tenant baru"
+      },
+      {
+        "id": "KEL-63",
+        "title": "Service Go dibangun dengan toolchain dan modul yang bebas vulnerability reachable"
+      },
+      {
+        "id": "KEL-60",
+        "title": "Web berjalan di atas Next.js dan dependency produksi yang bebas advisory high/critical"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

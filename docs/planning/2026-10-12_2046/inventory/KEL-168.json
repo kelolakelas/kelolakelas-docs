@@ -1,0 +1,126 @@
+{
+  "id": "KEL-168",
+  "uuid": "b7565cc5-f33c-4b6a-a877-a271c56b0ffd",
+  "title": "Pembatalan enrollment pending oleh parent selalu dijawab 409 padahal pembatalan berhasil",
+  "description": "## Background / Problem\n\nQA end-to-end (agent-browser, stack lokal, main 9 Okt 2026) menemukan bahwa `POST /api/v1/enrollments/{id}/cancel` untuk enrollment `pending` milik parent selalu dijawab `409 Enrollment can no longer be cancelled`, padahal enrollment sudah `dropped`, transaksi billing `cancelled`, dan kursi kembali tersedia. Reproduksi dua kali pada enrollment baru dengan hasil sama. Penyebab di academic `internal/usecase/enrollment_usecase.go` `CancelPendingEnrollment`: saat `txManager` ada, closure transaksi mengubah `enrollment.Status` menjadi `dropped`, lalu pengecekan `if enrollment.Status != \"pending\"` setelah transaksi membaca objek yang sudah diubah, sehingga jalur sukses selalu mengembalikan `ErrInvalidEnrollmentTransition`. `enrollment_cancel_test.go` (`newCancelTestUsecase`) membangun usecase tanpa txManager sehingga jalur produksi tidak teruji. Di web, `CancelEnrollmentButton.tsx` hanya menampilkan pesan error bila state `dialogOpen` bernilai true, tetapi state itu tidak pernah di-set true (tombol pemicu hanya memanggil `showModal()`), sehingga parent tidak melihat pesan apa pun saat pembatalan gagal dan baris tetap tampil \"Menunggu pembayaran\".\n\n## Goal\n\nPembatalan enrollment `pending` yang berhasil dijawab 200 sesuai tabel hasil di ADR 0016, dan parent melihat hasil pembatalan (sukses atau pesan error) di halaman enrollments tanpa reload.\n\n## Requirements\n\n* Academic mengembalikan 200 berisi enrollment `dropped` ketika enrollment `pending` milik parent berhasil dibatalkan melalui jalur transaksi (txManager tersedia).\n* Enrollment yang sudah `dropped` sebelum request tetap dijawab 409 setelah withdrawal tetap dicoba, sesuai tabel ADR 0016.\n* Enrollment `active`, `suspended`, dan `completed` tetap 409 sebelum ada pemanggilan billing; invoice yang sudah `paid`/`refunded` tetap 409 tanpa perubahan apa pun.\n* Web menampilkan pesan error pembatalan (role=alert) di dialog ketika action mengembalikan error, dan menampilkan status sukses lalu memperbarui baris setelah pembatalan berhasil.\n* Kontrak HTTP, urutan billing-lalu-academic, dan pesan error yang ada tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Membatalkan enrollment `pending` dengan invoice belum dibayar menghasilkan 200, enrollment `dropped`, transaksi `cancelled`, dan kursi kembali tersedia.\n- [ ] Di `/dashboard/parent/enrollments`, setelah konfirmasi \"Ya, batalkan\" berhasil, status enrollment tidak lagi tampil sebagai menunggu pembayaran tanpa perlu reload manual.\n- [ ] Ketika pembatalan ditolak (mis. 409), pesan error terlihat di dialog.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nKebenaran urutan dan idempotensi dijelaskan di kelolakelas-docs ADR 0016 (`docs/adr/0016-cancel-pending-enrollment.md`); keputusan itu tidak berubah. `ReleaseEnrollment` di file yang sama memakai pola transaksi serupa tetapi menganggap `dropped` sebagai hasil idempoten sehingga tidak terdampak. Test usecase perlu fake TransactionManager agar jalur transaksi produksi teruji. Risiko utama: mengubah pengecekan status tanpa merusak penolakan 409 untuk enrollment yang sudah `dropped` sebelumnya. Perbarui kelolakelas-docs (`docs/components/academic-service.md` atau `web.md`) bila perilaku yang terdokumentasi berubah.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/usecase/enrollment_usecase.go`\n* `kelolakelas-academic-service/internal/usecase/enrollment_cancel_test.go`\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/_components/CancelEnrollmentButton.tsx`\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/_actions/actions.ts`\n* `kelolakelas-web/lib/enrollment-cancellation.ts`\n\n## Edge Cases\n\n* Dua request pembatalan bersamaan untuk enrollment yang sama: tepat satu 200, yang lain 409.\n* Callback release dari billing tiba sebelum transaksi academic: hasil akhir tetap `dropped` dan request pertama tidak salah dijawab.\n* Enrollment `pending` tanpa transaksi billing (invoice tidak pernah dibuat) tetap 200.\n* Sesi parent kedaluwarsa saat konfirmasi pembatalan.\n\n## Testing / Validation\n\n- [ ] Unit test academic dengan fake TransactionManager untuk pending \u2192 200, dropped \u2192 409, active \u2192 409, dan billing menolak \u2192 409.\n- [ ] Vitest `CancelEnrollmentButton` untuk tampilan pesan error dan sukses.\n- [ ] Validasi risiko: reproduksi manual via gateway lokal bahwa pembatalan pending menghasilkan 200 dan pembatalan ulang 409.\n- [ ] Existing tests pass, `go test ./...` dan `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.\n\n## Out of Scope\n\n* Perubahan alur pembatalan billing atau job release kursi.\n* Pembatalan enrollment `active` atau refund.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"cancel-pending-enrollment-409\",\n  \"projectKey\": null,\n  \"title\": \"Pembatalan enrollment pending oleh parent selalu dijawab 409 padahal pembatalan berhasil\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"academic\",\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\",\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"QA end-to-end (agent-browser, stack lokal, main 9 Okt 2026) menemukan bahwa `POST /api/v1/enrollments/{id}/cancel` untuk enrollment `pending` milik parent selalu dijawab `409 Enrollment can no longer be cancelled`, padahal enrollment sudah `dropped`, transaksi billing `cancelled`, dan kursi kembali tersedia. Reproduksi dua kali pada enrollment baru dengan hasil sama. Penyebab di academic `internal/usecase/enrollment_usecase.go` `CancelPendingEnrollment`: saat `txManager` ada, closure transaksi mengubah `enrollment.Status` menjadi `dropped`, lalu pengecekan `if enrollment.Status != \\\"pending\\\"` setelah transaksi membaca objek yang sudah diubah, sehingga jalur sukses selalu mengembalikan `ErrInvalidEnrollmentTransition`. `enrollment_cancel_test.go` (`newCancelTestUsecase`) membangun usecase tanpa txManager sehingga jalur produksi tidak teruji. Di web, `CancelEnrollmentButton.tsx` hanya menampilkan pesan error bila state `dialogOpen` bernilai true, tetapi state itu tidak pernah di-set true (tombol pemicu hanya memanggil `showModal()`), sehingga parent tidak melihat pesan apa pun saat pembatalan gagal dan baris tetap tampil \\\"Menunggu pembayaran\\\".\",\n    \"goal\": \"Pembatalan enrollment `pending` yang berhasil dijawab 200 sesuai tabel hasil di ADR 0016, dan parent melihat hasil pembatalan (sukses atau pesan error) di halaman enrollments tanpa reload.\",\n    \"requirements\": [\n      \"Academic mengembalikan 200 berisi enrollment `dropped` ketika enrollment `pending` milik parent berhasil dibatalkan melalui jalur transaksi (txManager tersedia).\",\n      \"Enrollment yang sudah `dropped` sebelum request tetap dijawab 409 setelah withdrawal tetap dicoba, sesuai tabel ADR 0016.\",\n      \"Enrollment `active`, `suspended`, dan `completed` tetap 409 sebelum ada pemanggilan billing; invoice yang sudah `paid`/`refunded` tetap 409 tanpa perubahan apa pun.\",\n      \"Web menampilkan pesan error pembatalan (role=alert) di dialog ketika action mengembalikan error, dan menampilkan status sukses lalu memperbarui baris setelah pembatalan berhasil.\",\n      \"Kontrak HTTP, urutan billing-lalu-academic, dan pesan error yang ada tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Membatalkan enrollment `pending` dengan invoice belum dibayar menghasilkan 200, enrollment `dropped`, transaksi `cancelled`, dan kursi kembali tersedia.\",\n      \"Di `/dashboard/parent/enrollments`, setelah konfirmasi \\\"Ya, batalkan\\\" berhasil, status enrollment tidak lagi tampil sebagai menunggu pembayaran tanpa perlu reload manual.\",\n      \"Ketika pembatalan ditolak (mis. 409), pesan error terlihat di dialog.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Kebenaran urutan dan idempotensi dijelaskan di kelolakelas-docs ADR 0016 (`docs/adr/0016-cancel-pending-enrollment.md`); keputusan itu tidak berubah. `ReleaseEnrollment` di file yang sama memakai pola transaksi serupa tetapi menganggap `dropped` sebagai hasil idempoten sehingga tidak terdampak. Test usecase perlu fake TransactionManager agar jalur transaksi produksi teruji. Risiko utama: mengubah pengecekan status tanpa merusak penolakan 409 untuk enrollment yang sudah `dropped` sebelumnya. Perbarui kelolakelas-docs (`docs/components/academic-service.md` atau `web.md`) bila perilaku yang terdokumentasi berubah.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/usecase/enrollment_usecase.go\",\n      \"kelolakelas-academic-service/internal/usecase/enrollment_cancel_test.go\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/_components/CancelEnrollmentButton.tsx\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/_actions/actions.ts\",\n      \"kelolakelas-web/lib/enrollment-cancellation.ts\"\n    ],\n    \"edgeCases\": [\n      \"Dua request pembatalan bersamaan untuk enrollment yang sama: tepat satu 200, yang lain 409.\",\n      \"Callback release dari billing tiba sebelum transaksi academic: hasil akhir tetap `dropped` dan request pertama tidak salah dijawab.\",\n      \"Enrollment `pending` tanpa transaksi billing (invoice tidak pernah dibuat) tetap 200.\",\n      \"Sesi parent kedaluwarsa saat konfirmasi pembatalan.\"\n    ],\n    \"testingValidation\": [\n      \"Unit test academic dengan fake TransactionManager untuk pending \u2192 200, dropped \u2192 409, active \u2192 409, dan billing menolak \u2192 409.\",\n      \"Vitest `CancelEnrollmentButton` untuk tampilan pesan error dan sukses.\",\n      \"Validasi risiko: reproduksi manual via gateway lokal bahwa pembatalan pending menghasilkan 200 dan pembatalan ulang 409.\",\n      \"Existing tests pass, `go test ./...` dan `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.\"\n    ],\n    \"outOfScope\": [\n      \"Perubahan alur pembatalan billing atau job release kursi.\",\n      \"Pembatalan enrollment `active` atau refund.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-168/pembatalan-enrollment-pending-oleh-parent-selalu-dijawab-409-padahal",
+  "gitBranchName": "skinel123/kel-168-pembatalan-enrollment-pending-oleh-parent-selalu-dijawab-409",
+  "createdAt": "2026-10-08T17:46:08.517Z",
+  "updatedAt": "2026-10-09T09:16:31.876Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-09T08:01:08.396Z",
+  "startedAt": "2026-10-08T21:12:11.634Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "academic",
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "9de7aefa-4832-460e-887c-e06954fd2695",
+      "title": "KEL-168: document cancellation correction and known UI follow-ups",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/167"
+    },
+    {
+      "id": "297c4988-94e4-43db-9d70-bc32d5e3ec01",
+      "title": "KEL-168: show cancellation refusal inside parent enrollment dialog",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/79"
+    },
+    {
+      "id": "5546c1bb-700a-45a6-b163-2c4b7dae6916",
+      "title": "KEL-168: return success for committed pending enrollment cancellation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/47"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-10-08T17:46:08.517Z",
+      "endedAt": "2026-10-08T21:12:11.724Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-08T21:12:11.724Z",
+      "endedAt": "2026-10-09T08:01:08.403Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-09T08:01:08.403Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-173",
+        "title": "Form undang anggota menampilkan checkbox permission yang semuanya tercentang tetapi diabaikan"
+      },
+      {
+        "id": "KEL-170",
+        "title": "Sesi parent dapat membuka halaman dashboard tenant karena proxy tidak mengarahkan balik"
+      },
+      {
+        "id": "KEL-169",
+        "title": "Batas waktu invoice dan undangan tampil bergeser +7 jam karena timestamp lokal disimpan tanpa zona"
+      },
+      {
+        "id": "KEL-172",
+        "title": "Form registrasi dan login mengosongkan semua isian saat validasi atau login gagal"
+      },
+      {
+        "id": "KEL-179",
+        "title": "Enrollment yang baru dibatalkan sempat tampil \"Pembayaran diterima, aktivasi diproses\" untuk transaksi cancelled"
+      },
+      {
+        "id": "KEL-178",
+        "title": "Konfirmasi sukses pembatalan enrollment tidak pernah terlihat karena tombolnya ter-unmount saat baris diperbarui"
+      },
+      {
+        "id": "KEL-177",
+        "title": "Advisory baru Go stdlib, golang.org/x/net, dan Next.js ditutup agar CI gate semua repository kembali hijau"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

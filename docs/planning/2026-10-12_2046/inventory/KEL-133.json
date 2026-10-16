@@ -1,0 +1,69 @@
+{
+  "id": "KEL-133",
+  "uuid": "668770ff-1c6e-46c1-b004-55e169e2e005",
+  "title": "Parent memilih channel pembayaran untuk pembelian kelas private",
+  "description": "## Background / Problem\n\nFollow-up dari keputusan owner pada <issue id=\"3f88fbc1-5ca3-49ca-8e1f-70621148f24b\" href=\"https://linear.app/farid-zamani/issue/KEL-125/billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk-invoice-baru\">KEL-125</issue> (opsi A, 29-09-2026): <issue id=\"3f88fbc1-5ca3-49ca-8e1f-70621148f24b\" href=\"https://linear.app/farid-zamani/issue/KEL-125/billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk-invoice-baru\">KEL-125</issue> hanya menambahkan channel pilihan untuk enrollment publik dan request invoice internal. Alur private tetap seperti sebelumnya.\n\nFakta dari kode (worktree <issue id=\"3f88fbc1-5ca3-49ca-8e1f-70621148f24b\" href=\"https://linear.app/farid-zamani/issue/KEL-125/billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk-invoice-baru\">KEL-125</issue>, basis `origin/main`): `kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go:76-87,194-209`. `Approve` milik tenant dan `AcceptRecommendation` milik parent sama-sama memanggil `purchase`, yang langsung memanggil `billing.GenerateInvoice` sesudah transaksi approval. Jadi invoice private terbit saat approval dengan channel default `VC`, dan parent tidak punya titik untuk memilih channel di antara approval dan pembuatan invoice.\n\n## Goal\n\nParent dapat memilih channel (VA/QRIS/kartu, allowlist yang sama dengan <issue id=\"3f88fbc1-5ca3-49ca-8e1f-70621148f24b\" href=\"https://linear.app/farid-zamani/issue/KEL-125/billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk-invoice-baru\">KEL-125</issue>) untuk pembelian kelas private tanpa membuat enrollment/jadwal kedua dan tanpa mengganti invoice aktif.\n\n## Keputusan produk yang dibutuhkan sebelum issue ini `ai-ready`\n\n* B. Tunda invoice sampai checkout parent: approval tenant hanya mengubah status, lalu endpoint parent baru memilih channel dan menerbitkan invoice. Butuh layar web (repo web) dan mengubah perilaku approval (tidak lagi langsung menghasilkan link bayar).\n* C. Parent memilih channel saat mengajukan request private (sebelum approval), disimpan pada request, dan dipakai saat tenant approve. Butuh kolom/migrasi di request private dan field di form web.\n\nSetelah dipilih, issue ini perlu kontrak `## AI Orchestrator Contract` lengkap (repositories, AC, validasi) sebelum label `ai-ready` ditambahkan.\n\n## Out of Scope\n\n* Mengganti channel pada invoice private yang masih aktif (default: tolak).\n* Penyimpanan data kartu/CVV.\n\nBlocked by <issue id=\"3f88fbc1-5ca3-49ca-8e1f-70621148f24b\" href=\"https://linear.app/farid-zamani/issue/KEL-125/billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk-invoice-baru\">KEL-125</issue> (allowlist channel dan field `channel` di request invoice internal berasal dari issue itu).",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-133/parent-memilih-channel-pembayaran-untuk-pembelian-kelas-private",
+  "gitBranchName": "skinel123/kel-133-parent-memilih-channel-pembayaran-untuk-pembelian-kelas",
+  "createdAt": "2026-09-29T06:09:43.425Z",
+  "updatedAt": "2026-09-29T12:39:34.508Z",
+  "archivedAt": null,
+  "completedAt": null,
+  "startedAt": null,
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Backlog",
+  "statusType": "backlog",
+  "labels": [
+    "billing",
+    "academic",
+    "Feature"
+  ],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-29T06:09:43.425Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pembayaran kelas dengan pilihan channel dan halaman KelolaKelas",
+  "projectId": "d1466cff-05f5-409d-aeba-c748ad1439fa",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-125",
+        "title": "Billing menerima pilihan channel VA/QRIS atau kartu untuk invoice baru"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-128",
+        "title": "Parent menerima email payment link setelah jadwal private disetujui"
+      },
+      {
+        "id": "KEL-127",
+        "title": "Parent membayar VA/QRIS dari halaman KelolaKelas dan kartu melalui redirect Duitku"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

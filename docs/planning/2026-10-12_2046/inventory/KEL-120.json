@@ -1,0 +1,115 @@
+{
+  "id": "KEL-120",
+  "uuid": "ccecbcfe-1acf-4ffc-9536-6c4e54d468b8",
+  "title": "Chat-service mendukung percakapan parent\u2013admin tenant per permintaan jadwal private dan pengajar\u2013parent per report",
+  "description": "## Background / Problem\n\nOwner menetapkan dua alur: parent dapat chat dengan admin tenant saat mengajukan jadwal private, dan pengajar dapat chat dengan parent terkait report student. Hak akses keduanya hanya dapat dibuktikan dari data academic, yang disediakan lewat endpoint internal (issue `academic-chat-context-internal-api`). Parent tidak dapat membaca report lewat API publik (academic `internal/usecase/report_usecase.go:62` hanya menyediakan `GetByIDForTenant`).\n\n## Goal\n\nParent dan admin tenant dapat membuka percakapan untuk satu permintaan jadwal private, dan pengajar dapat membuka percakapan dengan parent untuk satu report. Hak akses diverifikasi dari academic.\n\n## Requirements\n\n* `POST /api/v1/chat/conversations` menerima `kind` `schedule_request` dan `report`, dengan `subject_id` berupa ID permintaan atau ID report. Chat-service memanggil endpoint internal academic dengan `X-Internal-Service-Credential` (env `ACADEMIC_SERVICE_URL` dan `INTERNAL_SERVICE_CREDENTIAL`).\n* `schedule_request`: parent dapat membuat bila `parent_id` konteks sama dengan `user_id` token parent, dan anggota dengan `chat:manage` dapat membuat bila `tenant_id` konteks sama dengan tenant token. Percakapan terlihat oleh parent tersebut dan pemegang `chat:manage` di tenant itu.\n* `report`: anggota dengan `report:read` di tenant report dapat membuat, sedangkan parent tidak dapat membuat. Percakapan terlihat oleh parent student (`parent_id` konteks) dan anggota tenant itu yang memiliki `report:read`.\n* Snapshot konteks disimpan saat percakapan dibuat: `class_name`, `student_first_name`, `report_title` bila ada, dan nama tenant dari gRPC identity `GetTenantPublicInfo`. Dengan begitu daftar percakapan parent lintas tenant tetap informatif.\n* Parent (token tanpa tenant) melihat semua percakapan miliknya lintas tenant di `GET /api/v1/chat/conversations`.\n* Aturan visibilitas baru ditambahkan ke fungsi visibilitas yang sama dari issue `chat-service-core-api`. Visibilitas setelah pembuatan memakai kolom tersimpan, bukan panggilan ulang ke academic.\n* Bila academic tidak tersedia atau menjawab 5xx, pembuatan percakapan gagal dengan 503 tersanitasi; percakapan yang sudah ada tetap dapat dibaca.\n\n## Acceptance Criteria\n\n- [ ] Parent pemilik permintaan membuat percakapan `schedule_request`, dan pemegang `chat:manage` di tenant itu dapat membalas.\n- [ ] Parent lain, anggota tenant lain, dan anggota tanpa `chat:manage` tidak dapat membuat maupun melihat percakapan permintaan itu (404).\n- [ ] Pengajar dengan `report:read` membuat percakapan `report`, parent student melihat dan membalasnya, sedangkan parent lain mendapat 404.\n- [ ] Parent yang mencoba membuat percakapan `report` ditolak.\n- [ ] ID permintaan atau report yang tidak ada ditolak 404.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko utama: kebocoran lintas tenant dan lintas parent, karena endpoint internal academic tidak memfilter tenant. Chat-service wajib membandingkan `tenant_id` dan `parent_id` konteks dengan token sebelum membuat percakapan.\n\nAsumsi yang belum dikonfirmasi owner:\n\n* percakapan permintaan jadwal boleh dibuka pada status apa pun, termasuk setelah ditolak atau dibatalkan;\n* sisi tenant pada percakapan report adalah semua pemegang `report:read` di tenant, bukan hanya pembuat report.\n\nPerbarui kelolakelas-docs `docs/api/chat.md`, `docs/components/chat-service.md`, dan `docs/reference/environment-variables.md`.\n\nRelevant areas:\n\n* `kelolakelas-chat-service/internal/usecase`\n* `kelolakelas-chat-service/internal/repository`\n* `kelolakelas-chat-service/pkg`\n* `kelolakelas-identity-service/pkg/proto/tenant`\n\n## Edge Cases\n\n* Permintaan dibatalkan setelah percakapan dibuat; percakapan tetap bisa dipakai.\n* Student dihapus setelah percakapan report dibuat; snapshot konteks tetap ditampilkan.\n* Parent memiliki percakapan di beberapa tenant.\n* Dua anggota tenant membuat percakapan yang sama secara bersamaan.\n\n## Testing / Validation\n\n- [ ] Unit test usecase untuk setiap kombinasi pemanggil, jenis percakapan, dan kepemilikan.\n- [ ] Integration test PostgreSQL dengan academic palsu (`httptest`) untuk isolasi parent dan tenant, sebagai mitigasi kebocoran.\n- [ ] Test bahwa kegagalan academic menghasilkan 503 tersanitasi.\n- [ ] CI `gate` pass (`gofmt`, `go vet`, `go test -race`, build, govulncheck), existing tests pass, dan acceptance criteria diverifikasi.\n\n## Out of Scope\n\n* WebSocket (issue terpisah).\n* Menampilkan isi report ke parent.\n* Tombol di halaman permintaan jadwal atau report (issue web).\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"projectKey\": \"tenant-parent-teacher-chat\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"externalDependencies\": [],\n  \"draftKey\": \"chat-service-conversation-contexts\",\n  \"title\": \"Chat-service mendukung percakapan parent\u2013admin tenant per permintaan jadwal private dan pengajar\u2013parent per report\",\n  \"estimate\": \"M\",\n  \"complexity\": \"high\",\n  \"repositories\": [\n    \"chat\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"chat-service-core-api\",\n    \"academic-chat-context-internal-api\"\n  ],\n  \"body\": {\n    \"backgroundProblem\": \"Owner menetapkan dua alur: parent dapat chat dengan admin tenant saat mengajukan jadwal private, dan pengajar dapat chat dengan parent terkait report student. Hak akses keduanya hanya dapat dibuktikan dari data academic, yang disediakan lewat endpoint internal (issue `academic-chat-context-internal-api`). Parent tidak dapat membaca report lewat API publik (academic `internal/usecase/report_usecase.go:62` hanya menyediakan `GetByIDForTenant`).\",\n    \"goal\": \"Parent dan admin tenant dapat membuka percakapan untuk satu permintaan jadwal private, dan pengajar dapat membuka percakapan dengan parent untuk satu report. Hak akses diverifikasi dari academic.\",\n    \"requirements\": [\n      \"`POST /api/v1/chat/conversations` menerima `kind` `schedule_request` dan `report`, dengan `subject_id` berupa ID permintaan atau ID report. Chat-service memanggil endpoint internal academic dengan `X-Internal-Service-Credential` (env `ACADEMIC_SERVICE_URL` dan `INTERNAL_SERVICE_CREDENTIAL`).\",\n      \"`schedule_request`: parent dapat membuat bila `parent_id` konteks sama dengan `user_id` token parent, dan anggota dengan `chat:manage` dapat membuat bila `tenant_id` konteks sama dengan tenant token. Percakapan terlihat oleh parent tersebut dan pemegang `chat:manage` di tenant itu.\",\n      \"`report`: anggota dengan `report:read` di tenant report dapat membuat, sedangkan parent tidak dapat membuat. Percakapan terlihat oleh parent student (`parent_id` konteks) dan anggota tenant itu yang memiliki `report:read`.\",\n      \"Snapshot konteks disimpan saat percakapan dibuat: `class_name`, `student_first_name`, `report_title` bila ada, dan nama tenant dari gRPC identity `GetTenantPublicInfo`. Dengan begitu daftar percakapan parent lintas tenant tetap informatif.\",\n      \"Parent (token tanpa tenant) melihat semua percakapan miliknya lintas tenant di `GET /api/v1/chat/conversations`.\",\n      \"Aturan visibilitas baru ditambahkan ke fungsi visibilitas yang sama dari issue `chat-service-core-api`. Visibilitas setelah pembuatan memakai kolom tersimpan, bukan panggilan ulang ke academic.\",\n      \"Bila academic tidak tersedia atau menjawab 5xx, pembuatan percakapan gagal dengan 503 tersanitasi; percakapan yang sudah ada tetap dapat dibaca.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Parent pemilik permintaan membuat percakapan `schedule_request`, dan pemegang `chat:manage` di tenant itu dapat membalas.\",\n      \"Parent lain, anggota tenant lain, dan anggota tanpa `chat:manage` tidak dapat membuat maupun melihat percakapan permintaan itu (404).\",\n      \"Pengajar dengan `report:read` membuat percakapan `report`, parent student melihat dan membalasnya, sedangkan parent lain mendapat 404.\",\n      \"Parent yang mencoba membuat percakapan `report` ditolak.\",\n      \"ID permintaan atau report yang tidak ada ditolak 404.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko utama: kebocoran lintas tenant dan lintas parent, karena endpoint internal academic tidak memfilter tenant. Chat-service wajib membandingkan `tenant_id` dan `parent_id` konteks dengan token sebelum membuat percakapan.\\n\\nAsumsi yang belum dikonfirmasi owner:\\n- percakapan permintaan jadwal boleh dibuka pada status apa pun, termasuk setelah ditolak atau dibatalkan;\\n- sisi tenant pada percakapan report adalah semua pemegang `report:read` di tenant, bukan hanya pembuat report.\\n\\nPerbarui kelolakelas-docs `docs/api/chat.md`, `docs/components/chat-service.md`, dan `docs/reference/environment-variables.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-chat-service/internal/usecase\",\n      \"kelolakelas-chat-service/internal/repository\",\n      \"kelolakelas-chat-service/pkg\",\n      \"kelolakelas-identity-service/pkg/proto/tenant\"\n    ],\n    \"edgeCases\": [\n      \"Permintaan dibatalkan setelah percakapan dibuat; percakapan tetap bisa dipakai.\",\n      \"Student dihapus setelah percakapan report dibuat; snapshot konteks tetap ditampilkan.\",\n      \"Parent memiliki percakapan di beberapa tenant.\",\n      \"Dua anggota tenant membuat percakapan yang sama secara bersamaan.\"\n    ],\n    \"testingValidation\": [\n      \"Unit test usecase untuk setiap kombinasi pemanggil, jenis percakapan, dan kepemilikan.\",\n      \"Integration test PostgreSQL dengan academic palsu (`httptest`) untuk isolasi parent dan tenant, sebagai mitigasi kebocoran.\",\n      \"Test bahwa kegagalan academic menghasilkan 503 tersanitasi.\",\n      \"CI `gate` pass (`gofmt`, `go vet`, `go test -race`, build, govulncheck), existing tests pass, dan acceptance criteria diverifikasi.\"\n    ],\n    \"outOfScope\": [\n      \"WebSocket (issue terpisah).\",\n      \"Menampilkan isi report ke parent.\",\n      \"Tombol di halaman permintaan jadwal atau report (issue web).\"\n    ]\n  },\n  \"labels\": [\n    \"chat\",\n    \"ai-ready\"\n  ]\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-120/chat-service-mendukung-percakapan-parent-admin-tenant-per-permintaan",
+  "gitBranchName": "skinel123/kel-120-chat-service-mendukung-percakapan-parentadmin-tenant-per",
+  "createdAt": "2026-09-28T05:32:12.952Z",
+  "updatedAt": "2026-09-28T19:15:04.111Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-28T14:28:55.286Z",
+  "startedAt": "2026-09-28T14:08:32.679Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "chat",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "d7713c33-ee23-4818-ae82-3d0bab911fbf",
+      "title": "KEL-120: Document contextual parent and report chat",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/119"
+    },
+    {
+      "id": "b99c12d3-e1a5-4ced-b8b3-7d92a8faffc2",
+      "title": "KEL-120 chat-service implementation PR",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-chat-service/pull/2"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T05:32:12.952Z",
+      "endedAt": "2026-09-28T14:08:32.710Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-28T14:08:32.710Z",
+      "endedAt": "2026-09-28T14:28:55.292Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-28T14:28:55.292Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Chat realtime antara tenant, pengajar, dan parent",
+  "projectId": "6fd7df4e-3f90-4efc-b835-f60581a2ce78",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-121",
+        "title": "Chat-service mengirim pesan baru secara realtime lewat WebSocket dengan tiket sekali pakai"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-119",
+        "title": "Chat-service menyimpan percakapan pengajar\u2013admin tenant dan pesannya melalui REST API"
+      },
+      {
+        "id": "KEL-118",
+        "title": "Academic menyediakan konteks permintaan jadwal private dan report untuk chat-service melalui endpoint internal"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-113",
+        "title": "Form buat kelas tidak lagi menampilkan field kapasitas karena kapasitas diatur per jadwal"
+      },
+      {
+        "id": "KEL-129",
+        "title": "Payment link private dapat dikirim lewat percakapan request yang tepat"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

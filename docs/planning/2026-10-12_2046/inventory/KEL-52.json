@@ -1,0 +1,129 @@
+{
+  "id": "KEL-52",
+  "uuid": "026aa80a-eaa1-4db9-ae1a-1420de432779",
+  "title": "Katalog dan enrollment hanya menawarkan jadwal yang masih berlaku",
+  "description": "## Background / Problem\n\nSubquery jadwal katalog list dan detail (`catalog_repository.go:89,103`) hanya menyaring `deleted_at IS NULL`, sehingga `valid_from`/`valid_until` diabaikan. `CreateIfCapacityAvailable` (`enrollment_repository.go:36-63`) memeriksa kepemilikan kelas dan kapasitas, tetapi tidak memeriksa masa berlaku jadwal. Jadwal yang sudah diakhiri, misalnya oleh perubahan permanen (`valid_until = effective_date - 1`), tetap tampil dan dapat dibeli parent.\n\n## Goal\n\nParent hanya melihat dan dapat mendaftar pada jadwal yang masih berlaku.\n\n## Requirements\n\n* Katalog list dan detail tidak menyertakan jadwal dengan `valid_until` sebelum tanggal hari ini.\n* Enrollment ke jadwal yang sudah berakhir ditolak dengan 422 tanpa membuat enrollment.\n* Jadwal dengan `valid_from` di masa depan tetap ditampilkan seperti sekarang.\n* Perhitungan `available_slots` dan bentuk respons katalog lainnya tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Jadwal dengan `valid_until` kemarin tidak muncul di `GET /api/v1/catalog/classes` maupun `GET /api/v1/catalog/classes/:id`.\n- [ ] Jadwal dengan `valid_until` hari ini atau tanpa `valid_until` tetap muncul.\n- [ ] Enrollment dengan `schedule_id` yang sudah berakhir menghasilkan 422 dan tidak ada enrollment tercipta.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nTentukan \"hari ini\" konsisten dengan `normalizeDate` di `schedule_usecase.go`, dan catat zona waktu yang dipakai sebagai keputusan di PR. Web menampilkan data backend apa adanya; mapping 422 web yang ada sudah menampilkan pesan \"tidak menerima enrollment\". Perbarui `docs/api/academic.md`.\n\nComplexity rationale: Perubahan query terbatas, tetapi menyentuh kebenaran katalog dan penerimaan enrollment serta semantik tanggal/zona waktu.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/repository/catalog_repository.go`\n* `kelolakelas-academic-service/internal/repository/enrollment_repository.go`\n* `kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go`\n* `kelolakelas-academic-service/internal/repository/catalog_availability_test.go`\n\n## Edge Cases\n\n* Kelas grup yang semua jadwalnya sudah berakhir tampil tanpa pilihan jadwal.\n* Batas pergantian tanggal dan perbedaan zona waktu database/aplikasi.\n* Enrollment pending yang sudah ada di jadwal berakhir tidak diubah.\n\n## Testing / Validation\n\n- [ ] Test repository katalog dan enrollment terhadap PostgreSQL mencakup jadwal berakhir, berakhir hari ini, dan tanpa `valid_until`.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Menyembunyikan kelas tanpa jadwal berlaku dari daftar katalog.\n* Pembersihan data jadwal lama.\n* Perubahan web.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"academic-exclude-ended-schedules\",\n  \"projectKey\": \"sellable-group-schedules\",\n  \"title\": \"Katalog dan enrollment hanya menawarkan jadwal yang masih berlaku\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"academic\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Subquery jadwal katalog list dan detail (`catalog_repository.go:89,103`) hanya menyaring `deleted_at IS NULL`, sehingga `valid_from`/`valid_until` diabaikan. `CreateIfCapacityAvailable` (`enrollment_repository.go:36-63`) memeriksa kepemilikan kelas dan kapasitas, tetapi tidak memeriksa masa berlaku jadwal. Jadwal yang sudah diakhiri, misalnya oleh perubahan permanen (`valid_until = effective_date - 1`), tetap tampil dan dapat dibeli parent.\",\n    \"goal\": \"Parent hanya melihat dan dapat mendaftar pada jadwal yang masih berlaku.\",\n    \"requirements\": [\n      \"Katalog list dan detail tidak menyertakan jadwal dengan `valid_until` sebelum tanggal hari ini.\",\n      \"Enrollment ke jadwal yang sudah berakhir ditolak dengan 422 tanpa membuat enrollment.\",\n      \"Jadwal dengan `valid_from` di masa depan tetap ditampilkan seperti sekarang.\",\n      \"Perhitungan `available_slots` dan bentuk respons katalog lainnya tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Jadwal dengan `valid_until` kemarin tidak muncul di `GET /api/v1/catalog/classes` maupun `GET /api/v1/catalog/classes/:id`.\",\n      \"Jadwal dengan `valid_until` hari ini atau tanpa `valid_until` tetap muncul.\",\n      \"Enrollment dengan `schedule_id` yang sudah berakhir menghasilkan 422 dan tidak ada enrollment tercipta.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Tentukan \\\"hari ini\\\" konsisten dengan `normalizeDate` di `schedule_usecase.go`, dan catat zona waktu yang dipakai sebagai keputusan di PR. Web menampilkan data backend apa adanya; mapping 422 web yang ada sudah menampilkan pesan \\\"tidak menerima enrollment\\\". Perbarui `docs/api/academic.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/repository/catalog_repository.go\",\n      \"kelolakelas-academic-service/internal/repository/enrollment_repository.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go\",\n      \"kelolakelas-academic-service/internal/repository/catalog_availability_test.go\"\n    ],\n    \"edgeCases\": [\n      \"Kelas grup yang semua jadwalnya sudah berakhir tampil tanpa pilihan jadwal.\",\n      \"Batas pergantian tanggal dan perbedaan zona waktu database/aplikasi.\",\n      \"Enrollment pending yang sudah ada di jadwal berakhir tidak diubah.\"\n    ],\n    \"testingValidation\": [\n      \"Test repository katalog dan enrollment terhadap PostgreSQL mencakup jadwal berakhir, berakhir hari ini, dan tanpa `valid_until`.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Menyembunyikan kelas tanpa jadwal berlaku dari daftar katalog.\",\n      \"Pembersihan data jadwal lama.\",\n      \"Perubahan web.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-52/katalog-dan-enrollment-hanya-menawarkan-jadwal-yang-masih-berlaku",
+  "gitBranchName": "skinel123/kel-52-katalog-dan-enrollment-hanya-menawarkan-jadwal-yang-masih",
+  "createdAt": "2026-09-23T22:25:07.859Z",
+  "updatedAt": "2026-09-26T13:55:07.688Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T13:52:43.381Z",
+  "startedAt": "2026-09-26T13:35:11.287Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "academic",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "bb8a76fd-8f24-473c-a143-1935884ae370",
+      "title": "docs: record KEL-52 schedule validity",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/82"
+    },
+    {
+      "id": "a919f752-a54f-42df-897d-15005c8d50bc",
+      "title": "KEL-52: exclude ended schedules from catalog and enrollment",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/22"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-23T22:25:07.859Z",
+      "endedAt": "2026-09-26T13:35:11.375Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T13:35:11.375Z",
+      "endedAt": "2026-09-26T13:52:43.387Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T13:52:43.387Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Jadwal kelas grup yang dapat dijual dan dipelihara",
+  "projectId": "ce2d931c-9450-4b1f-9014-52bf2789d0b6",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-68",
+        "title": "CI menolak PR yang memasukkan dependency dengan advisory high/critical"
+      },
+      {
+        "id": "KEL-54",
+        "title": "Pendaftaran ganda student ke kelas yang sama mendapat respons konflik yang jelas"
+      },
+      {
+        "id": "KEL-103",
+        "title": "Creator tenant dapat meminta dan platform admin dapat memutuskan Creator tambahan dari web"
+      },
+      {
+        "id": "KEL-98",
+        "title": "Platform admin dapat mengatur visibilitas katalog publik secara konsisten"
+      },
+      {
+        "id": "KEL-80",
+        "title": "Academic dan billing menolak akses anggota yang sudah dikeluarkan atau berganti role"
+      },
+      {
+        "id": "KEL-79",
+        "title": "Anggota Teacher dapat dipindah role tanpa mengizinkan perubahan role sendiri"
+      },
+      {
+        "id": "KEL-78",
+        "title": "Pemeriksaan permission academic dibatasi waktu ketika identity lambat atau tidak merespons"
+      },
+      {
+        "id": "KEL-76",
+        "title": "Permission identity hanya berlaku bagi anggota tenant yang masih aktif dengan role saat ini"
+      },
+      {
+        "id": "KEL-85",
+        "title": "Pengunjung katalog melihat sisa kursi dan lokasi setiap jadwal kelas sebelum login"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

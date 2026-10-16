@@ -1,0 +1,47 @@
+{
+  "id": "KEL-4",
+  "uuid": "af2e8e89-7fc6-4da2-a018-f26222831a67",
+  "title": "Set up your teams",
+  "description": "This workspace is a container for your organization\u2019s work.\u00a0\n\n* [Learn more about Workspaces](<https://linear.app/docs/workspaces>)\n  How to configure settings and workflows\u00a0\n\nTeams are how you organize people and work in Linear.\n\n* [Learn about Teams](<https://linear.app/docs/teams>)\n  How to structure teams and configure workflows\n\nTeams are made of members with defined roles (Admin, Member, Guest).\n\n* [Learn more about Members](<https://linear.app/docs/invite-members>)\n  Add your team and assign roles\n\n---\n\nReady to add your team? Invite via CSV or a unique link in [settings](<http://linear.app/settings/members>).",
+  "priority": {
+    "value": 0,
+    "name": "No priority"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-4/set-up-your-teams",
+  "gitBranchName": "skinel123/kel-4-set-up-your-teams",
+  "createdAt": "2026-09-07T04:59:52.512Z",
+  "updatedAt": "2026-09-07T04:59:52.512Z",
+  "archivedAt": "2026-09-13T18:12:27.218Z",
+  "completedAt": null,
+  "startedAt": null,
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Todo",
+  "statusType": "unstarted",
+  "labels": [],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "5c718517-dc98-47f5-b95b-ed3014f90384",
+        "name": "Todo",
+        "type": "unstarted"
+      },
+      "startedAt": "2026-09-07T04:59:52.512Z",
+      "endedAt": null
+    }
+  ],
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

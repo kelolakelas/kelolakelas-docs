@@ -1,0 +1,3803 @@
+
+### app/(dashboard)/dashboard/tenant/classes/_components/CategoryForm.tsx
+1|'use client';
+2|
+3|import { useActionState, useEffect } from 'react';
+4|import { useFormStatus } from 'react-dom';
+5|import { createCategory, type ActionResponse } from '../_actions/classActions';
+6|import type { Category } from '../_lib/schema';
+7|
+8|// Standard submit button utilizing React 19's useFormStatus
+9|function SubmitCategoryButton() {
+10|  const { pending } = useFormStatus();
+11|
+12|  return (
+13|    <button
+14|      type="submit"
+15|      disabled={pending}
+16|      className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+17|    >
+18|      {pending ? (
+19|        <span className="flex items-center gap-2">
+20|          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+21|            <circle
+22|              className="opacity-25"
+23|              cx="12"
+24|              cy="12"
+25|              r="10"
+26|              stroke="currentColor"
+27|              strokeWidth="4"
+28|            />
+29|            <path
+30|              className="opacity-75"
+31|              fill="currentColor"
+32|              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+33|            />
+34|          </svg>
+35|          Saving Category...
+36|        </span>
+37|      ) : (
+38|        'Create Category'
+39|      )}
+40|    </button>
+41|  );
+42|}
+43|
+44|interface CategoryFormProps {
+45|  existingCategories: Category[];
+46|  onSelectCategory: (category: Category) => void;
+47|}
+48|
+49|const initialActionState: ActionResponse<Category> = {
+50|  success: false,
+51|  message: '',
+52|};
+53|
+54|export function CategoryForm({ existingCategories, onSelectCategory }: CategoryFormProps) {
+55|  const [state, formAction] = useActionState(createCategory, initialActionState);
+56|
+57|  useEffect(() => {
+58|    if (state.success && state.data) {
+59|      onSelectCategory(state.data as Category);
+60|    }
+61|  }, [state, onSelectCategory]);
+62|
+63|  return (
+64|    <div className="space-y-6">
+65|      {/* Option A: Select from existing categories */}
+66|      {existingCategories.length > 0 && (
+67|        <div className="space-y-3 border-b border-gray-100 dark:border-gray-800 pb-6">
+68|          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+69|            Select Existing Category
+70|          </h3>
+71|          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-48 overflow-y-auto pr-1">
+72|            {existingCategories.map((cat) => (
+73|              <button
+74|                key={cat.id}
+75|                type="button"
+76|                onClick={() => onSelectCategory(cat)}
+77|                className="flex min-h-[44px] items-center justify-between rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-left transition-all hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 focus:outline-none focus:ring-2 focus:ring-blue-500"
+78|              >
+79|                <div>
+80|                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+81|                    {cat.name}
+82|                  </p>
+83|                  {cat.description && (
+84|                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+85|                      {cat.description}
+86|                    </p>
+87|                  )}
+88|                </div>
+89|                <span className="text-blue-600 dark:text-blue-400 font-semibold text-xs">
+90|                  Select →
+91|                </span>
+92|              </button>
+93|            ))}
+94|          </div>
+95|        </div>
+96|      )}
+97|
+98|      {/* Option B: Create new category inline */}
+99|      <form action={formAction} className="space-y-4">
+100|        <div>
+101|          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+102|            {existingCategories.length > 0
+103|              ? 'Or Create a New Category'
+104|              : 'Create New Category'}
+105|          </h3>
+106|          <p className="text-xs text-gray-500 dark:text-gray-400">
+107|            Categories group related courses together (e.g., Mathematics, Languages).
+108|          </p>
+109|        </div>
+110|
+111|        {/* Global Error Banner */}
+112|        {!state.success && state.message && (
+113|          <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/50 p-3 text-xs text-red-700 dark:text-red-300">
+114|            {state.message}
+115|          </div>
+116|        )}
+117|
+118|        {/* Category Name Input */}
+119|        <div className="space-y-1.5">
+120|          <label
+121|            htmlFor="category-name"
+122|            className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+123|          >
+124|            Category Name <span className="text-red-500">*</span>
+125|          </label>
+126|          <input
+127|            id="category-name"
+128|            name="name"
+129|            type="text"
+130|            required
+131|            placeholder="e.g. Science & Mathematics"
+132|            className="block min-h-[44px] w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+133|          />
+134|          {state.errors?.name && (
+135|            <p className="text-xs text-red-600 dark:text-red-400">{state.errors.name[0]}</p>
+136|          )}
+137|        </div>
+138|
+139|        {/* Description Input */}
+140|        <div className="space-y-1.5">
+141|          <label
+142|            htmlFor="category-description"
+143|            className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+144|          >
+145|            Description <span className="text-gray-400 text-[11px] font-normal">(Optional)</span>
+146|          </label>
+147|          <textarea
+148|            id="category-description"
+149|            name="description"
+150|            rows={2}
+151|            placeholder="Brief details about courses in this category..."
+152|            className="block w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+153|          />
+154|          {state.errors?.description && (
+155|            <p className="text-xs text-red-600 dark:text-red-400">
+156|              {state.errors.description[0]}
+157|            </p>
+158|          )}
+159|        </div>
+160|
+161|        <div className="pt-2 flex justify-end">
+162|          <SubmitCategoryButton />
+163|        </div>
+164|      </form>
+165|    </div>
+166|  );
+167|}
+
+### app/(dashboard)/dashboard/tenant/classes/_components/ClassCreationWizard.tsx
+1|'use client';
+2|
+3|import { useState } from 'react';
+4|import type { Category, ClassEntity } from '../_lib/schema';
+5|import { CategoryForm } from './CategoryForm';
+6|import { ClassForm } from './ClassForm';
+7|import { ScheduleForm } from './ScheduleForm';
+8|
+9|interface ClassCreationWizardProps {
+10|  existingCategories: Category[];
+11|  onComplete?: () => void;
+12|}
+13|
+14|/**
+15| * Final wizard step for a private class.
+16| *
+17| * The academic service binds `enrollment_id` as required on every schedule of
+18| * a private class, so a private class cannot have its schedules created from
+19| * this wizard — the schedules are created per enrollment once a student is
+20| * enrolled. Rendering a slot form here would only end in the endpoint's 400,
+21| * so this step explains that and finishes the wizard without a request.
+22| *
+23| * Exported for direct render testing: the wizard keeps the step behind its
+24| * open-modal click handler, which static markup rendering cannot reach.
+25| */
+26|export function PrivateClassScheduleNotice({
+27|  className: name,
+28|  onFinish,
+29|}: {
+30|  className: string;
+31|  onFinish: () => void;
+32|}) {
+33|  return (
+34|    <div className="space-y-5">
+35|      <div className="flex items-center justify-between rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 px-4 py-3 text-xs">
+36|        <div>
+37|          <span className="text-gray-500 dark:text-gray-400 block">Class Configured:</span>
+38|          <span className="font-bold text-emerald-800 dark:text-emerald-300 text-sm">
+39|            {name}
+40|          </span>
+41|          <span className="ml-2 inline-flex items-center rounded-md bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-800 dark:text-emerald-200">
+42|            private
+43|          </span>
+44|        </div>
+45|      </div>
+46|
+47|      <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 p-4 text-xs text-blue-800 dark:text-blue-300 space-y-2">
+48|        <p className="font-semibold">No timetable needed yet.</p>
+49|        <p>
+50|          A private class gets its schedule per student. Once a student is enrolled,
+51|          create the lessons for that enrollment from the enrollment — including the
+52|          capacity of one. Nothing was sent to the schedules endpoint in this step.
+53|        </p>
+54|      </div>
+55|
+56|      <div className="pt-3 flex items-center justify-end gap-3">
+57|        <button
+58|          type="button"
+59|          onClick={onFinish}
+60|          className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+61|        >
+62|          Finish Class Setup ✓
+63|        </button>
+64|      </div>
+65|    </div>
+66|  );
+67|}
+68|
+69|export function ClassCreationWizard({
+70|  existingCategories,
+71|  onComplete,
+72|}: ClassCreationWizardProps) {
+73|  const [isOpen, setIsOpen] = useState(false);
+74|  const [step, setStep] = useState<1 | 2 | 3>(1);
+75|
+76|  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+77|  const [createdClass, setCreatedClass] = useState<ClassEntity | null>(null);
+78|
+79|  const handleOpen = () => {
+80|    setStep(1);
+81|    setSelectedCategory(null);
+82|    setCreatedClass(null);
+83|    setIsOpen(true);
+84|  };
+85|
+86|  const handleClose = () => {
+87|    setIsOpen(false);
+88|    setStep(1);
+89|    setSelectedCategory(null);
+90|    setCreatedClass(null);
+91|  };
+92|
+93|  const handleCategorySelected = (category: Category) => {
+94|    setSelectedCategory(category);
+95|    setStep(2);
+96|  };
+97|
+98|  const handleClassCreated = (newClass: ClassEntity) => {
+99|    setCreatedClass(newClass);
+100|    setStep(3);
+101|  };
+102|
+103|  const handleScheduleComplete = () => {
+104|    handleClose();
+105|    if (onComplete) {
+106|      onComplete();
+107|    }
+108|  };
+109|
+110|  return (
+111|    <>
+112|      {/* Trigger Button */}
+113|      <button
+114|        type="button"
+115|        onClick={handleOpen}
+116|        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+117|      >
+118|        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+119|          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+120|        </svg>
+121|        <span>Create New Class</span>
+122|      </button>
+123|
+124|      {/* Modal Overlay */}
+125|      {isOpen && (
+126|        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-6 backdrop-blur-xs overflow-y-auto">
+127|          <div className="w-full max-w-2xl rounded-2xl bg-white dark:bg-gray-900 p-4 sm:p-6 shadow-2xl border border-gray-200 dark:border-gray-800 space-y-6 my-auto">
+128|            {/* Modal Header */}
+129|            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
+130|              <div>
+131|                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+132|                  Class Creation Wizard
+133|                </h2>
+134|                <p className="text-xs text-gray-500 dark:text-gray-400">
+135|                  Set up academic categories, course details, and recurring timetables in 3 easy steps.
+136|                </p>
+137|              </div>
+138|              <button
+139|                type="button"
+140|                onClick={handleClose}
+141|                className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+142|                aria-label="Close modal"
+143|              >
+144|                ✕
+145|              </button>
+146|            </div>
+147|
+148|            {/* Stepper Progress Bar (Mobile-First responsive indicator) */}
+149|            <div className="space-y-2">
+150|              <div className="grid grid-cols-3 gap-2">
+151|                {/* Step 1 Indicator */}
+152|                <div
+153|                  className={`h-2 rounded-full transition-all ${
+154|                    step >= 1 ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-800'
+155|                  }`}
+156|                />
+157|                {/* Step 2 Indicator */}
+158|                <div
+159|                  className={`h-2 rounded-full transition-all ${
+160|                    step >= 2 ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-800'
+161|                  }`}
+162|                />
+163|                {/* Step 3 Indicator */}
+164|                <div
+165|                  className={`h-2 rounded-full transition-all ${
+166|                    step >= 3 ? 'bg-emerald-600' : 'bg-gray-200 dark:bg-gray-800'
+167|                  }`}
+168|                />
+169|              </div>
+170|
+171|              <div className="flex justify-between text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 px-0.5">
+172|                <span className={step === 1 ? 'text-blue-600 dark:text-blue-400 font-bold' : ''}>
+173|                  1. Category
+174|                </span>
+175|                <span className={step === 2 ? 'text-blue-600 dark:text-blue-400 font-bold' : ''}>
+176|                  2. Class Details
+177|                </span>
+178|                <span className={step === 3 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : ''}>
+179|                  3. Schedules
+180|                </span>
+181|              </div>
+182|            </div>
+183|
+184|            {/* Step Body Content */}
+185|            <div className="py-2">
+186|              {step === 1 && (
+187|                <CategoryForm
+188|                  existingCategories={existingCategories}
+189|                  onSelectCategory={handleCategorySelected}
+190|                />
+191|              )}
+192|
+193|              {step === 2 && selectedCategory && (
+194|                <ClassForm
+195|                  selectedCategory={selectedCategory}
+196|                  onClassCreated={handleClassCreated}
+197|                  onBack={() => setStep(1)}
+198|                />
+199|              )}
+200|
+201|              {step === 3 && createdClass && (
+202|                createdClass.type === 'private' ? (
+203|                  <PrivateClassScheduleNotice
+204|                    className={createdClass.name}
+205|                    onFinish={handleScheduleComplete}
+206|                  />
+207|                ) : (
+208|                  <ScheduleForm
+209|                    createdClass={createdClass}
+210|                    onScheduleSuccess={handleScheduleComplete}
+211|                    onBack={() => setStep(2)}
+212|                  />
+213|                )
+214|              )}
+215|            </div>
+216|          </div>
+217|        </div>
+218|      )}
+219|    </>
+220|  );
+221|}
+
+### app/(dashboard)/dashboard/tenant/classes/_components/ScheduleForm.tsx
+1|'use client';
+2|
+3|import { useActionState, useEffect, useMemo, useState } from 'react';
+4|import { useFormStatus } from 'react-dom';
+5|import { createSchedule, type ActionResponse } from '../_actions/classActions';
+6|import {
+7|  findOverlappingSlotPairs,
+8|  generateWeeklySlots,
+9|  weeklySlotGeneratorSchema,
+10|  type ClassEntity,
+11|  type ScheduleItemInput,
+12|} from '../_lib/schema';
+13|
+14|/**
+15| * A slot as the form holds it while the tenant is typing.
+16| *
+17| * Capacity stays the raw string the number input carries so a half-typed or
+18| * cleared value is never rewritten into a fake number (`Number('')` is 0, and
+19| * a 0 capacity would silently travel in the hidden payload). The zod schema
+20| * coerces and validates the string inside the Server Action, and the input's
+21| * `required`/`min`/`step` attributes stop an invalid form from being submitted
+22| * in the first place.
+23| */
+24|type ScheduleSlotDraft = Omit<ScheduleItemInput, 'capacity'> & { capacity: string };
+25|
+26|function SubmitScheduleButton() {
+27|  const { pending } = useFormStatus();
+28|
+29|  return (
+30|    <button
+31|      type="submit"
+32|      disabled={pending}
+33|      className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+34|    >
+35|      {pending ? (
+36|        <span className="flex items-center gap-2">
+37|          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+38|            <circle
+39|              className="opacity-25"
+40|              cx="12"
+41|              cy="12"
+42|              r="10"
+43|              stroke="currentColor"
+44|              strokeWidth="4"
+45|            />
+46|            <path
+47|              className="opacity-75"
+48|              fill="currentColor"
+49|              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+50|            />
+51|          </svg>
+52|          Finalizing Schedules...
+53|        </span>
+54|      ) : (
+55|        'Complete Class Setup ✓'
+56|      )}
+57|    </button>
+58|  );
+59|}
+60|
+61|const DAYS_OF_WEEK = [
+62|  { id: 1, label: 'Monday' },
+63|  { id: 2, label: 'Tuesday' },
+64|  { id: 3, label: 'Wednesday' },
+65|  { id: 4, label: 'Thursday' },
+66|  { id: 5, label: 'Friday' },
+67|  { id: 6, label: 'Saturday' },
+68|  { id: 7, label: 'Sunday' },
+69|];
+70|
+71|interface ScheduleFormProps {
+72|  createdClass: ClassEntity;
+73|  onScheduleSuccess: () => void;
+74|  onBack: () => void;
+75|}
+76|
+77|const initialActionState: ActionResponse = {
+78|  success: false,
+79|  message: '',
+80|};
+81|
+82|export function ScheduleForm({
+83|  createdClass,
+84|  onScheduleSuccess,
+85|  onBack,
+86|}: ScheduleFormProps) {
+87|  const [schedules, setSchedules] = useState<ScheduleSlotDraft[]>([
+88|    {
+89|      day_of_week: 1,
+90|      start_time: '09:00',
+91|      end_time: '10:30',
+92|      capacity: '10',
+93|      location: 'Room 101',
+94|    },
+95|  ]);
+96|
+97|  const [state, formAction] = useActionState(createSchedule, initialActionState);
+98|
+99|  useEffect(() => {
+100|    if (state.success) {
+101|      onScheduleSuccess();
+102|    }
+103|  }, [state, onScheduleSuccess]);
+104|
+105|  /**
+106|   * Weekly slot generator drafts (KEL-112).
+107|   *
+108|   * The generator fields stay raw strings so a half-typed or cleared value is
+109|   * never rewritten into a fake number. Validation runs through
+110|   * `weeklySlotGeneratorSchema` on generate, and each failure surfaces as a
+111|   * per-field message without producing any slot.
+112|   */
+113|  const [generatorDays, setGeneratorDays] = useState<number[]>([1, 2]);
+114|  const [generatorStart, setGeneratorStart] = useState('08:00');
+115|  const [generatorEnd, setGeneratorEnd] = useState('12:00');
+116|  const [generatorSessionMinutes, setGeneratorSessionMinutes] = useState('90');
+117|  const [generatorBreakMinutes, setGeneratorBreakMinutes] = useState('15');
+118|  const [generatorCapacity, setGeneratorCapacity] = useState('10');
+119|  const [generatorLocation, setGeneratorLocation] = useState('');
+120|  const [generatorErrors, setGeneratorErrors] = useState<Record<string, string>>(
+121|    {}
+122|  );
+123|  const [generatorNotice, setGeneratorNotice] = useState<string | null>(null);
+124|
+125|  const toggleGeneratorDay = (day: number) => {
+126|    setGeneratorDays((prev) =>
+127|      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+128|    );
+129|  };
+130|
+131|  const isDuplicateSlot = (
+132|    existing: ScheduleSlotDraft[],
+133|    day: number,
+134|    start: string,
+135|    end: string
+136|  ) =>
+137|    existing.some(
+138|      (slot) =>
+139|        slot.day_of_week === day &&
+140|        slot.start_time === start &&
+141|        slot.end_time === end
+142|    );
+143|
+144|  const handleGenerateSlots = () => {
+145|    const validation = weeklySlotGeneratorSchema.safeParse({
+146|      days: generatorDays,
+147|      start_time: generatorStart,
+148|      end_time: generatorEnd,
+149|      session_minutes: generatorSessionMinutes,
+150|      break_minutes: generatorBreakMinutes,
+151|      capacity: generatorCapacity,
+152|      location: generatorLocation,
+153|    });
+154|
+155|    if (!validation.success) {
+156|      const fieldErrors = validation.error.flatten().fieldErrors;
+157|      const errors: Record<string, string> = {};
+158|      for (const [field, messages] of Object.entries(fieldErrors)) {
+159|        if (messages?.[0]) {
+160|          errors[field] = messages[0];
+161|        }
+162|      }
+163|      setGeneratorErrors(errors);
+164|      setGeneratorNotice(null);
+165|      return;
+166|    }
+167|
+168|    setGeneratorErrors({});
+169|    const generated = generateWeeklySlots(validation.data);
+170|
+171|    if (generated.length === 0) {
+172|      // Valid input whose window fits no whole session: nothing to append,
+173|      // reported as a form-level message so the tenant can adjust the range.
+174|      setGeneratorNotice(
+175|        'No session fits the selected time range. Adjust the hours, session length, or break.'
+176|      );
+177|      return;
+178|    }
+179|
+180|    const fresh = generated.filter(
+181|      (slot) =>
+182|        !isDuplicateSlot(schedules, slot.day_of_week, slot.start_time, slot.end_time)
+183|    );
+184|
+185|    if (fresh.length === 0) {
+186|      setGeneratorNotice(
+187|        'All generated slots already exist. No duplicate slots were added.'
+188|      );
+189|      return;
+190|    }
+191|
+192|    setGeneratorNotice(
+193|      `Added ${fresh.length} slot${fresh.length === 1 ? '' : 's'}${
+194|        fresh.length < generated.length
+195|          ? ` (${generated.length - fresh.length} duplicate${generated.length - fresh.length === 1 ? '' : 's'} skipped)`
+196|          : ''
+197|      }.`
+198|    );
+199|    setSchedules([
+200|      ...schedules,
+201|      ...fresh.map((slot) => ({
+202|        day_of_week: slot.day_of_week,
+203|        start_time: slot.start_time,
+204|        end_time: slot.end_time,
+205|        capacity: String(slot.capacity),
+206|        location: slot.location ?? '',
+207|      })),
+208|    ]);
+209|  };
+210|
+211|  const addScheduleSlot = () => {
+212|    setSchedules((prev) => [
+213|      ...prev,
+214|      {
+215|        day_of_week: 3, // default Wednesday
+216|        start_time: '14:00',
+217|        end_time: '15:30',
+218|        capacity: '10',
+219|        location: '',
+220|      },
+221|    ]);
+222|  };
+223|
+224|  const removeScheduleSlot = (index: number) => {
+225|    if (schedules.length <= 1) return;
+226|    setSchedules((prev) => prev.filter((_, i) => i !== index));
+227|  };
+228|
+229|  const updateScheduleSlot = <K extends keyof ScheduleSlotDraft>(
+230|    index: number,
+231|    field: K,
+232|    value: ScheduleSlotDraft[K]
+233|  ) => {
+234|    setSchedules((prev) => {
+235|      const updated = [...prev];
+236|      updated[index] = { ...updated[index], [field]: value };
+237|      return updated;
+238|    });
+239|  };
+240|
+241|  /**
+242|   * Same-day overlap warnings (KEL-176).
+243|   *
+244|   * Recomputed from the editable drafts on every render, so an overlap warns
+245|   * as soon as it is typed, generated, or edited in, and disappears as soon
+246|   * as one side is moved or removed. This is advisory only: generation,
+247|   * duplicate prevention, and the hidden submission payload are unchanged,
+248|   * and the warning never blocks saving.
+249|   */
+250|  const overlappingPairs = useMemo(() => findOverlappingSlotPairs(schedules), [schedules]);
+251|
+252|  const overlapBySlot = useMemo(() => {
+253|    const bySlot = new Map<number, number[]>();
+254|    for (const pair of overlappingPairs) {
+255|      const first = bySlot.get(pair.first) ?? [];
+256|      first.push(pair.second);
+257|      bySlot.set(pair.first, first);
+258|      const second = bySlot.get(pair.second) ?? [];
+259|      second.push(pair.first);
+260|      bySlot.set(pair.second, second);
+261|    }
+262|    return bySlot;
+263|  }, [overlappingPairs]);
+264|
+265|  return (
+266|    <form action={formAction} className="space-y-5">
+267|      {/* Created Class Details Header */}
+268|      <div className="flex items-center justify-between rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 px-4 py-3 text-xs">
+269|        <div>
+270|          <span className="text-gray-500 dark:text-gray-400 block">Class Configured:</span>
+271|          <span className="font-bold text-emerald-800 dark:text-emerald-300 text-sm">
+272|            {createdClass.name}
+273|          </span>
+274|          <span className="ml-2 inline-flex items-center rounded-md bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-800 dark:text-emerald-200">
+275|            {createdClass.type}
+276|          </span>
+277|        </div>
+278|      </div>
+279|
+280|      <input type="hidden" name="class_id" value={createdClass.id} />
+281|      <input
+282|        type="hidden"
+283|        name="schedules"
+284|        value={JSON.stringify(
+285|          schedules.map((slot) => ({ ...slot, capacity: Number(slot.capacity) }))
+286|        )}
+287|      />
+288|
+289|      {/* Global Error Notice */}
+290|      {!state.success && state.message && (
+291|        <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/50 p-3 text-xs text-red-700 dark:text-red-300">
+292|          {state.message}
+293|        </div>
+294|      )}
+295|
+296|      {/* Weekly Slot Generator (KEL-112) */}
+297|      <div className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50/60 dark:bg-blue-950/30 p-4 space-y-4">
+298|        <div>
+299|          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+300|            Weekly Slot Generator
+301|          </h3>
+302|          <p className="text-xs text-gray-500 dark:text-gray-400">
+303|            Pick days and a time window, then generate weekly sessions to review
+304|            below. Generated slots are added to the list and stay editable.
+305|          </p>
+306|        </div>
+307|
+308|        {/* Days */}
+309|        <fieldset className="space-y-1">
+310|          <legend className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+311|            Days
+312|          </legend>
+313|          <div className="flex flex-wrap gap-2">
+314|            {DAYS_OF_WEEK.map((day) => (
+315|              <label
+316|                key={day.id}
+317|                className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs font-semibold text-gray-700 dark:text-gray-200"
+318|              >
+319|                <input
+320|                  type="checkbox"
+321|                  checked={generatorDays.includes(day.id)}
+322|                  onChange={() => toggleGeneratorDay(day.id)}
+323|                  aria-label={`Generate on ${day.label}`}
+324|                  className="h-4 w-4 rounded accent-blue-600"
+325|                />
+326|                {day.label}
+327|              </label>
+328|            ))}
+329|          </div>
+330|          {generatorErrors.days && (
+331|            <p className="text-xs text-red-600 dark:text-red-400">
+332|              {generatorErrors.days}
+333|            </p>
+334|          )}
+335|        </fieldset>
+336|
+337|        {/* Time window */}
+338|        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+339|          <div className="space-y-1">
+340|            <label className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+341|              Start Time
+342|            </label>
+343|            <input
+344|              type="time"
+345|              value={generatorStart}
+346|              onChange={(e) => setGeneratorStart(e.target.value)}
+347|              aria-label="Generator start time"
+348|              className="block min-h-[44px] w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none"
+349|            />
+350|            {generatorErrors.start_time && (
+351|              <p className="text-xs text-red-600 dark:text-red-400">
+352|                {generatorErrors.start_time}
+353|              </p>
+354|            )}
+355|          </div>
+356|          <div className="space-y-1">
+357|            <label className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+358|              End Time
+359|            </label>
+360|            <input
+361|              type="time"
+362|              value={generatorEnd}
+363|              onChange={(e) => setGeneratorEnd(e.target.value)}
+364|              aria-label="Generator end time"
+365|              className="block min-h-[44px] w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none"
+366|            />
+367|            {generatorErrors.end_time && (
+368|              <p className="text-xs text-red-600 dark:text-red-400">
+369|                {generatorErrors.end_time}
+370|              </p>
+371|            )}
+372|          </div>
+373|        </div>
+374|
+375|        {/* Session / break */}
+376|        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+377|          <div className="space-y-1">
+378|            <label className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+379|              Session Length (minutes)
+380|            </label>
+381|            <input
+382|              type="number"
+383|              min="1"
+384|              step="1"
+385|              value={generatorSessionMinutes}
+386|              onChange={(e) => setGeneratorSessionMinutes(e.target.value)}
+387|              aria-label="Generator session length in minutes"
+388|              className="block min-h-[44px] w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none"
+389|            />
+390|            {generatorErrors.session_minutes && (
+391|              <p className="text-xs text-red-600 dark:text-red-400">
+392|                {generatorErrors.session_minutes}
+393|              </p>
+394|            )}
+395|          </div>
+396|          <div className="space-y-1">
+397|            <label className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+398|              Break Between Sessions (minutes)
+399|            </label>
+400|            <input
+401|              type="number"
+402|              min="0"
+403|              step="1"
+404|              value={generatorBreakMinutes}
+405|              onChange={(e) => setGeneratorBreakMinutes(e.target.value)}
+406|              aria-label="Generator break in minutes"
+407|              className="block min-h-[44px] w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none"
+408|            />
+409|            {generatorErrors.break_minutes && (
+410|              <p className="text-xs text-red-600 dark:text-red-400">
+411|                {generatorErrors.break_minutes}
+412|              </p>
+413|            )}
+414|          </div>
+415|        </div>
+416|
+417|        {/* Defaults */}
+418|        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+419|          <div className="space-y-1">
+420|            <label className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+421|              Default Capacity
+422|            </label>
+423|            <input
+424|              type="number"
+425|              min="1"
+426|              step="1"
+427|              value={generatorCapacity}
+428|              onChange={(e) => setGeneratorCapacity(e.target.value)}
+429|              aria-label="Generator default capacity"
+430|              className="block min-h-[44px] w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none"
+431|            />
+432|            {generatorErrors.capacity && (
+433|              <p className="text-xs text-red-600 dark:text-red-400">
+434|                {generatorErrors.capacity}
+435|              </p>
+436|            )}
+437|          </div>
+438|          <div className="space-y-1">
+439|            <label className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+440|              Default Location
+441|            </label>
+442|            <input
+443|              type="text"
+444|              placeholder="Room 102 or Online Zoom Link (optional)"
+445|              value={generatorLocation}
+446|              onChange={(e) => setGeneratorLocation(e.target.value)}
+447|              aria-label="Generator default location"
+448|              className="block min-h-[44px] w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+449|            />
+450|          </div>
+451|        </div>
+452|
+453|        <div className="flex flex-col gap-2">
+454|          <button
+455|            type="button"
+456|            onClick={handleGenerateSlots}
+457|            className="inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
+458|          >
+459|            Generate Slots
+460|          </button>
+461|          {generatorNotice && (
+462|            <p
+463|              role="status"
+464|              className="text-xs text-gray-600 dark:text-gray-300"
+465|            >
+466|              {generatorNotice}
+467|            </p>
+468|          )}
+469|        </div>
+470|      </div>
+471|
+472|      {/* Recurring Schedule Slot Cards */}
+473|      <div className="space-y-4">
+474|        <div className="flex items-center justify-between">
+475|          <div>
+476|            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+477|              Weekly Recurring Timetable
+478|            </h3>
+479|            <p className="text-xs text-gray-500 dark:text-gray-400">
+480|              Add all recurring weekly sessions for this class.
+481|            </p>
+482|          </div>
+483|          <button
+484|            type="button"
+485|            onClick={addScheduleSlot}
+486|            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/60 px-3 py-2 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors"
+487|          >
+488|            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+489|              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+490|            </svg>
+491|            Add Slot
+492|          </button>
+493|        </div>
+494|
+495|        <div className="space-y-3">
+496|          {schedules.map((slot, idx) => (
+497|            <div
+498|              key={idx}
+499|              className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/80 p-4 shadow-xs space-y-3 relative"
+500|            >
+501|              <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700/60 pb-2">
+502|                <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+503|                  Slot #{idx + 1}
+504|                </span>
+505|                {schedules.length > 1 && (
+506|                  <button
+507|                    type="button"
+508|                    onClick={() => removeScheduleSlot(idx)}
+509|                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
+510|                    aria-label={`Remove slot ${idx + 1}`}
+511|                  >
+512|                    ✕
+513|                  </button>
+514|                )}
+515|              </div>
+516|
+517|              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+518|                {/* Day Selection */}
+519|                <div className="space-y-1">
+520|                  <label className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+521|                    Day of Week
+522|                  </label>
+523|                  <select
+524|                    value={slot.day_of_week}
+525|                    onChange={(e) =>
+526|                      updateScheduleSlot(idx, 'day_of_week', Number(e.target.value))
+527|                    }
+528|                    className="block min-h-[44px] w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none"
+529|                  >
+530|                    {DAYS_OF_WEEK.map((day) => (
+531|                      <option key={day.id} value={day.id}>
+532|                        {day.label}
+533|                      </option>
+534|                    ))}
+535|                  </select>
+536|                </div>
+537|
+538|                {/* Start Time */}
+539|                <div className="space-y-1">
+540|                  <label className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+541|                    Start Time
+542|                  </label>
+543|                  <input
+544|                    type="time"
+545|                    value={slot.start_time}
+546|                    onChange={(e) => updateScheduleSlot(idx, 'start_time', e.target.value)}
+547|                    required
+548|                    className="block min-h-[44px] w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none"
+549|                  />
+550|                </div>
+551|
+552|                {/* End Time */}
+553|                <div className="space-y-1">
+554|                  <label className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+555|                    End Time
+556|                  </label>
+557|                  <input
+558|                    type="time"
+559|                    value={slot.end_time}
+560|                    onChange={(e) => updateScheduleSlot(idx, 'end_time', e.target.value)}
+561|                    required
+562|                    className="block min-h-[44px] w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none"
+563|                  />
+564|                </div>
+565|              </div>
+566|
+567|              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+568|                {/* Capacity (required positive integer, validated by the schema) */}
+569|                <div className="space-y-1">
+570|                  <label
+571|                    htmlFor={`slot-capacity-${idx}`}
+572|                    className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase"
+573|                  >
+574|                    Capacity
+575|                  </label>
+576|                  <input
+577|                    id={`slot-capacity-${idx}`}
+578|                    type="number"
+579|                    min="1"
+580|                    step="1"
+581|                    value={slot.capacity}
+582|                    onChange={(e) => updateScheduleSlot(idx, 'capacity', e.target.value)}
+583|                    required
+584|                    aria-label={`Capacity for slot ${idx + 1}`}
+585|                    className="block min-h-[44px] w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none"
+586|                  />
+587|                  {state.errors?.[`schedules.${idx}.capacity`]?.[0] && (
+588|                    <p className="text-xs text-red-600 dark:text-red-400">
+589|                      {state.errors[`schedules.${idx}.capacity`][0]}
+590|                    </p>
+591|                  )}
+592|                  {!state.errors?.[`schedules.${idx}.capacity`]?.[0] &&
+593|                    state.errors?.schedules?.[0] && (
+594|                      <p className="text-xs text-red-600 dark:text-red-400">
+595|                        {state.errors.schedules[0]}
+596|                      </p>
+597|                    )}
+598|                </div>
+599|
+600|                {/* Location optional input */}
+601|                <div className="space-y-1 sm:col-span-2">
+602|                  <label className="block text-[11px] font-semibold text-gray-600 dark:text-gray-400 uppercase">
+603|                    Location
+604|                  </label>
+605|                  <input
+606|                    type="text"
+607|                    placeholder="Room 102 or Online Zoom Link (optional)"
+608|                    value={slot.location || ''}
+609|                    onChange={(e) => updateScheduleSlot(idx, 'location', e.target.value)}
+610|                    className="block min-h-[44px] w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-3 text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none"
+611|                  />
+612|                </div>
+613|              </div>
+614|
+615|              {overlapBySlot.has(idx) && (
+616|                <p
+617|                  role="alert"
+618|                  className="rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/40 px-3 py-2 text-xs text-amber-800 dark:text-amber-200"
+619|                >
+620|                  Overlaps with slot{' '}
+621|                  {(overlapBySlot.get(idx) ?? [])
+622|                    .map((other) => `#${other + 1}`)
+623|                    .join(', ')}
+624|                  . Slots on the same day should not overlap.
+625|                </p>
+626|              )}
+627|            </div>
+628|          ))}
+629|        </div>
+630|      </div>
+631|
+632|      {/* Form Action Controls */}
+633|      <div className="pt-3 flex items-center justify-between gap-3">
+634|        <button
+635|          type="button"
+636|          onClick={onBack}
+637|          className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+638|        >
+639|          ← Back
+640|        </button>
+641|        <SubmitScheduleButton />
+642|      </div>
+643|    </form>
+644|  );
+645|}
+
+### app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts
+1|import { z } from 'zod';
+2|
+3|/**
+4| * Category validation schema for creating academic subject/course category.
+5| * API Reference: POST /api/v1/categories
+6| */
+7|export const createCategorySchema = z.object({
+8|  name: z
+9|    .string()
+10|    .trim()
+11|    .min(1, 'Category name is required')
+12|    .max(100, 'Category name cannot exceed 100 characters'),
+13|  description: z.string().trim().optional(),
+14|});
+15|
+16|/**
+17| * Category a class belongs to. Shared by creation and update so both paths
+18| * reject an unselected category with the same message.
+19| */
+20|const classCategoryField = z.string().trim().min(1, 'Please select a valid category');
+21|
+22|/**
+23| * Human-readable class name. Shared by creation and update so the editable
+24| * name is validated identically to the name entered in the creation wizard.
+25| */
+26|const classNameField = z
+27|  .string()
+28|  .trim()
+29|  .min(1, 'Class name is required')
+30|  .max(100, 'Class name cannot exceed 100 characters');
+31|
+32|/**
+33| * Optional free-text class summary. Shared by creation and update; a blank
+34| * value is a legitimate submission on both paths.
+35| */
+36|const classDescriptionField = z.string().trim().optional();
+37|
+38|/**
+39| * Digit groups a tenant may type between thousands separators.
+40| *
+41| * Indonesian conventions group thousands with a dot, a comma, or a space
+42| * (`1.500.000`, `1,500,000`, `1 500 000`), and a tenant may also paste a value
+43| * that still carries the currency prefix the list renders (`Rp 150.000`). Every
+44| * accepted grouping is stripped before the value is parsed so a separator can
+45| * never be mistaken for a decimal point.
+46| */
+47|const GROUPED_AMOUNT_PATTERN = /^-?(?:\d{1,3}(?:[.,\s]\d{3})+|\d+)$/;
+48|
+49|/**
+50| * Parses a tenant-typed rupiah amount into a whole number.
+51| *
+52| * Class prices are stored as `bigint` whole rupiah in the academic service, so
+53| * this deliberately rejects fractional input rather than rounding it: `1.50`
+54| * and `1500.00` are refused because a dot is only ever read as a thousands
+55| * separator. Values outside the safe-integer range are refused too, because
+56| * IEEE-754 cannot represent them exactly and a lossy price must never be sent.
+57| *
+58| * Returns `null` for anything that is not a whole safe amount, which lets the
+59| * caller surface a single field-scoped message.
+60| */
+61|export function parseRupiahAmount(raw: unknown): number | null {
+62|  if (typeof raw === 'number') {
+63|    return Number.isSafeInteger(raw) ? raw : null;
+64|  }
+65|
+66|  if (typeof raw !== 'string') {
+67|    return null;
+68|  }
+69|
+70|  const withoutCurrency = raw.trim().replace(/^(?:rp\.?|idr)\s*/i, '');
+71|
+72|  if (!GROUPED_AMOUNT_PATTERN.test(withoutCurrency)) {
+73|    return null;
+74|  }
+75|
+76|  const value = Number(withoutCurrency.replace(/[.,\s]/g, ''));
+77|
+78|  return Number.isSafeInteger(value) ? value : null;
+79|}
+80|
+81|/**
+82| * Class price in whole rupiah.
+83| *
+84| * The form field is a text input so it can carry thousands separators, which
+85| * means the raw string has to survive validation. `parseRupiahAmount` runs
+86| * inside a `transform`/`pipe` pair rather than `z.coerce.number()` because
+87| * `Number('1.500.000')` is `NaN` and `Number('1.50')` is `1.5`: coercing would
+88| * silently reject the former and silently misread the latter.
+89| */
+90|const classPriceField = z
+91|  .union([z.number(), z.string()], {
+92|    message: 'Enter the price as a number, for example 150000',
+93|  })
+94|  .transform((value) => parseRupiahAmount(value))
+95|  .pipe(
+96|    z
+97|      .number({ message: 'Enter the price as a number, for example 150000' })
+98|      .int('Price must be a whole rupiah amount')
+99|      .min(0, 'Price cannot be negative')
+100|  );
+101|
+102|/**
+103| * Class validation schema for creating a new class under a category.
+104| * API Reference: POST /api/v1/classes
+105| *
+106| * Capacity is intentionally absent: it is set per schedule on the scheduling
+107| * step (`scheduleItemSchema`), so the creation form never submits it.
+108| */
+109|export const createClassSchema = z.object({
+110|  category_id: classCategoryField,
+111|  name: classNameField,
+112|  type: z.enum(['private', 'group'], {
+113|    message: 'Class type must be either private or group',
+114|  }),
+115|  price: z.coerce
+116|    .number({ message: 'Price must be a number' })
+117|    .min(0, 'Price cannot be negative'),
+118|  description: classDescriptionField,
+119|});
+120|
+121|/**
+122| * Class validation schema for editing an existing class.
+123| * API Reference: PATCH /api/v1/classes/:id
+124| *
+125| * Only the sellable attributes the update endpoint accepts are editable, and
+126| * they reuse the same fields as the creation wizard. `type` and `capacity` are
+127| * intentionally absent: the academic service refuses a class-type change with
+128| * `422 class type cannot be changed` because schedules, sessions, and
+129| * enrollments were created against the stored type, and `capacity` is deprecated
+130| * in favour of the schedule capacity. The object is strict so a submission that
+131| * carries either field fails loudly here instead of being forwarded and turned
+132| * into an opaque backend error.
+133| */
+134|export const updateClassSchema = z.strictObject({
+135|  class_id: z.string().trim().min(1, 'Please select a valid class'),
+136|  category_id: classCategoryField,
+137|  name: classNameField,
+138|  price: classPriceField,
+139|  description: classDescriptionField,
+140|});
+141|
+142|/**
+143| * Enrollment status values accepted by the academic service.
+144| * See POST/PATCH /api/v1/classes.
+145| */
+146|export const enrollmentStatusSchema = z.enum(['open', 'closed', 'full', 'archived']);
+147|
+148|/**
+149| * Publication toggle payload for a class.
+150| * API Reference: PATCH /api/v1/classes/:id/published
+151| */
+152|export const updateClassPublicationSchema = z.object({
+153|  class_id: z.string().trim().min(1, 'Please select a valid class'),
+154|  is_published: z.boolean({
+155|    message: 'Publication state must be either published or unpublished',
+156|  }),
+157|});
+158|
+159|/**
+160| * Time regex format validation (HH:MM or HH:MM:SS)
+161| */
+162|const timeFormatRegex = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
+163|
+164|/**
+165| * Per-slot class capacity as a positive integer.
+166| *
+167| * The academic service requires `capacity` with `min=1` on every schedule item
+168| * (`ScheduleItemRequest`, binding `required,min=1`) and stores it on the
+169| * schedule row, so a payload without it is rejected before the usecase runs.
+170| * There is deliberately no upper bound: the backend has none, and very large
+171| * capacities stay valid as long as they are positive integers. The field is
+172| * typed to accept the string an `<input type="number">` submits and coerce it,
+173| * so the four invalid shapes the tenant can produce (empty, 0, negative,
+174| * fractional) each fail with a message that names the fix.
+175| */
+176|const scheduleCapacityField = z.coerce
+177|  .number({ message: 'Capacity is required' })
+178|  .int('Capacity must be a whole number')
+179|  .min(1, 'Capacity must be at least 1');
+180|
+181|/**
+182| * Individual schedule item validation schema.
+183| */
+184|export const scheduleItemSchema = z
+185|  .object({
+186|    day_of_week: z.coerce
+187|      .number()
+188|      .int()
+189|      .min(1, 'Day must be between 1 (Mon) and 7 (Sun)')
+190|      .max(7, 'Day must be between 1 (Mon) and 7 (Sun)'),
+191|    start_time: z
+192|      .string()
+193|      .trim()
+194|      .regex(timeFormatRegex, 'Start time must be in HH:MM or HH:MM:SS format'),
+195|    end_time: z
+196|      .string()
+197|      .trim()
+198|      .regex(timeFormatRegex, 'End time must be in HH:MM or HH:MM:SS format'),
+199|    capacity: scheduleCapacityField,
+200|    tutor_id: z.string().trim().optional(),
+201|    location: z.string().trim().optional(),
+202|    valid_from: z.string().trim().optional(),
+203|    enrollment_id: z.string().trim().optional(),
+204|  })
+205|  .refine(
+206|    (data) => {
+207|      // Basic check that start_time comes before end_time
+208|      if (data.start_time && data.end_time) {
+209|        return data.start_time < data.end_time;
+210|      }
+211|      return true;
+212|    },
+213|    {
+214|      message: 'End time must be strictly after start time',
+215|      path: ['end_time'],
+216|    }
+217|  );
+218|
+219|/**
+220| * Initial schedules request payload validation schema.
+221| * API Reference: POST /api/v1/schedules
+222| */
+223|export const createScheduleSchema = z.object({
+224|  class_id: z.string().trim().min(1, 'Please select a valid class'),
+225|  schedules: z
+226|    .array(scheduleItemSchema)
+227|    .min(1, 'At least one recurring schedule slot is required'),
+228|});
+229|
+230|/**
+231| * Weekly slot generator input validation (KEL-112).
+232| *
+233| * The generator section of `ScheduleForm` validates its own fields before any
+234| * slot is produced, so each tenant mistake surfaces as a per-field message and
+235| * no slot is generated from invalid input. Times are wall-clock `HH:MM`, the
+236| * same convention the backend stores, and an overnight range is rejected
+237| * because the academic service has no midnight-crossing session support.
+238| */
+239|export const weeklySlotGeneratorSchema = z
+240|  .object({
+241|    days: z
+242|      .array(z.number().int().min(1).max(7))
+243|      .min(1, 'Select at least one day'),
+244|    start_time: z
+245|      .string()
+246|      .trim()
+247|      .regex(timeFormatRegex, 'Start time must be in HH:MM format'),
+248|    end_time: z
+249|      .string()
+250|      .trim()
+251|      .regex(timeFormatRegex, 'End time must be in HH:MM format'),
+252|    session_minutes: z.coerce
+253|      .number({ message: 'Session length is required' })
+254|      .int('Session length must be a whole number of minutes')
+255|      .min(1, 'Session length must be greater than 0'),
+256|    break_minutes: z.coerce
+257|      .number({ message: 'Break is required' })
+258|      .int('Break must be a whole number of minutes')
+259|      .min(0, 'Break cannot be negative'),
+260|    capacity: scheduleCapacityField,
+261|    location: z.string().trim().optional(),
+262|  })
+263|  .refine(
+264|    (data) => {
+265|      // The format regexes above already report malformed times; only
+266|      // compare well-formed wall-clock values here so an invalid shape does
+267|      // not also attract an ordering error on the end-time field.
+268|      if (
+269|        !timeFormatRegex.test(data.start_time) ||
+270|        !timeFormatRegex.test(data.end_time)
+271|      ) {
+272|        return true;
+273|      }
+274|      return data.start_time < data.end_time;
+275|    },
+276|    {
+277|      message: 'End time must be strictly after start time',
+278|      path: ['end_time'],
+279|    }
+280|  );
+281|
+282|/** Validated input for the weekly slot generator. */
+283|export type WeeklySlotGeneratorInput = z.infer<typeof weeklySlotGeneratorSchema>;
+284|
+285|/**
+286| * A slot the generator produced, before it joins the form's editable drafts.
+287| */
+288|export interface GeneratedWeeklySlot {
+289|  day_of_week: number;
+290|  start_time: string;
+291|  end_time: string;
+292|  capacity: number;
+293|  location?: string;
+294|}
+295|
+296|const generatorTimePattern = /^([01]\d|2[0-3]):([0-5]\d)$/;
+297|
+298|function parseWallClockMinutes(value: string): number | null {
+299|  const match = generatorTimePattern.exec(value.trim());
+300|  if (!match) {
+301|    return null;
+302|  }
+303|  return Number(match[1]) * 60 + Number(match[2]);
+304|}
+305|
+306|function formatWallClockMinutes(totalMinutes: number): string {
+307|  const hours = Math.floor(totalMinutes / 60);
+308|  const minutes = totalMinutes % 60;
+309|  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+310|}
+311|
+312|/**
+313| * Generates weekly recurring slots from day, time-window, session-length, and
+314| * break choices (KEL-112).
+315| *
+316| * Sessions run back-to-back from the window start with `session_minutes`
+317| * duration separated by `break_minutes`. A session that would end after the
+318| * window end is skipped, so a session ending exactly on the boundary is kept.
+319| * Days are de-duplicated and sorted, and anything invalid (malformed time,
+320| * non-positive session, negative break, an end that is not after the start,
+321| * no usable day) yields no slots instead of throwing — the form validates
+322| * first and treats an empty result as "nothing fits". An overnight window is
+323| * unsupported and also yields no slots. Capacity and the trimmed location are
+324| * carried onto every produced slot unchanged.
+325| */
+326|export function generateWeeklySlots(
+327|  input: WeeklySlotGeneratorInput
+328|): GeneratedWeeklySlot[] {
+329|  const start = parseWallClockMinutes(input.start_time);
+330|  const end = parseWallClockMinutes(input.end_time);
+331|
+332|  if (start === null || end === null || end <= start) {
+333|    return [];
+334|  }
+335|
+336|  if (
+337|    !Number.isInteger(input.session_minutes) ||
+338|    input.session_minutes <= 0 ||
+339|    !Number.isInteger(input.break_minutes) ||
+340|    input.break_minutes < 0
+341|  ) {
+342|    return [];
+343|  }
+344|
+345|  const days = [...new Set(input.days)]
+346|    .filter((day) => Number.isInteger(day) && day >= 1 && day <= 7)
+347|    .sort((a, b) => a - b);
+348|
+349|  if (days.length === 0) {
+350|    return [];
+351|  }
+352|
+353|  const location = input.location?.trim() ? input.location.trim() : undefined;
+354|  const slots: GeneratedWeeklySlot[] = [];
+355|
+356|  for (const day of days) {
+357|    let cursor = start;
+358|    while (cursor + input.session_minutes <= end) {
+359|      slots.push({
+360|        day_of_week: day,
+361|        start_time: formatWallClockMinutes(cursor),
+362|        end_time: formatWallClockMinutes(cursor + input.session_minutes),
+363|        capacity: input.capacity,
+364|        ...(location ? { location } : {}),
+365|      });
+366|      cursor += input.session_minutes + input.break_minutes;
+367|    }
+368|  }
+369|
+370|  return slots;
+371|}
+372|
+373|/**
+374| * A slot time range the overlap detector reads. Only the day and the wall-clock
+375| * bounds matter; capacity, location, and every other draft field are ignored.
+376| */
+377|export interface SlotTimeRange {
+378|  day_of_week: number;
+379|  start_time: string;
+380|  end_time: string;
+381|}
+382|
+383|/**
+384| * One pair of indexes into the input array whose slots overlap.
+385| */
+386|export interface OverlappingSlotPair {
+387|  first: number;
+388|  second: number;
+389|}
+390|
+391|const slotTimePattern = /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/;
+392|
+393|function parseSlotTimeSeconds(value: unknown): number | null {
+394|  if (typeof value !== 'string') {
+395|    return null;
+396|  }
+397|  const match = slotTimePattern.exec(value.trim());
+398|  if (!match) {
+399|    return null;
+400|  }
+401|  return (
+402|    Number(match[1]) * 3600 + Number(match[2]) * 60 + (match[3] ? Number(match[3]) : 0)
+403|  );
+404|}
+405|
+406|/**
+407| * Finds every pair of slots that overlap on the same day (KEL-176).
+408| *
+409| * Two slots overlap when they share `day_of_week` and their half-open
+410| * intervals intersect (`[start, end)`): a slot ending exactly when another
+411| * starts only touches and is not an overlap. Pairs with an unparseable or
+412| * half-typed time (an empty or malformed bound) and intervals whose end is
+413| * not after their start are skipped instead of throwing, because the form
+414| * re-runs this on every keystroke while the tenant is still typing.
+415| */
+416|export function findOverlappingSlotPairs(
+417|  slots: readonly SlotTimeRange[]
+418|): OverlappingSlotPair[] {
+419|  const pairs: OverlappingSlotPair[] = [];
+420|
+421|  for (let first = 0; first < slots.length; first += 1) {
+422|    for (let second = first + 1; second < slots.length; second += 1) {
+423|      const a = slots[first];
+424|      const b = slots[second];
+425|
+426|      if (a.day_of_week !== b.day_of_week) {
+427|        continue;
+428|      }
+429|
+430|      const aStart = parseSlotTimeSeconds(a.start_time);
+431|      const aEnd = parseSlotTimeSeconds(a.end_time);
+432|      const bStart = parseSlotTimeSeconds(b.start_time);
+433|      const bEnd = parseSlotTimeSeconds(b.end_time);
+434|
+435|      if (
+436|        aStart === null ||
+437|        aEnd === null ||
+438|        bStart === null ||
+439|        bEnd === null ||
+440|        aEnd <= aStart ||
+441|        bEnd <= bStart
+442|      ) {
+443|        continue;
+444|      }
+445|
+446|      if (aStart < bEnd && bStart < aEnd) {
+447|        pairs.push({ first, second });
+448|      }
+449|    }
+450|  }
+451|
+452|  return pairs;
+453|}
+454|
+455|// Inferred Form / Input Types
+456|export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
+457|export type CreateClassInput = z.infer<typeof createClassSchema>;
+458|export type UpdateClassInput = z.infer<typeof updateClassSchema>;
+459|export type ScheduleItemInput = z.infer<typeof scheduleItemSchema>;
+460|export type CreateScheduleInput = z.infer<typeof createScheduleSchema>;
+461|export type UpdateClassPublicationInput = z.infer<
+462|  typeof updateClassPublicationSchema
+463|>;
+464|
+465|/** Enrollment status of a class, as accepted by the academic service. */
+466|export type EnrollmentStatus = z.infer<typeof enrollmentStatusSchema>;
+467|
+468|// Domain Entity Interfaces matching Swagger contract
+469|export interface Category {
+470|  id: string;
+471|  tenant_id: string;
+472|  name: string;
+473|  description?: string;
+474|  created_at: string;
+475|  updated_at?: string;
+476|}
+477|
+478|export interface ClassEntity {
+479|  id: string;
+480|  tenant_id: string;
+481|  category_id: string;
+482|  name: string;
+483|  type: 'private' | 'group';
+484|  price: number;
+485|  capacity?: number;
+486|  description?: string;
+487|  created_at: string;
+488|  updated_at?: string;
+489|  category?: Category;
+490|  /**
+491|   * Whether the class is listed publicly in `/kelas`. Always serialised by the
+492|   * academic service, so it is optional only for older cached payloads.
+493|   */
+494|  is_published?: boolean;
+495|  /**
+496|   * Enrollment state of the class. A class appears in `/kelas` only when it is
+497|   * published *and* has the `open` enrollment status.
+498|   */
+499|  enrollment_status?: EnrollmentStatus;
+500|}
+501|
+502|export interface ClassSchedule {
+503|  id: string;
+504|  class_id: string;
+505|  day_of_week: number; // 1 = Monday, ..., 7 = Sunday
+506|  start_time: string;
+507|  end_time: string;
+508|  /**
+509|   * Seats this schedule slot offers. Always serialised by the academic service
+510|   * (`capacity` is a non-pointer integer on the schedule row), so it is
+511|   * optional only for payloads captured before the field existed.
+512|   */
+513|  capacity?: number;
+514|  tutor_id?: string;
+515|  location?: string;
+516|  valid_from?: string;
+517|  valid_until?: string;
+518|  enrollment_id?: string;
+519|  class?: ClassEntity;
+520|}
+521|
+522|export interface ClassSession {
+523|  id: string;
+524|  class_id: string;
+525|  schedule_id: string;
+526|  session_date: string;
+527|  start_time: string;
+528|  end_time: string;
+529|  status: 'scheduled' | 'rescheduled' | 'cancelled' | 'completed';
+530|  tutor_id?: string;
+531|}
+532|
+533|export interface CreateInitialSchedulesResponse {
+534|  schedules: ClassSchedule[];
+535|  sessions: ClassSession[];
+536|}
+
+### app/(dashboard)/dashboard/tenant/vouchers/_components/VoucherForm.tsx
+1|'use client';
+2|
+3|import { useActionState, useState } from 'react';
+4|import { createTenantVoucher, updateTenantVoucher } from '../_actions/voucherActions';
+5|import type { TenantVoucher, VoucherActionResponse } from '../_lib/schema';
+6|
+7|interface VoucherFormProps {
+8|  /** When set, the form edits this voucher; otherwise it creates one. */
+9|  voucher?: TenantVoucher;
+10|  onSuccess?: () => void;
+11|  onCancel?: () => void;
+12|}
+13|
+14|const initialState: VoucherActionResponse = {
+15|  success: false,
+16|  message: '',
+17|};
+18|
+19|function toDateTimeLocal(value: string | null | undefined): string {
+20|  if (!value) return '';
+21|  const date = new Date(value);
+22|  if (Number.isNaN(date.getTime())) return '';
+23|  const pad = (n: number) => String(n).padStart(2, '0');
+24|  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+25|}
+26|
+27|const inputClass = (hasError: boolean) =>
+28|  `w-full min-h-[44px] rounded-xl border bg-white dark:bg-gray-900 px-3.5 text-xs text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-hidden focus:ring-1 transition-colors ${
+29|    hasError
+30|      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+31|      : 'border-gray-200 dark:border-gray-800 focus:border-blue-500 focus:ring-blue-500'
+32|  }`;
+33|
+34|/**
+35| * Create/edit form for one tenant voucher (KEL-161).
+36| *
+37| * Field limits mirror `createVoucherSchema`, and the Server Action validates
+38| * with the same schema, so the browser cannot submit a voucher the backend
+39| * would reject for shape reasons. Uniqueness (case-insensitive per tenant)
+40| * is enforced by billing, which answers 409; that message surfaces in the
+41| * banner. Clearing an optional field sends nothing for it on edit, so
+42| * billing leaves the stored value untouched.
+43| */
+44|export function VoucherForm({ voucher, onSuccess, onCancel }: VoucherFormProps) {
+45|  const isEdit = voucher !== undefined;
+46|  const [code, setCode] = useState(voucher?.code ?? '');
+47|  const [discountType, setDiscountType] = useState<string>(voucher?.discount_type ?? 'percentage');
+48|  const [discountValue, setDiscountValue] = useState(
+49|    voucher ? String(voucher.discount_value) : ''
+50|  );
+51|  const [maxDiscountAmount, setMaxDiscountAmount] = useState(
+52|    voucher?.max_discount_amount != null ? String(voucher.max_discount_amount) : ''
+53|  );
+54|  const [minTransactionAmount, setMinTransactionAmount] = useState(
+55|    voucher ? String(voucher.min_transaction_amount) : ''
+56|  );
+57|  const [maxUses, setMaxUses] = useState(
+58|    voucher?.max_uses != null ? String(voucher.max_uses) : ''
+59|  );
+60|  const [validFrom, setValidFrom] = useState(toDateTimeLocal(voucher?.valid_from));
+61|  const [validUntil, setValidUntil] = useState(toDateTimeLocal(voucher?.valid_until));
+62|  const [isActive, setIsActive] = useState(voucher ? voucher.is_active : true);
+63|
+64|  const [state, formAction, isPending] = useActionState(
+65|    async (previousState: VoucherActionResponse, formData: FormData) => {
+66|      const nextState = isEdit
+67|        ? await updateTenantVoucher(previousState, formData)
+68|        : await createTenantVoucher(previousState, formData);
+69|      if (nextState.success) {
+70|        onSuccess?.();
+71|      }
+72|      return nextState;
+73|    },
+74|    initialState
+75|  );
+76|
+77|  const errorFor = (field: string) => state.errors?.[field]?.[0];
+78|
+79|  return (
+80|    <form action={formAction} className="space-y-4">
+81|      {isEdit && <input type="hidden" name="voucherId" value={voucher.id} />}
+82|
+83|      {state.message && (
+84|        <div
+85|          role={state.success ? 'status' : 'alert'}
+86|          className={`rounded-2xl border p-4 text-xs font-medium ${
+87|            state.success
+88|              ? 'border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300'
+89|              : 'border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-300'
+90|          }`}
+91|        >
+92|          <span className="font-semibold">{state.success ? 'Success: ' : 'Error: '}</span>
+93|          {state.message}
+94|        </div>
+95|      )}
+96|
+97|      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+98|        <div className="space-y-1.5">
+99|          <label htmlFor={isEdit ? `voucher-code-${voucher.id}` : 'voucher-code'} className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+100|            Code <span className="text-red-500">*</span>
+101|          </label>
+102|          <input
+103|            id={isEdit ? `voucher-code-${voucher.id}` : 'voucher-code'}
+104|            type="text"
+105|            name="code"
+106|            value={code}
+107|            onChange={(e) => setCode(e.target.value)}
+108|            placeholder="e.g. HEMAT10"
+109|            maxLength={255}
+110|            required={!isEdit}
+111|            className={inputClass(!!errorFor('code'))}
+112|          />
+113|          {errorFor('code') && <p className="text-[11px] text-red-500 mt-1">{errorFor('code')}</p>}
+114|          <p className="text-[11px] text-gray-400">Unique per tenant, case-insensitive.</p>
+115|        </div>
+116|
+117|        <div className="space-y-1.5">
+118|          <label htmlFor={isEdit ? `voucher-type-${voucher.id}` : 'voucher-type'} className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+119|            Discount type <span className="text-red-500">*</span>
+120|          </label>
+121|          <select
+122|            id={isEdit ? `voucher-type-${voucher.id}` : 'voucher-type'}
+123|            name="discount_type"
+124|            value={discountType}
+125|            onChange={(e) => setDiscountType(e.target.value)}
+126|            required={!isEdit}
+127|            className={inputClass(!!errorFor('discount_type'))}
+128|          >
+129|            <option value="percentage">Percentage (%)</option>
+130|            <option value="fixed_amount">Fixed amount (Rp)</option>
+131|          </select>
+132|          {errorFor('discount_type') && (
+133|            <p className="text-[11px] text-red-500 mt-1">{errorFor('discount_type')}</p>
+134|          )}
+135|        </div>
+136|
+137|        <div className="space-y-1.5">
+138|          <label htmlFor={isEdit ? `voucher-value-${voucher.id}` : 'voucher-value'} className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+139|            Discount value <span className="text-red-500">*</span>
+140|          </label>
+141|          <input
+142|            id={isEdit ? `voucher-value-${voucher.id}` : 'voucher-value'}
+143|            type="number"
+144|            name="discount_value"
+145|            value={discountValue}
+146|            onChange={(e) => setDiscountValue(e.target.value)}
+147|            placeholder={discountType === 'percentage' ? '1 - 100' : 'e.g. 15000'}
+148|            min={0}
+149|            step="any"
+150|            required={!isEdit}
+151|            className={inputClass(!!errorFor('discount_value'))}
+152|          />
+153|          {errorFor('discount_value') && (
+154|            <p className="text-[11px] text-red-500 mt-1">{errorFor('discount_value')}</p>
+155|          )}
+156|        </div>
+157|
+158|        <div className="space-y-1.5">
+159|          <label htmlFor={isEdit ? `voucher-min-${voucher.id}` : 'voucher-min'} className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+160|            Minimum transaction (Rp)
+161|          </label>
+162|          <input
+163|            id={isEdit ? `voucher-min-${voucher.id}` : 'voucher-min'}
+164|            type="number"
+165|            name="min_transaction_amount"
+166|            value={minTransactionAmount}
+167|            onChange={(e) => setMinTransactionAmount(e.target.value)}
+168|            placeholder="0"
+169|            min={0}
+170|            step={1}
+171|            className={inputClass(!!errorFor('min_transaction_amount'))}
+172|          />
+173|          {errorFor('min_transaction_amount') && (
+174|            <p className="text-[11px] text-red-500 mt-1">{errorFor('min_transaction_amount')}</p>
+175|          )}
+176|        </div>
+177|
+178|        <div className="space-y-1.5">
+179|          <label htmlFor={isEdit ? `voucher-maxdisc-${voucher.id}` : 'voucher-maxdisc'} className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+180|            Maximum discount (Rp)
+181|          </label>
+182|          <input
+183|            id={isEdit ? `voucher-maxdisc-${voucher.id}` : 'voucher-maxdisc'}
+184|            type="number"
+185|            name="max_discount_amount"
+186|            value={maxDiscountAmount}
+187|            onChange={(e) => setMaxDiscountAmount(e.target.value)}
+188|            placeholder="No cap"
+189|            min={1}
+190|            step={1}
+191|            className={inputClass(!!errorFor('max_discount_amount'))}
+192|          />
+193|          {errorFor('max_discount_amount') && (
+194|            <p className="text-[11px] text-red-500 mt-1">{errorFor('max_discount_amount')}</p>
+195|          )}
+196|        </div>
+197|
+198|        <div className="space-y-1.5">
+199|          <label htmlFor={isEdit ? `voucher-maxuses-${voucher.id}` : 'voucher-maxuses'} className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+200|            Maximum uses
+201|          </label>
+202|          <input
+203|            id={isEdit ? `voucher-maxuses-${voucher.id}` : 'voucher-maxuses'}
+204|            type="number"
+205|            name="max_uses"
+206|            value={maxUses}
+207|            onChange={(e) => setMaxUses(e.target.value)}
+208|            placeholder={voucher ? `Used ${voucher.current_uses}× so far` : 'Unlimited'}
+209|            min={1}
+210|            step={1}
+211|            className={inputClass(!!errorFor('max_uses'))}
+212|          />
+213|          {errorFor('max_uses') && (
+214|            <p className="text-[11px] text-red-500 mt-1">{errorFor('max_uses')}</p>
+215|          )}
+216|          {isEdit && (
+217|            <p className="text-[11px] text-gray-400">
+218|              Cannot go below the {voucher.current_uses}× already used.
+219|            </p>
+220|          )}
+221|        </div>
+222|
+223|        <div className="space-y-1.5">
+224|          <label htmlFor={isEdit ? `voucher-from-${voucher.id}` : 'voucher-from'} className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+225|            Valid from
+226|          </label>
+227|          <input
+228|            id={isEdit ? `voucher-from-${voucher.id}` : 'voucher-from'}
+229|            type="datetime-local"
+230|            name="valid_from"
+231|            value={validFrom}
+232|            onChange={(e) => setValidFrom(e.target.value)}
+233|            className={inputClass(!!errorFor('valid_from'))}
+234|          />
+235|          {errorFor('valid_from') && (
+236|            <p className="text-[11px] text-red-500 mt-1">{errorFor('valid_from')}</p>
+237|          )}
+238|        </div>
+239|
+240|        <div className="space-y-1.5">
+241|          <label htmlFor={isEdit ? `voucher-until-${voucher.id}` : 'voucher-until'} className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+242|            Valid until
+243|          </label>
+244|          <input
+245|            id={isEdit ? `voucher-until-${voucher.id}` : 'voucher-until'}
+246|            type="datetime-local"
+247|            name="valid_until"
+248|            value={validUntil}
+249|            onChange={(e) => setValidUntil(e.target.value)}
+250|            className={inputClass(!!errorFor('valid_until'))}
+251|          />
+252|          {errorFor('valid_until') && (
+253|            <p className="text-[11px] text-red-500 mt-1">{errorFor('valid_until')}</p>
+254|          )}
+255|        </div>
+256|      </div>
+257|
+258|      {isEdit && (
+259|        <div className="flex items-center gap-2.5 rounded-xl border border-gray-200 dark:border-gray-800 px-3.5 py-3">
+260|          <input
+261|            id={`voucher-active-${voucher.id}`}
+262|            type="checkbox"
+263|            name="is_active"
+264|            value="true"
+265|            checked={isActive}
+266|            onChange={(e) => setIsActive(e.target.checked)}
+267|            className="h-4 w-4 rounded accent-blue-600"
+268|          />
+269|          {/* An unchecked checkbox submits nothing, so the hidden field pins
+270|              the explicit false: deactivation must survive as a value, not as
+271|              an omission the action would treat as "leave unchanged". */}
+272|          {!isActive && <input type="hidden" name="is_active" value="false" />}
+273|          <label htmlFor={`voucher-active-${voucher.id}`} className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+274|            Active
+275|            <span className="block font-normal text-gray-500 dark:text-gray-400">
+276|              Turn off to deactivate instead of deleting — required once the voucher has been used.
+277|            </span>
+278|          </label>
+279|        </div>
+280|      )}
+281|
+282|      <div className="flex flex-wrap justify-end gap-3">
+283|        {onCancel && (
+284|          <button
+285|            type="button"
+286|            onClick={onCancel}
+287|            className="min-h-[44px] rounded-xl border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+288|          >
+289|            Cancel
+290|          </button>
+291|        )}
+292|        <button
+293|          type="submit"
+294|          disabled={isPending}
+295|          aria-busy={isPending}
+296|          className="min-h-[44px] rounded-xl bg-blue-600 px-4 text-xs font-semibold text-white hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+297|        >
+298|          {isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Create voucher'}
+299|        </button>
+300|      </div>
+301|    </form>
+302|  );
+303|}
+
+### app/(dashboard)/dashboard/tenant/vouchers/_lib/schema.ts
+1|import { z } from 'zod';
+2|import type { ListPagination } from '@/lib/list-envelope';
+3|
+4|/**
+5| * Types, vocabulary, and pure helpers for the tenant voucher screen (KEL-161).
+6| *
+7| * Everything here is synchronous and side effect free so parsing, validation,
+8| * and presentation can be unit tested without a gateway or a request context.
+9| * The asynchronous gateway reads live in `../_queries/queries.ts` and the
+10| * mutations in `../_actions/voucherActions.ts`.
+11| *
+12| * The contract is proxied unchanged by the API gateway:
+13| * `GET/POST /api/v1/billing/vouchers` and `GET/PATCH/DELETE
+14| * /api/v1/billing/vouchers/:id` (billing, guarded by `voucher:*`). The list
+15| * answers the paginated `{ items, pagination }` envelope.
+16| */
+17|
+18|/** Canonical path of this screen, used by links and the form. */
+19|export const TENANT_VOUCHERS_PATH = '/dashboard/tenant/vouchers';
+20|
+21|/** Rows per vouchers page. 20 matches the billing service default. */
+22|export const VOUCHER_PAGE_SIZE = 20;
+23|
+24|/** Discount kinds accepted by billing (`domain.VoucherDiscount*`). */
+25|export const voucherDiscountTypeSchema = z.enum(['percentage', 'fixed_amount']);
+26|
+27|export type VoucherDiscountType = z.infer<typeof voucherDiscountTypeSchema>;
+28|
+29|/**
+30| * Voucher row as billing returns it, including the usage count the list
+31| * shows next to every row.
+32| */
+33|export const voucherSchema = z.object({
+34|  id: z.string(),
+35|  code: z.string(),
+36|  discount_type: voucherDiscountTypeSchema,
+37|  discount_value: z.number(),
+38|  max_discount_amount: z.number().nullable().optional(),
+39|  min_transaction_amount: z.number(),
+40|  max_uses: z.number().nullable().optional(),
+41|  current_uses: z.number(),
+42|  valid_from: z.string().nullable().optional(),
+43|  valid_until: z.string().nullable().optional(),
+44|  is_active: z.boolean(),
+45|  created_at: z.string(),
+46|  updated_at: z.string(),
+47|});
+48|
+49|export type TenantVoucher = z.infer<typeof voucherSchema>;
+50|
+51|/**
+52| * Standardized Action Response Interface for Server Actions.
+53| */
+54|export interface VoucherActionResponse {
+55|  success: boolean;
+56|  message: string;
+57|  errors?: Record<string, string[]>;
+58|  data?: unknown;
+59|}
+60|
+61|const codeField = z
+62|  .string()
+63|  .trim()
+64|  .min(1, 'Voucher code is required.')
+65|  .max(255, 'Voucher code must not exceed 255 characters.');
+66|
+67|const discountValueField = z.coerce
+68|  .number({ error: 'Discount value must be a number.' })
+69|  .refine((value) => Number.isFinite(value), 'Discount value must be a number.');
+70|
+71|const optionalIntField = z
+72|  .string()
+73|  .trim()
+74|  .optional()
+75|  .transform((raw) => {
+76|    if (raw === undefined || raw === '') return undefined;
+77|    const parsed = Number(raw);
+78|    return Number.isSafeInteger(parsed) ? parsed : NaN;
+79|  })
+80|  .refine((value) => value === undefined || (Number.isInteger(value) && (value as number) >= 0), {
+81|    message: 'Must be a non-negative whole number.',
+82|  });
+83|
+84|const optionalDateTimeField = z
+85|  .string()
+86|  .trim()
+87|  .optional()
+88|  .transform((raw) => (raw === undefined || raw === '' ? undefined : raw))
+89|  .refine((value) => value === undefined || !Number.isNaN(Date.parse(value)), {
+90|    message: 'Must be a valid date and time.',
+91|  });
+92|
+93|const voucherDateRangeRefine = (value: { valid_from?: string; valid_until?: string }) => {
+94|  if (value.valid_from && value.valid_until) {
+95|    return Date.parse(value.valid_until) >= Date.parse(value.valid_from);
+96|  }
+97|  return true;
+98|};
+99|
+100|const dateRangeMessage = 'Valid-until must be on or after valid-from.';
+101|
+102|/**
+103| * Zod schema for creating a tenant voucher.
+104| *
+105| * Field rules mirror billing's `ValidateVoucherFields`: a percentage takes
+106| * 1-100, a nominal takes a positive amount, and the date range must be
+107| * ordered. Uniqueness (case-insensitive per tenant) is enforced by billing,
+108| * which answers 409; the action surfaces that message.
+109| */
+110|export const createVoucherSchema = z
+111|  .object({
+112|    code: codeField,
+113|    discount_type: voucherDiscountTypeSchema,
+114|    discount_value: discountValueField,
+115|    max_discount_amount: optionalIntField,
+116|    min_transaction_amount: optionalIntField,
+117|    max_uses: optionalIntField,
+118|    valid_from: optionalDateTimeField,
+119|    valid_until: optionalDateTimeField,
+120|  })
+121|  .superRefine((value, ctx) => {
+122|    if (value.discount_type === 'percentage' && (value.discount_value < 1 || value.discount_value > 100)) {
+123|      ctx.addIssue({ code: 'custom', path: ['discount_value'], message: 'Percentage must be between 1 and 100.' });
+124|    }
+125|    if (value.discount_type === 'fixed_amount' && value.discount_value <= 0) {
+126|      ctx.addIssue({ code: 'custom', path: ['discount_value'], message: 'Nominal amount must be positive.' });
+127|    }
+128|    if (
+129|      value.max_discount_amount !== undefined &&
+130|      !(value.max_discount_amount as number > 0)
+131|    ) {
+132|      ctx.addIssue({
+133|        code: 'custom',
+134|        path: ['max_discount_amount'],
+135|        message: 'Maximum discount must be positive.',
+136|      });
+137|    }
+138|    if (value.max_uses !== undefined && !(value.max_uses as number > 0)) {
+139|      ctx.addIssue({ code: 'custom', path: ['max_uses'], message: 'Maximum uses must be positive.' });
+140|    }
+141|    if (!voucherDateRangeRefine(value)) {
+142|      ctx.addIssue({ code: 'custom', path: ['valid_until'], message: dateRangeMessage });
+143|    }
+144|  });
+145|
+146|export type CreateVoucherInput = z.infer<typeof createVoucherSchema>;
+147|
+148|/**
+149| * Zod schema for updating a tenant voucher. Every field is optional because
+150| * the form only sends what the tenant changed; billing leaves the rest
+151| * untouched. Reactivating an expired voucher is allowed, so no validity check
+152| * runs on the toggle — only the range ordering is enforced when both ends
+153| * are supplied.
+154| */
+155|export const updateVoucherSchema = z
+156|  .object({
+157|    voucherId: z.string().trim().min(1, 'Voucher ID is required.'),
+158|    code: z.string().trim().max(255, 'Voucher code must not exceed 255 characters.').optional(),
+159|    discount_type: voucherDiscountTypeSchema.optional(),
+160|    discount_value: z.coerce.number().optional(),
+161|    max_discount_amount: optionalIntField,
+162|    min_transaction_amount: optionalIntField,
+163|    max_uses: optionalIntField,
+164|    valid_from: optionalDateTimeField,
+165|    valid_until: optionalDateTimeField,
+166|    is_active: z
+167|      .string()
+168|      .trim()
+169|      .optional()
+170|      .transform((raw) => {
+171|        if (raw === undefined || raw === '') return undefined;
+172|        if (raw === 'true') return true;
+173|        if (raw === 'false') return false;
+174|        return raw;
+175|      }),
+176|  })
+177|  .superRefine((value, ctx) => {
+178|    if (value.code !== undefined && value.code.length === 0) {
+179|      ctx.addIssue({ code: 'custom', path: ['code'], message: 'Voucher code is required.' });
+180|    }
+181|    if (
+182|      value.discount_type === 'percentage' &&
+183|      value.discount_value !== undefined &&
+184|      (value.discount_value < 1 || value.discount_value > 100)
+185|    ) {
+186|      ctx.addIssue({ code: 'custom', path: ['discount_value'], message: 'Percentage must be between 1 and 100.' });
+187|    }
+188|    if (
+189|      value.discount_type === 'fixed_amount' &&
+190|      value.discount_value !== undefined &&
+191|      value.discount_value <= 0
+192|    ) {
+193|      ctx.addIssue({ code: 'custom', path: ['discount_value'], message: 'Nominal amount must be positive.' });
+194|    }
+195|    if (value.discount_type === undefined && value.discount_value !== undefined && value.discount_value <= 0) {
+196|      ctx.addIssue({ code: 'custom', path: ['discount_value'], message: 'Discount value must be positive.' });
+197|    }
+198|    if (
+199|      value.max_discount_amount !== undefined &&
+200|      !(value.max_discount_amount as number > 0)
+201|    ) {
+202|      ctx.addIssue({
+203|        code: 'custom',
+204|        path: ['max_discount_amount'],
+205|        message: 'Maximum discount must be positive.',
+206|      });
+207|    }
+208|    if (value.max_uses !== undefined && !(value.max_uses as number > 0)) {
+209|      ctx.addIssue({ code: 'custom', path: ['max_uses'], message: 'Maximum uses must be positive.' });
+210|    }
+211|    if (typeof value.is_active !== 'boolean' && value.is_active !== undefined) {
+212|      ctx.addIssue({ code: 'custom', path: ['is_active'], message: 'Status must be active or inactive.' });
+213|    }
+214|    if (!voucherDateRangeRefine(value)) {
+215|      ctx.addIssue({ code: 'custom', path: ['valid_until'], message: dateRangeMessage });
+216|    }
+217|  });
+218|
+219|export type UpdateVoucherInput = z.infer<typeof updateVoucherSchema>;
+220|
+221|function firstValue(value: string | string[] | undefined): string {
+222|  if (typeof value === 'string') return value;
+223|  if (Array.isArray(value)) return typeof value[0] === 'string' ? value[0] : '';
+224|  return '';
+225|}
+226|
+227|/**
+228| * Reads the `page` query parameter into the page requested from billing.
+229| * A value that is not a positive integer falls back to the first page.
+230| */
+231|export function parseVoucherPage(input: Record<string, string | string[] | undefined>): number {
+232|  const rawPage = firstValue(input.page).trim();
+233|  const page = Number(rawPage);
+234|  return /^[1-9]\d*$/.test(rawPage) && Number.isSafeInteger(page) ? page : 1;
+235|}
+236|
+237|/**
+238| * Query string for the billing voucher list. `page_size` is always sent so
+239| * the screen never silently follows a service default change.
+240| */
+241|export function voucherQueryString(page: number): string {
+242|  const params = new URLSearchParams({
+243|    page: String(page),
+244|    page_size: String(VOUCHER_PAGE_SIZE),
+245|  });
+246|  return params.toString();
+247|}
+248|
+249|/**
+250| * Human-readable discount label for one row, e.g. `10%` or `Rp15.000`.
+251| */
+252|export function voucherDiscountLabel(voucher: Pick<TenantVoucher, 'discount_type' | 'discount_value'>): string {
+253|  if (voucher.discount_type === 'percentage') {
+254|    return `${voucher.discount_value}%`;
+255|  }
+256|  return `Rp${Math.round(voucher.discount_value).toLocaleString('id-ID')}`;
+257|}
+258|
+259|/**
+260| * Human-readable usage label, e.g. `3/10` or `3/∞` for an uncapped voucher.
+261| */
+262|export function voucherUsageLabel(
+263|  voucher: Pick<TenantVoucher, 'current_uses' | 'max_uses'>
+264|): string {
+265|  const cap = voucher.max_uses ?? null;
+266|  return `${voucher.current_uses}/${cap === null ? '∞' : cap}`;
+267|}
+268|
+269|export type { ListPagination };
+270|
+271|export type VoucherMutation = 'create' | 'update' | 'delete';
+272|
+273|/**
+274| * Maps a refused voucher mutation to a message the tenant can act on (KEL-161).
+275| *
+276| * 403 and 404 get fixed wording because the backend text for them is terse or
+277| * internal ("Permission denied", "Voucher not found"). 409 keeps the backend
+278| * message, which already states the conflict (code taken, or the voucher was
+279| * already used and can only be deactivated), and falls back to equivalent
+280| * wording when the body carries none.
+281| */
+282|export function voucherMutationErrorMessage(
+283|  mutation: VoucherMutation,
+284|  status: number,
+285|  backendMessage?: string
+286|): string {
+287|  if (status === 403) {
+288|    return mutation === 'create'
+289|      ? 'You do not have permission to create vouchers.'
+290|      : mutation === 'update'
+291|        ? 'You do not have permission to edit this voucher.'
+292|        : 'You do not have permission to delete this voucher.';
+293|  }
+294|  if (status === 404) {
+295|    return 'This voucher no longer exists. It may have been deleted in another session. Refresh the page to see the current vouchers.';
+296|  }
+297|  if (status === 409) {
+298|    if (backendMessage) {
+299|      return backendMessage;
+300|    }
+301|    return mutation === 'delete'
+302|      ? 'This voucher has already been used and can only be deactivated.'
+303|      : 'Another voucher already uses this code. Choose a different code.';
+304|  }
+305|  return (
+306|    backendMessage ||
+307|    (mutation === 'create'
+308|      ? 'Failed to create voucher. Please verify inputs and try again.'
+309|      : mutation === 'update'
+310|        ? 'Failed to update voucher. Please verify inputs and try again.'
+311|        : 'Failed to delete voucher. Please try again.')
+312|  );
+313|}
+
+### app/(dashboard)/dashboard/tenant/vouchers/_lib/actions.ts
+fatal: path 'app/(dashboard)/dashboard/tenant/vouchers/_lib/actions.ts' does not exist in 'origin/main'
+
+
+### app/(dashboard)/dashboard/tenant/sessions/_lib/schema.ts
+1|import { z } from 'zod';
+2|import type { ListPagination } from '@/lib/list-envelope';
+3|import { studentLastName, type StudentSurnameFields } from '@/lib/students';
+4|
+5|/**
+6| * Types, vocabulary, and pure helpers for the tutor session and attendance
+7| * screen (KEL-137).
+8| *
+9| * Everything here is synchronous and side effect free so the filter parsing,
+10| * the date ranges, and the row presentation can be unit tested without a
+11| * gateway or a request context. The asynchronous gateway reads live in
+12| * `../_queries/queries.ts` and the mass attendance mutation in
+13| * `../_actions/attendance.ts`.
+14| *
+15| * Three contracts back this screen, all proxied unchanged by the API gateway:
+16| *
+17| * - `GET /api/v1/sessions?mine=true&date_from=&date_to=&class_id=` (academic,
+18| *   guarded by `schedule:read`) answers the paginated `{ items, pagination }`
+19| *   envelope. `mine=true` limits the list to sessions where the caller is the
+20| *   tutor, derived from the verified JWT member claim; a client-supplied
+21| *   `tutor_id` is stripped server-side (KEL-135).
+22| * - `GET /api/v1/sessions/:id/attendees` (academic, guarded by
+23| *   `schedule:read`) answers the attendee list as a bare enrollment array
+24| *   (not the paginated envelope).
+25| * - `POST /api/v1/attendance` with `{ enrollment_id, session_id, status }`
+26| *   (academic, guarded by `attendance:create`) records one row. The gateway
+27| *   registers no `/attendance/bulk` or `/attendance/by-session` static route,
+28| *   so the mass form saves one row per request and the contract's
+29| *   "sebagian simpan gagal" edge case is reported per row. The session_id
+30| *   form is the only one that addresses reschedule replacements (KEL-134).
+31| * - `GET /api/v1/attendance?enrollment_id=` (academic, guarded by
+32| *   `attendance:read`) answers the same envelope and is read back after a
+33| *   refresh, filtered client-side by `session_id`.
+34| */
+35|
+36|/** Canonical path of this screen, used by links and the filter form. */
+37|export const TENANT_SESSIONS_PATH = '/dashboard/tenant/sessions';
+38|
+39|/**
+40| * Attendance statuses accepted by `POST /api/v1/attendance`.
+41| *
+42| * The vocabulary matches the academic service (`present`, `absent`, `late`,
+43| * `excused`); the filter form, the request builder, and the radio group share
+44| * this single schema instead of repeating the strings.
+45| */
+46|export const attendanceStatusSchema = z.enum(['present', 'late', 'excused', 'absent']);
+47|
+48|export type AttendanceStatus = z.infer<typeof attendanceStatusSchema>;
+49|
+50|const SESSION_TIME_PATTERN = /^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/;
+51|
+52|const RESCHEDULE_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+53|
+54|function sessionTimeToMinutes(value: string): number {
+55|  const [hours, minutes, seconds] = value.split(':').map(Number);
+56|  return hours * 60 + minutes + (seconds ? seconds / 60 : 0);
+57|}
+58|
+59|/**
+60| * Whether `YYYY-MM-DD` names a real calendar day (KEL-138).
+61| *
+62| * The reschedule date pattern only checks the shape, so `2026-02-30`
+63| * would pass it while naming no day. The backend would refuse the write;
+64| * rejecting it up front keeps the member from submitting a date that
+65| * cannot be saved.
+66| */
+67|export function isValidCalendarDate(value: string): boolean {
+68|  if (!RESCHEDULE_DATE_PATTERN.test(value)) {
+69|    return false;
+70|  }
+71|
+72|  const [year, month, day] = value.split('-').map(Number);
+73|
+74|  if (!Number.isInteger(year) || month < 1 || month > 12 || day < 1 || day > 31) {
+75|    return false;
+76|  }
+77|
+78|  const utc = new Date(Date.UTC(year, month - 1, day));
+79|
+80|  return utc.getUTCFullYear() === year && utc.getUTCMonth() === month - 1 && utc.getUTCDate() === day;
+81|}
+82|
+83|/**
+84| * Minutes since midnight in Asia/Jakarta for one instant (KEL-138).
+85| *
+86| * The reschedule form takes a plain calendar date plus a wall-clock time,
+87| * so "already past" is judged in the Jakarta day the member reads — not in
+88| * UTC, where the same instant can fall on a different date.
+89| */
+90|export function jakartaTimeMinutes(now: Date = new Date()): number {
+91|  const parts = new Intl.DateTimeFormat('en-US', {
+92|    timeZone: 'Asia/Jakarta',
+93|    hour: '2-digit',
+94|    minute: '2-digit',
+95|    hourCycle: 'h23',
+96|  }).formatToParts(now);
+97|
+98|  const lookup = new Map(parts.map((part) => [part.type, part.value]));
+99|
+100|  return Number(lookup.get('hour')) * 60 + Number(lookup.get('minute'));
+101|}
+102|
+103|export type RescheduleScheduleIssue = {
+104|  path: 'new_session_date' | 'new_start_time' | 'new_end_time';
+105|  message: string;
+106|};
+107|
+108|/**
+109| * Date and time issues of a reschedule payload against one instant
+110| * (KEL-138).
+111| *
+112| * Extracted from `rescheduleSchema` so the Jakarta-day boundary can be
+113| * pinned with a fixed `now` in tests: a date before the Jakarta today is
+114| * past, a start time that already passed on the Jakarta today is past, and
+115| * a shape-correct date that names no calendar day is invalid. The schema
+116| * itself calls this with the current instant.
+117| */
+118|export function rescheduleScheduleIssues(
+119|  value: { new_session_date: string; new_start_time: string; new_end_time: string },
+120|  now: Date = new Date()
+121|): RescheduleScheduleIssue[] {
+122|  const issues: RescheduleScheduleIssue[] = [];
+123|
+124|  if (sessionTimeToMinutes(value.new_end_time) <= sessionTimeToMinutes(value.new_start_time)) {
+125|    issues.push({ path: 'new_end_time', message: 'Waktu selesai harus setelah waktu mulai.' });
+126|  }
+127|
+128|  if (!isValidCalendarDate(value.new_session_date)) {
+129|    issues.push({ path: 'new_session_date', message: 'Tanggal sesi tidak valid.' });
+130|    return issues;
+131|  }
+132|
+133|  const today = jakartaDateString(now);
+134|
+135|  if (value.new_session_date < today) {
+136|    issues.push({ path: 'new_session_date', message: 'Tanggal sesi tidak boleh sudah lewat.' });
+137|  } else if (
+138|    value.new_session_date === today &&
+139|    sessionTimeToMinutes(value.new_start_time) <= jakartaTimeMinutes(now)
+140|  ) {
+141|    issues.push({ path: 'new_start_time', message: 'Waktu mulai sudah lewat untuk hari ini.' });
+142|  }
+143|
+144|  return issues;
+145|}
+146|
+147|/**
+148| * Whether the session screen offers the reschedule and substitute-tutor
+149| * dialogs for one membership read (KEL-138).
+150| *
+151| * Fail-closed: only a confirmed membership carrying `schedule:update` is
+152| * offered the mutations ("Aksi disembunyikan bagi anggota tanpa
+153| * schedule:update"). When the membership cannot be read the member is
+154| * treated as lacking the permission. The backend stays the access
+155| * authority and refuses the mutation with the same permission.
+156| */
+157|export function canManageTenantSessions(nav: {
+158|  state: string;
+159|  membership: { permissions: readonly string[] } | null;
+160|}): boolean {
+161|  return (
+162|    nav.state === 'ok' &&
+163|    nav.membership !== null &&
+164|    nav.membership.permissions.includes('schedule:update')
+165|  );
+166|}
+167|
+168|export const rescheduleSchema = z
+169|  .object({
+170|    session_id: z.string().refine(isSessionUuid, 'ID sesi tidak valid.'),
+171|    new_session_date: z.string().regex(RESCHEDULE_DATE_PATTERN, 'Tanggal harus berformat YYYY-MM-DD.'),
+172|    new_start_time: z.string().regex(SESSION_TIME_PATTERN, 'Waktu mulai tidak valid.'),
+173|    new_end_time: z.string().regex(SESSION_TIME_PATTERN, 'Waktu selesai tidak valid.'),
+174|  })
+175|  .superRefine((value, context) => {
+176|    for (const issue of rescheduleScheduleIssues(value)) {
+177|      context.addIssue({ code: z.ZodIssueCode.custom, path: [issue.path], message: issue.message });
+178|    }
+179|  });
+180|
+181|export type RescheduleInput = z.infer<typeof rescheduleSchema>;
+182|
+183|/**
+184| * Serialises a validated `YYYY-MM-DD` reschedule date for the academic
+185| * write (KEL-138 fix r2).
+186| *
+187| * Academic `RescheduleSessionRequest.NewSessionDate` is a `time.Time`, so
+188| * the JSON value must parse as RFC3339 (`2006-01-02T15:04:05Z07:00`): a bare
+189| * calendar date is refused with `400 parsing time ... cannot parse "" as
+190| * "T"`. `session_date` is a DATE column, so midnight UTC names the calendar
+191| * date itself — never shift it by +07:00.
+192| */
+193|export function rescheduleDatePayload(value: string): string {
+194|  return `${value}T00:00:00Z`;
+195|}
+196|
+197|export const substituteTutorSchema = z.object({
+198|  session_id: z.string().refine(isSessionUuid, 'ID sesi tidak valid.'),
+199|  substitute_tutor_id: z.string().refine(isSessionUuid, 'ID tutor tidak valid.'),
+200|});
+201|
+202|export type SubstituteTutorInput = z.infer<typeof substituteTutorSchema>;
+203|
+204|/**
+205| * One tutor option for the substitute-tutor select (KEL-138).
+206| *
+207| * `GET /api/v1/tutors` (identity, proxied by the gateway) answers the
+208| * paginated `{ items, pagination }` envelope of `{ id, first_name,
+209| * last_name, email, status }` rows. Only the fields the select renders are
+210| * kept; `name` is the display string so the dialog never assembles it from
+211| * parts itself.
+212| */
+213|export interface TutorOption {
+214|  /** Tenant member id required by the substitute-tutor API. */
+215|  id: string;
+216|  name: string;
+217|  email: string;
+218|}
+219|
+220|/** The identity ids needed to translate a tutor user id to a tenant member id. */
+221|export interface TenantMemberReference {
+222|  /** Tenant member id — the value the substitute-tutor write requires. */
+223|  id: string;
+224|  /** Identity account id, matched against the tutor row's user id. */
+225|  user_id: string;
+226|}
+227|
+228|/**
+229| * Normalises the member rows of `GET /api/v1/members`.
+230| *
+231| * Only the ids the tutor mapping needs are kept. Rows without usable UUID
+232| * `id`/`user_id` cannot be matched, so they are dropped. A row carrying a
+233| * non-`active` status is dropped as well: the academic service only accepts
+234| * an active member of the tenant as the substitute tutor.
+235| */
+236|export function normalizeTenantMembers(value: unknown): TenantMemberReference[] {
+237|  if (!Array.isArray(value)) {
+238|    return [];
+239|  }
+240|
+241|  const members: TenantMemberReference[] = [];
+242|
+243|  for (const entry of value) {
+244|    if (!entry || typeof entry !== 'object') {
+245|      continue;
+246|    }
+247|
+248|    const candidate = entry as { id?: unknown; user_id?: unknown; status?: unknown };
+249|
+250|    if (typeof candidate.id !== 'string' || !isSessionUuid(candidate.id)) {
+251|      continue;
+252|    }
+253|
+254|    if (typeof candidate.user_id !== 'string' || !isSessionUuid(candidate.user_id)) {
+255|      continue;
+256|    }
+257|
+258|    if (typeof candidate.status === 'string' && candidate.status !== 'active') {
+259|      continue;
+260|    }
+261|
+262|    members.push({ id: candidate.id, user_id: candidate.user_id });
+263|  }
+264|
+265|  return members;
+266|}
+267|
+268|/**
+269| * Resolves substitute-tutor select options from tutor rows and member rows
+270| * (KEL-138 fix r2).
+271| *
+272| * `GET /api/v1/tutors` answers the identity USER id, but the academic
+273| * substitute-tutor write requires the tenant MEMBER id, so each tutor row
+274| * is translated through the member row with the same `user_id`. A tutor with
+275| * no matching active member is dropped instead of sending a user id the
+276| * backend would refuse. The option keeps the tutor's display name and email;
+277| * only the value becomes the member id.
+278| */
+279|export function resolveSubstituteTutorOptions(
+280|  tutors: readonly TutorOption[],
+281|  members: readonly TenantMemberReference[]
+282|): TutorOption[] {
+283|  const memberIdByUserId = new Map<string, string>();
+284|
+285|  for (const member of members) {
+286|    if (!memberIdByUserId.has(member.user_id)) {
+287|      memberIdByUserId.set(member.user_id, member.id);
+288|    }
+289|  }
+290|
+291|  const options: TutorOption[] = [];
+292|
+293|  for (const tutor of tutors) {
+294|    const memberId = memberIdByUserId.get(tutor.id);
+295|
+296|    if (!memberId) {
+297|      continue;
+298|    }
+299|
+300|    options.push({ id: memberId, name: tutor.name, email: tutor.email });
+301|  }
+302|
+303|  return options;
+304|}
+305|
+306|/** Display name of a tutor row, falling back to email then a neutral label. */
+307|export function tutorDisplayName(
+308|  tutor: { first_name?: string | null; last_name?: string | null; email?: string | null } | null | undefined
+309|): string {
+310|  if (!tutor) {
+311|    return 'Tutor';
+312|  }
+313|
+314|  const first = typeof tutor.first_name === 'string' ? tutor.first_name.trim() : '';
+315|  const last = typeof tutor.last_name === 'string' ? tutor.last_name.trim() : '';
+316|  const name = [first, last].filter(Boolean).join(' ');
+317|
+318|  if (name) {
+319|    return name;
+320|  }
+321|
+322|  const email = typeof tutor.email === 'string' ? tutor.email.trim() : '';
+323|
+324|  return email || 'Tutor';
+325|}
+326|
+327|/**
+328| * Normalises the tutor list of `GET /api/v1/tutors`.
+329| *
+330| * The `id` answered here is the identity USER id (identity
+331| * `member_repository.go` ListTutors selects `u.id`), not the tenant member
+332| * id the substitute-tutor write requires. Callers must translate these rows
+333| * with `resolveSubstituteTutorOptions` before rendering the select.
+334| *
+335| * Rows without a usable `id` cannot be assigned, so they are dropped instead
+336| * of rendered half-broken. The identity service answers UUIDs here and the
+337| * substitute-tutor write validates them with `isSessionUuid`, so only UUID
+338| * ids are kept — anything else would fail the write anyway.
+339| */
+340|export function normalizeTenantTutors(value: unknown): TutorOption[] {
+341|  if (!Array.isArray(value)) {
+342|    return [];
+343|  }
+344|
+345|  const tutors: TutorOption[] = [];
+346|
+347|  for (const entry of value) {
+348|    if (!entry || typeof entry !== 'object') {
+349|      continue;
+350|    }
+351|
+352|    const candidate = entry as { id?: unknown; first_name?: unknown; last_name?: unknown; email?: unknown };
+353|
+354|    if (typeof candidate.id !== 'string' || !isSessionUuid(candidate.id)) {
+355|      continue;
+356|    }
+357|
+358|    const email = typeof candidate.email === 'string' ? candidate.email.trim() : '';
+359|
+360|    tutors.push({
+361|      id: candidate.id,
+362|      name: tutorDisplayName({
+363|        first_name: typeof candidate.first_name === 'string' ? candidate.first_name : null,
+364|        last_name: typeof candidate.last_name === 'string' ? candidate.last_name : null,
+365|        email,
+366|      }),
+367|      email,
+368|    });
+369|  }
+370|
+371|  return tutors;
+372|}
+373|
+374|/**
+375| * Attendance status options in the order the form presents them, with the
+376| * Indonesian labels the member reads.
+377| */
+378|export const ATTENDANCE_STATUS_OPTIONS: readonly {
+379|  value: AttendanceStatus;
+380|  label: string;
+381|}[] = [
+382|  { value: 'present', label: 'Hadir' },
+383|  { value: 'late', label: 'Telat' },
+384|  { value: 'excused', label: 'Izin' },
+385|  { value: 'absent', label: 'Alfa' },
+386|] as const;
+387|
+388|/**
+389| * Session lifecycle states emitted by `GET /api/v1/sessions`.
+390| *
+391| * Both `scheduled` and `rescheduled` rows belong to the tutor's week: a
+392| * reschedule keeps the original row with status `rescheduled` and inserts a
+393| * replacement with status `scheduled`, so filtering either one out would hide
+394| * a session the acceptance criteria require to be visible.
+395| */
+396|export const sessionStatusSchema = z.enum(['scheduled', 'rescheduled', 'cancelled', 'completed']);
+397|
+398|export type SessionStatus = z.infer<typeof sessionStatusSchema>;
+399|
+400|/**
+401| * One row of `GET /api/v1/sessions`.
+402| *
+403| * Only the fields this screen renders are declared; the endpoint returns
+404| * more, and reading extra fields is never required here.
+405| */
+406|export interface TutorSession {
+407|  id: string;
+408|  class_id: string;
+409|  schedule_id?: string | null;
+410|  enrollment_id?: string | null;
+411|  tutor_id?: string;
+412|  session_date: string;
+413|  start_time: string;
+414|  end_time: string;
+415|  status: string;
+416|  class?: { id?: string; name?: string | null } | null;
+417|}
+418|
+419|/** Student fields an attendee row serialises (surname: `lib/students.ts`). */
+420|export interface SessionAttendeeStudent extends StudentSurnameFields {
+421|  first_name?: string | null;
+422|}
+423|
+424|/**
+425| * One attendee of `GET /api/v1/sessions/:id/attendees`.
+426| *
+427| * The endpoint answers a bare enrollment array with the student preloaded;
+428| * `enrollment_id` is the identifier the attendance write addresses.
+429| */
+430|export interface SessionAttendee {
+431|  enrollment_id: string;
+432|  student?: SessionAttendeeStudent | null;
+433|}
+434|
+435|/**
+436| * One attendance row of `GET /api/v1/attendance`.
+437| *
+438| * `session_id` is how a read-back row is matched to the session the form
+439| * saved: the list endpoint understands no `session_id` filter, so the rows
+440| * are read per enrollment and filtered client-side.
+441| */
+442|export interface SessionAttendanceRecord {
+443|  id: string;
+444|  enrollment_id: string;
+445|  session_id: string;
+446|  status: string;
+447|}
+448|
+449|/** Which week slice the tutor is looking at. */
+450|export const sessionRangeSchema = z.enum(['today', 'week']);
+451|
+452|export type SessionRange = z.infer<typeof sessionRangeSchema>;
+453|
+454|/** Filter state this screen round-trips through the URL. */
+455|export interface SessionFilters {
+456|  range: SessionRange;
+457|  class_id: string;
+458|}
+459|
+460|export type SessionFilterResult =
+461|  | { filters: SessionFilters; error: null }
+462|  | { filters: null; error: 'invalid_filter' };
+463|
+464|/** Filter state used to render the form when the submitted one was rejected. */
+465|export const EMPTY_SESSION_FILTERS: SessionFilters = { range: 'today', class_id: '' };
+466|
+467|const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+468|
+469|const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+470|
+471|/**
+472| * Whether an identifier taken from a URL or a response is a UUID.
+473| *
+474| * `GET /api/v1/sessions` answers `400 invalid class_id` for a value that is
+475| * not a UUID, so a malformed filter must produce an explanation instead of a
+476| * failed request.
+477| */
+478|export function isSessionUuid(value: unknown): value is string {
+479|  return typeof value === 'string' && UUID_PATTERN.test(value);
+480|}
+481|
+482|function firstValue(value: string | string[] | undefined): string {
+483|  if (typeof value === 'string') {
+484|    return value;
+485|  }
+486|
+487|  if (Array.isArray(value)) {
+488|    return typeof value[0] === 'string' ? value[0] : '';
+489|  }
+490|
+491|  return '';
+492|}
+493|
+494|/**
+495| * Reads the `range` and `class_id` query parameters into the filter state.
+496| *
+497| * A `range` outside the `today`/`week` vocabulary, or a `class_id` that is
+498| * not a UUID, is reported as `invalid_filter` instead of being forwarded.
+499| * An absent or empty parameter keeps its default, so a plain `/sessions`
+500| * visit lands on today's sessions.
+501| */
+502|export function parseSessionFilters(
+503|  input: Record<string, string | string[] | undefined>
+504|): SessionFilterResult {
+505|  const rawRange = firstValue(input.range).trim();
+506|  const rawClassId = firstValue(input.class_id).trim();
+507|
+508|  let range: SessionRange = 'today';
+509|
+510|  if (rawRange !== '') {
+511|    const parsed = sessionRangeSchema.safeParse(rawRange);
+512|
+513|    if (!parsed.success) {
+514|      return { filters: null, error: 'invalid_filter' };
+515|    }
+516|
+517|    range = parsed.data;
+518|  }
+519|
+520|  if (rawClassId !== '' && !isSessionUuid(rawClassId)) {
+521|    return { filters: null, error: 'invalid_filter' };
+522|  }
+523|
+524|  return { filters: { range, class_id: rawClassId }, error: null };
+525|}
+526|
+527|/** Midnight of the given date in Asia/Jakarta, as `YYYY-MM-DD`. */
+528|function jakartaDateString(date: Date): string {
+529|  const parts = new Intl.DateTimeFormat('en-US', {
+530|    timeZone: 'Asia/Jakarta',
+531|    year: 'numeric',
+532|    month: '2-digit',
+533|    day: '2-digit',
+534|  }).formatToParts(date);
+535|
+536|  const lookup = new Map(parts.map((part) => [part.type, part.value]));
+537|
+538|  return `${lookup.get('year')}-${lookup.get('month')}-${lookup.get('day')}`;
+539|}
+540|
+541|/**
+542| * Day the weekly slice starts on.
+543| *
+544| * The week starts on Monday (Asia/Jakarta): the Jakarta weekday is derived
+545| * from the instant, so a Sunday evening in UTC that is already Monday in
+546| * Jakarta opens the new week.
+547| */
+548|function jakartaWeekday(date: Date): number {
+549|  const dayName = new Intl.DateTimeFormat('en-US', {
+550|    timeZone: 'Asia/Jakarta',
+551|    weekday: 'short',
+552|  }).format(date);
+553|
+554|  const index: Record<string, number> = {
+555|    Sun: 0,
+556|    Mon: 1,
+557|    Tue: 2,
+558|    Wed: 3,
+559|    Thu: 4,
+560|    Fri: 5,
+561|    Sat: 6,
+562|  };
+563|
+564|  return index[dayName] ?? 0;
+565|}
+566|
+567|function addDays(dateString: string, days: number): string {
+568|  const [year, month, day] = dateString.split('-').map(Number);
+569|  const utc = new Date(Date.UTC(year, month - 1, day));
+570|  utc.setUTCDate(utc.getUTCDate() + days);
+571|
+572|  return utc.toISOString().slice(0, 10);
+573|}
+574|
+575|/**
+576| * Inclusive `date_from`/`date_to` bounds for one filter state.
+577| *
+578| * `today` covers the single Jakarta day; `week` covers Monday to Sunday of
+579| * the Jakarta week containing `now`. The bounds are plain calendar dates
+580| * because the academic service parses `date_from`/`date_to` strictly as
+581| * `YYYY-MM-DD`.
+582| */
+583|export function sessionDateRange(filters: SessionFilters, now: Date = new Date()): {
+584|  date_from: string;
+585|  date_to: string;
+586|} {
+587|  const today = jakartaDateString(now);
+588|
+589|  if (filters.range === 'today') {
+590|    return { date_from: today, date_to: today };
+591|  }
+592|
+593|  const daysSinceMonday = (jakartaWeekday(now) + 6) % 7;
+594|  const monday = addDays(today, -daysSinceMonday);
+595|
+596|  return { date_from: monday, date_to: addDays(monday, 6) };
+597|}
+598|
+599|/**
+600| * Query string for the tutor session list.
+601| *
+602| * `mine=true` is always sent: this screen shows the caller's own sessions,
+603| * never another tutor's. The academic service derives the tutor from the
+604| * verified JWT member claim and strips any client-supplied `tutor_id`
+605| * (KEL-135), so none is sent.
+606| */
+607|export function sessionQueryString(
+608|  filters: SessionFilters,
+609|  range: { date_from: string; date_to: string }
+610|): string {
+611|  const params = new URLSearchParams({
+612|    mine: 'true',
+613|    date_from: range.date_from,
+614|    date_to: range.date_to,
+615|    page: '1',
+616|    page_size: '100',
+617|  });
+618|
+619|  if (filters.class_id) {
+620|    params.set('class_id', filters.class_id);
+621|  }
+622|
+623|  return params.toString();
+624|}
+625|
+626|/**
+627| * Query string asking the academic service for the attendance rows of exactly
+628| * one enrollment.
+629| *
+630| * `page_size=100` covers every session of the visible week: one enrollment
+631| * holds at most one row per session, and the caller filters the rows by
+632| * `session_id` itself.
+633| */
+634|export function sessionAttendanceQueryString(enrollmentId: string): string {
+635|  const params = new URLSearchParams({
+636|    page: '1',
+637|    page_size: '100',
+638|    enrollment_id: enrollmentId,
+639|  });
+640|
+641|  return params.toString();
+642|}
+643|
+644|/** Link to this screen at another filter state, preserving the range. */
+645|export function sessionPageHref(filters: SessionFilters): string {
+646|  const params = new URLSearchParams();
+647|
+648|  if (filters.range !== 'today') {
+649|    params.set('range', filters.range);
+650|  }
+651|
+652|  if (filters.class_id) {
+653|    params.set('class_id', filters.class_id);
+654|  }
+655|
+656|  const query = params.toString();
+657|
+658|  return query ? `${TENANT_SESSIONS_PATH}?${query}` : TENANT_SESSIONS_PATH;
+659|}
+660|
+661|/**
+662| * Indonesian label of an attendance status.
+663| *
+664| * An unknown value is shown verbatim rather than hidden: attendance statuses
+665| * are written by the academic service, so a state this screen has not been
+666| * taught about should be visible instead of being displayed as if it were
+667| * one of the known ones.
+668| */
+669|export function attendanceStatusLabel(status: string): string {
+670|  const option = ATTENDANCE_STATUS_OPTIONS.find((candidate) => candidate.value === status);
+671|
+672|  return option ? option.label : status;
+673|}
+674|
+675|/**
+676| * Display name of the student behind an attendee row.
+677| *
+678| * The academic service serialises the surname as `last_name` (KEL-43); the
+679| * shared `studentLastName` reader keeps the legacy fallback in one place.
+680| */
+681|export function sessionAttendeeName(
+682|  student: ({ first_name?: string | null } & StudentSurnameFields) | null | undefined
+683|): string {
+684|  if (!student) {
+685|    return 'Student';
+686|  }
+687|
+688|  const first = typeof student.first_name === 'string' ? student.first_name.trim() : '';
+689|  const name = [first, studentLastName(student)].filter(Boolean).join(' ');
+690|
+691|  return name || 'Student';
+692|}
+693|
+694|/**
+695| * Indexes attendance rows by enrollment id, keeping only the rows that belong
+696| * to the given session.
+697| *
+698| * The list endpoint cannot filter by `session_id`, so the caller passes the
+699| * session it saved and this index decides what the refresh shows: one row
+700| * per enrollment, or nothing when no row was recorded for that enrollment.
+701| */
+702|export function attendanceByEnrollment(
+703|  records: readonly SessionAttendanceRecord[],
+704|  sessionId: string
+705|): Map<string, SessionAttendanceRecord> {
+706|  const index = new Map<string, SessionAttendanceRecord>();
+707|
+708|  for (const record of records) {
+709|    if (record?.session_id !== sessionId) {
+710|      continue;
+711|    }
+712|
+713|    if (typeof record?.enrollment_id === 'string' && record.enrollment_id !== '' && !index.has(record.enrollment_id)) {
+714|      index.set(record.enrollment_id, record);
+715|    }
+716|  }
+717|
+718|  return index;
+719|}
+720|
+721|/**
+722| * Normalises one attendee entry of `GET /api/v1/sessions/:id/attendees`.
+723| *
+724| * The endpoint answers a bare enrollment array with the student preloaded.
+725| * Entries without a usable `id` are skipped because the attendance write
+726| * addresses the enrollment by that identifier.
+727| */
+728|export function normalizeSessionAttendees(value: unknown): SessionAttendee[] {
+729|  if (!Array.isArray(value)) {
+730|    return [];
+731|  }
+732|
+733|  const attendees: SessionAttendee[] = [];
+734|
+735|  for (const entry of value) {
+736|    if (!entry || typeof entry !== 'object') {
+737|      continue;
+738|    }
+739|
+740|    const candidate = entry as { id?: unknown; student?: unknown };
+741|
+742|    if (typeof candidate.id !== 'string' || candidate.id === '') {
+743|      continue;
+744|    }
+745|
+746|    const student =
+747|      candidate.student && typeof candidate.student === 'object'
+748|        ? (candidate.student as SessionAttendeeStudent)
+749|        : null;
+750|
+751|    attendees.push({ enrollment_id: candidate.id, student });
+752|  }
+753|
+754|  return attendees;
+755|}
+756|
+757|/**
+758| * Normalises one attendance entry of `GET /api/v1/attendance`.
+759| *
+760| * Rows without a usable `id`, `enrollment_id`, or `session_id` are skipped:
+761| * the read-back index matches rows to the saved session by those
+762| * identifiers, and a row missing one cannot be shown anywhere.
+763| */
+764|export function normalizeSessionAttendance(value: unknown): SessionAttendanceRecord[] {
+765|  if (!Array.isArray(value)) {
+766|    return [];
+767|  }
+768|
+769|  const records: SessionAttendanceRecord[] = [];
+770|
+771|  for (const entry of value) {
+772|    if (!entry || typeof entry !== 'object') {
+773|      continue;
+774|    }
+775|
+776|    const candidate = entry as { id?: unknown; enrollment_id?: unknown; session_id?: unknown; status?: unknown };
+777|
+778|    if (
+779|      typeof candidate.id !== 'string' ||
+780|      candidate.id === '' ||
+781|      typeof candidate.enrollment_id !== 'string' ||
+782|      candidate.enrollment_id === '' ||
+783|      typeof candidate.session_id !== 'string' ||
+784|      candidate.session_id === '' ||
+785|      typeof candidate.status !== 'string'
+786|    ) {
+787|      continue;
+788|    }
+789|
+790|    records.push({
+791|      id: candidate.id,
+792|      enrollment_id: candidate.enrollment_id,
+793|      session_id: candidate.session_id,
+794|      status: candidate.status,
+795|    });
+796|  }
+797|
+798|  return records;
+799|}
+800|
+801|/**
+802| * Session date formatted for an Indonesian reader.
+803| *
+804| * A missing or malformed value renders as an em dash rather than a guessed
+805| * date. The time window is rendered from the raw `HH:MM:SS` strings because
+806| * the session date carries no timezone and parsing it as an instant would
+807| * shift the day around midnight.
+808| */
+809|export function sessionDateLabel(sessionDate?: string | null): string {
+810|  if (typeof sessionDate !== 'string' || !DATE_PATTERN.test(sessionDate)) {
+811|    return '—';
+812|  }
+813|
+814|  const [year, month, day] = sessionDate.split('-').map(Number);
+815|  const parsed = new Date(Date.UTC(year, month - 1, day));
+816|
+817|  if (Number.isNaN(parsed.getTime())) {
+818|    return '—';
+819|  }
+820|
+821|  return new Intl.DateTimeFormat('id-ID', {
+822|    weekday: 'long',
+823|    day: 'numeric',
+824|    month: 'long',
+825|    year: 'numeric',
+826|    timeZone: 'Asia/Jakarta',
+827|  }).format(parsed);
+828|}
+829|
+830|/** Start–end window of a session (`15:30–17:00`), or an em dash. */
+831|export function sessionTimeLabel(startTime?: string | null, endTime?: string | null): string {
+832|  const start = typeof startTime === 'string' ? startTime.slice(0, 5) : '';
+833|  const end = typeof endTime === 'string' ? endTime.slice(0, 5) : '';
+834|
+835|  if (!start || !end) {
+836|    return '—';
+837|  }
+838|
+839|  return `${start}–${end}`;
+840|}
+841|
+842|/**
+843| * Indonesian label of a session status.
+844| *
+845| * A rescheduled row keeps its own badge: the original row with status
+846| * `rescheduled` and its replacement with status `scheduled` are both
+847| * visible, so the member can tell which one moved.
+848| */
+849|export function sessionStatusLabel(status: string): string {
+850|  const labels: Record<string, string> = {
+851|    scheduled: 'Terjadwal',
+852|    rescheduled: 'Dijadwalkan ulang',
+853|    cancelled: 'Dibatalkan',
+854|    completed: 'Selesai',
+855|  };
+856|
+857|  return labels[status] ?? status;
+858|}
+859|
+860|/** Class name of a session, or a neutral placeholder when it is missing. */
+861|export function sessionClassName(session: TutorSession): string {
+862|  const name = session.class?.name;
+863|
+864|  return typeof name === 'string' && name.trim() ? name.trim() : 'Kelas';
+865|}
+866|
+867|/** Pagination summary sentence for the result count line. */
+868|export function sessionCountLabel(pagination: ListPagination): string {
+869|  const total = pagination.total_items;
+870|
+871|  return total === 1 ? '1 sesi' : `${total} sesi`;
+872|}
+
+### app/(dashboard)/dashboard/tenant/reports/_lib/schema.ts
+1|import { z } from 'zod';
+2|import type { ListPagination } from '@/lib/list-envelope';
+3|import { studentLastName, type StudentSurnameFields } from '@/lib/students';
+4|
+5|/**
+6| * Types, vocabulary, and pure helpers for the tenant student-evaluation
+7| * report screen (KEL-139).
+8| *
+9| * Everything here is synchronous and side effect free so the form schema,
+10| * the filter parsing, and the row presentation can be unit tested without a
+11| * gateway or a request context. The asynchronous gateway reads live in
+12| * `../_queries/queries.ts` and the mutations in `../_actions/reports.ts`.
+13| *
+14| * Three contracts back this screen, all proxied unchanged by the API
+15| * gateway (`router.go`):
+16| *
+17| * - `GET /api/v1/reports` (academic, guarded by `report:read`) answers the
+18| *   paginated `{ items, pagination }` envelope. Filters are `search`
+19| *   (title/notes), `enrollment_id`, `student_id`, `reporter_id`, and
+20| *   `date_from`/`date_to` as strict `YYYY-MM-DD`. There is no `class_id`
+21| *   filter; the class only arrives preloaded on each row's `enrollment`.
+22| * - `POST /api/v1/reports` with `{ enrollment_id, title, evaluation_notes?,
+23| *   score? }` (academic, guarded by `report:create`) creates one row. A
+24| *   tutor who does not teach the enrollment is refused with `403 "Tutor is
+25| *   not assigned to this enrollment"`.
+26| * - `PATCH /api/v1/reports/:id` with `{ title, evaluation_notes?, score? }`
+27| *   (guarded by `report:update`) and `DELETE /api/v1/reports/:id` (guarded
+28| *   by `report:delete`) apply the same assignment rule against the stored
+29| *   enrollment, so a caller cannot retarget a report to a class they teach.
+30| *
+31| * Field shapes mirror `domain.CreateReportRequest`/`UpdateReportRequest` in
+32| * the academic service: `title` required max 255, `score` optional 0–100.
+33| */
+34|
+35|/** Canonical path of this screen, used by links and the filter form. */
+36|export const TENANT_REPORTS_PATH = '/dashboard/tenant/reports';
+37|
+38|/** Rows per report page; matches the academic service default. */
+39|export const REPORT_PAGE_SIZE = 20;
+40|
+41|/** Student fields a report enrollment serialises (surname: `lib/students.ts`). */
+42|export interface ReportStudent extends StudentSurnameFields {
+43|  first_name?: string | null;
+44|}
+45|
+46|/** Class fields a report enrollment serialises. */
+47|export interface ReportClass {
+48|  id?: string;
+49|  name?: string | null;
+50|}
+51|
+52|/**
+53| * Enrollment behind a report row.
+54| *
+55| * `GET /api/v1/reports` preloads `Enrollment` (with its student and class),
+56| * so the row already carries the names the list renders. The enrollment
+57| * identifier is what the create write addresses.
+58| */
+59|export interface ReportEnrollment {
+60|  id: string;
+61|  student_id?: string;
+62|  class_id?: string;
+63|  status?: string;
+64|  student?: ReportStudent | null;
+65|  class?: ReportClass | null;
+66|}
+67|
+68|/**
+69| * One row of `GET /api/v1/reports`.
+70| *
+71| * Only the fields this screen renders are declared; the endpoint serialises
+72| * tenant/reporter timestamps around them, and reading extra fields is never
+73| * required here.
+74| */
+75|export interface TenantReport {
+76|  id: string;
+77|  enrollment_id: string;
+78|  reporter_id?: string;
+79|  title: string;
+80|  evaluation_notes?: string | null;
+81|  score?: number | null;
+82|  created_at?: string | null;
+83|  enrollment?: ReportEnrollment | null;
+84|}
+85|
+86|/** One enrollment option for the filter select and the create form. */
+87|export interface ReportEnrollmentOption {
+88|  enrollment_id: string;
+89|  label: string;
+90|}
+91|
+92|/** Filter state this screen round-trips through the URL. */
+93|export interface ReportFilters {
+94|  page: number;
+95|  search: string;
+96|  enrollment_id: string;
+97|  date_from: string;
+98|  date_to: string;
+99|}
+100|
+101|export type ReportFilterResult =
+102|  | { filters: ReportFilters; error: null }
+103|  | { filters: null; error: 'invalid_filter' };
+104|
+105|/** Filter state used to render the form when the submitted one was rejected. */
+106|export const EMPTY_REPORT_FILTERS: ReportFilters = {
+107|  page: 1,
+108|  search: '',
+109|  enrollment_id: '',
+110|  date_from: '',
+111|  date_to: '',
+112|};
+113|
+114|const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+115|
+116|const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+117|
+118|/**
+119| * Whether an identifier taken from a URL or a response is a UUID.
+120| *
+121| * `GET /api/v1/reports` answers `400 invalid enrollment_id` for a value
+122| * that is not a UUID, so a malformed filter must produce an explanation
+123| * instead of a failed request.
+124| */
+125|export function isReportUuid(value: unknown): value is string {
+126|  return typeof value === 'string' && UUID_PATTERN.test(value);
+127|}
+128|
+129|/**
+130| * Whether `YYYY-MM-DD` names a real calendar day.
+131| *
+132| * The shape pattern alone would accept `2026-02-30`, which the backend
+133| * refuses; rejecting it up front keeps the member from submitting a filter
+134| * that cannot run.
+135| */
+136|export function isValidReportDate(value: string): boolean {
+137|  if (!DATE_PATTERN.test(value)) {
+138|    return false;
+139|  }
+140|
+141|  const [year, month, day] = value.split('-').map(Number);
+142|
+143|  if (!Number.isInteger(year) || month < 1 || month > 12 || day < 1 || day > 31) {
+144|    return false;
+145|  }
+146|
+147|  const utc = new Date(Date.UTC(year, month - 1, day));
+148|
+149|  return utc.getUTCFullYear() === year && utc.getUTCMonth() === month - 1 && utc.getUTCDate() === day;
+150|}
+151|
+152|function firstValue(value: string | string[] | undefined): string {
+153|  if (typeof value === 'string') {
+154|    return value;
+155|  }
+156|
+157|  if (Array.isArray(value)) {
+158|    return typeof value[0] === 'string' ? value[0] : '';
+159|  }
+160|
+161|  return '';
+162|}
+163|
+164|/**
+165| * Reads the `page`, `search`, `enrollment_id`, `date_from`, and `date_to`
+166| * query parameters into the filter state.
+167| *
+168| * A non-positive `page`, a non-UUID `enrollment_id`, a malformed date, or a
+169| * `date_from` after `date_to` is reported as `invalid_filter` instead of
+170| * being forwarded: the academic service answers each with `400`, and a
+171| * filter somebody typed by hand should produce an explanation rather than a
+172| * failed request. Absent parameters keep their defaults.
+173| */
+174|export function parseReportFilters(
+175|  input: Record<string, string | string[] | undefined>
+176|): ReportFilterResult {
+177|  const rawPage = firstValue(input.page).trim();
+178|  const search = firstValue(input.search).trim().slice(0, 255);
+179|  const enrollmentId = firstValue(input.enrollment_id).trim();
+180|  const dateFrom = firstValue(input.date_from).trim();
+181|  const dateTo = firstValue(input.date_to).trim();
+182|
+183|  if (rawPage !== '' && !/^[1-9]\d*$/.test(rawPage)) {
+184|    return { filters: null, error: 'invalid_filter' };
+185|  }
+186|
+187|  if (enrollmentId !== '' && !isReportUuid(enrollmentId)) {
+188|    return { filters: null, error: 'invalid_filter' };
+189|  }
+190|
+191|  if (dateFrom !== '' && !isValidReportDate(dateFrom)) {
+192|    return { filters: null, error: 'invalid_filter' };
+193|  }
+194|
+195|  if (dateTo !== '' && !isValidReportDate(dateTo)) {
+196|    return { filters: null, error: 'invalid_filter' };
+197|  }
+198|
+199|  if (dateFrom !== '' && dateTo !== '' && dateFrom > dateTo) {
+200|    return { filters: null, error: 'invalid_filter' };
+201|  }
+202|
+203|  return {
+204|    filters: {
+205|      page: rawPage === '' ? 1 : Number(rawPage),
+206|      search,
+207|      enrollment_id: enrollmentId,
+208|      date_from: dateFrom,
+209|      date_to: dateTo,
+210|    },
+211|    error: null,
+212|  };
+213|}
+214|
+215|/**
+216| * Query string for the tenant report list.
+217| *
+218| * Only the vocabulary the academic `parseReportQuery` understands is sent:
+219| * dates stay plain `YYYY-MM-DD` because the service parses them strictly in
+220| * that layout. `page_size` is always sent so the screen never silently
+221| * falls back if the service default ever changes.
+222| */
+223|export function reportQueryString(filters: ReportFilters): string {
+224|  const params = new URLSearchParams({
+225|    page: String(filters.page),
+226|    page_size: String(REPORT_PAGE_SIZE),
+227|  });
+228|
+229|  if (filters.search) {
+230|    params.set('search', filters.search);
+231|  }
+232|
+233|  if (filters.enrollment_id) {
+234|    params.set('enrollment_id', filters.enrollment_id);
+235|  }
+236|
+237|  if (filters.date_from) {
+238|    params.set('date_from', filters.date_from);
+239|  }
+240|
+241|  if (filters.date_to) {
+242|    params.set('date_to', filters.date_to);
+243|  }
+244|
+245|  return params.toString();
+246|}
+247|
+248|/** Link to this screen at another page, preserving the active filters. */
+249|export function reportPageHref(filters: ReportFilters): string {
+250|  const params = new URLSearchParams();
+251|
+252|  if (filters.page !== 1) {
+253|    params.set('page', String(filters.page));
+254|  }
+255|
+256|  if (filters.search) {
+257|    params.set('search', filters.search);
+258|  }
+259|
+260|  if (filters.enrollment_id) {
+261|    params.set('enrollment_id', filters.enrollment_id);
+262|  }
+263|
+264|  if (filters.date_from) {
+265|    params.set('date_from', filters.date_from);
+266|  }
+267|
+268|  if (filters.date_to) {
+269|    params.set('date_to', filters.date_to);
+270|  }
+271|
+272|  const query = params.toString();
+273|
+274|  return query ? `${TENANT_REPORTS_PATH}?${query}` : TENANT_REPORTS_PATH;
+275|}
+276|
+277|/**
+278| * Whether a raw score form value is usable.
+279| *
+280| * Empty means "belum dinilai" and is valid: the backend field is optional.
+281| * Otherwise the value must parse to a finite number within 0–100, mirroring
+282| * the `gte=0,lte=100` binding on the backend request structs.
+283| */
+284|export function isValidScoreInput(value: string): boolean {
+285|  const trimmed = value.trim();
+286|
+287|  if (trimmed === '') {
+288|    return true;
+289|  }
+290|
+291|  if (!/^\d+(\.\d+)?$/.test(trimmed)) {
+292|    return false;
+293|  }
+294|
+295|  const parsed = Number(trimmed);
+296|
+297|  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100;
+298|}
+299|
+300|/**
+301| * Raw report form fields as the Server Action reads them from `FormData`.
+302| *
+303| * `score` stays a string here so the schema can report "di luar 0–100"
+304| * against exactly what the member typed; `reportCreatePayload` /
+305| * `reportUpdatePayload` convert the validated value to the JSON number the
+306| * backend binds.
+307| */
+308|export const reportFormSchema = z.object({
+309|  enrollment_id: z
+310|    .string()
+311|    .trim()
+312|    .refine(isReportUuid, 'Enrollment tidak valid. Pilih siswa dari daftar.'),
+313|  title: z
+314|    .string()
+315|    .trim()
+316|    .min(1, 'Judul laporan wajib diisi.')
+317|    .max(255, 'Judul laporan maksimal 255 karakter.'),
+318|  evaluation_notes: z.string().trim().max(5000, 'Catatan evaluasi maksimal 5000 karakter.'),
+319|  score: z
+320|    .string()
+321|    .trim()
+322|    .refine(isValidScoreInput, 'Skor harus berupa angka 0 sampai 100. Kosongkan bila belum dinilai.'),
+323|});
+324|
+325|export type ReportFormInput = z.infer<typeof reportFormSchema>;
+326|
+327|/** Identifier of the report an update or delete addresses. */
+328|export const reportIdSchema = z.string().trim().refine(isReportUuid, 'ID laporan tidak valid.');
+329|
+330|/**
+331| * Update form fields: the same vocabulary as create, minus the enrollment.
+332| *
+333| * The update endpoint binds `UpdateReportRequest` with no enrollment field;
+334| * the assignment check runs against the stored enrollment, so none is sent.
+335| */
+336|export const reportUpdateFormSchema = z.object({
+337|  report_id: reportIdSchema,
+338|  title: reportFormSchema.shape.title,
+339|  evaluation_notes: reportFormSchema.shape.evaluation_notes,
+340|  score: reportFormSchema.shape.score,
+341|});
+342|
+343|export type ReportUpdateFormInput = z.infer<typeof reportUpdateFormSchema>;
+344|
+345|/**
+346| * Exact `POST /api/v1/reports` body for a validated form.
+347| *
+348| * Only the field names `CreateReportRequest` binds are sent
+349| * (`enrollment_id`, `title`, `evaluation_notes`, `score`). Optional fields
+350| * are omitted when empty rather than sent as empty strings the backend
+351| * would store verbatim.
+352| */
+353|export function reportCreatePayload(data: ReportFormInput): Record<string, unknown> {
+354|  const body: Record<string, unknown> = {
+355|    enrollment_id: data.enrollment_id,
+356|    title: data.title,
+357|  };
+358|
+359|  if (data.evaluation_notes !== '') {
+360|    body.evaluation_notes = data.evaluation_notes;
+361|  }
+362|
+363|  if (data.score !== '') {
+364|    body.score = Number(data.score);
+365|  }
+366|
+367|  return body;
+368|}
+369|
+370|/**
+371| * Exact `PATCH /api/v1/reports/:id` body for a validated form.
+372| *
+373| * `UpdateReportRequest` carries no enrollment field, so `enrollment_id` is
+374| * never sent even though the create form needs it.
+375| */
+376|export function reportUpdatePayload(data: ReportUpdateFormInput): Record<string, unknown> {
+377|  const body: Record<string, unknown> = { title: data.title };
+378|
+379|  if (data.evaluation_notes !== '') {
+380|    body.evaluation_notes = data.evaluation_notes;
+381|  }
+382|
+383|  if (data.score !== '') {
+384|    body.score = Number(data.score);
+385|  }
+386|
+387|  return body;
+388|}
+389|
+390|/**
+391| * Whether the report screen offers the write actions for one membership
+392| * read (KEL-139).
+393| *
+394| * Fail-closed per action: each mutation is offered only on a confirmed
+395| * membership carrying its own permission (`report:create`, `report:update`,
+396| * `report:delete`). When the membership cannot be read the member is
+397| * treated as lacking every write permission. The backend stays the access
+398| * authority and refuses the mutation with the same permission.
+399| */
+400|export function reportWritePermissions(nav: {
+401|  state: string;
+402|  membership: { permissions: readonly string[] } | null;
+403|}): { canCreate: boolean; canUpdate: boolean; canDelete: boolean } {
+404|  const granted =
+405|    nav.state === 'ok' && nav.membership !== null
+406|      ? new Set(nav.membership.permissions)
+407|      : new Set<string>();
+408|
+409|  return {
+410|    canCreate: granted.has('report:create'),
+411|    canUpdate: granted.has('report:update'),
+412|    canDelete: granted.has('report:delete'),
+413|  };
+414|}
+415|
+416|/**
+417| * Normalises one enrollment entry preloaded on a report row.
+418| *
+419| * Entries without a usable `id` are dropped: the update and delete writes
+420| * address the report itself, but the list labels and the create form trace
+421| * every option back to an enrollment identifier.
+422| */
+423|export function normalizeReportEnrollment(value: unknown): ReportEnrollment | null {
+424|  if (!value || typeof value !== 'object') {
+425|    return null;
+426|  }
+427|
+428|  const candidate = value as {
+429|    id?: unknown;
+430|    student_id?: unknown;
+431|    class_id?: unknown;
+432|    status?: unknown;
+433|    student?: unknown;
+434|    class?: unknown;
+435|  };
+436|
+437|  if (typeof candidate.id !== 'string' || candidate.id === '') {
+438|    return null;
+439|  }
+440|
+441|  const student =
+442|    candidate.student && typeof candidate.student === 'object'
+443|      ? (candidate.student as ReportStudent)
+444|      : null;
+445|  const klass =
+446|    candidate.class && typeof candidate.class === 'object' ? (candidate.class as ReportClass) : null;
+447|
+448|  return {
+449|    id: candidate.id,
+450|    ...(typeof candidate.student_id === 'string' ? { student_id: candidate.student_id } : {}),
+451|    ...(typeof candidate.class_id === 'string' ? { class_id: candidate.class_id } : {}),
+452|    ...(typeof candidate.status === 'string' ? { status: candidate.status } : {}),
+453|    ...(student ? { student } : {}),
+454|    ...(klass ? { class: klass } : {}),
+455|  };
+456|}
+457|
+458|/**
+459| * Normalises one row of `GET /api/v1/reports`.
+460| *
+461| * Rows without a usable `id` cannot be updated or deleted, so they are
+462| * skipped instead of rendered half-broken. A missing or blank title falls
+463| * back to a neutral label; a non-numeric `score` reads as "belum dinilai"
+464| * rather than crashing the badge.
+465| */
+466|export function normalizeTenantReport(value: unknown): TenantReport | null {
+467|  if (!value || typeof value !== 'object') {
+468|    return null;
+469|  }
+470|
+471|  const candidate = value as {
+472|    id?: unknown;
+473|    enrollment_id?: unknown;
+474|    reporter_id?: unknown;
+475|    title?: unknown;
+476|    evaluation_notes?: unknown;
+477|    score?: unknown;
+478|    created_at?: unknown;
+479|    enrollment?: unknown;
+480|  };
+481|
+482|  if (typeof candidate.id !== 'string' || candidate.id === '') {
+483|    return null;
+484|  }
+485|
+486|  const title =
+487|    typeof candidate.title === 'string' && candidate.title.trim() ? candidate.title.trim() : 'Laporan';
+488|
+489|  return {
+490|    id: candidate.id,
+491|    enrollment_id: typeof candidate.enrollment_id === 'string' ? candidate.enrollment_id : '',
+492|    ...(typeof candidate.reporter_id === 'string' ? { reporter_id: candidate.reporter_id } : {}),
+493|    title,
+494|    ...(typeof candidate.evaluation_notes === 'string' ? { evaluation_notes: candidate.evaluation_notes } : {}),
+495|    ...(typeof candidate.score === 'number' && Number.isFinite(candidate.score)
+496|      ? { score: candidate.score }
+497|      : {}),
+498|    ...(typeof candidate.created_at === 'string' ? { created_at: candidate.created_at } : {}),
+499|    ...(candidate.enrollment && typeof candidate.enrollment === 'object'
+500|      ? (() => {
+501|          const enrollment = normalizeReportEnrollment(candidate.enrollment);
+502|          return enrollment ? { enrollment } : {};
+503|        })()
+504|      : {}),
+505|  };
+506|}
+507|
+508|/**
+509| * Display name of the student behind a report row.
+510| *
+511| * The academic service serialises the surname as `last_name`; the shared
+512| * `studentLastName` reader keeps the legacy fallback in one place.
+513| */
+514|export function reportStudentName(student: ReportStudent | null | undefined): string {
+515|  if (!student) {
+516|    return 'Siswa';
+517|  }
+518|
+519|  const first = typeof student.first_name === 'string' ? student.first_name.trim() : '';
+520|  const name = [first, studentLastName(student)].filter(Boolean).join(' ');
+521|
+522|  return name || 'Siswa';
+523|}
+524|
+525|/** Class name of a report row, or a neutral placeholder when missing. */
+526|export function reportClassName(enrollment: ReportEnrollment | null | undefined): string {
+527|  const name = enrollment?.class?.name;
+528|
+529|  return typeof name === 'string' && name.trim() ? name.trim() : 'Kelas';
+530|}
+531|
+532|/** One-line label for an enrollment option (`Nama Siswa · Nama Kelas`). */
+533|export function reportEnrollmentLabel(enrollment: ReportEnrollment): string {
+534|  return `${reportStudentName(enrollment.student ?? null)} · ${reportClassName(enrollment)}`;
+535|}
+536|
+537|/**
+538| * Report creation time formatted for an Indonesian reader.
+539| *
+540| * A missing or malformed value renders as an em dash rather than a guessed
+541| * date. `created_at` is a full timestamp (unlike a session's bare calendar
+542| * date), so it is parsed as an instant and rendered in Asia/Jakarta.
+543| */
+544|export function reportDateLabel(createdAt?: string | null): string {
+545|  if (typeof createdAt !== 'string' || createdAt === '') {
+546|    return '—';
+547|  }
+548|
+549|  const parsed = new Date(createdAt);
+550|
+551|  if (Number.isNaN(parsed.getTime())) {
+552|    return '—';
+553|  }
+554|
+555|  return new Intl.DateTimeFormat('id-ID', {
+556|    day: 'numeric',
+557|    month: 'long',
+558|    year: 'numeric',
+559|    timeZone: 'Asia/Jakarta',
+560|  }).format(parsed);
+561|}
+562|
+563|/** Score badge text, or the "not yet graded" state when no score was given. */
+564|export function reportScoreLabel(score?: number | null): string {
+565|  if (typeof score !== 'number' || !Number.isFinite(score)) {
+566|    return 'Belum dinilai';
+567|  }
+568|
+569|  return `Nilai: ${score}`;
+570|}
+571|
+572|/** Pagination summary sentence for the result count line. */
+573|export function reportCountLabel(pagination: ListPagination): string {
+574|  const total = pagination.total_items;
+575|
+576|  return total === 1 ? '1 laporan' : `${total} laporan`;
+577|}
+
+### lib/creator-requests.ts
+1|import { cookies } from 'next/headers';
+2|import { getGatewayBaseUrl } from '@/lib/gateway';
+3|
+4|type Caller = { tenant_id?: unknown; is_parent?: unknown; is_platform_admin?: unknown; platform_factor_version?: unknown };
+5|
+6|export function creatorCaller(token: string): Caller | null {
+7|  try {
+8|    const encoded = token.split('.')[1];
+9|    if (!encoded) return null;
+10|    const normalized = encoded.replace(/-/g, '+').replace(/_/g, '/');
+11|    const payload = JSON.parse(atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')));
+12|    return typeof payload === 'object' && payload !== null ? payload as Caller : null;
+13|  } catch { return null; }
+14|}
+15|
+16|export function callerMatchesScope(token: string, platform: boolean, tenant?: string): boolean {
+17|  const caller = creatorCaller(token);
+18|  if (!caller) return false;
+19|  if (platform) return caller.is_platform_admin === true && !caller.tenant_id && typeof caller.platform_factor_version === 'number' && caller.platform_factor_version > 0;
+20|  return caller.is_platform_admin !== true && caller.is_parent !== true && typeof tenant === 'string' && tenant.length > 0 && caller.tenant_id === tenant;
+21|}
+22|
+23|
+24|export type CreatorRequest = {
+25|  id: string;
+26|  tenant_id: string;
+27|  tenant_name?: string;
+28|  requester_user_id: string;
+29|  target_email: string;
+30|  target_user_id?: string;
+31|  reason: string;
+32|  status: string;
+33|  created_at: string;
+34|  updated_at: string;
+35|  decided_by?: string;
+36|  decided_at?: string;
+37|  rejection_reason?: string;
+38|};
+39|
+40|export type RequestResult = { status: number; data: CreatorRequest[]; message: string };
+41|
+42|export async function readCreatorRequests(platform: boolean): Promise<RequestResult> {
+43|  const jar = await cookies();
+44|  const token = jar.get(process.env.AUTH_COOKIE_NAME || 'auth_token')?.value;
+45|  if (!token) return { status: 401, data: [], message: 'Session expired. Sign in again.' };
+46|  const tenant = jar.get(process.env.TENANT_ID_COOKIE_NAME || 'tenant_id')?.value;
+47|  if (!callerMatchesScope(token, platform, tenant)) return { status: 403, data: [], message: platform ? 'Platform access required.' : 'Tenant access required.' };
+48|  try {
+49|    const response = await fetch(`${getGatewayBaseUrl()}/api/v1/${platform ? 'platform/' : ''}creator-requests`, {
+50|      headers: { Authorization: `Bearer ${token}`, ...(platform ? {} : { 'X-Tenant-ID': tenant! }) },
+51|      cache: 'no-store',
+52|    });
+53|    if (!response.ok) return { status: response.status, data: [], message: response.status === 403 ? 'Access denied.' : response.status === 401 ? 'Session expired. Sign in again.' : 'Could not load Creator requests. Try again.' };
+54|    const body: unknown = await response.json();
+55|    if (!body || typeof body !== 'object' || !('status' in body) || body.status !== 'success' || !('data' in body) || !Array.isArray(body.data)) throw new Error('Invalid Creator request response');
+56|    return { status: 200, data: body.data as CreatorRequest[], message: '' };
+57|  } catch {
+58|    return { status: 503, data: [], message: 'Could not load Creator requests. Try again.' };
+59|  }
+60|}
+
+### lib/platform-withdrawals.ts
+1|import { cookies } from 'next/headers';
+2|import { callerMatchesScope } from '@/lib/creator-requests';
+3|import { getGatewayBaseUrl } from '@/lib/gateway';
+4|
+5|export type PlatformWithdrawal = {
+6|  id: string;
+7|  tenant_id: string;
+8|  amount: number;
+9|  admin_fee: number;
+10|  net_amount: number;
+11|  status: string;
+12|  bank_code: string;
+13|  account_number: string;
+14|  account_name: string;
+15|  requested_at: string;
+16|};
+17|
+18|type Queue = { items: PlatformWithdrawal[]; pagination: { page: number; total_pages: number; total_items: number } };
+19|export type WithdrawalRead = { status: number; data: Queue | null; message: string };
+20|
+21|export type PlatformWithdrawalDecision = PlatformWithdrawal & {
+22|  status: 'paid' | 'rejected';
+23|  decided_by: string;
+24|  decided_at: string;
+25|  transfer_reference?: string;
+26|  reject_reason?: string;
+27|};
+28|
+29|type History = { items: PlatformWithdrawalDecision[]; pagination: { page: number; total_pages: number; total_items: number } };
+30|export type WithdrawalHistoryRead = { status: number; data: History | null; message: string };
+31|
+32|const hasWithdrawalFields = (item: PlatformWithdrawal): boolean => !!item && typeof item.id === 'string' && typeof item.tenant_id === 'string' && Number.isSafeInteger(item.amount) && Number.isSafeInteger(item.net_amount) && Number.isSafeInteger(item.admin_fee) && typeof item.bank_code === 'string' && typeof item.account_name === 'string' && typeof item.account_number === 'string' && typeof item.requested_at === 'string';
+33|
+34|const isQueueItem = (item: PlatformWithdrawal): boolean => hasWithdrawalFields(item) && item.status === 'requested';
+35|
+36|const isHistoryItem = (item: PlatformWithdrawalDecision): boolean => hasWithdrawalFields(item) && (item.status === 'paid' || item.status === 'rejected') && typeof item.decided_by === 'string' && typeof item.decided_at === 'string' && (item.status === 'paid' ? typeof item.transfer_reference === 'string' : typeof item.reject_reason === 'string');
+37|
+38|export async function readPlatformWithdrawals(page: number): Promise<WithdrawalRead> {
+39|  const token = (await cookies()).get(process.env.AUTH_COOKIE_NAME || 'auth_token')?.value;
+40|  if (!token) return { status: 401, data: null, message: 'Session expired. Sign in again.' };
+41|  if (!callerMatchesScope(token, true)) return { status: 403, data: null, message: 'Platform access required.' };
+42|  const current = Number.isSafeInteger(page) && page > 0 ? page : 1;
+43|  try {
+44|    const response = await fetch(`${getGatewayBaseUrl()}/api/v1/platform/withdrawals?page=${current}`, {
+45|      headers: { Authorization: `Bearer ${token}` }, cache: 'no-store',
+46|    });
+47|    if (!response.ok) return { status: response.status, data: null, message: response.status === 401 ? 'Session expired. Sign in again.' : response.status === 403 ? 'Access denied.' : 'Could not load withdrawal queue. Try again.' };
+48|    const body: unknown = await response.json();
+49|    if (!body || typeof body !== 'object' || !('status' in body) || body.status !== 'success' || !('data' in body)) throw new Error('Invalid withdrawal response');
+50|    const data = body.data as Queue | null;
+51|    if (!data || !Array.isArray(data.items) || !data.pagination || !Number.isSafeInteger(data.pagination.total_pages) || !Number.isSafeInteger(data.pagination.total_items) || !data.items.every(isQueueItem)) throw new Error('Invalid withdrawal queue');
+52|    return { status: 200, data, message: '' };
+53|  } catch {
+54|    return { status: 503, data: null, message: 'Could not load withdrawal queue. Try again.' };
+55|  }
+56|}
+57|
+58|export async function readPlatformWithdrawalHistory(page: number): Promise<WithdrawalHistoryRead> {
+59|  const token = (await cookies()).get(process.env.AUTH_COOKIE_NAME || 'auth_token')?.value;
+60|  if (!token) return { status: 401, data: null, message: 'Session expired. Sign in again.' };
+61|  if (!callerMatchesScope(token, true)) return { status: 403, data: null, message: 'Platform access required.' };
+62|  const current = Number.isSafeInteger(page) && page > 0 ? page : 1;
+63|  try {
+64|    const response = await fetch(`${getGatewayBaseUrl()}/api/v1/platform/withdrawals?status=decided&page=${current}`, {
+65|      headers: { Authorization: `Bearer ${token}` }, cache: 'no-store',
+66|    });
+67|    if (!response.ok) return { status: response.status, data: null, message: response.status === 401 ? 'Session expired. Sign in again.' : response.status === 403 ? 'Access denied.' : 'Could not load decision history. Try again.' };
+68|    const body: unknown = await response.json();
+69|    if (!body || typeof body !== 'object' || !('status' in body) || body.status !== 'success' || !('data' in body)) throw new Error('Invalid history response');
+70|    const data = body.data as History | null;
+71|    if (!data || !Array.isArray(data.items) || !data.pagination || !Number.isSafeInteger(data.pagination.total_pages) || !Number.isSafeInteger(data.pagination.total_items) || !data.items.every(isHistoryItem)) throw new Error('Invalid withdrawal history');
+72|    return { status: 200, data, message: '' };
+73|  } catch {
+74|    return { status: 503, data: null, message: 'Could not load decision history. Try again.' };
+75|  }
+76|}
+
+### next.config.ts
+1|import type { NextConfig } from "next";
+2|
+3|const nextConfig: NextConfig = {
+4|  /* config options here */
+5|};
+6|
+7|export default nextConfig;

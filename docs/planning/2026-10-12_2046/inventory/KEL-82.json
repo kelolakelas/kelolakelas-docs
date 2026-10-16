@@ -1,0 +1,129 @@
+{
+  "id": "KEL-82",
+  "uuid": "628b1166-6dd6-48c9-9b93-76829ed71928",
+  "title": "Tenant dapat melihat, mencabut, dan mengirim ulang undangan anggota tanpa token ganda",
+  "description": "## Background / Problem\n\nIdentity hanya memiliki `POST /invitations`, `GET /invitations/verify`, dan `POST /invitations/register` (`kelolakelas-identity-service/cmd/server/main.go:106-113`); gateway hanya mem-proxy ketiganya (`kelolakelas-api-gateway/internal/delivery/http/router.go:90-104`). Undangan tidak dapat dilihat atau dicabut. `CreateInvitation` hanya menolak email yang sudah menjadi anggota tenant (`internal/usecase/invitation_usecase.go:55-60`), sehingga mengundang ulang email yang sama membuat token aktif tambahan dan email baru setiap kali. Email yang sudah memiliki akun (misalnya parent) tetap diundang, tetapi penerimaan selalu gagal 409 karena `RegisterInvitedUserTx` menolak user yang sudah ada (`internal/repository/user_repository.go:199-203`). Respons pembuatan mengembalikan seluruh `TenantInvitation`, termasuk `token` (`internal/domain/invitation.go`, `invitation_handler.go:130-134`), padahal web tidak memakainya.\n\n## Goal\n\nPemegang member:invite dapat melihat undangan yang masih aktif, mencabutnya, dan mengirim ulang tanpa menghasilkan lebih dari satu token aktif per email, dan tidak ada undangan yang pasti gagal diterima.\n\n## Requirements\n\n* Endpoint list undangan tenant yang belum dipakai, menampilkan email, role, waktu kedaluwarsa, dan status aktif/kedaluwarsa, dengan permission member:invite dan scoping tenant dari JWT.\n* Endpoint cabut undangan per ID dengan permission member:invite; undangan tenant lain menghasilkan 404.\n* Membuat undangan untuk email yang masih memiliki undangan aktif di tenant yang sama menonaktifkan token lama, menerbitkan token baru, dan mengirim ulang email.\n* Membuat undangan untuk email yang sudah memiliki akun ditolak dengan 409 dan pesan yang jelas.\n* Respons create dan list tidak memuat token undangan.\n* Gateway mendaftarkan route list dan cabut di grup protected beserta test routing.\n* Verifikasi dan registrasi undangan yang valid tetap berfungsi seperti sekarang.\n\n## Acceptance Criteria\n\n- [ ] GET list hanya mengembalikan undangan tenant pemanggil dan tidak memuat token.\n- [ ] Undangan yang dicabut ditolak oleh verify dan register.\n- [ ] Mengundang ulang email yang sama menghasilkan tepat satu token aktif untuk email tersebut.\n- [ ] Mengundang email yang sudah memiliki akun menghasilkan 409 tanpa email terkirim.\n- [ ] Caller tanpa member:invite menerima 403 pada list dan cabut.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nKeputusan permission: list dan cabut memakai `member:invite` karena pengelola undangan adalah pemegang izin undang (asumsi; `member:read` saat ini tidak ditegakkan di mana pun). Dukungan agar akun yang sudah ada dapat bergabung ke tenant membutuhkan keputusan arsitektur multi-membership dan tidak termasuk di sini; penolakan 409 mencegah jalan buntu sementara. Perbarui `kelolakelas-docs/docs/api/identity.md`, `docs/api/gateway.md`, dan `docs/api/endpoint-matrix.md`. Complexity rationale: endpoint baru di identity dan dua route gateway mengikuti pola handler dan permission yang ada; risiko terbatas pada data undangan satu tenant.\n\nRelevant areas:\n\n* `kelolakelas-identity-service/internal/usecase/invitation_usecase.go`\n* `kelolakelas-identity-service/internal/repository/invitation_repository.go`\n* `kelolakelas-identity-service/internal/delivery/http/handler/invitation_handler.go`\n* `kelolakelas-identity-service/cmd/server/main.go`\n* `kelolakelas-api-gateway/internal/delivery/http/router.go`\n\n## Edge Cases\n\n* Undangan kedaluwarsa tetapi belum dipakai.\n* Email dengan variasi huruf besar-kecil (mengikuti perilaku pencarian email saat ini).\n* Pengiriman email gagal saat kirim ulang (perilaku email_sent <issue id=\"1d1e97a0-ff0a-43ec-be09-f1175a22087f\" href=\"https://linear.app/farid-zamani/issue/KEL-36/laporkan-kegagalan-pengiriman-email-undangan\">KEL-36</issue> tetap).\n\n## Testing / Validation\n\n- [ ] Test usecase untuk kirim ulang yang menonaktifkan token lama dan untuk penolakan akun yang sudah ada.\n- [ ] Test routing gateway untuk kedua route baru.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* UI web undangan (issue web-pending-invitations).\n* Bergabungnya akun yang sudah ada ke tenant.\n* Rate limit khusus pengiriman undangan.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"identity-invitation-lifecycle\",\n  \"projectKey\": \"tenant-member-administration\",\n  \"title\": \"Tenant dapat melihat, mencabut, dan mengirim ulang undangan anggota tanpa token ganda\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"identity\",\n    \"api-gateway\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"identity\",\n    \"api-gateway\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Identity hanya memiliki `POST /invitations`, `GET /invitations/verify`, dan `POST /invitations/register` (`kelolakelas-identity-service/cmd/server/main.go:106-113`); gateway hanya mem-proxy ketiganya (`kelolakelas-api-gateway/internal/delivery/http/router.go:90-104`). Undangan tidak dapat dilihat atau dicabut. `CreateInvitation` hanya menolak email yang sudah menjadi anggota tenant (`internal/usecase/invitation_usecase.go:55-60`), sehingga mengundang ulang email yang sama membuat token aktif tambahan dan email baru setiap kali. Email yang sudah memiliki akun (misalnya parent) tetap diundang, tetapi penerimaan selalu gagal 409 karena `RegisterInvitedUserTx` menolak user yang sudah ada (`internal/repository/user_repository.go:199-203`). Respons pembuatan mengembalikan seluruh `TenantInvitation`, termasuk `token` (`internal/domain/invitation.go`, `invitation_handler.go:130-134`), padahal web tidak memakainya.\",\n    \"goal\": \"Pemegang member:invite dapat melihat undangan yang masih aktif, mencabutnya, dan mengirim ulang tanpa menghasilkan lebih dari satu token aktif per email, dan tidak ada undangan yang pasti gagal diterima.\",\n    \"requirements\": [\n      \"Endpoint list undangan tenant yang belum dipakai, menampilkan email, role, waktu kedaluwarsa, dan status aktif/kedaluwarsa, dengan permission member:invite dan scoping tenant dari JWT.\",\n      \"Endpoint cabut undangan per ID dengan permission member:invite; undangan tenant lain menghasilkan 404.\",\n      \"Membuat undangan untuk email yang masih memiliki undangan aktif di tenant yang sama menonaktifkan token lama, menerbitkan token baru, dan mengirim ulang email.\",\n      \"Membuat undangan untuk email yang sudah memiliki akun ditolak dengan 409 dan pesan yang jelas.\",\n      \"Respons create dan list tidak memuat token undangan.\",\n      \"Gateway mendaftarkan route list dan cabut di grup protected beserta test routing.\",\n      \"Verifikasi dan registrasi undangan yang valid tetap berfungsi seperti sekarang.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"GET list hanya mengembalikan undangan tenant pemanggil dan tidak memuat token.\",\n      \"Undangan yang dicabut ditolak oleh verify dan register.\",\n      \"Mengundang ulang email yang sama menghasilkan tepat satu token aktif untuk email tersebut.\",\n      \"Mengundang email yang sudah memiliki akun menghasilkan 409 tanpa email terkirim.\",\n      \"Caller tanpa member:invite menerima 403 pada list dan cabut.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Keputusan permission: list dan cabut memakai `member:invite` karena pengelola undangan adalah pemegang izin undang (asumsi; `member:read` saat ini tidak ditegakkan di mana pun). Dukungan agar akun yang sudah ada dapat bergabung ke tenant membutuhkan keputusan arsitektur multi-membership dan tidak termasuk di sini; penolakan 409 mencegah jalan buntu sementara. Perbarui `kelolakelas-docs/docs/api/identity.md`, `docs/api/gateway.md`, dan `docs/api/endpoint-matrix.md`. Complexity rationale: endpoint baru di identity dan dua route gateway mengikuti pola handler dan permission yang ada; risiko terbatas pada data undangan satu tenant.\",\n    \"relevantAreas\": [\n      \"kelolakelas-identity-service/internal/usecase/invitation_usecase.go\",\n      \"kelolakelas-identity-service/internal/repository/invitation_repository.go\",\n      \"kelolakelas-identity-service/internal/delivery/http/handler/invitation_handler.go\",\n      \"kelolakelas-identity-service/cmd/server/main.go\",\n      \"kelolakelas-api-gateway/internal/delivery/http/router.go\"\n    ],\n    \"edgeCases\": [\n      \"Undangan kedaluwarsa tetapi belum dipakai.\",\n      \"Email dengan variasi huruf besar-kecil (mengikuti perilaku pencarian email saat ini).\",\n      \"Pengiriman email gagal saat kirim ulang (perilaku email_sent KEL-36 tetap).\"\n    ],\n    \"testingValidation\": [\n      \"Test usecase untuk kirim ulang yang menonaktifkan token lama dan untuk penolakan akun yang sudah ada.\",\n      \"Test routing gateway untuk kedua route baru.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"UI web undangan (issue web-pending-invitations).\",\n      \"Bergabungnya akun yang sudah ada ke tenant.\",\n      \"Rate limit khusus pengiriman undangan.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-82/tenant-dapat-melihat-mencabut-dan-mengirim-ulang-undangan-anggota",
+  "gitBranchName": "skinel123/kel-82-tenant-dapat-melihat-mencabut-dan-mengirim-ulang-undangan",
+  "createdAt": "2026-09-24T12:20:40.884Z",
+  "updatedAt": "2026-09-25T17:15:02.924Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-25T17:10:40.694Z",
+  "startedAt": "2026-09-25T16:25:59.850Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "identity",
+    "api-gateway",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "61a774d6-a507-4778-b5fb-57a350e6cf63",
+      "title": "KEL-82: document tenant invitation lifecycle",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/61"
+    },
+    {
+      "id": "def2fd58-b53b-4223-b2af-3d739b22328b",
+      "title": "KEL-82: route protected invitation lifecycle",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/16"
+    },
+    {
+      "id": "2ca75a2d-a578-450f-91b4-d5df50699146",
+      "title": "KEL-82: manage tenant invitation lifecycle",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/14"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T12:20:40.884Z",
+      "endedAt": "2026-09-25T16:25:59.863Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-25T16:25:59.863Z",
+      "endedAt": "2026-09-25T17:10:40.702Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-25T17:10:40.702Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Administrasi anggota tenant yang andal dan aman",
+  "projectId": "24479f4a-98ab-4255-a1e8-954da9ba6360",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-84",
+        "title": "Tenant melihat, mencabut, dan mengirim ulang undangan pending dari dashboard"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-88",
+        "title": "Registrasi dan pengaturan tenant menolak input tidak valid dengan 400/409, bukan 500"
+      },
+      {
+        "id": "KEL-36",
+        "title": "Laporkan kegagalan pengiriman email undangan"
+      },
+      {
+        "id": "KEL-86",
+        "title": "Pembeli dapat membuka daftar kelas dari tenant yang sama melalui kartu dan detail kelas"
+      },
+      {
+        "id": "KEL-55",
+        "title": "Panggilan keluar billing dibatasi waktu dan worker renewal tidak menimpa status transaksi"
+      },
+      {
+        "id": "KEL-66",
+        "title": "Pengguna dapat meminta dan mengonfirmasi reset password lewat token email sekali pakai"
+      },
+      {
+        "id": "KEL-85",
+        "title": "Pengunjung katalog melihat sisa kursi dan lokasi setiap jadwal kelas sebelum login"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

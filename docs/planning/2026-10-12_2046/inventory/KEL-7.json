@@ -1,0 +1,106 @@
+{
+  "id": "KEL-7",
+  "uuid": "b0fe7732-c9f3-4b04-a44e-b7e208370929",
+  "title": "Terapkan permission pada administrasi tenant dan role",
+  "description": "## Background / Problem\n\nPermission `member:invite`, `tenant:update`, dan `role:create|update|delete` sudah di-seed. Namun invitation creation, tenant setting mutations, dan role CRUD hanya menggunakan tenant claim atau ownership rule. Member role update/delete sudah menunjukkan bahwa permission dapat diverifikasi pada use case.\n\n## Goal\n\nOperasi administrasi tenant hanya dapat dilakukan oleh member dengan permission yang sesuai.\n\n## Requirements\n\n* Invitation creation memerlukan `member:invite`.\n* Tenant profile/location mutation memerlukan `tenant:update`.\n* Role create, update, dan delete memerlukan permission masing-masing.\n* Tenant ownership, system-role guard, dan perilaku member yang sudah berizin harus tetap terjaga.\n\n## Acceptance Criteria\n\n- [ ] Caller tanpa permission yang diperlukan menerima 403 dan tidak menghasilkan perubahan data\n- [ ] Creator atau custom role dengan permission yang tepat tetap dapat menyelesaikan operasi\n- [ ] Role atau resource milik tenant lain tetap tidak dapat diakses\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nGunakan pola permission check pada `memberUsecase.UpdateRole` dan `memberUsecase.Delete` bila sesuai. Permission denial harus dibedakan dari authentication failure dan validation failure.\n\nRelevant areas:\n\n* `kelolakelas-identity-service/internal/usecase/member_usecase.go`\n* `kelolakelas-identity-service/internal/delivery/http/handler/invitation_handler.go`\n* `kelolakelas-identity-service/internal/delivery/http/handler/role_handler.go`\n\n## Edge Cases\n\n* Token valid tetapi tidak mempunyai `role_id`.\n* Permission role berubah ketika token lama masih aktif.\n* Creator mencoba memodifikasi system role yang immutable.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Permission untuk domain akademik.\n* UI penyembunyian action berdasarkan permission.\n* Session revocation setelah role berubah.",
+  "priority": {
+    "value": 1,
+    "name": "Urgent"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-7/terapkan-permission-pada-administrasi-tenant-dan-role",
+  "gitBranchName": "skinel123/kel-7-terapkan-permission-pada-administrasi-tenant-dan-role",
+  "createdAt": "2026-09-13T19:02:23.116Z",
+  "updatedAt": "2026-09-24T12:02:22.413Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-14T03:10:49.948Z",
+  "startedAt": "2026-09-14T03:08:49.498Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "identity",
+    "Improvement"
+  ],
+  "attachments": [
+    {
+      "id": "62c9fdaf-7112-4edc-9b21-47744faee013",
+      "title": "docs: describe tenant administration permissions",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/3"
+    },
+    {
+      "id": "be79298b-c0f8-4594-b758-a0a63b12a5cd",
+      "title": "security: enforce tenant administration permissions",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/3"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:02:23.116Z",
+      "endedAt": "2026-09-14T03:08:49.508Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-14T03:08:49.508Z",
+      "endedAt": "2026-09-14T03:10:49.957Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-14T03:10:49.957Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Fondasi otorisasi multi-tenant",
+  "projectId": "c75be77a-273e-4882-9242-c6a3abd34372",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-10",
+        "title": "Terapkan permission pada mutasi katalog kelas"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-5",
+        "title": "Wajibkan JWT secret eksplisit pada seluruh boundary terkait"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-79",
+        "title": "Anggota Teacher dapat dipindah role tanpa mengizinkan perubahan role sendiri"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

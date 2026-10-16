@@ -1,0 +1,110 @@
+{
+  "id": "KEL-116",
+  "uuid": "82b4ef26-3067-4a8a-a099-9ef9fc3a1dc4",
+  "title": "Tenant mengirim rekomendasi jadwal saat menolak dan parent dapat menerima atau menolaknya di web",
+  "description": "## Background / Problem\n\nSetelah API rekomendasi tersedia, tenant membutuhkan cara menyertakan slot alternatif saat menolak dari dashboard, dan parent membutuhkan cara melihat serta menerima atau menolak rekomendasi dari daftar permintaannya. Dialog tolak tenant dan daftar permintaan parent dibuat oleh issue web tenant dan issue web parent.\n\n## Goal\n\nTenant dapat memilih menolak begitu saja atau menolak dengan rekomendasi jadwal lain. Parent dapat melihat rekomendasi, menerimanya lalu melanjutkan pembayaran, atau menolaknya.\n\n## Requirements\n\n* Dialog tolak tenant menyediakan pilihan \"Tolak\" dan \"Tolak dengan rekomendasi jadwal\". Pilihan kedua menampilkan input satu atau lebih slot (hari, jam mulai, jam selesai) dan alasan opsional.\n* Daftar permintaan parent menampilkan slot rekomendasi pada permintaan yang ditolak dengan rekomendasi, beserta tombol \"Terima jadwal ini\" dan \"Tolak rekomendasi\".\n* Menerima rekomendasi mengarahkan parent ke pembayaran melalui `checkout_session_url` yang dikembalikan API, hanya bila skemanya http/https (pola `resumePayment` di `lib/payment-status.ts`).\n* Tenant melihat status rekomendasi (menunggu parent, diterima, ditolak) di daftar permintaan.\n* Error API (409, 403, validasi, jaringan) ditampilkan dengan pesan berbahasa Indonesia yang jelas.\n\n## Acceptance Criteria\n\n- [ ] Tenant menolak dengan rekomendasi, lalu parent melihat slot rekomendasi pada permintaannya.\n- [ ] Parent menerima rekomendasi dan diarahkan ke pembayaran; enrollment terkait tampil di halaman status enrollment.\n- [ ] Parent menolak rekomendasi, lalu tombol terima tidak lagi tersedia dan status tampil ditolak.\n- [ ] Slot rekomendasi dengan jam selesai tidak setelah jam mulai dicegah di form tenant.\n- [ ] Penolakan tanpa rekomendasi tetap berfungsi seperti sebelumnya.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nPakai ulang input slot dari form permintaan parent bila memungkinkan. Kontrak endpoint mengikuti hasil issue API rekomendasi; jangan mengarang field. Hari memakai ISO 1\u20137 dengan label bahasa Indonesia seperti `enrollmentScheduleLabel` (<issue id=\"aed86642-ff35-4130-8e14-c5be1da3f8cd\" href=\"https://linear.app/farid-zamani/issue/KEL-70/parent-melihat-jadwal-kelas-yang-dibeli-pada-halaman-status-enrollment\">KEL-70</issue>). Perbarui kelolakelas-docs `docs/components/web.md`.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/enrollments`\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments`\n* `kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx`\n* `kelolakelas-web/lib/payment-status.ts`\n\n## Edge Cases\n\n* Rekomendasi diterima tetapi invoice gagal dibuat.\n* Parent membuka rekomendasi yang sudah ditolak di tab lain.\n* Kelas ditutup sebelum parent menerima rekomendasi.\n\n## Testing / Validation\n\n- [ ] Vitest untuk dialog tolak dengan dan tanpa rekomendasi, validasi slot, serta aksi terima dan tolak rekomendasi oleh parent.\n- [ ] Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.\n\n## Out of Scope\n\n* Perubahan API.\n* Notifikasi email atau chat.\n* Parent mengusulkan balik jadwal atas rekomendasi.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"private-schedule-recommendation-web\",\n  \"projectKey\": \"private-class-scheduled-purchase\",\n  \"title\": \"Tenant mengirim rekomendasi jadwal saat menolak dan parent dapat menerima atau menolaknya di web\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"private-schedule-recommendation-api\",\n    \"parent-private-schedule-request-web\",\n    \"tenant-private-schedule-review-web\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Setelah API rekomendasi tersedia, tenant membutuhkan cara menyertakan slot alternatif saat menolak dari dashboard, dan parent membutuhkan cara melihat serta menerima atau menolak rekomendasi dari daftar permintaannya. Dialog tolak tenant dan daftar permintaan parent dibuat oleh issue web tenant dan issue web parent.\",\n    \"goal\": \"Tenant dapat memilih menolak begitu saja atau menolak dengan rekomendasi jadwal lain. Parent dapat melihat rekomendasi, menerimanya lalu melanjutkan pembayaran, atau menolaknya.\",\n    \"requirements\": [\n      \"Dialog tolak tenant menyediakan pilihan \\\"Tolak\\\" dan \\\"Tolak dengan rekomendasi jadwal\\\". Pilihan kedua menampilkan input satu atau lebih slot (hari, jam mulai, jam selesai) dan alasan opsional.\",\n      \"Daftar permintaan parent menampilkan slot rekomendasi pada permintaan yang ditolak dengan rekomendasi, beserta tombol \\\"Terima jadwal ini\\\" dan \\\"Tolak rekomendasi\\\".\",\n      \"Menerima rekomendasi mengarahkan parent ke pembayaran melalui `checkout_session_url` yang dikembalikan API, hanya bila skemanya http/https (pola `resumePayment` di `lib/payment-status.ts`).\",\n      \"Tenant melihat status rekomendasi (menunggu parent, diterima, ditolak) di daftar permintaan.\",\n      \"Error API (409, 403, validasi, jaringan) ditampilkan dengan pesan berbahasa Indonesia yang jelas.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Tenant menolak dengan rekomendasi, lalu parent melihat slot rekomendasi pada permintaannya.\",\n      \"Parent menerima rekomendasi dan diarahkan ke pembayaran; enrollment terkait tampil di halaman status enrollment.\",\n      \"Parent menolak rekomendasi, lalu tombol terima tidak lagi tersedia dan status tampil ditolak.\",\n      \"Slot rekomendasi dengan jam selesai tidak setelah jam mulai dicegah di form tenant.\",\n      \"Penolakan tanpa rekomendasi tetap berfungsi seperti sebelumnya.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Pakai ulang input slot dari form permintaan parent bila memungkinkan. Kontrak endpoint mengikuti hasil issue API rekomendasi; jangan mengarang field. Hari memakai ISO 1\u20137 dengan label bahasa Indonesia seperti `enrollmentScheduleLabel` (KEL-70). Perbarui kelolakelas-docs `docs/components/web.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/enrollments\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments\",\n      \"kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx\",\n      \"kelolakelas-web/lib/payment-status.ts\"\n    ],\n    \"edgeCases\": [\n      \"Rekomendasi diterima tetapi invoice gagal dibuat.\",\n      \"Parent membuka rekomendasi yang sudah ditolak di tab lain.\",\n      \"Kelas ditutup sebelum parent menerima rekomendasi.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest untuk dialog tolak dengan dan tanpa rekomendasi, validasi slot, serta aksi terima dan tolak rekomendasi oleh parent.\",\n      \"Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.\"\n    ],\n    \"outOfScope\": [\n      \"Perubahan API.\",\n      \"Notifikasi email atau chat.\",\n      \"Parent mengusulkan balik jadwal atas rekomendasi.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-116/tenant-mengirim-rekomendasi-jadwal-saat-menolak-dan-parent-dapat",
+  "gitBranchName": "skinel123/kel-116-tenant-mengirim-rekomendasi-jadwal-saat-menolak-dan-parent",
+  "createdAt": "2026-09-28T02:03:44.574Z",
+  "updatedAt": "2026-09-28T12:56:09.056Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-28T12:51:19.190Z",
+  "startedAt": "2026-09-28T11:55:53.007Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "ac8375be-27fd-4fd4-9b00-9a63702c1de7",
+      "title": "Current-state docs PR #116",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/116"
+    },
+    {
+      "id": "fd4fbbc9-0560-45cc-ab30-cec8a87d694a",
+      "title": "KEL-116: tenant schedule recommendation and parent decision flow",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/52"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T02:03:44.574Z",
+      "endedAt": "2026-09-28T11:55:53.021Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-28T11:55:53.021Z",
+      "endedAt": "2026-09-28T12:51:19.226Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-28T12:51:19.226Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pembelian kelas private dengan jadwal yang disepakati",
+  "projectId": "66af01b4-f443-465d-9f4e-af651d2854db",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-115",
+        "title": "Tenant dapat menolak permintaan jadwal private dengan rekomendasi jadwal lain dan parent dapat menerimanya melalui API"
+      },
+      {
+        "id": "KEL-109",
+        "title": "Parent mengajukan jadwal kelas private dari detail kelas dan memantau status permintaannya"
+      },
+      {
+        "id": "KEL-110",
+        "title": "Tenant meninjau, menyetujui, atau menolak permintaan jadwal private dari dashboard"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-70",
+        "title": "Parent melihat jadwal kelas yang dibeli pada halaman status enrollment"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

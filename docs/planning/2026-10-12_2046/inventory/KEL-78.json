@@ -1,0 +1,120 @@
+{
+  "id": "KEL-78",
+  "uuid": "faf324a4-e720-44a1-b17d-2ceae9166fe0",
+  "title": "Pemeriksaan permission academic dibatasi waktu ketika identity lambat atau tidak merespons",
+  "description": "## Background / Problem\n\n`permissionClient.CheckPermission` di academic (`kelolakelas-academic-service/pkg/grpcclient/permission_client.go:22-52`) memanggil identity dengan context request apa adanya, tanpa deadline. Klien ini dipakai `RequirePermission`/`RequirePermissionUnlessParent` pada 28 route tenant (`cmd/server/main.go`, `internal/delivery/http/middleware/permission_middleware.go:68`). Bila identity tidak merespons (bukan menolak koneksi), request mutasi katalog, jadwal, student, dan enrollment di academic menggantung tanpa batas dan menahan goroutine. Billing sudah membatasi panggilan yang sama dengan `IDENTITY_PERMISSION_TIMEOUT_MS` (`kelolakelas-billing-service/pkg/identity/permission_client.go:30-50`, `.env.example:22`). Klien tenant academic juga sudah dibatasi `CATALOG_TENANT_INFO_TIMEOUT_MS` (`pkg/grpcclient/tenant_client.go:50`).\n\n## Goal\n\nSetiap pemeriksaan permission academic selesai dalam batas waktu yang dapat dikonfigurasi. Ketika identity lambat, caller menerima 503 yang sudah ada, bukan request yang menggantung.\n\n## Requirements\n\n* Panggilan `CheckPermission` academic memakai deadline yang dapat dikonfigurasi lewat environment, dengan nama dan default yang konsisten dengan billing.\n* Timeout diperlakukan sebagai error, sehingga middleware menjawab 503 \"Authorization service unavailable\" seperti jalur error yang ada.\n* Nilai konfigurasi yang tidak valid ditangani sesuai konvensi config academic yang ada.\n* Perilaku allow/deny dan kontrak `tenant_id` pada request permission tetap sama.\n\n## Acceptance Criteria\n\n- [ ] Dengan server gRPC palsu yang tidak pernah merespons, `CheckPermission` mengembalikan error dalam batas timeout yang dikonfigurasi.\n- [ ] Route academic yang dilindungi permission menjawab 503 dalam batas timeout ketika identity tidak merespons.\n- [ ] Dengan identity normal, keputusan allow/deny tidak berubah.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nEvidence: academic `pkg/grpcclient/permission_client.go:26-52`, `cmd/server/main.go:56`, `internal/config/config.go:23-49`, `internal/delivery/http/middleware/permission_middleware.go:60-78`; billing `pkg/identity/permission_client.go:30-50`, `internal/config/config.go:55-80`, `internal/config/config_test.go:188`. Test timeout serupa sudah ada di `pkg/grpcclient/tenant_client_test.go:74-106` dan dapat dijadikan pola. Tambahkan variabel baru ke `.env.example`. Perbarui `kelolakelas-docs` dalam PR docs terpisah setelah PR kode merge, mencakup halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup atau menyempit, dan evidence index.\n\nComplexity: `low`. Complexity rationale: Mengikuti pola timeout yang sudah ada di klien permission billing dan klien tenant academic, dan hanya menyentuh satu klien gRPC dan config. Jalur error 503 di middleware sudah ada.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/pkg/grpcclient/permission_client.go`\n* `kelolakelas-academic-service/internal/config/config.go`\n* `kelolakelas-academic-service/cmd/server/main.go`\n* `kelolakelas-academic-service/.env.example`\n\n## Edge Cases\n\n* Timeout bernilai nol atau negatif.\n* Context request sudah dibatalkan klien sebelum deadline tercapai.\n* Identity merespons tepat di sekitar batas timeout.\n\n## Testing / Validation\n\n- [ ] Tambahkan test klien dengan server gRPC yang menahan respons melebihi timeout.\n- [ ] Tambahkan test config untuk nilai default, valid, dan tidak valid.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Retry atau circuit breaker ke identity.\n* mTLS atau autentikasi transport gRPC.\n* Timeout server HTTP dan graceful shutdown academic (<issue id=\"b7105050-97e7-474b-b5d1-082eea531e91\" href=\"https://linear.app/farid-zamani/issue/KEL-69/identity-dan-academic-berhenti-secara-graceful-dengan-timeout-koneksi\">KEL-69</issue>).\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"academic-permission-check-deadline\",\n  \"projectKey\": null,\n  \"title\": \"Pemeriksaan permission academic dibatasi waktu ketika identity lambat atau tidak merespons\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"academic\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`permissionClient.CheckPermission` di academic (`kelolakelas-academic-service/pkg/grpcclient/permission_client.go:22-52`) memanggil identity dengan context request apa adanya, tanpa deadline. Klien ini dipakai `RequirePermission`/`RequirePermissionUnlessParent` pada 28 route tenant (`cmd/server/main.go`, `internal/delivery/http/middleware/permission_middleware.go:68`). Bila identity tidak merespons (bukan menolak koneksi), request mutasi katalog, jadwal, student, dan enrollment di academic menggantung tanpa batas dan menahan goroutine. Billing sudah membatasi panggilan yang sama dengan `IDENTITY_PERMISSION_TIMEOUT_MS` (`kelolakelas-billing-service/pkg/identity/permission_client.go:30-50`, `.env.example:22`). Klien tenant academic juga sudah dibatasi `CATALOG_TENANT_INFO_TIMEOUT_MS` (`pkg/grpcclient/tenant_client.go:50`).\",\n    \"goal\": \"Setiap pemeriksaan permission academic selesai dalam batas waktu yang dapat dikonfigurasi. Ketika identity lambat, caller menerima 503 yang sudah ada, bukan request yang menggantung.\",\n    \"requirements\": [\n      \"Panggilan `CheckPermission` academic memakai deadline yang dapat dikonfigurasi lewat environment, dengan nama dan default yang konsisten dengan billing.\",\n      \"Timeout diperlakukan sebagai error, sehingga middleware menjawab 503 \\\"Authorization service unavailable\\\" seperti jalur error yang ada.\",\n      \"Nilai konfigurasi yang tidak valid ditangani sesuai konvensi config academic yang ada.\",\n      \"Perilaku allow/deny dan kontrak `tenant_id` pada request permission tetap sama.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Dengan server gRPC palsu yang tidak pernah merespons, `CheckPermission` mengembalikan error dalam batas timeout yang dikonfigurasi.\",\n      \"Route academic yang dilindungi permission menjawab 503 dalam batas timeout ketika identity tidak merespons.\",\n      \"Dengan identity normal, keputusan allow/deny tidak berubah.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Evidence: academic `pkg/grpcclient/permission_client.go:26-52`, `cmd/server/main.go:56`, `internal/config/config.go:23-49`, `internal/delivery/http/middleware/permission_middleware.go:60-78`; billing `pkg/identity/permission_client.go:30-50`, `internal/config/config.go:55-80`, `internal/config/config_test.go:188`. Test timeout serupa sudah ada di `pkg/grpcclient/tenant_client_test.go:74-106` dan dapat dijadikan pola. Tambahkan variabel baru ke `.env.example`. Perbarui `kelolakelas-docs` dalam PR docs terpisah setelah PR kode merge, mencakup halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup atau menyempit, dan evidence index.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/pkg/grpcclient/permission_client.go\",\n      \"kelolakelas-academic-service/internal/config/config.go\",\n      \"kelolakelas-academic-service/cmd/server/main.go\",\n      \"kelolakelas-academic-service/.env.example\"\n    ],\n    \"edgeCases\": [\n      \"Timeout bernilai nol atau negatif.\",\n      \"Context request sudah dibatalkan klien sebelum deadline tercapai.\",\n      \"Identity merespons tepat di sekitar batas timeout.\"\n    ],\n    \"testingValidation\": [\n      \"Tambahkan test klien dengan server gRPC yang menahan respons melebihi timeout.\",\n      \"Tambahkan test config untuk nilai default, valid, dan tidak valid.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Retry atau circuit breaker ke identity.\",\n      \"mTLS atau autentikasi transport gRPC.\",\n      \"Timeout server HTTP dan graceful shutdown academic (KEL-69).\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-78/pemeriksaan-permission-academic-dibatasi-waktu-ketika-identity-lambat",
+  "gitBranchName": "skinel123/kel-78-pemeriksaan-permission-academic-dibatasi-waktu-ketika",
+  "createdAt": "2026-09-24T12:01:54.503Z",
+  "updatedAt": "2026-09-26T09:57:37.934Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T09:55:36.064Z",
+  "startedAt": "2026-09-26T09:47:38.057Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "ai-ready",
+    "academic",
+    "Improvement"
+  ],
+  "attachments": [
+    {
+      "id": "ff39d44a-fd98-4968-b7ee-43722ffb1b48",
+      "title": "docs: KEL-78 academic permission check bounded by IDENTITY_PERMISSION_TIMEOUT_MS",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/77"
+    },
+    {
+      "id": "fbd39fcc-1d59-4880-ac95-a9fcc8f4011c",
+      "title": "KEL-78: bound academic identity permission checks with a timeout",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/19"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T12:01:54.503Z",
+      "endedAt": "2026-09-26T09:47:38.072Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T09:47:38.072Z",
+      "endedAt": "2026-09-26T09:55:36.071Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T09:55:36.071Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-80",
+        "title": "Academic dan billing menolak akses anggota yang sudah dikeluarkan atau berganti role"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-96",
+        "title": "Platform admin memiliki katalog konfigurasi terpusat dengan audit dan status penerapan"
+      },
+      {
+        "id": "KEL-52",
+        "title": "Katalog dan enrollment hanya menawarkan jadwal yang masih berlaku"
+      },
+      {
+        "id": "KEL-98",
+        "title": "Platform admin dapat mengatur visibilitas katalog publik secara konsisten"
+      },
+      {
+        "id": "KEL-79",
+        "title": "Anggota Teacher dapat dipindah role tanpa mengizinkan perubahan role sendiri"
+      },
+      {
+        "id": "KEL-103",
+        "title": "Creator tenant dapat meminta dan platform admin dapat memutuskan Creator tambahan dari web"
+      },
+      {
+        "id": "KEL-69",
+        "title": "Identity dan academic berhenti secara graceful dengan timeout koneksi HTTP yang terbatas"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

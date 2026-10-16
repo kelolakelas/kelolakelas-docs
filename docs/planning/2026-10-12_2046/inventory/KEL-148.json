@@ -1,0 +1,130 @@
+{
+  "id": "KEL-148",
+  "uuid": "943097d3-7482-495a-8b4a-ff573d23a3f8",
+  "title": "Tenant melihat daftar transaksi dengan filter dan mengunduh CSV",
+  "description": "## Background / Problem\n\nTenant hanya punya kartu ringkasan (`SalesSummaryCard.tsx`) dan halaman enrollment dengan status bayar; tidak ada daftar transaksi lengkap atau unduhan.\n\n## Goal\n\nTenant dapat menelusuri transaksi dan mengunduh CSV untuk rentang yang dipilih.\n\n## Requirements\n\n* Halaman transaksi dengan filter status, rentang tanggal (basis tanggal bayar), dan pencarian order id, serta pagination.\n* Kolom gross, fee, net, status, dan tanggal bayar.\n* Tombol unduh CSV untuk filter aktif.\n* Menu transaksi mengikuti permission `billing:read`.\n\n## Acceptance Criteria\n\n- [ ] Tenant memfilter transaksi paid bulan lalu dan mengunduh CSV yang sama isinya.\n- [ ] Anggota tanpa `billing:read` melihat panel forbidden.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nUnduhan diproksikan lewat route atau server action web agar token tidak terekspos ke klien. Gunakan formatter rupiah yang ada. Perbarui `kelolakelas-docs/docs/components/web.md`.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/_queries/sales-summary.ts`\n\n## Edge Cases\n\n* Rentang tanpa transaksi.\n* Rentang melebihi batas backend.\n\n## Testing / Validation\n\n- [ ] Vitest untuk filter, pagination, dan error.\n- [ ] Test, lint, type check, dan production build lulus.\n- [ ] Verifikasi manual unduhan CSV.\n\n## Out of Scope\n\n* Grafik historis.\n* Refund (issue terpisah).\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-tenant-transactions-page\",\n  \"projectKey\": \"tenant-finance-payout\",\n  \"title\": \"Tenant melihat daftar transaksi dengan filter dan mengunduh CSV\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"billing-transaction-report-export\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Tenant hanya punya kartu ringkasan (`SalesSummaryCard.tsx`) dan halaman enrollment dengan status bayar; tidak ada daftar transaksi lengkap atau unduhan.\",\n    \"goal\": \"Tenant dapat menelusuri transaksi dan mengunduh CSV untuk rentang yang dipilih.\",\n    \"requirements\": [\n      \"Halaman transaksi dengan filter status, rentang tanggal (basis tanggal bayar), dan pencarian order id, serta pagination.\",\n      \"Kolom gross, fee, net, status, dan tanggal bayar.\",\n      \"Tombol unduh CSV untuk filter aktif.\",\n      \"Menu transaksi mengikuti permission `billing:read`.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Tenant memfilter transaksi paid bulan lalu dan mengunduh CSV yang sama isinya.\",\n      \"Anggota tanpa `billing:read` melihat panel forbidden.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Unduhan diproksikan lewat route atau server action web agar token tidak terekspos ke klien. Gunakan formatter rupiah yang ada. Perbarui `kelolakelas-docs/docs/components/web.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/_queries/sales-summary.ts\"\n    ],\n    \"edgeCases\": [\n      \"Rentang tanpa transaksi.\",\n      \"Rentang melebihi batas backend.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest untuk filter, pagination, dan error.\",\n      \"Test, lint, type check, dan production build lulus.\",\n      \"Verifikasi manual unduhan CSV.\"\n    ],\n    \"outOfScope\": [\n      \"Grafik historis.\",\n      \"Refund (issue terpisah).\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-148/tenant-melihat-daftar-transaksi-dengan-filter-dan-mengunduh-csv",
+  "gitBranchName": "skinel123/kel-148-tenant-melihat-daftar-transaksi-dengan-filter-dan-mengunduh",
+  "createdAt": "2026-09-30T10:58:51.454Z",
+  "updatedAt": "2026-10-05T03:05:45.398Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-05T02:59:51.494Z",
+  "startedAt": "2026-10-05T02:27:25.438Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "8f4c20a8-0031-4476-a4d8-ca2ae280e158",
+      "title": "KEL-148: document tenant transactions and CSV proxy",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/160"
+    },
+    {
+      "id": "c2e70d01-61f6-4c3a-9940-81aebdd4ddf4",
+      "title": "KEL-148: tenant transaction filters and CSV download",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/74"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T10:58:51.454Z",
+      "endedAt": "2026-10-05T02:27:25.456Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-05T02:27:25.456Z",
+      "endedAt": "2026-10-05T02:59:51.502Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-05T02:59:51.502Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Keuangan tenant: laporan transaksi dan pencairan dana manual",
+  "projectId": "6bf64982-2039-4ab0-afe2-4c92c2ec79c0",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-153",
+        "title": "Tenant mencatat refund manual dari halaman transaksi"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-147",
+        "title": "Tenant dapat memfilter transaksi berdasarkan tanggal bayar dan mengekspornya ke CSV"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-139",
+        "title": "Pengajar menulis dan mengelola laporan evaluasi siswa dari dashboard"
+      },
+      {
+        "id": "KEL-165",
+        "title": "Daftar anggota tenant tidak gagal 500 saat dipanggil tanpa parameter sort"
+      },
+      {
+        "id": "KEL-138",
+        "title": "Tenant dapat me-reschedule sesi dan menugaskan tutor pengganti dari detail sesi"
+      },
+      {
+        "id": "KEL-157",
+        "title": "Inbox parent menampilkan percakapan notifikasi sistem dengan jelas"
+      },
+      {
+        "id": "KEL-134",
+        "title": "Absensi dapat dicatat per sesi, termasuk sesi reschedule dan secara massal"
+      },
+      {
+        "id": "KEL-136",
+        "title": "Menu dashboard tenant hanya menampilkan area yang diizinkan permission anggota"
+      },
+      {
+        "id": "KEL-149",
+        "title": "Enrollment dapat ditangguhkan, dipulihkan, dan diakhiri melalui endpoint internal"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

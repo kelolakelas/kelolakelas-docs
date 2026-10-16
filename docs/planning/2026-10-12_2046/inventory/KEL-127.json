@@ -1,0 +1,110 @@
+{
+  "id": "KEL-127",
+  "uuid": "3938eb02-c555-4238-a0da-7baf060de598",
+  "title": "Parent membayar VA/QRIS dari halaman KelolaKelas dan kartu melalui redirect Duitku",
+  "description": "## Background / Problem\n\n`app/(public)/kelas/[id]/_actions/actions.ts:86-92` langsung redirect ke checkout_session_url; halaman return <issue id=\"9eae8dac-a2af-4613-a96c-d27fc4df9f58\" href=\"https://linear.app/farid-zamani/issue/KEL-44/sediakan-halaman-kembali-dari-pembayaran-dengan-pembaruan-status\">KEL-44</issue> hanya menampilkan status sesudah provider. Parent tidak melihat instruksi VA/QR di KelolaKelas.\n\n## Goal\n\nParent dapat memilih channel saat checkout dan melihat instruksi VA/QR sendiri, sedangkan channel kartu tetap diarahkan ke provider.\n\n## Requirements\n\n* Tambahkan pilihan channel yang dapat diakses keyboard pada checkout group serta alur private setelah approval, terikat ke API channel baru.\n* Tampilkan identitas order, nominal, VA atau QR sesuai respons backend, batas waktu, status dan aksi refresh; jangan membentuk QR dari informasi yang belum diverifikasi.\n* Untuk kartu, terus gunakan redirect aman ke paymentUrl; saat instruksi belum tersedia, tampilkan fallback yang aman.\n* Gunakan status backend (bukan query-string callback) sebagai sumber kebenaran; jangan paparkan data pembayaran parent lain.\n\n## Acceptance Criteria\n\n- [ ] Parent dapat memilih VA/QRIS dan membaca instruksinya di halaman KelolaKelas tanpa redirect.\n- [ ] Pilihan kartu mengarahkan ke hosted provider, bukan meminta detail kartu di KelolaKelas.\n- [ ] Transaksi dibayar, pending, expired dan gagal ditampilkan benar setelah refresh; user tidak berhak ditolak.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko high: tampilan paid palsu dan instruksi stale; baca status dari billing saja. Reuse pola `PaymentReturnRefresher`, batasi redirect http(s) seperti existing action, perhatikan private purchase flow dari <issue id=\"64bcb38d-294e-426b-b773-36fa1f5033f6\" href=\"https://linear.app/farid-zamani/issue/KEL-108/persetujuan-tenant-atas-permintaan-jadwal-private-membuat-enrollment\">KEL-108</issue>/116. Jangan memproses data kartu. Perbarui docs web/payment flow; ikuti Next.js docs lokal.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts`\n* `kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx`\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/return`\n* `kelolakelas-web/lib/gateway.ts`\n\n## Edge Cases\n\n* Refresh saat pembayaran telah diterima tapi callback belum direkonsiliasi.\n* Parent membuka URL transaksi milik user lain.\n* Instruksi provider kosong atau expired.\n\n## Testing / Validation\n\n- [ ] Vitest untuk VA, QRIS, kartu, expired, 401/403 dan fallback data kosong.\n- [ ] Verifikasi manual tiga channel di sandbox termasuk return/refresh dan private approval; periksa tidak ada input data kartu.\n- [ ] Jalankan test, lint, type check, production build dan uji aksesibilitas pilihan channel.\n\n## Out of Scope\n\n* Memproses kartu/3DS di aplikasi sendiri.\n* Voucher dan multi-class cart.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-payment-page\",\n  \"projectKey\": \"payment-experience-owned-page\",\n  \"title\": \"Parent membayar VA/QRIS dari halaman KelolaKelas dan kartu melalui redirect Duitku\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"high\",\n  \"repositories\": [\n    \"web\"\n  ],\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"billing-payment-instructions\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`app/(public)/kelas/[id]/_actions/actions.ts:86-92` langsung redirect ke checkout_session_url; halaman return KEL-44 hanya menampilkan status sesudah provider. Parent tidak melihat instruksi VA/QR di KelolaKelas.\",\n    \"goal\": \"Parent dapat memilih channel saat checkout dan melihat instruksi VA/QR sendiri, sedangkan channel kartu tetap diarahkan ke provider.\",\n    \"requirements\": [\n      \"Tambahkan pilihan channel yang dapat diakses keyboard pada checkout group serta alur private setelah approval, terikat ke API channel baru.\",\n      \"Tampilkan identitas order, nominal, VA atau QR sesuai respons backend, batas waktu, status dan aksi refresh; jangan membentuk QR dari informasi yang belum diverifikasi.\",\n      \"Untuk kartu, terus gunakan redirect aman ke paymentUrl; saat instruksi belum tersedia, tampilkan fallback yang aman.\",\n      \"Gunakan status backend (bukan query-string callback) sebagai sumber kebenaran; jangan paparkan data pembayaran parent lain.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Parent dapat memilih VA/QRIS dan membaca instruksinya di halaman KelolaKelas tanpa redirect.\",\n      \"Pilihan kartu mengarahkan ke hosted provider, bukan meminta detail kartu di KelolaKelas.\",\n      \"Transaksi dibayar, pending, expired dan gagal ditampilkan benar setelah refresh; user tidak berhak ditolak.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko high: tampilan paid palsu dan instruksi stale; baca status dari billing saja. Reuse pola `PaymentReturnRefresher`, batasi redirect http(s) seperti existing action, perhatikan private purchase flow dari KEL-108/116. Jangan memproses data kartu. Perbarui docs web/payment flow; ikuti Next.js docs lokal.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts\",\n      \"kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/return\",\n      \"kelolakelas-web/lib/gateway.ts\"\n    ],\n    \"edgeCases\": [\n      \"Refresh saat pembayaran telah diterima tapi callback belum direkonsiliasi.\",\n      \"Parent membuka URL transaksi milik user lain.\",\n      \"Instruksi provider kosong atau expired.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest untuk VA, QRIS, kartu, expired, 401/403 dan fallback data kosong.\",\n      \"Verifikasi manual tiga channel di sandbox termasuk return/refresh dan private approval; periksa tidak ada input data kartu.\",\n      \"Jalankan test, lint, type check, production build dan uji aksesibilitas pilihan channel.\"\n    ],\n    \"outOfScope\": [\n      \"Memproses kartu/3DS di aplikasi sendiri.\",\n      \"Voucher dan multi-class cart.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-127/parent-membayar-vaqris-dari-halaman-kelolakelas-dan-kartu-melalui",
+  "gitBranchName": "skinel123/kel-127-parent-membayar-vaqris-dari-halaman-kelolakelas-dan-kartu",
+  "createdAt": "2026-09-28T19:14:54.632Z",
+  "updatedAt": "2026-09-29T11:48:07.138Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-29T11:45:01.843Z",
+  "startedAt": "2026-09-29T10:07:44.664Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "bed4b9fe-c3d6-48f6-97ce-1c8c550a663e",
+      "title": "KEL-127: document parent VA/QRIS payment flow",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/127"
+    },
+    {
+      "id": "49708cbf-0290-4e2a-ad83-140d7fef7a21",
+      "title": "Web implementation PR #56",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/56"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T19:14:54.632Z",
+      "endedAt": "2026-09-29T10:07:44.685Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-29T10:07:44.685Z",
+      "endedAt": "2026-09-29T11:45:01.858Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-29T11:45:01.858Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pembayaran kelas dengan pilihan channel dan halaman KelolaKelas",
+  "projectId": "d1466cff-05f5-409d-aeba-c748ad1439fa",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-126",
+        "title": "Billing menyimpan dan menyajikan instruksi pembayaran VA/QR untuk transaksi milik parent"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-133",
+        "title": "Parent memilih channel pembayaran untuk pembelian kelas private"
+      },
+      {
+        "id": "KEL-108",
+        "title": "Persetujuan tenant atas permintaan jadwal private membuat enrollment, jadwal, dan payment link"
+      },
+      {
+        "id": "KEL-44",
+        "title": "Sediakan halaman kembali dari pembayaran dengan pembaruan status otomatis"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

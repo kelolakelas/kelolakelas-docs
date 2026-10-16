@@ -1,0 +1,105 @@
+{
+  "id": "KEL-11",
+  "uuid": "14cb7c4d-828c-408a-9f0d-f3f09dc3555f",
+  "title": "Hadirkan discovery dan detail kelas publik",
+  "description": "## Background / Problem\n\nGateway dan academic sudah menyediakan public catalog list/detail dengan filter search, kategori, tenant, tipe, harga, lokasi, radius, dan sort. Web hanya memiliki landing page sehingga calon pembeli belum dapat melihat kelas yang dipublikasikan.\n\n## Goal\n\nVisitor dapat menemukan dan memahami kelas yang tersedia sebelum membuat keputusan enrollment.\n\n## Requirements\n\n* Tampilkan daftar kelas publik dengan informasi tenant, kategori, harga, tipe, jadwal, dan enrollability.\n* Sediakan detail kelas melalui ID dari API.\n* Dukung pagination dan filter inti tanpa mengharuskan lokasi.\n* Public homepage dan tenant dashboard yang ada harus tetap terjaga.\n\n## Acceptance Criteria\n\n- [ ] Visitor dapat membuka daftar dan detail kelas tanpa login\n- [ ] Hanya kelas yang dikembalikan public catalog API yang ditampilkan\n- [ ] Loading, empty, invalid-filter, not-found, dan API-error state terlihat dengan jelas\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nGunakan response `CatalogListResponse` dan `CatalogItem` yang ada. Schedules adalah JSON dan perlu dipresentasikan secara defensif tanpa mengubah kontrak backend.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(public)`\n* `kelolakelas-academic-service/internal/domain/catalog.go`\n* `kelolakelas-docs/docs/api/academic.md`\n\n## Edge Cases\n\n* Katalog kosong.\n* Kelas tidak lagi dipublikasikan saat detail dibuka.\n* Schedule kosong atau payload schedule tidak lengkap.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Review dan rating kelas.\n* Recommendation engine.\n* Peta interaktif atau geolocation otomatis.",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-11/hadirkan-discovery-dan-detail-kelas-publik",
+  "gitBranchName": "skinel123/kel-11-hadirkan-discovery-dan-detail-kelas-publik",
+  "createdAt": "2026-09-13T19:03:14.229Z",
+  "updatedAt": "2026-09-14T04:14:58.643Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-14T04:14:58.633Z",
+  "startedAt": "2026-09-14T04:07:31.324Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature"
+  ],
+  "attachments": [
+    {
+      "id": "e1c5b316-81f8-4820-bb37-0a39277e3dce",
+      "title": "KEL-11 Document public class catalog",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/5"
+    },
+    {
+      "id": "90074026-0590-4829-a77c-1aa3b3c79a7f",
+      "title": "KEL-11 Add public class discovery and detail",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/3"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:03:14.229Z",
+      "endedAt": "2026-09-14T04:07:31.334Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-14T04:07:31.334Z",
+      "endedAt": "2026-09-14T04:14:58.640Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-14T04:14:58.640Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Perjalanan pembelian kelas untuk parent",
+  "projectId": "f80b0535-5536-4f54-8f09-7a93f01a9f24",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-14",
+        "title": "Bawa parent dari kelas ke checkout pembayaran"
+      },
+      {
+        "id": "KEL-12",
+        "title": "Selesaikan session entry dan navigasi parent"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-9",
+        "title": "Jadikan koneksi web ke gateway eksplisit dan dapat diuji"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

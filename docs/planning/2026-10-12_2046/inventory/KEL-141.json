@@ -1,0 +1,113 @@
+{
+  "id": "KEL-141",
+  "uuid": "9ed5f8be-7360-4431-8ee8-3a3b3bd7134c",
+  "title": "Parent melihat jadwal, riwayat kehadiran, dan rapor anak dari dashboard",
+  "description": "## Background / Problem\n\nArea parent hanya berisi enrollments, students, dan chat tanpa layout atau navigasi bersama; halaman saling menautkan secara manual (`app/(public)/kelas/page.tsx:32`, `parent/enrollments/page.tsx:33-35`, `StudentsManager.tsx:41`, `parent/chat/page.tsx:33`). Jadwal sesi, kehadiran, dan laporan anak belum ditampilkan.\n\n## Goal\n\nParent memiliki area dashboard yang konsisten untuk melihat jadwal sesi mendatang, riwayat kehadiran, dan laporan evaluasi per anak.\n\n## Requirements\n\n* Layout dan navigasi parent bersama (kelas saya, anak, jadwal dan progres, chat) yang berfungsi di desktop dan mobile.\n* Halaman progres per anak: sesi mendatang (misalnya dua minggu ke depan), riwayat kehadiran dengan ringkasan, dan daftar serta detail laporan.\n* Pemilih anak bila parent memiliki lebih dari satu anak.\n* Tautan untuk memulai chat dari laporan memakai entry point chat yang sudah ada.\n\n## Acceptance Criteria\n\n- [ ] Parent dengan dua anak dapat berpindah anak dan melihat data yang benar.\n- [ ] State kosong ditampilkan saat anak belum punya sesi, kehadiran, atau laporan.\n- [ ] Halaman parent yang ada tetap dapat diakses melalui navigasi baru.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\n`proxy.ts:74` sudah menjaga `/dashboard/parent` hanya untuk parent. Ikuti konvensi `_queries` dan result type web; teks antarmuka parent berbahasa Indonesia. Waktu ditampilkan dalam Asia/Jakarta. Perbarui `kelolakelas-docs/docs/components/web.md`.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/parent`\n* `kelolakelas-web/proxy.ts`\n* `kelolakelas-web/lib/list-envelope.ts`\n\n## Edge Cases\n\n* Parent tanpa anak.\n* Anak dengan enrollment di beberapa tenant.\n* Laporan tanpa skor.\n\n## Testing / Validation\n\n- [ ] Vitest untuk query, pemilih anak, dan state kosong atau error.\n- [ ] Test, lint, type check, dan production build lulus.\n- [ ] Verifikasi manual sebagai parent dengan satu dan dua anak serta pemeriksaan aksesibilitas navigasi.\n\n## Out of Scope\n\n* Notifikasi.\n* Mengubah data kehadiran atau laporan.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-parent-learning-portal\",\n  \"projectKey\": \"parent-learning-portal\",\n  \"title\": \"Parent melihat jadwal, riwayat kehadiran, dan rapor anak dari dashboard\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"L\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"parent-learning-read-api\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Area parent hanya berisi enrollments, students, dan chat tanpa layout atau navigasi bersama; halaman saling menautkan secara manual (`app/(public)/kelas/page.tsx:32`, `parent/enrollments/page.tsx:33-35`, `StudentsManager.tsx:41`, `parent/chat/page.tsx:33`). Jadwal sesi, kehadiran, dan laporan anak belum ditampilkan.\",\n    \"goal\": \"Parent memiliki area dashboard yang konsisten untuk melihat jadwal sesi mendatang, riwayat kehadiran, dan laporan evaluasi per anak.\",\n    \"requirements\": [\n      \"Layout dan navigasi parent bersama (kelas saya, anak, jadwal dan progres, chat) yang berfungsi di desktop dan mobile.\",\n      \"Halaman progres per anak: sesi mendatang (misalnya dua minggu ke depan), riwayat kehadiran dengan ringkasan, dan daftar serta detail laporan.\",\n      \"Pemilih anak bila parent memiliki lebih dari satu anak.\",\n      \"Tautan untuk memulai chat dari laporan memakai entry point chat yang sudah ada.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Parent dengan dua anak dapat berpindah anak dan melihat data yang benar.\",\n      \"State kosong ditampilkan saat anak belum punya sesi, kehadiran, atau laporan.\",\n      \"Halaman parent yang ada tetap dapat diakses melalui navigasi baru.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"`proxy.ts:74` sudah menjaga `/dashboard/parent` hanya untuk parent. Ikuti konvensi `_queries` dan result type web; teks antarmuka parent berbahasa Indonesia. Waktu ditampilkan dalam Asia/Jakarta. Perbarui `kelolakelas-docs/docs/components/web.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent\",\n      \"kelolakelas-web/proxy.ts\",\n      \"kelolakelas-web/lib/list-envelope.ts\"\n    ],\n    \"edgeCases\": [\n      \"Parent tanpa anak.\",\n      \"Anak dengan enrollment di beberapa tenant.\",\n      \"Laporan tanpa skor.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest untuk query, pemilih anak, dan state kosong atau error.\",\n      \"Test, lint, type check, dan production build lulus.\",\n      \"Verifikasi manual sebagai parent dengan satu dan dua anak serta pemeriksaan aksesibilitas navigasi.\"\n    ],\n    \"outOfScope\": [\n      \"Notifikasi.\",\n      \"Mengubah data kehadiran atau laporan.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 3,
+    "name": "3 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-141/parent-melihat-jadwal-riwayat-kehadiran-dan-rapor-anak-dari-dashboard",
+  "gitBranchName": "skinel123/kel-141-parent-melihat-jadwal-riwayat-kehadiran-dan-rapor-anak-dari",
+  "createdAt": "2026-09-30T10:56:02.936Z",
+  "updatedAt": "2026-10-02T15:17:25.000Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-02T15:11:55.113Z",
+  "startedAt": "2026-10-02T12:55:11.947Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "fc2e5168-6cab-4f21-83b8-5b5b4a430347",
+      "title": "KEL-141: Document parent progress portal",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/153"
+    },
+    {
+      "id": "32bd534a-0476-4d4e-827b-acd8831e349e",
+      "title": "KEL-141: Parent child progress portal",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/68"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T10:56:02.936Z",
+      "endedAt": "2026-10-02T12:55:11.962Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-02T12:55:11.962Z",
+      "endedAt": "2026-10-02T15:11:55.119Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-02T15:11:55.119Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Portal belajar parent: jadwal, kehadiran, dan rapor anak",
+  "projectId": "88279533-8410-42e6-a6c1-4d66976952a7",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-140",
+        "title": "Parent dapat membaca sesi, kehadiran, dan laporan milik anaknya sendiri"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-163",
+        "title": "Platform admin dapat membaca riwayat keputusan penarikan terbaru lewat API billing"
+      },
+      {
+        "id": "KEL-151",
+        "title": "Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment"
+      },
+      {
+        "id": "KEL-134",
+        "title": "Absensi dapat dicatat per sesi, termasuk sesi reschedule dan secara massal"
+      },
+      {
+        "id": "KEL-136",
+        "title": "Menu dashboard tenant hanya menampilkan area yang diizinkan permission anggota"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

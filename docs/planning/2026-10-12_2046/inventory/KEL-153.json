@@ -1,0 +1,100 @@
+{
+  "id": "KEL-153",
+  "uuid": "2fffd360-b92b-4751-b276-7e601bcb3e68",
+  "title": "Tenant mencatat refund manual dari halaman transaksi",
+  "description": "## Background / Problem\n\nTidak ada UI untuk refund. Halaman transaksi tenant didraft pada issue terpisah.\n\n## Goal\n\nAnggota dengan `billing:refund` dapat mencatat refund manual untuk transaksi paid dari daftar transaksi.\n\n## Requirements\n\n* Aksi catat refund pada transaksi paid, disembunyikan tanpa permission.\n* Dialog dengan alasan dan referensi transfer wajib serta peringatan bahwa enrollment akan diakhiri.\n* Status transaksi dan enrollment diperbarui setelah berhasil.\n\n## Acceptance Criteria\n\n- [ ] Refund tercatat dan transaksi tampil sebagai refunded.\n- [ ] Form tanpa alasan atau referensi tidak dapat dikirim.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nDialog in-page yang dapat diakses keyboard. Label refunded sudah dikenal di `lib/enrollment-cancellation.ts:34`, jadi tambahkan ke presentasi status bila belum ada. Perbarui `kelolakelas-docs/docs/components/web.md`.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant`\n* `kelolakelas-web/lib/payment-status.ts`\n\n## Edge Cases\n\n* Transaksi sudah di-refund oleh anggota lain.\n* Backend gagal mengakhiri enrollment.\n\n## Testing / Validation\n\n- [ ] Vitest untuk dialog dan state error.\n- [ ] Test, lint, type check, dan production build lulus.\n- [ ] Verifikasi manual alur refund.\n\n## Out of Scope\n\n* Refund parsial.\n* Notifikasi refund ke parent.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-tenant-manual-refund\",\n  \"projectKey\": \"renewal-dunning-refund\",\n  \"title\": \"Tenant mencatat refund manual dari halaman transaksi\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"billing-manual-refund\",\n    \"web-tenant-transactions-page\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Tidak ada UI untuk refund. Halaman transaksi tenant didraft pada issue terpisah.\",\n    \"goal\": \"Anggota dengan `billing:refund` dapat mencatat refund manual untuk transaksi paid dari daftar transaksi.\",\n    \"requirements\": [\n      \"Aksi catat refund pada transaksi paid, disembunyikan tanpa permission.\",\n      \"Dialog dengan alasan dan referensi transfer wajib serta peringatan bahwa enrollment akan diakhiri.\",\n      \"Status transaksi dan enrollment diperbarui setelah berhasil.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Refund tercatat dan transaksi tampil sebagai refunded.\",\n      \"Form tanpa alasan atau referensi tidak dapat dikirim.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Dialog in-page yang dapat diakses keyboard. Label refunded sudah dikenal di `lib/enrollment-cancellation.ts:34`, jadi tambahkan ke presentasi status bila belum ada. Perbarui `kelolakelas-docs/docs/components/web.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant\",\n      \"kelolakelas-web/lib/payment-status.ts\"\n    ],\n    \"edgeCases\": [\n      \"Transaksi sudah di-refund oleh anggota lain.\",\n      \"Backend gagal mengakhiri enrollment.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest untuk dialog dan state error.\",\n      \"Test, lint, type check, dan production build lulus.\",\n      \"Verifikasi manual alur refund.\"\n    ],\n    \"outOfScope\": [\n      \"Refund parsial.\",\n      \"Notifikasi refund ke parent.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-153/tenant-mencatat-refund-manual-dari-halaman-transaksi",
+  "gitBranchName": "skinel123/kel-153-tenant-mencatat-refund-manual-dari-halaman-transaksi",
+  "createdAt": "2026-09-30T11:00:54.481Z",
+  "updatedAt": "2026-10-05T10:06:49.709Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-05T10:01:38.237Z",
+  "startedAt": "2026-10-05T09:40:35.715Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "cb4970c1-a2f1-4912-8f58-1c3464217785",
+      "title": "KEL-153: document tenant manual refund UI",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/162"
+    },
+    {
+      "id": "2eb51da5-5cc3-49d1-a6ae-4f970b08095f",
+      "title": "KEL-153: Tenant mencatat refund manual dari halaman transaksi",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/75"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T11:00:54.481Z",
+      "endedAt": "2026-10-05T09:40:35.729Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-05T09:40:35.729Z",
+      "endedAt": "2026-10-05T10:01:38.245Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-05T10:01:38.245Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Penanganan tunggakan perpanjangan dan refund manual",
+  "projectId": "aaa30069-425f-4e0b-839b-765385f3d3ec",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-152",
+        "title": "Tenant dapat mencatat refund manual untuk transaksi paid dan mengakhiri enrollment terkait"
+      },
+      {
+        "id": "KEL-148",
+        "title": "Tenant melihat daftar transaksi dengan filter dan mengunduh CSV"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

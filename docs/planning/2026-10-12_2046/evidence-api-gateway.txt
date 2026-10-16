@@ -1,0 +1,318 @@
+
+### internal/delivery/http/router.go
+1|package http
+2|
+3|import (
+4|	"fmt"
+5|	"log/slog"
+6|	"net/http"
+7|
+8|	"github.com/gin-gonic/gin"
+9|
+10|	"github.com/kelolakelas/kelolakelas-api-gateway/internal/delivery/http/handler"
+11|	"github.com/kelolakelas/kelolakelas-api-gateway/internal/delivery/http/middleware"
+12|)
+13|
+14|func NewRouter(proxyHandler *handler.ProxyHandler, jwtSecret string) *gin.Engine {
+15|	return NewRouterWithConfig(proxyHandler, jwtSecret, "", nil, middleware.RateLimitConfig{}, slog.Default())
+16|}
+17|
+18|func NewRouterWithRateLimit(proxyHandler *handler.ProxyHandler, jwtSecret string, redisClient middleware.RedisClient, rateLimitConfig middleware.RateLimitConfig, logger *slog.Logger) *gin.Engine {
+19|	return NewRouterWithConfig(proxyHandler, jwtSecret, "", redisClient, rateLimitConfig, logger)
+20|}
+21|
+22|func NewRouterWithConfig(proxyHandler *handler.ProxyHandler, jwtSecret, appURL string, redisClient middleware.RedisClient, rateLimitConfig middleware.RateLimitConfig, logger *slog.Logger) *gin.Engine {
+23|	// The zero ClientIPTrust trusts no proxy, which cannot fail.
+24|	r, _ := NewRouterWithClientIPTrust(proxyHandler, jwtSecret, appURL, redisClient, rateLimitConfig, logger, ClientIPTrust{})
+25|	return r
+26|}
+27|
+28|// ClientIPTrust decides where the gateway reads the client IP from (KEL-62).
+29|//
+30|// The client IP keys the rate limiter and is recorded by the access log, so both
+31|// always read it from the same place: gin's ClientIP, configured here once.
+32|//
+33|// With the zero value no proxy is trusted and the client IP is the socket
+34|// address of the peer, whatever headers the request carries. With TrustedProxies
+35|// and Header set, a request whose socket peer lies inside TrustedProxies may name
+36|// the client in Header. The header is read right to left and the first address
+37|// that is not itself a trusted proxy wins, so a caller cannot prepend a forged
+38|// address in front of a trusted chain. An empty header, a value that is not an
+39|// address (including an IPv6 address with a zone), or a peer outside
+40|// TrustedProxies falls back to the socket address.
+41|type ClientIPTrust struct {
+42|	TrustedProxies []string
+43|	Header         string
+44|}
+45|
+46|// NewRouterWithClientIPTrust builds the gateway router with an explicit client-IP
+47|// trust policy. It returns an error when a trusted proxy entry is not an IP
+48|// address or CIDR range; configuration loading validates the same rules first.
+49|func NewRouterWithClientIPTrust(proxyHandler *handler.ProxyHandler, jwtSecret, appURL string, redisClient middleware.RedisClient, rateLimitConfig middleware.RateLimitConfig, logger *slog.Logger, trust ClientIPTrust, sessionChecks ...middleware.SessionChecker) (*gin.Engine, error) {
+50|	return newRouterWithReadiness(proxyHandler, jwtSecret, appURL, redisClient, rateLimitConfig, logger, trust, ReadinessConfig{}, sessionChecks...)
+51|}
+52|
+53|func NewRouterWithReadiness(proxyHandler *handler.ProxyHandler, jwtSecret, appURL string, redisClient middleware.RedisClient, rateLimitConfig middleware.RateLimitConfig, logger *slog.Logger, trust ClientIPTrust, readiness ReadinessConfig, sessionChecks ...middleware.SessionChecker) (*gin.Engine, error) {
+54|	return newRouterWithReadiness(proxyHandler, jwtSecret, appURL, redisClient, rateLimitConfig, logger, trust, readiness, sessionChecks...)
+55|}
+56|
+57|func newRouterWithReadiness(proxyHandler *handler.ProxyHandler, jwtSecret, appURL string, redisClient middleware.RedisClient, rateLimitConfig middleware.RateLimitConfig, logger *slog.Logger, trust ClientIPTrust, readiness ReadinessConfig, sessionChecks ...middleware.SessionChecker) (*gin.Engine, error) {
+58|	var check middleware.SessionChecker
+59|	if len(sessionChecks) > 0 {
+60|		check = sessionChecks[0]
+61|	}
+62|	r := gin.New()
+63|	if err := applyClientIPTrust(r, trust); err != nil {
+64|		return nil, err
+65|	}
+66|	// RequestIDMiddleware runs first so every response and log line, including
+67|	// rejected or rate-limited requests, carries a correlation identifier.
+68|	r.Use(middleware.RequestIDMiddleware())
+69|	// Context headers from the client are removed before any route handling, so
+70|	// no middleware or proxy can observe a caller-supplied tenant or service
+71|	// credential. The protected group repopulates the tenant header from the
+72|	// verified claim.
+73|	r.Use(middleware.StripUntrustedContextHeaders())
+74|	r.Use(middleware.AccessLogMiddleware(logger))
+75|	r.Use(gin.Recovery())
+76|	r.Use(middleware.CORSMiddleware(appURL))
+77|	r.Use(middleware.RateLimitMiddleware(redisClient, rateLimitConfig, logger))
+78|
+79|	// Health check endpoint
+80|	r.GET("/health", func(c *gin.Context) {
+81|		c.JSON(http.StatusOK, gin.H{
+82|			"status":  "healthy",
+83|			"service": "api-gateway",
+84|		})
+85|	})
+86|	r.GET("/ready", readinessHandler(readiness))
+87|
+88|	// Swagger UI routes
+89|	r.GET("/swagger", func(c *gin.Context) {
+90|		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
+91|	})
+92|	r.GET("/swagger/*any", handler.SwaggerUIHandler())
+93|	r.GET("/identity/swagger/*any", proxyHandler.ProxyIdentitySwagger())
+94|	r.GET("/academic/swagger/*any", proxyHandler.ProxyAcademicSwagger())
+95|	r.GET("/billing/swagger/*any", proxyHandler.ProxyBillingSwagger())
+96|
+97|	apiV1 := r.Group("/api/v1")
+98|	{
+99|		// Public Auth & Invitation routes - proxying directly to identity-service
+100|		apiV1.POST("/auth/register", proxyHandler.ProxyToIdentityService())
+101|		apiV1.POST("/auth/login", proxyHandler.ProxyToIdentityService())
+102|		apiV1.POST("/auth/password-reset/request", proxyHandler.ProxyToIdentityService())
+103|		apiV1.POST("/auth/password-reset/confirm", proxyHandler.ProxyToIdentityService())
+104|		apiV1.POST("/platform/auth/login", proxyHandler.ProxyToIdentityService())
+105|		apiV1.POST("/platform/auth/challenge", proxyHandler.ProxyToIdentityService())
+106|		apiV1.POST("/platform/auth/verify", proxyHandler.ProxyToIdentityService())
+107|		apiV1.POST("/tenants/register", proxyHandler.ProxyToIdentityService())
+108|		apiV1.GET("/tenants/:id/public", proxyHandler.ProxyToIdentityService())
+109|		apiV1.GET("/invitations/verify", proxyHandler.ProxyToIdentityService())
+110|		apiV1.POST("/invitations/register", proxyHandler.ProxyToIdentityService())
+111|		// Public catalog routes are served by academic-service without authentication.
+112|		apiV1.GET("/catalog/classes", proxyHandler.ProxyToAcademicService())
+113|		apiV1.GET("/catalog/classes/:id", proxyHandler.ProxyToAcademicService())
+114|		apiV1.GET("/catalog/classes/:id/reviews", proxyHandler.ProxyToAcademicService())
+115|
+116|		// Public Webhook routes - proxying directly to billing-service
+117|		apiV1.POST("/billing/webhooks/duitku", proxyHandler.ProxyToBillingService())
+118|
+119|		// Chat WebSocket upgrade (KEL-122). Ticket-authenticated by
+120|		// chat-service itself, so there is intentionally no gateway
+121|		// Authorization check here; it stays behind the global CORS origin
+122|		// check, the global rate limiter, and StripUntrustedContextHeaders.
+123|		apiV1.GET("/chat/ws", proxyHandler.ProxyToChatWS(appURL))
+124|
+125|		// Protected routes
+126|		protected := apiV1.Group("")
+127|		protected.Use(middleware.AuthMiddlewareWithSessionCheck(jwtSecret, check))
+128|		{
+129|			protected.GET("/platform/me", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+130|			protected.GET("/platform/configurations", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+131|			protected.GET("/platform/configurations/:application/:key/history", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+132|			protected.POST("/platform/configurations/:application/:key/versions", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+133|			protected.POST("/platform/configurations/reports", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+134|			protected.GET("/platform/registration-policy", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+135|			protected.POST("/platform/registration-policy/close", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+136|			protected.POST("/platform/registration-policy/open", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+137|			protected.GET("/platform/catalog-policy", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+138|			protected.POST("/platform/catalog-policy/close", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+139|			protected.POST("/platform/catalog-policy/open", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+140|			// KEL-99: platform fee policy (read + create/apply a version), platform admins only.
+141|			protected.GET("/platform/fee-policy", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+142|			protected.POST("/platform/fee-policy", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+143|			protected.GET("/platform/creator-requests", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+144|			protected.POST("/platform/creator-requests/:id/approve", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+145|			protected.POST("/platform/creator-requests/:id/reject", middleware.RequirePlatform(), proxyHandler.ProxyToIdentityService())
+146|			// KEL-144: billing checks the live platform assignment again before exposing
+147|			// full destination details or accepting a manual payout decision.
+148|			protected.GET("/platform/withdrawals", middleware.RequirePlatform(), proxyHandler.ProxyToBillingService())
+149|			protected.POST("/platform/withdrawals/:id/paid", middleware.RequirePlatform(), proxyHandler.ProxyToBillingService())
+150|			protected.POST("/platform/withdrawals/:id/reject", middleware.RequirePlatform(), proxyHandler.ProxyToBillingService())
+151|			protected.Use(middleware.RequireTenant())
+152|			// Proxied Identity routes
+153|			protected.POST("/invitations", proxyHandler.ProxyToIdentityService())
+154|			protected.GET("/invitations", proxyHandler.ProxyToIdentityService())
+155|			protected.DELETE("/invitations/:id", proxyHandler.ProxyToIdentityService())
+156|			protected.POST("/creator-requests", proxyHandler.ProxyToIdentityService())
+157|			protected.GET("/creator-requests", proxyHandler.ProxyToIdentityService())
+158|			protected.GET("/members", proxyHandler.ProxyToIdentityService())
+159|			// KEL-136: the tenant dashboard reads the caller's own role and
+160|			// permission names to filter its navigation.
+161|			protected.GET("/members/me/membership", proxyHandler.ProxyToIdentityService())
+162|			protected.GET("/tutors", proxyHandler.ProxyToIdentityService())
+163|			protected.GET("/members/:id", proxyHandler.ProxyToIdentityService())
+164|			protected.PUT("/members/:id/role", proxyHandler.ProxyToIdentityService())
+165|			protected.DELETE("/members/:id", proxyHandler.ProxyToIdentityService())
+166|			protected.GET("/tenant/settings", proxyHandler.ProxyToIdentityService())
+167|			protected.PATCH("/tenant/settings", proxyHandler.ProxyToIdentityService())
+168|			protected.GET("/tenants/settings", proxyHandler.ProxyToIdentityService())
+169|			protected.PATCH("/tenants/settings", proxyHandler.ProxyToIdentityService())
+170|			protected.GET("/tenant/settings/location", proxyHandler.ProxyToIdentityService())
+171|			protected.PUT("/tenant/settings/location", proxyHandler.ProxyToIdentityService())
+172|			protected.GET("/permissions", proxyHandler.ProxyToIdentityService())
+173|			protected.GET("/roles", proxyHandler.ProxyToIdentityService())
+174|			protected.POST("/roles", proxyHandler.ProxyToIdentityService())
+175|			protected.PUT("/roles/:id", proxyHandler.ProxyToIdentityService())
+176|			protected.DELETE("/roles/:id", proxyHandler.ProxyToIdentityService())
+177|
+178|			// Proxied Academic routes
+179|			protected.POST("/categories", proxyHandler.ProxyToAcademicService())
+180|			protected.GET("/categories", proxyHandler.ProxyToAcademicService())
+181|			protected.DELETE("/categories/:id", proxyHandler.ProxyToAcademicService())
+182|			protected.GET("/classes", proxyHandler.ProxyToAcademicService())
+183|			protected.POST("/classes", proxyHandler.ProxyToAcademicService())
+184|			protected.POST("/classes/with-category", proxyHandler.ProxyToAcademicService())
+185|			protected.DELETE("/classes/:id", proxyHandler.ProxyToAcademicService())
+186|			protected.PATCH("/classes/:id", proxyHandler.ProxyToAcademicService())
+187|			protected.PATCH("/classes/:id/published", proxyHandler.ProxyToAcademicService())
+188|			protected.GET("/students", proxyHandler.ProxyToAcademicService())
+189|			protected.POST("/students", proxyHandler.ProxyToAcademicService())
+190|			protected.GET("/students/:id", proxyHandler.ProxyToAcademicService())
+191|			protected.PATCH("/students/:id", proxyHandler.ProxyToAcademicService())
+192|			protected.DELETE("/students/:id", proxyHandler.ProxyToAcademicService())
+193|			protected.GET("/attendance", proxyHandler.ProxyToAcademicService())
+194|			protected.POST("/attendance", proxyHandler.ProxyToAcademicService())
+195|			protected.GET("/attendance/:id", proxyHandler.ProxyToAcademicService())
+196|			protected.PATCH("/attendance/:id", proxyHandler.ProxyToAcademicService())
+197|			protected.GET("/reports", proxyHandler.ProxyToAcademicService())
+198|			protected.POST("/reports", proxyHandler.ProxyToAcademicService())
+199|			protected.GET("/reports/:id", proxyHandler.ProxyToAcademicService())
+200|			protected.PATCH("/reports/:id", proxyHandler.ProxyToAcademicService())
+201|			protected.DELETE("/reports/:id", proxyHandler.ProxyToAcademicService())
+202|
+203|			// Schedule Management routes
+204|			protected.POST("/schedules", proxyHandler.ProxyToAcademicService())
+205|			protected.GET("/schedules", proxyHandler.ProxyToAcademicService())
+206|			protected.DELETE("/schedules/:id", proxyHandler.ProxyToAcademicService())
+207|			protected.PUT("/schedules/permanent", proxyHandler.ProxyToAcademicService())
+208|			protected.PUT("/schedules/:id/permanent", proxyHandler.ProxyToAcademicService())
+209|			protected.PATCH("/schedules/tutor-permanent", proxyHandler.ProxyToAcademicService())
+210|			protected.PATCH("/schedules/:id/tutor-permanent", proxyHandler.ProxyToAcademicService())
+211|			protected.PUT("/schedules/tutor-permanent", proxyHandler.ProxyToAcademicService())
+212|			protected.PUT("/schedules/:id/tutor-permanent", proxyHandler.ProxyToAcademicService())
+213|
+214|			// Session Management routes
+215|			protected.GET("/sessions", proxyHandler.ProxyToAcademicService())
+216|			protected.GET("/sessions/:id", proxyHandler.ProxyToAcademicService())
+217|			protected.DELETE("/sessions/:id", proxyHandler.ProxyToAcademicService())
+218|			protected.GET("/sessions/:id/attendees", proxyHandler.ProxyToAcademicService())
+219|			protected.POST("/sessions/reschedule", proxyHandler.ProxyToAcademicService())
+220|			protected.POST("/sessions/:id/reschedule", proxyHandler.ProxyToAcademicService())
+221|			protected.PATCH("/sessions/substitute-tutor", proxyHandler.ProxyToAcademicService())
+222|			protected.PATCH("/sessions/:id/substitute-tutor", proxyHandler.ProxyToAcademicService())
+223|
+224|			// Enrollment Management routes
+225|			protected.GET("/enrollments", proxyHandler.ProxyToAcademicService())
+226|			protected.GET("/enrollments/:id", proxyHandler.ProxyToAcademicService())
+227|			protected.PATCH("/enrollments/:id/schedule", proxyHandler.ProxyToAcademicService())
+228|			protected.POST("/enrollments/:id/cancel", proxyHandler.ProxyToAcademicService())
+229|			protected.PUT("/enrollments/:id/review", proxyHandler.ProxyToAcademicService())
+230|			protected.POST("/tenants/:tenant_id/enrollments", proxyHandler.ProxyToAcademicService())
+231|			protected.POST("/catalog/classes/:class_id/enrollments", proxyHandler.ProxyToAcademicService())
+232|			protected.POST("/catalog/classes/:class_id/voucher-preview", proxyHandler.ProxyToAcademicService())
+233|			protected.POST("/catalog/classes/:class_id/schedule-requests", proxyHandler.ProxyToAcademicService())
+234|			protected.GET("/schedule-requests", proxyHandler.ProxyToAcademicService())
+235|			protected.GET("/schedule-requests/:id", proxyHandler.ProxyToAcademicService())
+236|			protected.POST("/schedule-requests/:id/approve", proxyHandler.ProxyToAcademicService())
+237|			protected.POST("/schedule-requests/:id/reject", proxyHandler.ProxyToAcademicService())
+238|			protected.POST("/schedule-requests/:id/recommendation/accept", proxyHandler.ProxyToAcademicService())
+239|			protected.POST("/schedule-requests/:id/recommendation/decline", proxyHandler.ProxyToAcademicService())
+240|			protected.POST("/schedule-requests/:id/cancel", proxyHandler.ProxyToAcademicService())
+241|
+242|			// Billing Transaction routes
+243|			protected.GET("/billing/transactions", proxyHandler.ProxyToBillingService())
+244|			protected.GET("/billing/transactions/summary", proxyHandler.ProxyToBillingService())
+245|			// KEL-147: the static export path stays registered explicitly so a
+246|			// later change to the detail route cannot silently swallow it.
+247|			protected.GET("/billing/transactions/export", proxyHandler.ProxyToBillingService())
+248|			protected.GET("/billing/transactions/:id", proxyHandler.ProxyToBillingService())
+249|			protected.POST("/billing/transactions/:id/refund", proxyHandler.ProxyToBillingService())
+250|			// KEL-142: tenant wallet balance, ledger mutations, and payout bank
+251|			// accounts. Authorization (billing:read / billing:withdraw) is owned
+252|			// by billing-service; the gateway only forwards the verified tenant.
+253|			protected.GET("/billing/wallet", proxyHandler.ProxyToBillingService())
+254|			protected.GET("/billing/ledger", proxyHandler.ProxyToBillingService())
+255|			protected.GET("/billing/bank-accounts", proxyHandler.ProxyToBillingService())
+256|			protected.POST("/billing/bank-accounts", proxyHandler.ProxyToBillingService())
+257|			protected.PATCH("/billing/bank-accounts/:id", proxyHandler.ProxyToBillingService())
+258|			protected.DELETE("/billing/bank-accounts/:id", proxyHandler.ProxyToBillingService())
+259|			protected.POST("/billing/bank-accounts/:id/set-primary", proxyHandler.ProxyToBillingService())
+260|			// KEL-143: tenant payout withdrawal requests and history. Authorization
+261|			// (billing:withdraw) and balance holds are owned by billing-service;
+262|			// the gateway only forwards the verified tenant.
+263|			protected.POST("/billing/withdrawals", proxyHandler.ProxyToBillingService())
+264|			protected.GET("/billing/withdrawals", proxyHandler.ProxyToBillingService())
+265|			protected.GET("/billing/withdrawals/:id", proxyHandler.ProxyToBillingService())
+266|			protected.DELETE("/billing/withdrawals/:id", proxyHandler.ProxyToBillingService())
+267|			// KEL-161: tenant discount vouchers. Authorization (voucher:*) and
+268|			// tenant scoping are owned by billing-service; the gateway only
+269|			// forwards the verified tenant. The static collection path stays
+270|			// registered explicitly so a later change to the detail route
+271|			// cannot silently swallow it.
+272|			protected.GET("/billing/vouchers", proxyHandler.ProxyToBillingService())
+273|			protected.POST("/billing/vouchers", proxyHandler.ProxyToBillingService())
+274|			protected.GET("/billing/vouchers/:id", proxyHandler.ProxyToBillingService())
+275|			protected.PATCH("/billing/vouchers/:id", proxyHandler.ProxyToBillingService())
+276|			protected.DELETE("/billing/vouchers/:id", proxyHandler.ProxyToBillingService())
+277|
+278|			// Chat routes (KEL-122). They sit behind RequireTenant like the
+279|			// other tenant resources: a tenant member passes with its tenant
+280|			// claim and a parent passes via the parent bypass, so both callers
+281|			// the chat contract names can reach them. The ticket endpoint is
+282|			// gateway-authenticated here; chat-service validates the JWT again
+283|			// when minting the ticket. Without CHAT_SERVICE_URL each of these
+284|			// answers 503.
+285|			protected.GET("/chat/conversations", proxyHandler.ProxyToChatService())
+286|			protected.POST("/chat/conversations", proxyHandler.ProxyToChatService())
+287|			protected.GET("/chat/conversations/:id", proxyHandler.ProxyToChatService())
+288|			protected.GET("/chat/conversations/:id/messages", proxyHandler.ProxyToChatService())
+289|			protected.POST("/chat/conversations/:id/messages", proxyHandler.ProxyToChatService())
+290|			protected.POST("/chat/conversations/:id/read", proxyHandler.ProxyToChatService())
+291|			protected.POST("/chat/ws-tickets", proxyHandler.ProxyToChatService())
+292|		}
+293|	}
+294|
+295|	return r, nil
+296|}
+297|
+298|// applyClientIPTrust configures gin's ClientIP from the trust policy. The zero
+299|// policy keeps SetTrustedProxies(nil) with no forwarded header, so every request
+300|// is identified by its socket address exactly as before KEL-62.
+301|func applyClientIPTrust(r *gin.Engine, trust ClientIPTrust) error {
+302|	// Platform headers (Cloudflare, App Engine, …) are never trusted implicitly;
+303|	// they would bypass the proxy check entirely.
+304|	r.TrustedPlatform = ""
+305|	if len(trust.TrustedProxies) == 0 || trust.Header == "" {
+306|		r.ForwardedByClientIP = false
+307|		r.RemoteIPHeaders = nil
+308|		return r.SetTrustedProxies(nil)
+309|	}
+310|	if err := r.SetTrustedProxies(trust.TrustedProxies); err != nil {
+311|		return fmt.Errorf("trusted proxies: %w", err)
+312|	}
+313|	r.ForwardedByClientIP = true
+314|	r.RemoteIPHeaders = []string{trust.Header}
+315|	return nil
+316|}

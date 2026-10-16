@@ -1,0 +1,67 @@
+{
+  "id": "KEL-77",
+  "uuid": "e51cc2ea-8af0-437c-a241-213b68ca63e4",
+  "title": "Halaman Members dan metrik dashboard tenant menampilkan anggota yang sebenarnya",
+  "description": "## Background / Problem\n\nIdentity `GET /members` mengembalikan `data: {items, pagination}` (`kelolakelas-identity-service/internal/delivery/http/handler/member_handler.go:120`, struct `MemberListResponse` di `internal/domain/member.go:57-60`). Query web `getTenantMembers` hanya menerima `Array.isArray(result.data)` dan selain itu mengembalikan `[]` (`kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_queries/queries.ts:51-55`). Inferensi dari kode: halaman Members dan kartu \"Total Members\" (`_components/OverviewMetrics.tsx:52-57`) selalu kosong/0. Modul classes dan enrollments sudah memakai `normalizeListEnvelope` (`lib/list-envelope.ts:66`) untuk envelope yang sama. Kartu \"Active Roles\" juga menautkan ke halaman members, bukan roles. Tidak ada issue Linear aktif yang mencakup ini.\n\n## Goal\n\nOwner tenant melihat daftar anggota dan jumlah anggota yang sesuai dengan data identity.\n\n## Requirements\n\n* Query anggota membaca `data.items` dan `data.pagination` melalui helper list-envelope yang sudah ada.\n* Kartu Total Members memakai `pagination.total_items`, bukan panjang halaman pertama.\n* Halaman Members menampilkan total anggota dan navigasi halaman bila total melebihi satu halaman.\n* Kartu Active Roles menautkan ke halaman roles.\n* Respons non-OK tetap ditampilkan sebagai state kosong/error seperti perilaku saat ini, tanpa crash.\n\n## Acceptance Criteria\n\n- [ ] Dengan respons identity berisi N anggota, halaman Members menampilkan N baris (maksimal satu halaman) dan total N.\n- [ ] Kartu Total Members menampilkan nilai `pagination.total_items` dari respons.\n- [ ] Kartu Active Roles membuka halaman roles.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nKode adalah sumber kebenaran: dokumentasi `kelolakelas-docs/docs/components/web.md` perlu mencatat bahwa list anggota memakai envelope paginasi. Kartu Pending Invites tidak diubah di issue ini karena sumber datanya dibangun di issue undangan. Complexity rationale: perubahan lokal di query web yang mengikuti helper normalizeListEnvelope yang sudah dipakai modul classes dan enrollments; tidak ada perubahan API.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_queries/queries.ts`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/OverviewMetrics.tsx`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/members/page.tsx`\n* `kelolakelas-web/lib/list-envelope.ts`\n\n## Edge Cases\n\n* Respons lama berupa array polos (kompatibilitas) tetap dapat dibaca oleh helper.\n* Pagination tidak ada atau tidak valid pada respons.\n* Tenant tanpa anggota selain owner.\n\n## Testing / Validation\n\n- [ ] Test unit query anggota dengan fixture envelope `{items, pagination}` dan fixture error.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Kartu Pending Invites (issue web-pending-invitations).\n* Aksi hapus anggota dan edit role.\n* Perubahan API identity.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-members-list-envelope\",\n  \"projectKey\": \"tenant-member-administration\",\n  \"title\": \"Halaman Members dan metrik dashboard tenant menampilkan anggota yang sebenarnya\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Identity `GET /members` mengembalikan `data: {items, pagination}` (`kelolakelas-identity-service/internal/delivery/http/handler/member_handler.go:120`, struct `MemberListResponse` di `internal/domain/member.go:57-60`). Query web `getTenantMembers` hanya menerima `Array.isArray(result.data)` dan selain itu mengembalikan `[]` (`kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_queries/queries.ts:51-55`). Inferensi dari kode: halaman Members dan kartu \\\"Total Members\\\" (`_components/OverviewMetrics.tsx:52-57`) selalu kosong/0. Modul classes dan enrollments sudah memakai `normalizeListEnvelope` (`lib/list-envelope.ts:66`) untuk envelope yang sama. Kartu \\\"Active Roles\\\" juga menautkan ke halaman members, bukan roles. Tidak ada issue Linear aktif yang mencakup ini.\",\n    \"goal\": \"Owner tenant melihat daftar anggota dan jumlah anggota yang sesuai dengan data identity.\",\n    \"requirements\": [\n      \"Query anggota membaca `data.items` dan `data.pagination` melalui helper list-envelope yang sudah ada.\",\n      \"Kartu Total Members memakai `pagination.total_items`, bukan panjang halaman pertama.\",\n      \"Halaman Members menampilkan total anggota dan navigasi halaman bila total melebihi satu halaman.\",\n      \"Kartu Active Roles menautkan ke halaman roles.\",\n      \"Respons non-OK tetap ditampilkan sebagai state kosong/error seperti perilaku saat ini, tanpa crash.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Dengan respons identity berisi N anggota, halaman Members menampilkan N baris (maksimal satu halaman) dan total N.\",\n      \"Kartu Total Members menampilkan nilai `pagination.total_items` dari respons.\",\n      \"Kartu Active Roles membuka halaman roles.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Kode adalah sumber kebenaran: dokumentasi `kelolakelas-docs/docs/components/web.md` perlu mencatat bahwa list anggota memakai envelope paginasi. Kartu Pending Invites tidak diubah di issue ini karena sumber datanya dibangun di issue undangan. Complexity rationale: perubahan lokal di query web yang mengikuti helper normalizeListEnvelope yang sudah dipakai modul classes dan enrollments; tidak ada perubahan API.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_queries/queries.ts\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/OverviewMetrics.tsx\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/members/page.tsx\",\n      \"kelolakelas-web/lib/list-envelope.ts\"\n    ],\n    \"edgeCases\": [\n      \"Respons lama berupa array polos (kompatibilitas) tetap dapat dibaca oleh helper.\",\n      \"Pagination tidak ada atau tidak valid pada respons.\",\n      \"Tenant tanpa anggota selain owner.\"\n    ],\n    \"testingValidation\": [\n      \"Test unit query anggota dengan fixture envelope `{items, pagination}` dan fixture error.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Kartu Pending Invites (issue web-pending-invitations).\",\n      \"Aksi hapus anggota dan edit role.\",\n      \"Perubahan API identity.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-77/halaman-members-dan-metrik-dashboard-tenant-menampilkan-anggota-yang",
+  "gitBranchName": "skinel123/kel-77-halaman-members-dan-metrik-dashboard-tenant-menampilkan",
+  "createdAt": "2026-09-24T12:01:38.916Z",
+  "updatedAt": "2026-09-24T12:20:45.772Z",
+  "archivedAt": "2026-09-25T11:56:52.536Z",
+  "completedAt": null,
+  "startedAt": null,
+  "canceledAt": "2026-09-24T12:18:27.022Z",
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Duplicate",
+  "statusType": "duplicate",
+  "labels": [
+    "web",
+    "Improvement"
+  ],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T12:01:38.916Z",
+      "endedAt": "2026-09-24T12:18:26.992Z"
+    },
+    {
+      "state": {
+        "id": "a9a307f1-c301-452e-bc8c-25bf1d4b1cbf",
+        "name": "Duplicate",
+        "type": "duplicate"
+      },
+      "startedAt": "2026-09-24T12:18:26.992Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Administrasi anggota tenant yang andal dan aman",
+  "projectId": "24479f4a-98ab-4255-a1e8-954da9ba6360",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "id": "KEL-178",
+  "uuid": "2f52fd7e-ce9e-424c-ae2e-969c0baf75b0",
+  "title": "Konfirmasi sukses pembatalan enrollment tidak pernah terlihat karena tombolnya ter-unmount saat baris diperbarui",
+  "description": "## Ringkasan\n\nSetelah parent membatalkan enrollment pending dan backend menjawab 200, teks sukses `role=\"status\"` (\"Pendaftaran berhasil dibatalkan ...\") tidak pernah tampil di halaman `/dashboard/parent/enrollments`. Baris memang diperbarui tanpa reload, tetapi parent tidak melihat konfirmasi apa pun. Ini pola yang sama dengan <issue id=\"74e2e129-ea3c-4fe3-8ab4-e4efdbe27b5b\" href=\"https://linear.app/farid-zamani/issue/KEL-174/pesan-sukses-lokasi-tenant-berhasil-disimpan-tidak-pernah-tampil\">KEL-174</issue>, di mana pesan sukses simpan lokasi juga tidak pernah tampil.\n\n## Langkah reproduksi\n\n1. Login sebagai parent yang punya enrollment pending dengan invoice belum dibayar.\n2. Buka `/dashboard/parent/enrollments` dan klik \"Batalkan pendaftaran\", lalu \"Ya, batalkan\".\n3. Amati area tombol setelah dialog tertutup.\n\n## Hasil aktual\n\nDialog tertutup dan kartu berubah ke \"Enrollment dropped\". Tidak ada teks sukses: MutationObserver di browser tidak mencatat teks `role=status` sama sekali selama alur ini.\n\n## Diharapkan\n\nParent melihat konfirmasi sukses yang jelas setelah pembatalan berhasil, sekaligus baris yang sudah diperbarui.\n\n## Akar masalah\n\nDibaca dari kode `origin/main` web 63023ff, lalu dikonfirmasi lewat E2E.\n\n* Pesan sukses dirender di dalam `CancelEnrollmentButton` (`app/(dashboard)/dashboard/parent/enrollments/_components/CancelEnrollmentButton.tsx:101-102`).\n* Server action memanggil `revalidatePath` (`_actions/actions.ts:73`).\n* Setelah revalidasi, `page.tsx:74` hanya merender komponen itu bila `canCancelEnrollment(enrollment, transaction)` bernilai true. Untuk enrollment yang sudah dropped nilainya false, sehingga komponen beserta pesannya ter-unmount.\n* Test vitest lulus karena di sana komponen tetap ter-mount.\n\nKondisi ini sudah ada sejak <issue id=\"837cee6c-af51-450f-b186-94fa6cd475d3\" href=\"https://linear.app/farid-zamani/issue/KEL-45/sediakan-pembatalan-enrollment-pending-dari-halaman-parent\">KEL-45</issue> dan bukan regresi <issue id=\"b7565cc5-f33c-4b6a-a877-a271c56b0ffd\" href=\"https://linear.app/farid-zamani/issue/KEL-168/pembatalan-enrollment-pending-oleh-parent-selalu-dijawab-409-padahal\">KEL-168</issue>.\n\n## Saran perbaikan\n\nAngkat pesan sukses ke luar komponen yang ter-unmount. Opsinya:\n\n* live region tingkat halaman atau kartu;\n* status di URL (`?cancelled=<id>`);\n* render kartu yang membedakan \"baru saja dibatalkan\".\n\nTambahkan test pada tingkat halaman yang membuktikan pesan tetap terlihat setelah baris dirender ulang. Pertanyaan produk: berapa lama pesan perlu bertahan (sampai navigasi berikutnya, atau beberapa detik)?\n\n## Bukti\n\n* E2E operator <issue id=\"b7565cc5-f33c-4b6a-a877-a271c56b0ffd\" href=\"https://linear.app/farid-zamani/issue/KEL-168/pembatalan-enrollment-pending-oleh-parent-selalu-dijawab-409-padahal\">KEL-168</issue> (2026-10-09, production build, browser nyata): `/home/faridzam/workspace/kelolakelas/.kel-autopilot/kel168/manual-e2e.md` \u00a7 Findings (lokal operator, tidak di-commit), temuan 1.\n* `CancelEnrollmentButton.tsx` ikut diubah oleh <issue id=\"b7565cc5-f33c-4b6a-a877-a271c56b0ffd\" href=\"https://linear.app/farid-zamani/issue/KEL-168/pembatalan-enrollment-pending-oleh-parent-selalu-dijawab-409-padahal\">KEL-168</issue> (PR web #79). Kerjakan issue ini setelah <issue id=\"b7565cc5-f33c-4b6a-a877-a271c56b0ffd\" href=\"https://linear.app/farid-zamani/issue/KEL-168/pembatalan-enrollment-pending-oleh-parent-selalu-dijawab-409-padahal\">KEL-168</issue> merge, dan baca ulang file itu di `origin/main`.",
+  "priority": {
+    "value": 4,
+    "name": "Low"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-178/konfirmasi-sukses-pembatalan-enrollment-tidak-pernah-terlihat-karena",
+  "gitBranchName": "skinel123/kel-178-konfirmasi-sukses-pembatalan-enrollment-tidak-pernah",
+  "createdAt": "2026-10-09T07:01:34.354Z",
+  "updatedAt": "2026-10-09T09:16:07.634Z",
+  "archivedAt": null,
+  "completedAt": null,
+  "startedAt": "2026-10-09T09:16:07.611Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "In Progress",
+  "statusType": "started",
+  "labels": [
+    "web",
+    "Bug"
+  ],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-10-09T07:01:34.354Z",
+      "endedAt": "2026-10-09T08:04:54.376Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-09T08:04:54.376Z",
+      "endedAt": "2026-10-09T08:07:18.758Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-09T08:07:18.758Z",
+      "endedAt": "2026-10-09T09:16:04.532Z"
+    },
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-10-09T09:16:04.532Z",
+      "endedAt": "2026-10-09T09:16:07.628Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-09T09:16:07.628Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-168",
+        "title": "Pembatalan enrollment pending oleh parent selalu dijawab 409 padahal pembatalan berhasil"
+      },
+      {
+        "id": "KEL-45",
+        "title": "Sediakan pembatalan enrollment pending dari halaman parent"
+      },
+      {
+        "id": "KEL-174",
+        "title": "Pesan sukses \"Lokasi tenant berhasil disimpan\" tidak pernah tampil setelah simpan lokasi"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

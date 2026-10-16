@@ -1,0 +1,122 @@
+{
+  "id": "KEL-117",
+  "uuid": "f26fa522-bc07-4c16-94ca-914b2ab86ea0",
+  "title": "Identity menyediakan permission tenant `chat:manage` untuk admin yang menangani chat",
+  "description": "## Background / Problem\n\nChat membutuhkan cara menentukan siapa admin tenant yang menangani percakapan dengan parent dan pengajar. Katalog permission disimpan di tabel `permissions` dengan `name` unik (`migrations/00000000000000_init_schema.up.sql:29-30`) dan diisi oleh `seeders/000001_default_permissions_and_roles.sql`. Role sistem `Creator` hanya mendapat semua permission saat seed dijalankan (`seeders/000001_default_permissions_and_roles.sql:65-70`), sehingga permission baru tidak otomatis dimiliki tenant yang sudah ada. Role `Teacher` hanya memiliki permission `schedule`, `attendance`, `student_note`, dan `report` (`:72-79`).\n\n## Goal\n\nPermission `chat:manage` tersedia di semua lingkungan, dimiliki role sistem `Creator`, dan dapat diberikan ke role kustom lewat editor role yang sudah ada.\n\n## Requirements\n\n* Migration identity baru menambahkan permission `chat:manage` dengan deskripsi Bahasa Indonesia (mis. \"Menangani chat tenant dengan parent dan pengajar\") secara idempoten (`ON CONFLICT (name) DO NOTHING`).\n* Migration yang sama memberikan `chat:manage` ke role sistem `Creator` (`tenant_id IS NULL`) secara idempoten, dan tidak memberikannya ke `Teacher`.\n* Seeder default diperbarui sehingga database baru mendapat permission dan grant yang sama.\n* Down migration menghapus grant `chat:manage`, lalu permission-nya.\n* `CheckPermission` gRPC (`internal/delivery/grpc/permission_service.go:88`) menjawab `chat:manage` hanya dari data, tanpa perubahan kode.\n\n## Acceptance Criteria\n\n- [ ] Setelah migrate up, `GET /api/v1/permissions` memuat `chat:manage`.\n- [ ] Anggota dengan role `Creator` mendapat `true` dari `CheckPermission` untuk `chat:manage`, sedangkan anggota dengan role `Teacher` mendapat `false`.\n- [ ] Menjalankan migrate up dua kali, atau seed setelah migrate, tidak menghasilkan duplikat.\n- [ ] Migrate down lalu up kembali berhasil.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nNama `chat:manage` dipakai chat-service (issue `chat-service-core-api`) untuk menentukan admin tenant, jadi jangan diganti tanpa memperbarui issue itu. Ikuti pola migration terbaru (`migrations/000013_platform_fee_policy.*.sql`). Permission baru otomatis tampil di editor role karena katalog dibaca dari database (`internal/repository/rbac_repository.go:22`, `GET /api/v1/permissions`). Asumsi yang belum dikonfirmasi owner: admin tenant adalah pemegang `chat:manage`, dan owner dapat memberikannya ke role kustom lewat editor role. Perbarui kelolakelas-docs `docs/data/identity-schema.md` dan daftar permission di `docs/05-security.md` bila ada.\n\nRelevant areas:\n\n* `kelolakelas-identity-service/migrations`\n* `kelolakelas-identity-service/seeders/000001_default_permissions_and_roles.sql`\n* `kelolakelas-identity-service/internal/delivery/grpc/permission_service.go`\n* `kelolakelas-identity-service/internal/repository/rbac_repository.go`\n\n## Edge Cases\n\n* Database yang sudah memiliki permission `chat:manage` dari seed manual.\n* Role `Creator` belum ada karena database belum diseed.\n* Role kustom tenant yang meniru `Creator` tidak otomatis mendapat permission baru.\n\n## Testing / Validation\n\n- [ ] Test migration di PostgreSQL untuk up, up ulang, down, dan grant yang hanya ke `Creator`. Bila repo belum punya pola test migration, verifikasi manual di PostgreSQL lokal dan catat hasilnya di PR.\n- [ ] Test `CheckPermission` untuk `Creator` dan `Teacher`.\n- [ ] Existing tests pass, `gofmt`/`go vet` pass, dan acceptance criteria diverifikasi.\n\n## Out of Scope\n\n* Pemakaian permission di service lain.\n* UI khusus di luar editor role yang sudah ada.\n* Memberikan permission ke role kustom yang sudah ada.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"projectKey\": \"tenant-parent-teacher-chat\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"externalDependencies\": [],\n  \"draftKey\": \"chat-manage-permission\",\n  \"title\": \"Identity menyediakan permission tenant `chat:manage` untuk admin yang menangani chat\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"repositories\": [\n    \"identity\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Chat membutuhkan cara menentukan siapa admin tenant yang menangani percakapan dengan parent dan pengajar. Katalog permission disimpan di tabel `permissions` dengan `name` unik (`migrations/00000000000000_init_schema.up.sql:29-30`) dan diisi oleh `seeders/000001_default_permissions_and_roles.sql`. Role sistem `Creator` hanya mendapat semua permission saat seed dijalankan (`seeders/000001_default_permissions_and_roles.sql:65-70`), sehingga permission baru tidak otomatis dimiliki tenant yang sudah ada. Role `Teacher` hanya memiliki permission `schedule`, `attendance`, `student_note`, dan `report` (`:72-79`).\",\n    \"goal\": \"Permission `chat:manage` tersedia di semua lingkungan, dimiliki role sistem `Creator`, dan dapat diberikan ke role kustom lewat editor role yang sudah ada.\",\n    \"requirements\": [\n      \"Migration identity baru menambahkan permission `chat:manage` dengan deskripsi Bahasa Indonesia (mis. \\\"Menangani chat tenant dengan parent dan pengajar\\\") secara idempoten (`ON CONFLICT (name) DO NOTHING`).\",\n      \"Migration yang sama memberikan `chat:manage` ke role sistem `Creator` (`tenant_id IS NULL`) secara idempoten, dan tidak memberikannya ke `Teacher`.\",\n      \"Seeder default diperbarui sehingga database baru mendapat permission dan grant yang sama.\",\n      \"Down migration menghapus grant `chat:manage`, lalu permission-nya.\",\n      \"`CheckPermission` gRPC (`internal/delivery/grpc/permission_service.go:88`) menjawab `chat:manage` hanya dari data, tanpa perubahan kode.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Setelah migrate up, `GET /api/v1/permissions` memuat `chat:manage`.\",\n      \"Anggota dengan role `Creator` mendapat `true` dari `CheckPermission` untuk `chat:manage`, sedangkan anggota dengan role `Teacher` mendapat `false`.\",\n      \"Menjalankan migrate up dua kali, atau seed setelah migrate, tidak menghasilkan duplikat.\",\n      \"Migrate down lalu up kembali berhasil.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Nama `chat:manage` dipakai chat-service (issue `chat-service-core-api`) untuk menentukan admin tenant, jadi jangan diganti tanpa memperbarui issue itu. Ikuti pola migration terbaru (`migrations/000013_platform_fee_policy.*.sql`). Permission baru otomatis tampil di editor role karena katalog dibaca dari database (`internal/repository/rbac_repository.go:22`, `GET /api/v1/permissions`). Asumsi yang belum dikonfirmasi owner: admin tenant adalah pemegang `chat:manage`, dan owner dapat memberikannya ke role kustom lewat editor role. Perbarui kelolakelas-docs `docs/data/identity-schema.md` dan daftar permission di `docs/05-security.md` bila ada.\",\n    \"relevantAreas\": [\n      \"kelolakelas-identity-service/migrations\",\n      \"kelolakelas-identity-service/seeders/000001_default_permissions_and_roles.sql\",\n      \"kelolakelas-identity-service/internal/delivery/grpc/permission_service.go\",\n      \"kelolakelas-identity-service/internal/repository/rbac_repository.go\"\n    ],\n    \"edgeCases\": [\n      \"Database yang sudah memiliki permission `chat:manage` dari seed manual.\",\n      \"Role `Creator` belum ada karena database belum diseed.\",\n      \"Role kustom tenant yang meniru `Creator` tidak otomatis mendapat permission baru.\"\n    ],\n    \"testingValidation\": [\n      \"Test migration di PostgreSQL untuk up, up ulang, down, dan grant yang hanya ke `Creator`. Bila repo belum punya pola test migration, verifikasi manual di PostgreSQL lokal dan catat hasilnya di PR.\",\n      \"Test `CheckPermission` untuk `Creator` dan `Teacher`.\",\n      \"Existing tests pass, `gofmt`/`go vet` pass, dan acceptance criteria diverifikasi.\"\n    ],\n    \"outOfScope\": [\n      \"Pemakaian permission di service lain.\",\n      \"UI khusus di luar editor role yang sudah ada.\",\n      \"Memberikan permission ke role kustom yang sudah ada.\"\n    ]\n  },\n  \"labels\": [\n    \"identity\",\n    \"ai-ready\"\n  ]\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-117/identity-menyediakan-permission-tenant-chatmanage-untuk-admin-yang",
+  "gitBranchName": "skinel123/kel-117-identity-menyediakan-permission-tenant-chatmanage-untuk",
+  "createdAt": "2026-09-28T05:32:03.432Z",
+  "updatedAt": "2026-09-28T07:41:36.867Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-28T07:37:19.677Z",
+  "startedAt": "2026-09-28T07:13:45.482Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "identity",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "0af12ae6-5951-4704-b1e7-34c9adefcb63",
+      "title": "KEL-117: document chat management permission grant",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/112"
+    },
+    {
+      "id": "9ce8891f-c287-4549-a408-619e410228ba",
+      "title": "KEL-117: add tenant chat management permission for Creator",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/34"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T05:32:03.432Z",
+      "endedAt": "2026-09-28T07:13:45.496Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-28T07:13:45.496Z",
+      "endedAt": "2026-09-28T07:37:19.682Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-28T07:37:19.682Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Chat realtime antara tenant, pengajar, dan parent",
+  "projectId": "6fd7df4e-3f90-4efc-b835-f60581a2ce78",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-119",
+        "title": "Chat-service menyimpan percakapan pengajar\u2013admin tenant dan pesannya melalui REST API"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-118",
+        "title": "Academic menyediakan konteks permintaan jadwal private dan report untuk chat-service melalui endpoint internal"
+      },
+      {
+        "id": "KEL-107",
+        "title": "Parent dapat mengajukan jadwal kelas private dan tenant dapat meninjau atau menolaknya melalui API"
+      },
+      {
+        "id": "KEL-110",
+        "title": "Tenant meninjau, menyetujui, atau menolak permintaan jadwal private dari dashboard"
+      },
+      {
+        "id": "KEL-109",
+        "title": "Parent mengajukan jadwal kelas private dari detail kelas dan memantau status permintaannya"
+      },
+      {
+        "id": "KEL-108",
+        "title": "Persetujuan tenant atas permintaan jadwal private membuat enrollment, jadwal, dan payment link"
+      },
+      {
+        "id": "KEL-115",
+        "title": "Tenant dapat menolak permintaan jadwal private dengan rekomendasi jadwal lain dan parent dapat menerimanya melalui API"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

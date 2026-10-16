@@ -1,0 +1,105 @@
+{
+  "id": "KEL-145",
+  "uuid": "cdabcdd0-07bb-4e36-be73-26a05b19e80b",
+  "title": "Tenant melihat saldo, mutasi, rekening, dan mengajukan penarikan dari halaman keuangan",
+  "description": "## Background / Problem\n\nSettings tenant hanya mencakup profil dan lokasi (`app/(dashboard)/dashboard/tenant/settings/_queries/queries.ts:117,152`); tidak ada UI saldo, rekening, atau penarikan.\n\n## Goal\n\nTenant memiliki satu halaman keuangan untuk memantau saldo dan mengajukan pencairan ke rekeningnya.\n\n## Requirements\n\n* Kartu saldo tersedia dan tertahan, serta daftar mutasi berhalaman.\n* Form kelola rekening bank utama dengan nomor tersamar.\n* Form pengajuan penarikan dengan validasi jumlah dan konfirmasi, riwayat penarikan beserta statusnya, dan aksi batalkan untuk status requested.\n* Menu keuangan mengikuti permission `billing:read` dan `billing:withdraw`.\n\n## Acceptance Criteria\n\n- [ ] Tenant dapat menambah rekening, mengajukan penarikan, dan melihat saldo tertahan bertambah.\n- [ ] Pembatalan mengembalikan saldo tersedia di tampilan setelah refresh.\n- [ ] Error backend (saldo kurang, tanpa rekening, pengajuan terbuka) ditampilkan dengan pesan yang jelas.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nFormat nominal mengikuti formatter rupiah yang dipakai `SalesSummaryCard`. Pengajuan memakai idempotency key per submit untuk mencegah submit ganda. Bila menu sadar-permission sudah ada, daftarkan item dengan permission yang sesuai. Perbarui `kelolakelas-docs/docs/components/web.md`.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/SalesSummaryCard.tsx`\n\n## Edge Cases\n\n* Tenant tanpa transaksi.\n* Klik ganda pada tombol ajukan.\n* Anggota hanya dengan `billing:read`.\n\n## Testing / Validation\n\n- [ ] Vitest untuk form, validasi, dan state forbidden atau error.\n- [ ] Test, lint, type check, dan production build lulus.\n- [ ] Verifikasi manual alur rekening \u2192 ajukan \u2192 batalkan.\n\n## Out of Scope\n\n* Antrean platform admin.\n* Ekspor mutasi.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-tenant-finance\",\n  \"projectKey\": \"tenant-finance-payout\",\n  \"title\": \"Tenant melihat saldo, mutasi, rekening, dan mengajukan penarikan dari halaman keuangan\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"billing-tenant-balance-bank-account\",\n    \"billing-tenant-withdrawal-request\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Settings tenant hanya mencakup profil dan lokasi (`app/(dashboard)/dashboard/tenant/settings/_queries/queries.ts:117,152`); tidak ada UI saldo, rekening, atau penarikan.\",\n    \"goal\": \"Tenant memiliki satu halaman keuangan untuk memantau saldo dan mengajukan pencairan ke rekeningnya.\",\n    \"requirements\": [\n      \"Kartu saldo tersedia dan tertahan, serta daftar mutasi berhalaman.\",\n      \"Form kelola rekening bank utama dengan nomor tersamar.\",\n      \"Form pengajuan penarikan dengan validasi jumlah dan konfirmasi, riwayat penarikan beserta statusnya, dan aksi batalkan untuk status requested.\",\n      \"Menu keuangan mengikuti permission `billing:read` dan `billing:withdraw`.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Tenant dapat menambah rekening, mengajukan penarikan, dan melihat saldo tertahan bertambah.\",\n      \"Pembatalan mengembalikan saldo tersedia di tampilan setelah refresh.\",\n      \"Error backend (saldo kurang, tanpa rekening, pengajuan terbuka) ditampilkan dengan pesan yang jelas.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Format nominal mengikuti formatter rupiah yang dipakai `SalesSummaryCard`. Pengajuan memakai idempotency key per submit untuk mencegah submit ganda. Bila menu sadar-permission sudah ada, daftarkan item dengan permission yang sesuai. Perbarui `kelolakelas-docs/docs/components/web.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/SalesSummaryCard.tsx\"\n    ],\n    \"edgeCases\": [\n      \"Tenant tanpa transaksi.\",\n      \"Klik ganda pada tombol ajukan.\",\n      \"Anggota hanya dengan `billing:read`.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest untuk form, validasi, dan state forbidden atau error.\",\n      \"Test, lint, type check, dan production build lulus.\",\n      \"Verifikasi manual alur rekening \u2192 ajukan \u2192 batalkan.\"\n    ],\n    \"outOfScope\": [\n      \"Antrean platform admin.\",\n      \"Ekspor mutasi.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-145/tenant-melihat-saldo-mutasi-rekening-dan-mengajukan-penarikan-dari",
+  "gitBranchName": "skinel123/kel-145-tenant-melihat-saldo-mutasi-rekening-dan-mengajukan",
+  "createdAt": "2026-09-30T10:57:51.086Z",
+  "updatedAt": "2026-10-02T09:07:05.323Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-02T09:02:34.514Z",
+  "startedAt": "2026-10-01T22:14:13.620Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "05838217-3d38-472d-9f0f-1c030660c6f5",
+      "title": "KEL-145: document tenant finance web workflow",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/149"
+    },
+    {
+      "id": "449ac6fc-2141-4719-8b02-c28b0132e578",
+      "title": "KEL-145: Tenant finance dashboard (saldo, mutasi, rekening, penarikan)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/66"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T10:57:51.086Z",
+      "endedAt": "2026-10-01T22:14:13.634Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-01T22:14:13.634Z",
+      "endedAt": "2026-10-02T09:02:34.520Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-02T09:02:34.520Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Keuangan tenant: laporan transaksi dan pencairan dana manual",
+  "projectId": "6bf64982-2039-4ab0-afe2-4c92c2ec79c0",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-143",
+        "title": "Tenant dapat mengajukan dan membatalkan penarikan dengan saldo yang ditahan secara atomik"
+      },
+      {
+        "id": "KEL-142",
+        "title": "Tenant dapat melihat saldo dan mutasi ledger serta mengelola rekening pencairan"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-151",
+        "title": "Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

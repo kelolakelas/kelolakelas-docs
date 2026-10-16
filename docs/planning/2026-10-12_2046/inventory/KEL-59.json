@@ -1,0 +1,102 @@
+{
+  "id": "KEL-59",
+  "uuid": "7b850f9d-03aa-468a-aaa9-9809ea720c22",
+  "title": "Tambahkan index untuk pencarian transaksi per enrollment dan membership per user",
+  "description": "## Background / Problem\n\nMigration billing `000003_subscription_renewals.up.sql:13` menghapus `idx_transactions_enrollment_id`, dan tidak ada migration berikutnya yang membuatnya kembali. Padahal transaksi dicari berdasarkan `enrollment_id` di `transaction_repository.go:52` (transaksi terbaru per enrollment untuk pembayaran, pembatalan, dan renewal) dan `:87` (filter list yang dipanggil per row oleh halaman enrollment tenant). Login identity memuat membership berdasarkan `user_id` (`user_repository.go:169`), tetapi `tenant_members` hanya memiliki `UNIQUE (tenant_id, user_id)` dan index `deleted_at`.\n\n## Goal\n\nPencarian transaksi per enrollment dan membership per user memakai index.\n\n## Requirements\n\n* Migration billing baru membuat index non-unique pada `transactions(enrollment_id)` atau komposit `(enrollment_id, created_at)`.\n* Migration identity baru membuat index pada `tenant_members(user_id)`.\n* Down migration menghapus index tersebut.\n* Tidak ada perubahan kontrak API atau perilaku query.\n\n## Acceptance Criteria\n\n- [ ] Setelah migrate up, index ada di kedua database, dan migrate down menghapusnya.\n- [ ] EXPLAIN untuk query transaksi per enrollment dan membership per user menunjukkan penggunaan index (bukti dilampirkan di PR).\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nIndex harus non-unique karena renewal membuat banyak transaksi per enrollment; unique index sengaja dihapus di `000003`. Gunakan `IF NOT EXISTS`. `CREATE INDEX CONCURRENTLY` tidak dapat berjalan di dalam transaksi migration, jadi catat dampak lock di PR. Perbarui `docs/data/billing-schema.md` dan `docs/data/identity-schema.md`.\n\nComplexity rationale: Migration additive berbentuk index non-unique tanpa perubahan kontrak; risiko utama hanya lock saat pembuatan.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/migrations`\n* `kelolakelas-billing-service/internal/repository/transaction_repository.go`\n* `kelolakelas-identity-service/migrations`\n* `kelolakelas-identity-service/internal/repository/user_repository.go`\n\n## Edge Cases\n\n* Index sudah dibuat manual di suatu environment.\n* Tabel besar terkunci selama pembuatan index.\n\n## Testing / Validation\n\n- [ ] Jalankan migrate up/down terhadap database lokal kedua service.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Tuning connection pool.\n* Index lain di luar dua lookup ini.\n* Penulisan ulang query.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"transaction-and-membership-lookup-indexes\",\n  \"projectKey\": null,\n  \"title\": \"Tambahkan index untuk pencarian transaksi per enrollment dan membership per user\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Low\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"billing\",\n    \"identity\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"billing\",\n    \"identity\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Migration billing `000003_subscription_renewals.up.sql:13` menghapus `idx_transactions_enrollment_id`, dan tidak ada migration berikutnya yang membuatnya kembali. Padahal transaksi dicari berdasarkan `enrollment_id` di `transaction_repository.go:52` (transaksi terbaru per enrollment untuk pembayaran, pembatalan, dan renewal) dan `:87` (filter list yang dipanggil per row oleh halaman enrollment tenant). Login identity memuat membership berdasarkan `user_id` (`user_repository.go:169`), tetapi `tenant_members` hanya memiliki `UNIQUE (tenant_id, user_id)` dan index `deleted_at`.\",\n    \"goal\": \"Pencarian transaksi per enrollment dan membership per user memakai index.\",\n    \"requirements\": [\n      \"Migration billing baru membuat index non-unique pada `transactions(enrollment_id)` atau komposit `(enrollment_id, created_at)`.\",\n      \"Migration identity baru membuat index pada `tenant_members(user_id)`.\",\n      \"Down migration menghapus index tersebut.\",\n      \"Tidak ada perubahan kontrak API atau perilaku query.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Setelah migrate up, index ada di kedua database, dan migrate down menghapusnya.\",\n      \"EXPLAIN untuk query transaksi per enrollment dan membership per user menunjukkan penggunaan index (bukti dilampirkan di PR).\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Index harus non-unique karena renewal membuat banyak transaksi per enrollment; unique index sengaja dihapus di `000003`. Gunakan `IF NOT EXISTS`. `CREATE INDEX CONCURRENTLY` tidak dapat berjalan di dalam transaksi migration, jadi catat dampak lock di PR. Perbarui `docs/data/billing-schema.md` dan `docs/data/identity-schema.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/migrations\",\n      \"kelolakelas-billing-service/internal/repository/transaction_repository.go\",\n      \"kelolakelas-identity-service/migrations\",\n      \"kelolakelas-identity-service/internal/repository/user_repository.go\"\n    ],\n    \"edgeCases\": [\n      \"Index sudah dibuat manual di suatu environment.\",\n      \"Tabel besar terkunci selama pembuatan index.\"\n    ],\n    \"testingValidation\": [\n      \"Jalankan migrate up/down terhadap database lokal kedua service.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Tuning connection pool.\",\n      \"Index lain di luar dua lookup ini.\",\n      \"Penulisan ulang query.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 4,
+    "name": "Low"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-59/tambahkan-index-untuk-pencarian-transaksi-per-enrollment-dan",
+  "gitBranchName": "skinel123/kel-59-tambahkan-index-untuk-pencarian-transaksi-per-enrollment-dan",
+  "createdAt": "2026-09-23T22:28:36.282Z",
+  "updatedAt": "2026-09-27T09:41:21.105Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-27T09:35:50.378Z",
+  "startedAt": "2026-09-27T09:16:33.510Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "identity",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "4b6ce073-7a5d-49ff-a1e0-8dd1cadacea6",
+      "title": "KEL-59: document enrollment and membership lookup indexes",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/101"
+    },
+    {
+      "id": "1883dc32-98ad-4660-9e15-f80d3fad7eb2",
+      "title": "KEL-59: add tenant_members(user_id) lookup index",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/32"
+    },
+    {
+      "id": "e592b140-b84a-4979-aa32-5f058ed51e23",
+      "title": "KEL-59: add transactions(enrollment_id, created_at) lookup index",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/22"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-23T22:28:36.282Z",
+      "endedAt": "2026-09-27T09:16:33.524Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-27T09:16:33.524Z",
+      "endedAt": "2026-09-27T09:35:50.383Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-27T09:35:50.383Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-76",
+        "title": "Permission identity hanya berlaku bagi anggota tenant yang masih aktif dengan role saat ini"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

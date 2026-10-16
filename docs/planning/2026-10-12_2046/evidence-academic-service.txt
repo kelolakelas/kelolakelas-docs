@@ -1,0 +1,655 @@
+
+### internal/repository/report_repository.go
+1|package repository
+2|
+3|import (
+4|	"context"
+5|
+6|	"github.com/google/uuid"
+7|	"gorm.io/gorm"
+8|
+9|	"github.com/kelolakelas/kelolakelas-academic-service/internal/domain"
+10|)
+11|
+12|type reportRepository struct {
+13|	db *gorm.DB
+14|}
+15|
+16|func NewReportRepository(db *gorm.DB) ReportRepository {
+17|	return &reportRepository{db: db}
+18|}
+19|
+20|func (r *reportRepository) Create(ctx context.Context, report *domain.Report) error {
+21|	return r.db.WithContext(ctx).Create(report).Error
+22|}
+23|
+24|func (r *reportRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Report, error) {
+25|	var item domain.Report
+26|	err := r.db.WithContext(ctx).Preload("Enrollment").First(&item, "id = ?", id).Error
+27|	return &item, err
+28|}
+29|
+30|func (r *reportRepository) GetByIDForTenant(ctx context.Context, tenantID, id uuid.UUID) (*domain.Report, error) {
+31|	var item domain.Report
+32|	err := r.db.WithContext(ctx).
+33|		Preload("Enrollment").
+34|		Where("tenant_id = ? AND id = ?", tenantID, id).
+35|		First(&item).Error
+36|	return &item, err
+37|}
+38|
+39|func (r *reportRepository) List(ctx context.Context, tenantID uuid.UUID, query domain.ReportQuery) ([]domain.Report, int64, error) {
+40|	// KEL-140: Model pins the table so Count works on a real database; the
+41|	// tenant predicate is unchanged. (Found by the KEL-140 AC4 regression
+42|	// test: without a table the count query fails outside sqlite mocks.)
+43|	db := r.db.WithContext(ctx).Model(&domain.Report{}).Where("reports.tenant_id = ?", tenantID)
+44|
+45|	if query.EnrollmentID != nil {
+46|		db = db.Where("reports.enrollment_id = ?", *query.EnrollmentID)
+47|	}
+48|	if query.ReporterID != nil {
+49|		db = db.Where("reports.reporter_id = ?", *query.ReporterID)
+50|	}
+51|	if query.StudentID != nil {
+52|		db = db.Joins("JOIN enrollments e ON e.id = reports.enrollment_id").
+53|			Where("e.student_id = ?", *query.StudentID)
+54|	}
+55|	if query.DateFrom != nil {
+56|		db = db.Where("reports.created_at >= ?", *query.DateFrom)
+57|	}
+58|	if query.DateTo != nil {
+59|		db = db.Where("reports.created_at <= ?", *query.DateTo)
+60|	}
+61|	if query.Search != "" {
+62|		search := "%" + escapeLikePattern(query.Search) + "%"
+63|		db = db.Where(
+64|			"reports.title ILIKE ? ESCAPE '\\' OR reports.evaluation_notes ILIKE ? ESCAPE '\\'",
+65|			search,
+66|			search,
+67|		)
+68|	}
+69|
+70|	var total int64
+71|	if err := db.Session(&gorm.Session{}).Count(&total).Error; err != nil {
+72|		return nil, 0, err
+73|	}
+74|
+75|	var items []domain.Report
+76|	err := db.Preload("Enrollment").
+77|		Order("reports.created_at DESC").
+78|		Limit(query.PageSize).
+79|		Offset((query.Page - 1) * query.PageSize).
+80|		Find(&items).Error
+81|	return items, total, err
+82|}
+83|
+84|// ListForParent lists reports across every tenant that belong to the
+85|// parent's children (KEL-140): a report is included only when its enrollment
+86|// is held by a student whose parent_id is the caller. The tenant claim is
+87|// never consulted. Client-supplied enrollment, student, or reporter filters
+88|// narrow the parent's own rows and can never widen them to another parent's
+89|// children.
+90|func (r *reportRepository) ListForParent(ctx context.Context, parentID uuid.UUID, query domain.ReportQuery) ([]domain.Report, int64, error) {
+91|	db := r.db.WithContext(ctx).Model(&domain.Report{}).
+92|		Joins("JOIN enrollments e_own ON e_own.id = reports.enrollment_id").
+93|		Joins("JOIN students s_own ON s_own.id = e_own.student_id").
+94|		Where("s_own.parent_id = ?", parentID)
+95|
+96|	if query.EnrollmentID != nil {
+97|		db = db.Where("reports.enrollment_id = ?", *query.EnrollmentID)
+98|	}
+99|
+100|	if query.ReporterID != nil {
+101|		db = db.Where("reports.reporter_id = ?", *query.ReporterID)
+102|	}
+103|
+104|	if query.StudentID != nil {
+105|		db = db.Where("e_own.student_id = ?", *query.StudentID)
+106|	}
+107|
+108|	if query.DateFrom != nil {
+109|		db = db.Where("reports.created_at >= ?", *query.DateFrom)
+110|	}
+111|
+112|	if query.DateTo != nil {
+113|		db = db.Where("reports.created_at <= ?", *query.DateTo)
+114|	}
+115|
+116|	if query.Search != "" {
+117|		search := "%" + escapeLikePattern(query.Search) + "%"
+118|		db = db.Where(
+119|			"reports.title ILIKE ? ESCAPE '\\' OR reports.evaluation_notes ILIKE ? ESCAPE '\\'",
+120|			search,
+121|			search,
+122|		)
+123|	}
+124|
+125|	var total int64
+126|	if err := db.Session(&gorm.Session{}).Count(&total).Error; err != nil {
+127|		return nil, 0, err
+128|	}
+129|
+130|	var items []domain.Report
+131|	err := db.Preload("Enrollment").
+132|		Order("reports.created_at DESC").
+133|		Limit(query.PageSize).
+134|		Offset((query.Page - 1) * query.PageSize).
+135|		Find(&items).Error
+136|	return items, total, err
+137|}
+138|
+139|// GetForParent resolves one report for a parent (KEL-140), or
+140|// gorm.ErrRecordNotFound when the report does not belong to the parent's
+141|// children. The caller answers not-found (404), never forbidden, so ids do
+142|// not leak across parents.
+143|func (r *reportRepository) GetForParent(ctx context.Context, parentID, id uuid.UUID) (*domain.Report, error) {
+144|	var item domain.Report
+145|	err := r.db.WithContext(ctx).
+146|		Preload("Enrollment").
+147|		Joins("JOIN enrollments e ON e.id = reports.enrollment_id").
+148|		Joins("JOIN students s ON s.id = e.student_id").
+149|		Where("reports.id = ? AND s.parent_id = ?", id, parentID).
+150|		First(&item).Error
+151|	return &item, err
+152|}
+153|
+154|func (r *reportRepository) Update(ctx context.Context, report *domain.Report) error {
+155|	return r.db.WithContext(ctx).Save(report).Error
+156|}
+157|
+158|func (r *reportRepository) Delete(ctx context.Context, id uuid.UUID) error {
+159|	return r.db.WithContext(ctx).Delete(&domain.Report{}, "id = ?", id).Error
+160|}
+
+### internal/usecase/private_schedule_request_usecase.go
+1|package usecase
+2|
+3|import (
+4|	"context"
+5|	"errors"
+6|	"fmt"
+7|	"net/url"
+8|	"sort"
+9|	"strings"
+10|	"time"
+11|
+12|	"github.com/google/uuid"
+13|	"gorm.io/gorm"
+14|
+15|	"github.com/kelolakelas/kelolakelas-academic-service/internal/domain"
+16|	"github.com/kelolakelas/kelolakelas-academic-service/internal/repository"
+17|	"github.com/kelolakelas/kelolakelas-academic-service/pkg/billing"
+18|)
+19|
+20|type PrivateScheduleRequestUsecase interface {
+21|	Create(context.Context, uuid.UUID, uuid.UUID, *domain.CreatePrivateScheduleRequest) (*domain.PrivateScheduleRequest, error)
+22|	Get(context.Context, uuid.UUID, *uuid.UUID, *uuid.UUID) (*domain.PrivateScheduleRequest, error)
+23|	List(context.Context, *uuid.UUID, *uuid.UUID, string) ([]domain.PrivateScheduleRequest, error)
+24|	Reject(context.Context, uuid.UUID, uuid.UUID, *domain.RejectPrivateScheduleRequest) (*domain.PrivateScheduleRequest, error)
+25|	Cancel(context.Context, uuid.UUID, uuid.UUID) (*domain.PrivateScheduleRequest, error)
+26|	DeclineRecommendation(context.Context, uuid.UUID, uuid.UUID) (*domain.PrivateScheduleRequest, error)
+27|	Approve(context.Context, uuid.UUID, uuid.UUID) (*domain.PublicEnrollmentResponse, error)
+28|	AcceptRecommendation(context.Context, uuid.UUID, uuid.UUID) (*domain.PublicEnrollmentResponse, error)
+29|}
+30|
+31|type privateScheduleRequestUsecase struct {
+32|	repo        repository.PrivateScheduleRequestRepository
+33|	students    repository.StudentRepository
+34|	classes     repository.ClassRepository
+35|	tx          repository.TransactionManager
+36|	enrollments repository.EnrollmentRepository
+37|	schedules   repository.ScheduleRepository
+38|	sessions    repository.SessionRepository
+39|	billing     billing.Client
+40|}
+41|
+42|func NewPrivateScheduleRequestUsecase(repo repository.PrivateScheduleRequestRepository, students repository.StudentRepository, classes repository.ClassRepository, tx repository.TransactionManager, enrollments repository.EnrollmentRepository, schedules repository.ScheduleRepository, sessions repository.SessionRepository, billingClient billing.Client) PrivateScheduleRequestUsecase {
+43|	return &privateScheduleRequestUsecase{repo: repo, students: students, classes: classes, tx: tx, enrollments: enrollments, schedules: schedules, sessions: sessions, billing: billingClient}
+44|}
+45|
+46|func validatePrivateSlots(slots []domain.PrivateScheduleSlot) error {
+47|	if len(slots) == 0 || len(slots) > 50 {
+48|		return domain.ErrPrivateRequestSlots
+49|	}
+50|	grouped := make(map[int][][2]time.Time)
+51|	for _, slot := range slots {
+52|		if slot.DayOfWeek < 1 || slot.DayOfWeek > 7 {
+53|			return domain.ErrPrivateRequestSlots
+54|		}
+55|		start, err := time.Parse("15:04:05", slot.StartTime)
+56|		if err != nil || start.Format("15:04:05") != slot.StartTime {
+57|			return domain.ErrPrivateRequestSlots
+58|		}
+59|		end, err := time.Parse("15:04:05", slot.EndTime)
+60|		if err != nil || end.Format("15:04:05") != slot.EndTime || !end.After(start) {
+61|			return domain.ErrPrivateRequestSlots
+62|		}
+63|		grouped[slot.DayOfWeek] = append(grouped[slot.DayOfWeek], [2]time.Time{start, end})
+64|	}
+65|	for _, day := range grouped {
+66|		sort.Slice(day, func(i, j int) bool { return day[i][0].Before(day[j][0]) })
+67|		for i := 1; i < len(day); i++ {
+68|			if day[i][0].Before(day[i-1][1]) {
+69|				return domain.ErrPrivateRequestSlots
+70|			}
+71|		}
+72|	}
+73|	return nil
+74|}
+75|
+76|// Approve and AcceptRecommendation share the same locked purchase and billing path.
+77|func (u *privateScheduleRequestUsecase) Approve(ctx context.Context, tenantID, id uuid.UUID) (*domain.PublicEnrollmentResponse, error) {
+78|	return u.purchase(ctx, tenantID, id, false)
+79|}
+80|
+81|func (u *privateScheduleRequestUsecase) AcceptRecommendation(ctx context.Context, parentID, id uuid.UUID) (*domain.PublicEnrollmentResponse, error) {
+82|	return u.purchase(ctx, parentID, id, true)
+83|}
+84|
+85|// purchase serializes creation on the request row. Billing runs only after the
+86|// transaction commits; retries reuse its stable key and enrollment.
+87|func (u *privateScheduleRequestUsecase) purchase(ctx context.Context, actorID, id uuid.UUID, recommendation bool) (*domain.PublicEnrollmentResponse, error) {
+88|	if actorID == uuid.Nil || id == uuid.Nil {
+89|		return nil, domain.ErrPrivateRequestNotFound
+90|	}
+91|	key := "private-request:" + id.String()
+92|	var request *domain.PrivateScheduleRequest
+93|	var enrollment *domain.Enrollment
+94|	var tenantID uuid.UUID
+95|	prepare := func(txCtx context.Context) error {
+96|		var err error
+97|		if recommendation {
+98|			request, err = u.repo.LockForParent(txCtx, id, actorID)
+99|		} else {
+100|			request, err = u.repo.LockForTenant(txCtx, id, actorID)
+101|		}
+102|		if err != nil {
+103|			return err
+104|		}
+105|		tenantID = request.TenantID
+106|		if recommendation {
+107|			if len(request.RecommendedSlots) == 0 || request.Status != "rejected" && request.Status != "approved" {
+108|				return domain.ErrPrivateRequestTransition
+109|			}
+110|		} else if len(request.RecommendedSlots) > 0 || request.Status != "pending" && request.Status != "approved" {
+111|			return domain.ErrPrivateRequestTransition
+112|		}
+113|		if request.Status == "approved" {
+114|			enrollment, err = u.enrollments.GetByIdempotencyKey(txCtx, request.ParentID, key)
+115|			if err != nil {
+116|				return err
+117|			}
+118|			if enrollment.Status == "dropped" && !platformFeeRejected(enrollment) {
+119|				return domain.ErrPrivateRequestTransition
+120|			}
+121|			return nil
+122|		}
+123|		// A permanent fee rejection dropped the enrollment, but kept its
+124|		// request-derived key and schedules. Retry the same purchase after the
+125|		// pricing policy changes rather than allocating a second enrollment.
+126|		if existing, lookupErr := u.enrollments.GetByIdempotencyKey(txCtx, request.ParentID, key); lookupErr == nil {
+127|			if existing.Status == "pending" && existing.PaymentTransactionID == nil {
+128|				enrollment = existing
+129|				return u.repo.SetStatus(txCtx, id, tenantID, "approved")
+130|			}
+131|			if !platformFeeRejected(existing) {
+132|				return domain.ErrPrivateRequestTransition
+133|			}
+134|			paymentRepo, ok := u.enrollments.(repository.EnrollmentPaymentRepository)
+135|			if !ok {
+136|				return errors.New("payment repository is unavailable")
+137|			}
+138|			if err := paymentRepo.RestoreRejectedEnrollment(txCtx, existing.ID); err != nil {
+139|				return err
+140|			}
+141|			enrollment = existing
+142|			enrollment.Status, enrollment.PaymentStatus = "pending", "pending"
+143|			return u.repo.SetStatus(txCtx, id, tenantID, "approved")
+144|		} else if !errors.Is(lookupErr, gorm.ErrRecordNotFound) {
+145|			return lookupErr
+146|		}
+147|		class, err := u.classes.GetByID(txCtx, request.ClassID)
+148|		if err != nil {
+149|			return err
+150|		}
+151|		if class.TenantID != tenantID {
+152|			return domain.ErrPrivateRequestNotFound
+153|		}
+154|		if class.Type != "private" {
+155|			return domain.ErrPrivateClassRequired
+156|		}
+157|		if !class.IsPublished || class.EnrollmentStatus != "open" {
+158|			return domain.ErrClassNotEnrollable
+159|		}
+160|		student, err := u.students.GetByID(txCtx, request.StudentID)
+161|		if err != nil || student.ParentID != request.ParentID {
+162|			return domain.ErrStudentOwnership
+163|		}
+164|		slots := request.Slots
+165|		if recommendation {
+166|			slots = request.RecommendedSlots
+167|		}
+168|		if err = validatePrivateSlots(slots); err != nil {
+169|			return err
+170|		}
+171|		enrollment = &domain.Enrollment{ID: uuid.New(), TenantID: tenantID, StudentID: request.StudentID, ClassID: request.ClassID, Status: "pending", BillingCycle: request.BillingCycle, IdempotencyKey: &key, PaymentStatus: "pending", GrossAmount: class.Price}
+172|		if err = u.enrollments.CreateIfCapacityAvailable(txCtx, enrollment); err != nil {
+173|			return err
+174|		}
+175|		today := normalizeDate(time.Now())
+176|		generatedUntil := endOfMonth(today)
+177|		for _, slot := range slots {
+178|			schedule := &domain.ClassSchedule{ID: uuid.New(), ClassID: request.ClassID, EnrollmentID: &enrollment.ID, Capacity: 1, DayOfWeek: slot.DayOfWeek, StartTime: slot.StartTime, EndTime: slot.EndTime, ValidFrom: &today, SessionsGeneratedUntil: &generatedUntil}
+179|			if err = u.schedules.Create(txCtx, schedule); err != nil {
+180|				return err
+181|			}
+182|			// Generation uses the existing schedule horizon; the worker continues it.
+183|			if sessions := generateSessionsForSchedule(schedule, today); len(sessions) > 0 {
+184|				if err = u.sessions.BatchCreate(txCtx, sessions); err != nil {
+185|					return err
+186|				}
+187|			}
+188|		}
+189|		return u.repo.SetStatus(txCtx, id, tenantID, "approved")
+190|	}
+191|	if u.tx == nil {
+192|		return nil, errors.New("approval transaction manager is required")
+193|	}
+194|	if err := u.tx.WithTransaction(ctx, prepare); err != nil {
+195|		return nil, err
+196|	}
+197|	if platformFeeRejected(enrollment) {
+198|		return nil, domain.ErrPlatformFeeExceedsGross
+199|	}
+200|	if enrollment.PaymentTransactionID != nil && enrollment.CheckoutSessionURL != nil {
+201|		return (&enrollmentUsecase{}).publicEnrollmentResponse(enrollment)
+202|	}
+203|	// Never hold the request row lock across billing I/O. Billing deduplicates
+204|	// concurrent calls with this key; both callers may safely persist its answer.
+205|	class, err := u.classes.GetByID(ctx, request.ClassID)
+206|	if err != nil {
+207|		return nil, err
+208|	}
+209|	invoice, err := u.billing.GenerateInvoice(ctx, billing.InvoiceRequest{TenantID: tenantID, StudentID: request.StudentID, ClassID: request.ClassID, EnrollmentID: enrollment.ID, ParentID: request.ParentID, BillingCycle: request.BillingCycle, SubtotalAmount: enrollment.GrossAmount, IdempotencyKey: key, Title: class.Name, SenderEmail: request.ParentEmail, PrivateScheduleRequest: true})
+210|	if err != nil {
+211|		failure := (&enrollmentUsecase{enrollmentRepo: u.enrollments, txManager: u.tx}).invoiceFailure(ctx, enrollment.ID, err)
+212|		if errors.Is(failure, domain.ErrPlatformFeeExceedsGross) {
+213|			// No payable invoice exists. Keep the request open for a later attempt
+214|			// after the pricing policy changes, without exposing a false approval.
+215|			resetErr := u.tx.WithTransaction(ctx, func(txCtx context.Context) error {
+216|				var lockErr error
+217|				if recommendation {
+218|					_, lockErr = u.repo.LockForParent(txCtx, id, actorID)
+219|				} else {
+220|					_, lockErr = u.repo.LockForTenant(txCtx, id, actorID)
+221|				}
+222|				if lockErr != nil {
+223|					return lockErr
+224|				}
+225|				current, loadErr := u.enrollments.GetByIdempotencyKey(txCtx, request.ParentID, key)
+226|				if loadErr != nil {
+227|					return loadErr
+228|				}
+229|				if platformFeeRejected(current) {
+230|					status := "pending"
+231|					if recommendation {
+232|						status = "rejected"
+233|					}
+234|					return u.repo.SetStatus(txCtx, id, tenantID, status)
+235|				}
+236|				return nil
+237|			})
+238|			if resetErr != nil {
+239|				return nil, fmt.Errorf("reset rejected approval: %w", resetErr)
+240|			}
+241|		}
+242|		return nil, failure
+243|	}
+244|	if invoice == nil || invoice.TransactionID == uuid.Nil {
+245|		return nil, errors.New("billing returned invalid checkout details")
+246|	}
+247|	checkout, parseErr := url.Parse(invoice.CheckoutSessionURL)
+248|	if parseErr != nil || checkout.Host == "" || checkout.User != nil || checkout.Scheme != "https" && checkout.Scheme != "http" {
+249|		return nil, errors.New("billing returned invalid checkout details")
+250|	}
+251|	// A payment callback can activate the enrollment before this save. Only write
+252|	// the two payment fields, never a stale copy of enrollment.Status.
+253|	paymentRepo, ok := u.enrollments.(repository.EnrollmentPaymentRepository)
+254|	if !ok {
+255|		return nil, errors.New("payment repository is unavailable")
+256|	}
+257|	if err := paymentRepo.UpdatePaymentDetails(ctx, enrollment.ID, invoice.TransactionID, invoice.CheckoutSessionURL); err != nil {
+258|		if !errors.Is(err, domain.ErrInvalidEnrollmentTransition) {
+259|			return nil, err
+260|		}
+261|		// Another same-key approval may have persisted the identical invoice.
+262|		// Never return a stale checkout URL or overwrite a settled state.
+263|		current, loadErr := u.enrollments.GetByIdempotencyKey(ctx, request.ParentID, key)
+264|		if loadErr != nil || current.PaymentTransactionID == nil || *current.PaymentTransactionID != invoice.TransactionID || current.CheckoutSessionURL == nil || *current.CheckoutSessionURL != invoice.CheckoutSessionURL {
+265|			return nil, err
+266|		}
+267|		return (&enrollmentUsecase{}).publicEnrollmentResponse(current)
+268|	}
+269|	enrollment.PaymentTransactionID = &invoice.TransactionID
+270|	enrollment.CheckoutSessionURL = &invoice.CheckoutSessionURL
+271|	return (&enrollmentUsecase{}).publicEnrollmentResponse(enrollment)
+272|}
+273|
+274|func (u *privateScheduleRequestUsecase) Create(ctx context.Context, parentID, classID uuid.UUID, req *domain.CreatePrivateScheduleRequest) (*domain.PrivateScheduleRequest, error) {
+275|	if parentID == uuid.Nil {
+276|		return nil, domain.ErrParentRequired
+277|	}
+278|	if req == nil || req.StudentID == uuid.Nil || classID == uuid.Nil {
+279|		return nil, domain.ErrPrivateRequestSlots
+280|	}
+281|	if req.BillingCycle != "monthly" && req.BillingCycle != "quarterly" && req.BillingCycle != "yearly" {
+282|		return nil, errors.New("invalid billing cycle")
+283|	}
+284|	if err := validatePrivateSlots(req.Slots); err != nil {
+285|		return nil, err
+286|	}
+287|	if req.Note != nil && len([]rune(*req.Note)) > 2000 {
+288|		return nil, errors.New("note is too long")
+289|	}
+290|	student, err := u.students.GetByID(ctx, req.StudentID)
+291|	if err != nil {
+292|		if errors.Is(err, domain.ErrStudentNotFound) {
+293|			return nil, domain.ErrStudentOwnership
+294|		}
+295|		return nil, err
+296|	}
+297|	if student.ParentID != parentID {
+298|		return nil, domain.ErrStudentOwnership
+299|	}
+300|	class, err := u.classes.GetByID(ctx, classID)
+301|	if err != nil {
+302|		if errors.Is(err, domain.ErrClassNotFound) {
+303|			return nil, err
+304|		}
+305|		return nil, err
+306|	}
+307|	if class.Type != "private" {
+308|		return nil, domain.ErrPrivateClassRequired
+309|	}
+310|	if !class.IsPublished || class.EnrollmentStatus != "open" {
+311|		return nil, domain.ErrClassNotEnrollable
+312|	}
+313|	request := &domain.PrivateScheduleRequest{ID: uuid.New(), TenantID: class.TenantID, ClassID: classID, StudentID: req.StudentID, ParentID: parentID, ParentEmail: strings.TrimSpace(req.ParentEmail), BillingCycle: req.BillingCycle, Slots: req.Slots, Note: req.Note, Status: "pending", CreatedAt: time.Now().UTC()}
+314|	create := func(txCtx context.Context) error { return u.repo.Create(txCtx, request) }
+315|	if u.tx != nil {
+316|		err = u.tx.WithTransaction(ctx, create)
+317|	} else {
+318|		err = create(ctx)
+319|	}
+320|	if err != nil {
+321|		return nil, err
+322|	}
+323|	return request, nil
+324|}
+325|
+326|func (u *privateScheduleRequestUsecase) Get(ctx context.Context, id uuid.UUID, tenantID, parentID *uuid.UUID) (*domain.PrivateScheduleRequest, error) {
+327|	if (tenantID == nil) == (parentID == nil) {
+328|		return nil, domain.ErrPrivateRequestNotFound
+329|	}
+330|	return u.repo.Get(ctx, id, tenantID, parentID)
+331|}
+332|func (u *privateScheduleRequestUsecase) List(ctx context.Context, tenantID, parentID *uuid.UUID, status string) ([]domain.PrivateScheduleRequest, error) {
+333|	if (tenantID == nil) == (parentID == nil) {
+334|		return nil, domain.ErrPrivateRequestNotFound
+335|	}
+336|	if status != "" && status != "pending" && status != "approved" && status != "rejected" && status != "cancelled" && status != "declined" {
+337|		return nil, errors.New("invalid request status")
+338|	}
+339|	return u.repo.List(ctx, tenantID, parentID, status)
+340|}
+341|func (u *privateScheduleRequestUsecase) Reject(ctx context.Context, tenantID, id uuid.UUID, req *domain.RejectPrivateScheduleRequest) (*domain.PrivateScheduleRequest, error) {
+342|	if tenantID == uuid.Nil || id == uuid.Nil {
+343|		return nil, domain.ErrPrivateRequestNotFound
+344|	}
+345|	if req == nil {
+346|		req = &domain.RejectPrivateScheduleRequest{}
+347|	}
+348|	reason := req.Reason
+349|	if reason != nil {
+350|		trimmed := strings.TrimSpace(*reason)
+351|		if len([]rune(trimmed)) > 2000 {
+352|			return nil, errors.New("reason is too long")
+353|		}
+354|		reason = &trimmed
+355|	}
+356|	if req.RecommendedSlots != nil {
+357|		if err := validatePrivateSlots(req.RecommendedSlots); err != nil {
+358|			return nil, err
+359|		}
+360|		return u.repo.RejectWithRecommendation(ctx, id, tenantID, reason, req.RecommendedSlots)
+361|	}
+362|	return u.repo.Transition(ctx, id, &tenantID, nil, "rejected", reason)
+363|}
+364|
+365|func (u *privateScheduleRequestUsecase) DeclineRecommendation(ctx context.Context, parentID, id uuid.UUID) (*domain.PrivateScheduleRequest, error) {
+366|	if parentID == uuid.Nil || id == uuid.Nil {
+367|		return nil, domain.ErrPrivateRequestNotFound
+368|	}
+369|	return u.repo.DeclineRecommendation(ctx, id, parentID)
+370|}
+371|func (u *privateScheduleRequestUsecase) Cancel(ctx context.Context, parentID, id uuid.UUID) (*domain.PrivateScheduleRequest, error) {
+372|	if parentID == uuid.Nil {
+373|		return nil, domain.ErrParentRequired
+374|	}
+375|	return u.repo.Transition(ctx, id, nil, &parentID, "cancelled", nil)
+376|}
+
+### internal/delivery/http/route.go
+fatal: path 'internal/delivery/http/route.go' does not exist in 'origin/main'
+
+
+### internal/domain/class.go
+1|package domain
+2|
+3|import (
+4|	"encoding/json"
+5|	"errors"
+6|	"time"
+7|
+8|	"github.com/google/uuid"
+9|	"gorm.io/gorm"
+10|)
+11|
+12|var (
+13|	ErrClassNotFound          = errors.New("class not found")
+14|	ErrClassForbidden         = errors.New("class access forbidden")
+15|	ErrClassActiveEnrollments = errors.New("class has active enrollments")
+16|	ErrClassNotEnrollable     = errors.New("class is not enrollable")
+17|	// ErrClassTypeImmutable rejects turning a private class into a group class or
+18|	// the other way around. The two types carry different schedule and capacity
+19|	// obligations, so the switch would silently invalidate schedules and
+20|	// enrollments that already exist.
+21|	ErrClassTypeImmutable = errors.New("class type cannot be changed")
+22|	// ErrClassNameRequired rejects a blank class name on update. The create path
+23|	// relies on binding:"required"; a pointer field needs an explicit check.
+24|	ErrClassNameRequired = errors.New("class name is required")
+25|	// ErrInvalidClassPrice rejects a negative price on update.
+26|	ErrInvalidClassPrice = errors.New("class price must not be negative")
+27|)
+28|
+29|type Class struct {
+30|	ID               uuid.UUID        `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+31|	TenantID         uuid.UUID        `gorm:"type:uuid;not null;index:idx_tenant_category" json:"tenant_id"`
+32|	CategoryID       uuid.UUID        `gorm:"type:uuid;not null;index:idx_tenant_category" json:"category_id"`
+33|	Name             string           `gorm:"type:varchar(255);not null" json:"name"`
+34|	Description      *json.RawMessage `gorm:"type:jsonb;serializer:json" json:"description,omitempty"`
+35|	Type             string           `gorm:"type:varchar(50);not null" json:"type"` // 'private' or 'group'
+36|	Price            int64            `gorm:"type:bigint;not null" json:"price"`     // Financial Data: Always use int64 for money, price, balance, or amounts
+37|	Capacity         *int             `gorm:"type:integer" json:"-"`                 // Deprecated; use ClassSchedule.Capacity.
+38|	IsPublished      bool             `gorm:"not null;default:false;index:idx_catalog_visibility" json:"is_published"`
+39|	EnrollmentStatus string           `gorm:"type:varchar(20);not null;default:'open';index:idx_catalog_visibility" json:"enrollment_status"`
+40|	CreatedAt        time.Time        `gorm:"type:timestamp;not null;default:now()" json:"created_at"`
+41|	UpdatedAt        time.Time        `gorm:"type:timestamp;not null;default:now()" json:"updated_at"`
+42|	DeletedAt        gorm.DeletedAt   `gorm:"index" json:"deleted_at,omitempty"`
+43|
+44|	Category *Category `gorm:"foreignKey:CategoryID" json:"category,omitempty"`
+45|}
+46|
+47|type CreateClassRequest struct {
+48|	CategoryID       uuid.UUID        `json:"category_id" binding:"required"`
+49|	Name             string           `json:"name" binding:"required,max=255"`
+50|	Description      *json.RawMessage `json:"description,omitempty"`
+51|	Type             string           `json:"type" binding:"required,oneof=private group"`
+52|	Price            int64            `json:"price" binding:"required,min=0"`
+53|	IsPublished      bool             `json:"is_published,omitempty"`
+54|	EnrollmentStatus string           `json:"enrollment_status,omitempty" binding:"omitempty,oneof=open closed full archived"`
+55|}
+56|
+57|type UpdateClassPublicationRequest struct {
+58|	IsPublished *bool `json:"is_published" binding:"required"`
+59|}
+60|
+61|// UpdateClassRequest patches the sellable attributes of an existing class.
+62|//
+63|// Every field is a pointer so an omitted key means "leave unchanged": the
+64|// handler must never treat an absent field as a request to blank the column.
+65|// The validation rules mirror CreateClassRequest, except that `type` only
+66|// accepts a repeat of the current type (see ErrClassTypeImmutable).
+67|//
+68|// Note that encoding/json cannot distinguish an omitted `description` from an
+69|// explicit `null`, so this DTO cannot clear a description. Clearing is out of
+70|// scope for the class update endpoint.
+71|type UpdateClassRequest struct {
+72|	CategoryID  *uuid.UUID       `json:"category_id,omitempty"`
+73|	Name        *string          `json:"name,omitempty" binding:"omitempty,min=1,max=255"`
+74|	Description *json.RawMessage `json:"description,omitempty"`
+75|	Type        *string          `json:"type,omitempty" binding:"omitempty,oneof=private group"`
+76|	Price       *int64           `json:"price,omitempty" binding:"omitempty,min=0"`
+77|}
+78|
+79|type CreateClassWithCategoryRequest struct {
+80|	CategoryID uuid.UUID          `json:"category_id" binding:"required"`
+81|	Class      CreateClassPayload `json:"class" binding:"required"`
+82|	TeacherIDs []uuid.UUID        `json:"teacher_ids" binding:"required,min=1"`
+83|}
+84|
+85|type CreateClassPayload struct {
+86|	Name             string           `json:"name" binding:"required,max=255"`
+87|	Description      *json.RawMessage `json:"description,omitempty"`
+88|	Type             string           `json:"type" binding:"required,oneof=private group"`
+89|	Price            int64            `json:"price" binding:"min=0"`
+90|	IsPublished      bool             `json:"is_published,omitempty"`
+91|	EnrollmentStatus string           `json:"enrollment_status,omitempty" binding:"omitempty,oneof=open closed full archived"`
+92|}
+93|
+94|type CreateClassWithCategoryResponse struct {
+95|	Class *Class `json:"class"`
+96|}
+97|
+98|type ClassResponse struct {
+99|	ID               uuid.UUID        `json:"id"`
+100|	TenantID         uuid.UUID        `json:"tenant_id"`
+101|	CategoryID       uuid.UUID        `json:"category_id"`
+102|	Name             string           `json:"name"`
+103|	Description      *json.RawMessage `json:"description,omitempty"`
+104|	Type             string           `json:"type"`
+105|	Price            int64            `json:"price"`
+106|	CreatedAt        time.Time        `json:"created_at"`
+107|	IsPublished      bool             `json:"is_published"`
+108|	EnrollmentStatus string           `json:"enrollment_status"`
+109|}

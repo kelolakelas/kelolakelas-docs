@@ -1,0 +1,130 @@
+{
+  "id": "KEL-22",
+  "uuid": "3ef2eb6a-bf9f-4dbf-9481-72022a0bd98e",
+  "title": "Terapkan permission pada attendance dan report",
+  "description": "## Background / Problem\n\nRoute attendance (`cmd/server/main.go:123-126`) dan report (`:127-131`) hanya memerlukan JWT. Otorisasi bergantung pada pemeriksaan ad-hoc tutor yang ditugaskan (`internal/usecase/attendance_usecase.go:54-60,85-90`, `report_usecase.go:49-55`). Permission `attendance:create|read|update` dan `report:create|read|update|delete` sudah di-seed dan dimiliki role Teacher, tetapi tidak pernah dievaluasi.\n\n## Goal\n\nOperasi attendance dan report hanya dapat dilakukan oleh role dengan permission terkait, dengan aturan tutor yang ditugaskan tetap menjadi lapisan kedua.\n\n## Requirements\n\n* Pemetaan permission per route mengikuti nama permission yang di-seed.\n* Aturan tutor yang ditugaskan tetap diberlakukan setelah permission lolos.\n* Denial menghasilkan 403 tanpa perubahan data.\n* Perilaku akses untuk caller non-tenant yang ada saat ini tidak berubah tanpa keputusan terpisah.\n\n## Acceptance Criteria\n\n- [ ] Member tanpa permission attendance atau report menerima 403 pada operasi terkait\n- [ ] Teacher yang ditugaskan tetap dapat mencatat attendance dan membuat report sesinya\n- [ ] Tabel pemetaan permission di dokumentasi mencantumkan route attendance dan report\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nGunakan permission middleware yang ada; attendance tidak memiliki permission delete yang di-seed dan tidak ada route delete, jadi tidak perlu menambah permission baru. Perbarui ADR 0002 dan dokumentasi API academic.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/cmd/server/main.go`\n* `kelolakelas-academic-service/internal/usecase/attendance_usecase.go`\n* `kelolakelas-academic-service/internal/usecase/report_usecase.go`\n\n## Edge Cases\n\n* Tutor dengan permission tetapi bukan tutor sesi tersebut.\n* Role custom dengan report:read tanpa report:create.\n* Identity tidak tersedia.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Akses parent ke attendance dan report anaknya.\n* Student note.\n* UI attendance dan report.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"academic-permission-attendance-reports\",\n  \"projectKey\": \"tenant-isolation-and-authorization\",\n  \"title\": \"Terapkan permission pada attendance dan report\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"academic\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"academic-tenant-context-from-jwt-only\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Route attendance (`cmd/server/main.go:123-126`) dan report (`:127-131`) hanya memerlukan JWT. Otorisasi bergantung pada pemeriksaan ad-hoc tutor yang ditugaskan (`internal/usecase/attendance_usecase.go:54-60,85-90`, `report_usecase.go:49-55`). Permission `attendance:create|read|update` dan `report:create|read|update|delete` sudah di-seed dan dimiliki role Teacher, tetapi tidak pernah dievaluasi.\",\n    \"goal\": \"Operasi attendance dan report hanya dapat dilakukan oleh role dengan permission terkait, dengan aturan tutor yang ditugaskan tetap menjadi lapisan kedua.\",\n    \"requirements\": [\n      \"Pemetaan permission per route mengikuti nama permission yang di-seed.\",\n      \"Aturan tutor yang ditugaskan tetap diberlakukan setelah permission lolos.\",\n      \"Denial menghasilkan 403 tanpa perubahan data.\",\n      \"Perilaku akses untuk caller non-tenant yang ada saat ini tidak berubah tanpa keputusan terpisah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Member tanpa permission attendance atau report menerima 403 pada operasi terkait\",\n      \"Teacher yang ditugaskan tetap dapat mencatat attendance dan membuat report sesinya\",\n      \"Tabel pemetaan permission di dokumentasi mencantumkan route attendance dan report\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Gunakan permission middleware yang ada; attendance tidak memiliki permission delete yang di-seed dan tidak ada route delete, jadi tidak perlu menambah permission baru. Perbarui ADR 0002 dan dokumentasi API academic.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/cmd/server/main.go\",\n      \"kelolakelas-academic-service/internal/usecase/attendance_usecase.go\",\n      \"kelolakelas-academic-service/internal/usecase/report_usecase.go\"\n    ],\n    \"edgeCases\": [\n      \"Tutor dengan permission tetapi bukan tutor sesi tersebut.\",\n      \"Role custom dengan report:read tanpa report:create.\",\n      \"Identity tidak tersedia.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Akses parent ke attendance dan report anaknya.\",\n      \"Student note.\",\n      \"UI attendance dan report.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-22/terapkan-permission-pada-attendance-dan-report",
+  "gitBranchName": "skinel123/kel-22-terapkan-permission-pada-attendance-dan-report",
+  "createdAt": "2026-09-16T11:44:24.641Z",
+  "updatedAt": "2026-09-30T10:55:37.966Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T16:53:45.377Z",
+  "startedAt": "2026-09-26T16:36:24.497Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "academic",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "6bbd2e1b-9139-458f-8546-1f494f50bec6",
+      "title": "docs: map KEL-22 attendance and report permissions",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/88"
+    },
+    {
+      "id": "d9e4960d-0e9e-4031-8f96-248cb7bb71da",
+      "title": "KEL-22: enforce attendance and report permissions",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/25"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:44:24.641Z",
+      "endedAt": "2026-09-26T16:36:24.520Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T16:36:24.520Z",
+      "endedAt": "2026-09-26T16:53:45.386Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T16:53:45.386Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Isolasi tenant dan otorisasi menyeluruh",
+  "projectId": "617bb373-7df5-49dc-b9c7-38cf9ca0df5e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-19",
+        "title": "Ambil konteks tenant academic hanya dari claim JWT dan cocokkan tenant pada path"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-23",
+        "title": "Lindungi login dari brute force dan enumerasi akun"
+      },
+      {
+        "id": "KEL-140",
+        "title": "Parent dapat membaca sesi, kehadiran, dan laporan milik anaknya sendiri"
+      },
+      {
+        "id": "KEL-91",
+        "title": "CI web menjalankan lint seluruh repository dan melaporkan status pada merge queue dan main"
+      },
+      {
+        "id": "KEL-84",
+        "title": "Tenant melihat, mencabut, dan mengirim ulang undangan pending dari dashboard"
+      },
+      {
+        "id": "KEL-83",
+        "title": "Tenant dapat mengubah dan menghapus role custom dari web"
+      },
+      {
+        "id": "KEL-68",
+        "title": "CI menolak PR yang memasukkan dependency dengan advisory high/critical"
+      },
+      {
+        "id": "KEL-80",
+        "title": "Academic dan billing menolak akses anggota yang sudah dikeluarkan atau berganti role"
+      },
+      {
+        "id": "KEL-76",
+        "title": "Permission identity hanya berlaku bagi anggota tenant yang masih aktif dengan role saat ini"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

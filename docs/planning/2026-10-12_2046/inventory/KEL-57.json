@@ -1,0 +1,113 @@
+{
+  "id": "KEL-57",
+  "uuid": "61e3bc4d-4d82-482c-b29c-930e8b24223b",
+  "title": "Transaksi tenant hanya dapat dibaca anggota dengan permission billing:read",
+  "description": "## Background / Problem\n\n`GET /api/v1/billing/transactions` dan `/:id` hanya memakai `AuthMiddleware` (`cmd/server/main.go:96-100`). Untuk token non-parent, handler memakai `tenant_id` claim, sehingga setiap anggota aktif dapat membaca seluruh transaksi tenant (nominal, parent ID, student ID), termasuk role Teacher bawaan yang hanya memiliki permission schedule, attendance, student_note, dan report. Identity sudah men-seed `billing:read`. Academic menegakkan permission melalui gRPC `CheckPermission` (ADR 0002), sedangkan billing belum memiliki dependency gRPC dan `Claims`-nya tidak memuat `role_id` (`auth_middleware.go:24-31`). Halaman enrollment tenant (<issue id=\"8b45c634-0954-4e0a-9d35-57d0ebe73abb\" href=\"https://linear.app/farid-zamani/issue/KEL-33/tampilkan-enrollment-dan-status-pembayaran-kepada-tenant\">KEL-33</issue>) memperlakukan kegagalan baca transaksi sebagai \"tanpa transaksi\" (`tenant/enrollments/_queries/queries.ts:236-238`).\n\n## Goal\n\nPembacaan transaksi oleh tenant mensyaratkan `billing:read` dalam tenant yang sama, tanpa mengubah akses parent.\n\n## Requirements\n\n* Jalur tenant pada list dan detail transaksi memeriksa `billing:read` untuk `role_id` JWT melalui `CheckPermission` identity dengan `tenant_id` dikirim.\n* Tanpa permission, billing mengembalikan 403; bila layanan otorisasi tidak tersedia, 503, konsisten dengan academic.\n* Jalur parent tetap memakai scope `parent_id` tanpa pemeriksaan permission tenant.\n* Halaman enrollment tenant menampilkan status pembayaran \"tidak tersedia untuk role Anda\" saat billing mengembalikan 403, bukan \"tanpa transaksi\".\n* Konfigurasi alamat gRPC identity ditambahkan ke billing beserta dokumentasi env.\n\n## Acceptance Criteria\n\n- [ ] Anggota dengan role Teacher bawaan menerima 403 pada `GET /api/v1/billing/transactions`.\n- [ ] Owner/Creator tetap dapat melihat daftar dan detail transaksi.\n- [ ] Parent tetap dapat melihat transaksinya sendiri.\n- [ ] Identity yang tidak tersedia menghasilkan 503 tanpa data transaksi.\n- [ ] Halaman enrollment tenant menampilkan penanda permission untuk anggota tanpa `billing:read`.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko utama: regresi otorisasi. Salah konfigurasi dapat mengunci owner dari data transaksi atau salah menilai tenant. Issue ini juga menambah dependency gRPC billing ke identity, yang transportnya belum terautentikasi (known gap terpisah). Gunakan ulang pola `permission_middleware.go` dan `pkg/grpcclient/permission_client.go` dari academic. Webhook dan endpoint internal tidak diubah. Perbarui `docs/05-security.md`, `docs/api/billing.md`, `docs/api/endpoint-matrix.md`, dan catat ADR ringan.\n\nComplexity rationale: Otorisasi data finansial dengan dependency gRPC baru; regresi dapat mengunci owner atau membuka data.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/cmd/server/main.go`\n* `kelolakelas-billing-service/internal/delivery/http/middleware/auth_middleware.go`\n* `kelolakelas-billing-service/internal/config/config.go`\n* `kelolakelas-academic-service/internal/delivery/http/middleware/permission_middleware.go (pola acuan)`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/enrollments/_queries/queries.ts`\n\n## Edge Cases\n\n* Token tenant lama tanpa `role_id` ditolak 403.\n* Role custom tenant yang diberi `billing:read`.\n* Timeout gRPC identity.\n\n## Testing / Validation\n\n- [ ] Mitigasi risiko: test middleware untuk allowed, denied, error identity, bypass parent, dan `tenant_id` yang dikirim ke `CheckPermission`.\n- [ ] Test routing memastikan webhook dan endpoint internal tidak terkena pemeriksaan permission.\n- [ ] Test web untuk state 403 pada status pembayaran.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Permission wallet dan withdrawal.\n* mTLS atau autentikasi transport gRPC.\n* Perubahan endpoint internal dan webhook.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"billing-enforce-billing-read-permission\",\n  \"projectKey\": \"tenant-sales-visibility\",\n  \"title\": \"Transaksi tenant hanya dapat dibaca anggota dengan permission billing:read\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"high\",\n  \"labels\": [\n    \"billing\",\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"billing\",\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`GET /api/v1/billing/transactions` dan `/:id` hanya memakai `AuthMiddleware` (`cmd/server/main.go:96-100`). Untuk token non-parent, handler memakai `tenant_id` claim, sehingga setiap anggota aktif dapat membaca seluruh transaksi tenant (nominal, parent ID, student ID), termasuk role Teacher bawaan yang hanya memiliki permission schedule, attendance, student_note, dan report. Identity sudah men-seed `billing:read`. Academic menegakkan permission melalui gRPC `CheckPermission` (ADR 0002), sedangkan billing belum memiliki dependency gRPC dan `Claims`-nya tidak memuat `role_id` (`auth_middleware.go:24-31`). Halaman enrollment tenant (KEL-33) memperlakukan kegagalan baca transaksi sebagai \\\"tanpa transaksi\\\" (`tenant/enrollments/_queries/queries.ts:236-238`).\",\n    \"goal\": \"Pembacaan transaksi oleh tenant mensyaratkan `billing:read` dalam tenant yang sama, tanpa mengubah akses parent.\",\n    \"requirements\": [\n      \"Jalur tenant pada list dan detail transaksi memeriksa `billing:read` untuk `role_id` JWT melalui `CheckPermission` identity dengan `tenant_id` dikirim.\",\n      \"Tanpa permission, billing mengembalikan 403; bila layanan otorisasi tidak tersedia, 503, konsisten dengan academic.\",\n      \"Jalur parent tetap memakai scope `parent_id` tanpa pemeriksaan permission tenant.\",\n      \"Halaman enrollment tenant menampilkan status pembayaran \\\"tidak tersedia untuk role Anda\\\" saat billing mengembalikan 403, bukan \\\"tanpa transaksi\\\".\",\n      \"Konfigurasi alamat gRPC identity ditambahkan ke billing beserta dokumentasi env.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Anggota dengan role Teacher bawaan menerima 403 pada `GET /api/v1/billing/transactions`.\",\n      \"Owner/Creator tetap dapat melihat daftar dan detail transaksi.\",\n      \"Parent tetap dapat melihat transaksinya sendiri.\",\n      \"Identity yang tidak tersedia menghasilkan 503 tanpa data transaksi.\",\n      \"Halaman enrollment tenant menampilkan penanda permission untuk anggota tanpa `billing:read`.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko utama: regresi otorisasi. Salah konfigurasi dapat mengunci owner dari data transaksi atau salah menilai tenant. Issue ini juga menambah dependency gRPC billing ke identity, yang transportnya belum terautentikasi (known gap terpisah). Gunakan ulang pola `permission_middleware.go` dan `pkg/grpcclient/permission_client.go` dari academic. Webhook dan endpoint internal tidak diubah. Perbarui `docs/05-security.md`, `docs/api/billing.md`, `docs/api/endpoint-matrix.md`, dan catat ADR ringan.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/cmd/server/main.go\",\n      \"kelolakelas-billing-service/internal/delivery/http/middleware/auth_middleware.go\",\n      \"kelolakelas-billing-service/internal/config/config.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/middleware/permission_middleware.go (pola acuan)\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/enrollments/_queries/queries.ts\"\n    ],\n    \"edgeCases\": [\n      \"Token tenant lama tanpa `role_id` ditolak 403.\",\n      \"Role custom tenant yang diberi `billing:read`.\",\n      \"Timeout gRPC identity.\"\n    ],\n    \"testingValidation\": [\n      \"Mitigasi risiko: test middleware untuk allowed, denied, error identity, bypass parent, dan `tenant_id` yang dikirim ke `CheckPermission`.\",\n      \"Test routing memastikan webhook dan endpoint internal tidak terkena pemeriksaan permission.\",\n      \"Test web untuk state 403 pada status pembayaran.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Permission wallet dan withdrawal.\",\n      \"mTLS atau autentikasi transport gRPC.\",\n      \"Perubahan endpoint internal dan webhook.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-57/transaksi-tenant-hanya-dapat-dibaca-anggota-dengan-permission",
+  "gitBranchName": "skinel123/kel-57-transaksi-tenant-hanya-dapat-dibaca-anggota-dengan",
+  "createdAt": "2026-09-23T22:27:42.795Z",
+  "updatedAt": "2026-09-24T12:02:35.546Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-24T10:30:45.047Z",
+  "startedAt": "2026-09-24T10:17:46.158Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "d0d59735-f044-40e0-9d45-458d39f2eea7",
+      "title": "docs: record KEL-57 billing:read enforcement on tenant transaction reads",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/50"
+    },
+    {
+      "id": "456e27f4-5a69-4dc6-95bd-a027b662403e",
+      "title": "KEL-57 mark payments the member may not read on the tenant enrollment page",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/23"
+    },
+    {
+      "id": "c23dae33-b000-43e0-99fc-ad5dcdc0b071",
+      "title": "KEL-57 require billing:read for tenant transaction reads",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/10"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-23T22:27:42.795Z",
+      "endedAt": "2026-09-24T10:17:46.171Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-24T10:17:46.171Z",
+      "endedAt": "2026-09-24T10:30:45.055Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-24T10:30:45.055Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Visibilitas penjualan tenant yang terotorisasi",
+  "projectId": "5a09f7a4-8599-4cb4-8a3e-500eb92c5685",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-58",
+        "title": "Tenant melihat ringkasan penjualan kelas di dashboard"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-33",
+        "title": "Tampilkan enrollment dan status pembayaran kepada tenant"
+      },
+      {
+        "id": "KEL-80",
+        "title": "Academic dan billing menolak akses anggota yang sudah dikeluarkan atau berganti role"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

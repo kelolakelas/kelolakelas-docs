@@ -1,0 +1,158 @@
+{
+  "id": "KEL-55",
+  "uuid": "9cc25193-7490-4c49-a1b2-3b2c501d4412",
+  "title": "Panggilan keluar billing dibatasi waktu dan worker renewal tidak menimpa status transaksi",
+  "description": "## Background / Problem\n\n`duitku.NewClient(..., nil)` memakai `&http.Client{}` tanpa timeout (`cmd/server/main.go:55`, `pkg/duitku/client.go:47-50`), begitu juga `ResendClient` (`pkg/email/resend.go:19`). Pola timeout sudah ada di client billing academic (10 detik) dan Resend identity (<issue id=\"1d1e97a0-ff0a-43ec-be09-f1175a22087f\" href=\"https://linear.app/farid-zamani/issue/KEL-36/laporkan-kegagalan-pengiriman-email-undangan\">KEL-36</issue>). Pada jalur gagal email payment link, `SubscriptionWorker.sendEmails` mengosongkan `PaymentLinkSentAt` lalu memanggil `transactions.Update`, yang menyimpan ulang seluruh row (`transaction_repository.go:107-108`). Bila callback menandai paid di antara load dan save, status berpotensi kembali ke pending (inferensi race). `RunOnce` membuang error (`_ = w.process`), dan kegagalan `ListDueForRenewal` berhenti tanpa log.\n\n## Goal\n\nTidak ada panggilan keluar billing tanpa batas waktu, jalur gagal renewal tidak menimpa perubahan status yang terjadi bersamaan, dan kegagalan worker dapat diamati.\n\n## Requirements\n\n* Client HTTP Duitku dan Resend memiliki timeout yang dapat dikonfigurasi dengan default terdokumentasi.\n* Jalur gagal email payment link hanya mengosongkan `payment_link_sent_at` dengan update bersyarat (status masih pending), tanpa menyimpan ulang seluruh row.\n* Worker renewal mencatat error per subscription dan kegagalan listing melalui structured log tanpa PII selain ID.\n* Perilaku klaim invoice, pengiriman email, dan idempotensi renewal tetap sama.\n\n## Acceptance Criteria\n\n- [ ] Request ke Duitku atau Resend yang tidak merespons berakhir dengan error setelah timeout.\n- [ ] Transaksi yang menjadi paid saat email payment link gagal tetap paid.\n- [ ] Kegagalan proses dan listing renewal muncul di log dengan `subscription_id` atau `transaction_id`.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nTambahkan env timeout ke config dan `.env.example`, lalu perbarui `docs/reference/environment-variables.md` dan `docs/components/billing-service.md`. Penyimpanan full-row lain setelah `ClaimInvoice` (`subscription_worker.go:120,183`) tidak diubah di issue ini.\n\nComplexity rationale: Perubahan lokal di billing, tetapi menyentuh jalur worker pembayaran dan kondisi race status.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/pkg/duitku/client.go`\n* `kelolakelas-billing-service/pkg/email/resend.go`\n* `kelolakelas-billing-service/cmd/server/main.go`\n* `kelolakelas-billing-service/internal/usecase/subscription_worker.go`\n* `kelolakelas-billing-service/internal/repository/transaction_repository.go`\n* `kelolakelas-billing-service/internal/config/config.go`\n\n## Edge Cases\n\n* Nilai timeout 0 atau negatif memakai default.\n* Context dibatalkan saat worker berhenti.\n* Email berhasil terkirim tetapi update penanda gagal.\n\n## Testing / Validation\n\n- [ ] Test client dengan server HTTP lambat membuktikan timeout.\n- [ ] Test worker membuktikan jalur gagal email tidak mengubah transaksi paid.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Leader election worker.\n* Retry dan backoff email.\n* Graceful shutdown worker.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"billing-bounded-outbound-calls-and-renewal-safety\",\n  \"projectKey\": \"billing-payment-integrity\",\n  \"title\": \"Panggilan keluar billing dibatasi waktu dan worker renewal tidak menimpa status transaksi\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`duitku.NewClient(..., nil)` memakai `&http.Client{}` tanpa timeout (`cmd/server/main.go:55`, `pkg/duitku/client.go:47-50`), begitu juga `ResendClient` (`pkg/email/resend.go:19`). Pola timeout sudah ada di client billing academic (10 detik) dan Resend identity (KEL-36). Pada jalur gagal email payment link, `SubscriptionWorker.sendEmails` mengosongkan `PaymentLinkSentAt` lalu memanggil `transactions.Update`, yang menyimpan ulang seluruh row (`transaction_repository.go:107-108`). Bila callback menandai paid di antara load dan save, status berpotensi kembali ke pending (inferensi race). `RunOnce` membuang error (`_ = w.process`), dan kegagalan `ListDueForRenewal` berhenti tanpa log.\",\n    \"goal\": \"Tidak ada panggilan keluar billing tanpa batas waktu, jalur gagal renewal tidak menimpa perubahan status yang terjadi bersamaan, dan kegagalan worker dapat diamati.\",\n    \"requirements\": [\n      \"Client HTTP Duitku dan Resend memiliki timeout yang dapat dikonfigurasi dengan default terdokumentasi.\",\n      \"Jalur gagal email payment link hanya mengosongkan `payment_link_sent_at` dengan update bersyarat (status masih pending), tanpa menyimpan ulang seluruh row.\",\n      \"Worker renewal mencatat error per subscription dan kegagalan listing melalui structured log tanpa PII selain ID.\",\n      \"Perilaku klaim invoice, pengiriman email, dan idempotensi renewal tetap sama.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Request ke Duitku atau Resend yang tidak merespons berakhir dengan error setelah timeout.\",\n      \"Transaksi yang menjadi paid saat email payment link gagal tetap paid.\",\n      \"Kegagalan proses dan listing renewal muncul di log dengan `subscription_id` atau `transaction_id`.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Tambahkan env timeout ke config dan `.env.example`, lalu perbarui `docs/reference/environment-variables.md` dan `docs/components/billing-service.md`. Penyimpanan full-row lain setelah `ClaimInvoice` (`subscription_worker.go:120,183`) tidak diubah di issue ini.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/pkg/duitku/client.go\",\n      \"kelolakelas-billing-service/pkg/email/resend.go\",\n      \"kelolakelas-billing-service/cmd/server/main.go\",\n      \"kelolakelas-billing-service/internal/usecase/subscription_worker.go\",\n      \"kelolakelas-billing-service/internal/repository/transaction_repository.go\",\n      \"kelolakelas-billing-service/internal/config/config.go\"\n    ],\n    \"edgeCases\": [\n      \"Nilai timeout 0 atau negatif memakai default.\",\n      \"Context dibatalkan saat worker berhenti.\",\n      \"Email berhasil terkirim tetapi update penanda gagal.\"\n    ],\n    \"testingValidation\": [\n      \"Test client dengan server HTTP lambat membuktikan timeout.\",\n      \"Test worker membuktikan jalur gagal email tidak mengubah transaksi paid.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Leader election worker.\",\n      \"Retry dan backoff email.\",\n      \"Graceful shutdown worker.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-55/panggilan-keluar-billing-dibatasi-waktu-dan-worker-renewal-tidak",
+  "gitBranchName": "skinel123/kel-55-panggilan-keluar-billing-dibatasi-waktu-dan-worker-renewal",
+  "createdAt": "2026-09-23T22:26:37.173Z",
+  "updatedAt": "2026-09-26T06:17:42.528Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-25T15:50:26.029Z",
+  "startedAt": "2026-09-25T15:17:16.939Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "64b71c47-1b7b-4925-93f9-a7c8b9c5406f",
+      "title": "KEL-55 documentation PR #59",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/59"
+    },
+    {
+      "id": "e562f423-2a46-49a1-9895-e34788df7689",
+      "title": "KEL-55: Bound billing outbound calls and preserve renewal status",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/11"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-23T22:26:37.173Z",
+      "endedAt": "2026-09-25T15:17:16.950Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-25T15:17:16.950Z",
+      "endedAt": "2026-09-25T15:50:26.038Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-25T15:50:26.038Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Integritas status pembayaran dan keandalan worker billing",
+  "projectId": "9a9bd006-84a5-4bc1-95a3-7530cdd0772a",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-56",
+        "title": "Transaksi hanya ditandai lunas setelah status pembayaran dikonfirmasi ke Duitku"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-92",
+        "title": "Filter katalog serta halaman login dan registrasi dapat digunakan dengan pembaca layar"
+      },
+      {
+        "id": "KEL-88",
+        "title": "Registrasi dan pengaturan tenant menolak input tidak valid dengan 400/409, bukan 500"
+      },
+      {
+        "id": "KEL-86",
+        "title": "Pembeli dapat membuka daftar kelas dari tenant yang sama melalui kartu dan detail kelas"
+      },
+      {
+        "id": "KEL-84",
+        "title": "Tenant melihat, mencabut, dan mengirim ulang undangan pending dari dashboard"
+      },
+      {
+        "id": "KEL-89",
+        "title": "Satu email hanya dapat memiliki satu akun tanpa bergantung pada huruf besar-kecil"
+      },
+      {
+        "id": "KEL-82",
+        "title": "Tenant dapat melihat, mencabut, dan mengirim ulang undangan anggota tanpa token ganda"
+      },
+      {
+        "id": "KEL-60",
+        "title": "Web berjalan di atas Next.js dan dependency produksi yang bebas advisory high/critical"
+      },
+      {
+        "id": "KEL-36",
+        "title": "Laporkan kegagalan pengiriman email undangan"
+      },
+      {
+        "id": "KEL-51",
+        "title": "Perubahan jadwal dan tutor permanen menghasilkan jadwal pengganti yang valid dan mempertahankan peserta"
+      },
+      {
+        "id": "KEL-50",
+        "title": "Tenant dapat menetapkan kapasitas jadwal dan menambah jadwal kelas grup dari dashboard"
+      },
+      {
+        "id": "KEL-66",
+        "title": "Pengguna dapat meminta dan mengonfirmasi reset password lewat token email sekali pakai"
+      },
+      {
+        "id": "KEL-85",
+        "title": "Pengunjung katalog melihat sisa kursi dan lokasi setiap jadwal kelas sebelum login"
+      },
+      {
+        "id": "KEL-74",
+        "title": "Dashboard tenant menampilkan daftar dan jumlah anggota yang sebenarnya"
+      },
+      {
+        "id": "KEL-94",
+        "title": "Creator tenant dapat meminta penambahan Creator untuk tenant sendiri"
+      },
+      {
+        "id": "KEL-71",
+        "title": "Gateway berhenti secara graceful dan server HTTP billing memiliki timeout koneksi"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

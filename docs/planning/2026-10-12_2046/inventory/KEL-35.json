@@ -1,0 +1,92 @@
+{
+  "id": "KEL-35",
+  "uuid": "1f1933a9-2f35-4792-97e0-9c9876d7ec60",
+  "title": "Sediakan halaman penerimaan undangan anggota tenant",
+  "description": "## Background / Problem\n\nEmail undangan identity menautkan ke `{APP_URL}/invitations/verify?token=...` (`kelolakelas-identity-service/pkg/email/resend.go:37-88`), tetapi web tidak memiliki route tersebut. Endpoint publik `GET /api/v1/invitations/verify` dan `POST /api/v1/invitations/register` sudah diproksikan gateway (`router.go:51-52`). Staf yang diundang dari halaman members tidak dapat menyelesaikan pendaftaran.\n\n## Goal\n\nAnggota yang diundang dapat membuka tautan email, melihat tenant dan role yang ditawarkan, dan menyelesaikan pendaftaran dari web.\n\n## Requirements\n\n* Route web memverifikasi token melalui gateway dan menampilkan nama tenant serta role.\n* Form pendaftaran mengikuti payload invited-user identity dan setelah sukses mengarahkan ke login.\n* Token tidak valid, kedaluwarsa, atau sudah dipakai ditampilkan sebagai state yang jelas.\n* Alur undangan dari halaman members tetap berfungsi.\n\n## Acceptance Criteria\n\n- [ ] Pengguna dengan token valid dapat mendaftar dan kemudian login sebagai member tenant dengan role undangan\n- [ ] Token kedaluwarsa atau sudah dipakai menampilkan pesan yang tepat tanpa form\n- [ ] Halaman dapat diakses tanpa sesi dan tidak dialihkan oleh proxy\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRespons verify saat ini mengembalikan token dan role_id; jangan menampilkan token di UI. Pastikan matcher proxy tidak memperlakukan route ini sebagai protected.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(auth)`\n* `kelolakelas-web/proxy.ts`\n* `kelolakelas-identity-service/internal/delivery/http/handler/invitation_handler.go`\n\n## Edge Cases\n\n* Email undangan sudah terdaftar sebagai user.\n* Pengguna sudah login sebagai akun lain saat membuka tautan.\n* Token dipakai dua kali secara bersamaan.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Kirim ulang atau cabut undangan.\n* Daftar undangan tertunda.\n* Perubahan kontrak identity.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-invitation-acceptance\",\n  \"projectKey\": \"tenant-selling-operations\",\n  \"title\": \"Sediakan halaman penerimaan undangan anggota tenant\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Email undangan identity menautkan ke `{APP_URL}/invitations/verify?token=...` (`kelolakelas-identity-service/pkg/email/resend.go:37-88`), tetapi web tidak memiliki route tersebut. Endpoint publik `GET /api/v1/invitations/verify` dan `POST /api/v1/invitations/register` sudah diproksikan gateway (`router.go:51-52`). Staf yang diundang dari halaman members tidak dapat menyelesaikan pendaftaran.\",\n    \"goal\": \"Anggota yang diundang dapat membuka tautan email, melihat tenant dan role yang ditawarkan, dan menyelesaikan pendaftaran dari web.\",\n    \"requirements\": [\n      \"Route web memverifikasi token melalui gateway dan menampilkan nama tenant serta role.\",\n      \"Form pendaftaran mengikuti payload invited-user identity dan setelah sukses mengarahkan ke login.\",\n      \"Token tidak valid, kedaluwarsa, atau sudah dipakai ditampilkan sebagai state yang jelas.\",\n      \"Alur undangan dari halaman members tetap berfungsi.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Pengguna dengan token valid dapat mendaftar dan kemudian login sebagai member tenant dengan role undangan\",\n      \"Token kedaluwarsa atau sudah dipakai menampilkan pesan yang tepat tanpa form\",\n      \"Halaman dapat diakses tanpa sesi dan tidak dialihkan oleh proxy\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Respons verify saat ini mengembalikan token dan role_id; jangan menampilkan token di UI. Pastikan matcher proxy tidak memperlakukan route ini sebagai protected.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(auth)\",\n      \"kelolakelas-web/proxy.ts\",\n      \"kelolakelas-identity-service/internal/delivery/http/handler/invitation_handler.go\"\n    ],\n    \"edgeCases\": [\n      \"Email undangan sudah terdaftar sebagai user.\",\n      \"Pengguna sudah login sebagai akun lain saat membuka tautan.\",\n      \"Token dipakai dua kali secara bersamaan.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Kirim ulang atau cabut undangan.\",\n      \"Daftar undangan tertunda.\",\n      \"Perubahan kontrak identity.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-35/sediakan-halaman-penerimaan-undangan-anggota-tenant",
+  "gitBranchName": "skinel123/kel-35-sediakan-halaman-penerimaan-undangan-anggota-tenant",
+  "createdAt": "2026-09-16T11:49:09.205Z",
+  "updatedAt": "2026-09-20T19:07:46.258Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-20T19:05:00.724Z",
+  "startedAt": "2026-09-20T18:54:47.495Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "20654fef-a176-49a4-8029-21af96255392",
+      "title": "docs(KEL-35): record web invitation acceptance",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/33"
+    },
+    {
+      "id": "913ffc4d-d41a-48cc-b576-3ac3226417d4",
+      "title": "feat(KEL-35): accept tenant invitations from the web app",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/10"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:49:09.205Z",
+      "endedAt": "2026-09-20T18:54:47.507Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-20T18:54:47.507Z",
+      "endedAt": "2026-09-20T19:05:00.734Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-20T19:05:00.734Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Operasional tenant untuk menjual kelas",
+  "projectId": "0925b72f-fbab-4d82-b530-cac847cb5ec2",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

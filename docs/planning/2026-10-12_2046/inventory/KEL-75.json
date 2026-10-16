@@ -1,0 +1,118 @@
+{
+  "id": "KEL-75",
+  "uuid": "95681e74-1d26-4fa2-b2ad-837444b1285f",
+  "title": "Invoice checkout parent menyimpan email parent sehingga email tagihan dan pengingat dapat terkirim",
+  "description": "## Background / Problem\n\n`InvoiceRequest` di academic (`kelolakelas-academic-service/pkg/billing/client.go:25-37`) tidak memiliki field email. Tidak ada kode academic yang mengirim `sender_email`, sehingga ketiga pemanggil `GenerateInvoice` (`internal/usecase/enrollment_usecase.go:184,244,308`) tidak pernah mengisinya. Billing menerima `SenderEmail` opsional tanpa validasi format (`internal/domain/transaction.go:174`), lalu menyalinnya ke `Subscription.BillingEmail` dan `Transaction.BillingEmail` (`internal/usecase/transaction_usecase.go:131,163`) serta ke field `email` inquiry Duitku (`:229`). Akibatnya, `BillingEmail` selalu kosong, dan subscription worker melewati email tautan pembayaran maupun pengingat renewal (`internal/usecase/subscription_worker.go:190-191`). <issue id=\"157225b7-7ea2-4ace-83e9-e099205e7d8d\" href=\"https://linear.app/farid-zamani/issue/KEL-28/kirim-email-konfirmasi-pembayaran-berhasil-dan-gagal-kepada-parent\">KEL-28</issue> (email hasil pembayaran) secara eksplisit mengandalkan alamat yang sudah disimpan billing, sehingga tidak dapat berfungsi sebelum gap ini tertutup. JWT identity sudah membawa claim `email` (`kelolakelas-identity-service/pkg/jwt/jwt.go`), tetapi struct `Claims` academic tidak membacanya (`internal/delivery/http/middleware/auth_middleware.go:25-32`). Dokumentasi Duitku menandai `email` sebagai wajib pada request transaksi. Perilaku sandbox terhadap email kosong belum diverifikasi.\n\n## Goal\n\nSetiap invoice dari checkout katalog oleh parent menyimpan email parent yang terverifikasi pada transaksi dan subscription billing, sehingga email tautan pembayaran dan pengingat renewal memiliki tujuan yang valid.\n\n## Requirements\n\n* Academic membaca claim `email` dari JWT yang sudah diverifikasi, lalu meneruskannya sebagai `sender_email` pada invoice checkout katalog parent, termasuk jalur regenerasi invoice idempotent.\n* Email tidak pernah diambil dari body atau header request klien.\n* Billing menolak `sender_email` yang tidak kosong tetapi formatnya tidak valid dengan 400, tanpa membuat transaksi.\n* Request invoice tanpa `sender_email` tetap diterima seperti sekarang (kompatibilitas selama rollout bertahap).\n* Enrollment yang dibuat tenant (`EnrollStudent`) tetap berperilaku seperti sekarang.\n\n## Acceptance Criteria\n\n- [ ] Checkout katalog oleh parent menghasilkan transaksi dan subscription billing dengan `billing_email` sama dengan claim `email` pada token parent.\n- [ ] Regenerasi invoice untuk enrollment pending yang sama (replay idempotent) juga membawa email parent.\n- [ ] Billing mengembalikan 400 untuk `sender_email` bernilai `bukan-email`, dan tidak ada transaksi yang dibuat.\n- [ ] Request invoice tanpa `sender_email` tetap menghasilkan transaksi seperti sebelumnya.\n- [ ] Subscription worker mengirim email tautan pembayaran renewal untuk subscription baru yang memiliki `billing_email`, dibuktikan oleh test dengan email sender palsu.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nEvidence: academic `pkg/billing/client.go:25-37`, `internal/usecase/enrollment_usecase.go:167-256` (`EnrollPublic`), `internal/delivery/http/middleware/auth_middleware.go:25-60`; billing `internal/domain/transaction.go:160-176`, `internal/usecase/transaction_usecase.go:122-165,215-240`, `internal/usecase/subscription_worker.go:87,128,188-197`; Duitku API reference (`email` wajib, `customerVaName` wajib). Deploy billing lebih dulu atau bersamaan, karena validasi baru hanya berlaku untuk nilai yang tidak kosong. Validasi format email dilakukan pada binding request billing. Asumsi: claim `email` selalu terisi pada token parent karena login menerbitkannya dari `user.Email` (`internal/usecase/auth_usecase.go:86`). Perbarui `kelolakelas-docs` dalam PR docs terpisah setelah PR kode merge, mencakup halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup atau menyempit, dan evidence index. Catat di flow billing bahwa email tagihan berasal dari claim token parent.\n\nComplexity: `medium`. Complexity rationale: Perubahan kode kecil, tetapi melintasi kontrak internal academic-billing pada jalur checkout berbayar dan memengaruhi data yang dikirim ke Duitku. Regresi pada checkout berdampak langsung pada penjualan.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/pkg/billing/client.go`\n* `kelolakelas-academic-service/internal/usecase/enrollment_usecase.go`\n* `kelolakelas-academic-service/internal/delivery/http/middleware/auth_middleware.go`\n* `kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go`\n* `kelolakelas-billing-service/internal/domain/transaction.go`\n* `kelolakelas-billing-service/internal/usecase/transaction_usecase.go`\n\n## Edge Cases\n\n* Token parent lama tanpa claim `email`: invoice tetap dibuat tanpa email, sama seperti perilaku saat ini.\n* Email dengan huruf besar atau spasi di tepi: dinormalisasi secara konsisten atau dikirim apa adanya, dan keputusannya didokumentasikan di PR.\n* Subscription yang sudah ada dengan `billing_email` kosong tetap kosong karena tidak ada backfill.\n\n## Testing / Validation\n\n- [ ] Tambahkan test academic yang memverifikasi `sender_email` terkirim pada `EnrollPublic` dan jalur replay-nya.\n- [ ] Tambahkan test binding billing untuk email valid, kosong, dan tidak valid.\n- [ ] Uji checkout ujung-ke-ujung di sandbox Duitku dan pastikan transaksi tersimpan dengan `billing_email`.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Email konfirmasi pembayaran berhasil/gagal (<issue id=\"157225b7-7ea2-4ace-83e9-e099205e7d8d\" href=\"https://linear.app/farid-zamani/issue/KEL-28/kirim-email-konfirmasi-pembayaran-berhasil-dan-gagal-kepada-parent\">KEL-28</issue>).\n* Pengisian `sender_name`/`customerVaName` dan email parent untuk enrollment yang dibuat tenant, karena academic tidak memiliki sumber data parent dari identity.\n* Backfill `billing_email` pada subscription dan transaksi yang sudah ada.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"checkout-invoice-parent-billing-email\",\n  \"projectKey\": null,\n  \"title\": \"Invoice checkout parent menyimpan email parent sehingga email tagihan dan pengingat dapat terkirim\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"academic\",\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\",\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`InvoiceRequest` di academic (`kelolakelas-academic-service/pkg/billing/client.go:25-37`) tidak memiliki field email. Tidak ada kode academic yang mengirim `sender_email`, sehingga ketiga pemanggil `GenerateInvoice` (`internal/usecase/enrollment_usecase.go:184,244,308`) tidak pernah mengisinya. Billing menerima `SenderEmail` opsional tanpa validasi format (`internal/domain/transaction.go:174`), lalu menyalinnya ke `Subscription.BillingEmail` dan `Transaction.BillingEmail` (`internal/usecase/transaction_usecase.go:131,163`) serta ke field `email` inquiry Duitku (`:229`). Akibatnya, `BillingEmail` selalu kosong, dan subscription worker melewati email tautan pembayaran maupun pengingat renewal (`internal/usecase/subscription_worker.go:190-191`). KEL-28 (email hasil pembayaran) secara eksplisit mengandalkan alamat yang sudah disimpan billing, sehingga tidak dapat berfungsi sebelum gap ini tertutup. JWT identity sudah membawa claim `email` (`kelolakelas-identity-service/pkg/jwt/jwt.go`), tetapi struct `Claims` academic tidak membacanya (`internal/delivery/http/middleware/auth_middleware.go:25-32`). Dokumentasi Duitku menandai `email` sebagai wajib pada request transaksi. Perilaku sandbox terhadap email kosong belum diverifikasi.\",\n    \"goal\": \"Setiap invoice dari checkout katalog oleh parent menyimpan email parent yang terverifikasi pada transaksi dan subscription billing, sehingga email tautan pembayaran dan pengingat renewal memiliki tujuan yang valid.\",\n    \"requirements\": [\n      \"Academic membaca claim `email` dari JWT yang sudah diverifikasi, lalu meneruskannya sebagai `sender_email` pada invoice checkout katalog parent, termasuk jalur regenerasi invoice idempotent.\",\n      \"Email tidak pernah diambil dari body atau header request klien.\",\n      \"Billing menolak `sender_email` yang tidak kosong tetapi formatnya tidak valid dengan 400, tanpa membuat transaksi.\",\n      \"Request invoice tanpa `sender_email` tetap diterima seperti sekarang (kompatibilitas selama rollout bertahap).\",\n      \"Enrollment yang dibuat tenant (`EnrollStudent`) tetap berperilaku seperti sekarang.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Checkout katalog oleh parent menghasilkan transaksi dan subscription billing dengan `billing_email` sama dengan claim `email` pada token parent.\",\n      \"Regenerasi invoice untuk enrollment pending yang sama (replay idempotent) juga membawa email parent.\",\n      \"Billing mengembalikan 400 untuk `sender_email` bernilai `bukan-email`, dan tidak ada transaksi yang dibuat.\",\n      \"Request invoice tanpa `sender_email` tetap menghasilkan transaksi seperti sebelumnya.\",\n      \"Subscription worker mengirim email tautan pembayaran renewal untuk subscription baru yang memiliki `billing_email`, dibuktikan oleh test dengan email sender palsu.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Evidence: academic `pkg/billing/client.go:25-37`, `internal/usecase/enrollment_usecase.go:167-256` (`EnrollPublic`), `internal/delivery/http/middleware/auth_middleware.go:25-60`; billing `internal/domain/transaction.go:160-176`, `internal/usecase/transaction_usecase.go:122-165,215-240`, `internal/usecase/subscription_worker.go:87,128,188-197`; Duitku API reference (`email` wajib, `customerVaName` wajib). Deploy billing lebih dulu atau bersamaan, karena validasi baru hanya berlaku untuk nilai yang tidak kosong. Validasi format email dilakukan pada binding request billing. Asumsi: claim `email` selalu terisi pada token parent karena login menerbitkannya dari `user.Email` (`internal/usecase/auth_usecase.go:86`). Perbarui `kelolakelas-docs` dalam PR docs terpisah setelah PR kode merge, mencakup halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup atau menyempit, dan evidence index. Catat di flow billing bahwa email tagihan berasal dari claim token parent.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/pkg/billing/client.go\",\n      \"kelolakelas-academic-service/internal/usecase/enrollment_usecase.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/middleware/auth_middleware.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go\",\n      \"kelolakelas-billing-service/internal/domain/transaction.go\",\n      \"kelolakelas-billing-service/internal/usecase/transaction_usecase.go\"\n    ],\n    \"edgeCases\": [\n      \"Token parent lama tanpa claim `email`: invoice tetap dibuat tanpa email, sama seperti perilaku saat ini.\",\n      \"Email dengan huruf besar atau spasi di tepi: dinormalisasi secara konsisten atau dikirim apa adanya, dan keputusannya didokumentasikan di PR.\",\n      \"Subscription yang sudah ada dengan `billing_email` kosong tetap kosong karena tidak ada backfill.\"\n    ],\n    \"testingValidation\": [\n      \"Tambahkan test academic yang memverifikasi `sender_email` terkirim pada `EnrollPublic` dan jalur replay-nya.\",\n      \"Tambahkan test binding billing untuk email valid, kosong, dan tidak valid.\",\n      \"Uji checkout ujung-ke-ujung di sandbox Duitku dan pastikan transaksi tersimpan dengan `billing_email`.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Email konfirmasi pembayaran berhasil/gagal (KEL-28).\",\n      \"Pengisian `sender_name`/`customerVaName` dan email parent untuk enrollment yang dibuat tenant, karena academic tidak memiliki sumber data parent dari identity.\",\n      \"Backfill `billing_email` pada subscription dan transaksi yang sudah ada.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-75/invoice-checkout-parent-menyimpan-email-parent-sehingga-email-tagihan",
+  "gitBranchName": "skinel123/kel-75-invoice-checkout-parent-menyimpan-email-parent-sehingga",
+  "createdAt": "2026-09-24T12:00:36.093Z",
+  "updatedAt": "2026-09-27T23:41:56.872Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T00:29:37.136Z",
+  "startedAt": "2026-09-26T00:01:52.013Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "ai-ready",
+    "billing",
+    "academic",
+    "Improvement"
+  ],
+  "attachments": [
+    {
+      "id": "e54cfa3b-6f34-47b3-bb8c-fd2086c376ef",
+      "title": "docs: record KEL-75 parent checkout email claim in academic and billing",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/69"
+    },
+    {
+      "id": "47fcf05c-a486-4f40-b5ae-67b1d4c5b22a",
+      "title": "KEL-75: forward parent email claim from JWT to billing on public checkout (academic)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/16"
+    },
+    {
+      "id": "26d94cd7-6168-4e4a-8cf2-f105de7c1417",
+      "title": "KEL-75: validate and store parent sender_email on subscription payment (billing_email for invoices and reminders)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/14"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T12:00:36.093Z",
+      "endedAt": "2026-09-26T00:01:52.052Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T00:01:52.052Z",
+      "endedAt": "2026-09-26T00:29:37.141Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T00:29:37.141Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-28",
+        "title": "Kirim email konfirmasi pembayaran berhasil dan gagal kepada parent"
+      },
+      {
+        "id": "KEL-107",
+        "title": "Parent dapat mengajukan jadwal kelas private dan tenant dapat meninjau atau menolaknya melalui API"
+      },
+      {
+        "id": "KEL-61",
+        "title": "Respons 5xx identity dan billing tidak lagi membocorkan detail error internal"
+      },
+      {
+        "id": "KEL-53",
+        "title": "Parent dapat melanjutkan pembayaran yang masih menunggu dari halaman status enrollment"
+      },
+      {
+        "id": "KEL-105",
+        "title": "Akses platform admin memerlukan faktor kedua sebelum sesi privileged diterbitkan"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "id": "KEL-64",
+  "uuid": "f784569e-767d-47a7-bc79-4f2264fa3b01",
+  "title": "Respons 5xx academic tidak lagi membocorkan detail error internal tanpa mengubah pesan domain 4xx",
+  "description": "## Background / Problem\n\nHandler academic mengembalikan `err.Error()` mentah pada status 500 di `category_handler.go:67`, `class_handler.go:61,110`, `schedule_handler.go:119,182,245,308,371,428`, dan `enrollment_handler.go:278,331`. Selain itu ada jalur yang default-nya 500 tetapi tetap meneruskan `err.Error()`: `enrollment_handler.go:51-58` (assign schedule), `:166` (`CreateCatalogEnrollment`, checkout publik parent, lewat `catalogEnrollmentErrorStatus`), dan `:200-201` (cancel). Dokumentasi <issue id=\"837cee6c-af51-450f-b186-94fa6cd475d3\" href=\"https://linear.app/farid-zamani/issue/KEL-45/sediakan-pembatalan-enrollment-pending-dari-halaman-parent\">KEL-45</issue> di `docs/08-known-gaps-and-risks.md` mencatat bahwa web sengaja mengganti pesan 5xx karena \"the academic handler answers `500` with the raw Go error string\". Mitigasi itu hanya ada di web, sedangkan klien API lain tetap menerima detail internal.\n\n## Goal\n\nSemua respons 500 academic memakai pesan generik yang stabil dan detailnya hanya tercatat di log, sementara status dan pesan 4xx domain yang dipakai web tetap identik.\n\n## Requirements\n\n* Setiap cabang yang menghasilkan status 500 memakai pesan generik per operasi tanpa `err.Error()`.\n* Cabang 4xx yang sudah dipetakan (403, 404, 409, 422) tetap mengembalikan pesan domain yang sama seperti sekarang.\n* Error asli pada cabang 500 dicatat lewat `slog` dengan konteks operasi.\n* Envelope respons dan kode status yang ada tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Test handler untuk setiap titik di atas membuktikan body 500 tidak memuat teks error internal yang disuntikkan.\n- [ ] Test checkout publik membuktikan respons 422 untuk student bukan milik parent dan kelas yang tidak menerima enrollment masih memuat pesan domain yang sama seperti sebelum perubahan.\n- [ ] Error asli tercatat di log untuk cabang 500.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nEvidence: path:line di atas (`kelolakelas-academic-service/internal/delivery/http/handler/*`). Web `app/(public)/kelas/[id]/_actions/actions.ts` (`responseMessage`) mencocokkan substring `student`, `belong`, `ownership`, `enroll`, `published`, dan `open` pada 422, sehingga pesan 4xx wajib dipertahankan. Handler academic saat ini belum memakai `slog`; gunakan logger default yang sudah dikonfigurasi di `cmd/server/main.go`. Pesan 400 hasil binding JSON tidak diubah. Perbarui `kelolakelas-docs` (halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup/menyempit, serta evidence index) dalam PR docs terpisah setelah PR kode merge.\n\nComplexity: `medium`. Complexity rationale: Ada sekitar 14 titik di empat handler, termasuk jalur checkout publik. Web mencocokkan substring `message` pada respons 422, sehingga perubahan harus memisahkan 5xx dari 4xx dengan hati-hati.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/delivery/http/handler/category_handler.go`\n* `kelolakelas-academic-service/internal/delivery/http/handler/class_handler.go`\n* `kelolakelas-academic-service/internal/delivery/http/handler/schedule_handler.go`\n* `kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go`\n\n## Edge Cases\n\n* `catalogEnrollmentErrorStatus` mengembalikan 4xx untuk sebagian error dan 500 untuk sisanya; hanya cabang 500 yang disanitasi.\n* Kegagalan panggilan billing saat checkout tetap dipetakan ke 5xx dan web tetap menampilkan pesan layanan pembayaran bermasalah.\n* Endpoint internal `ReleaseInternal` dipanggil billing; billing tidak boleh bergantung pada teks pesan 500.\n\n## Testing / Validation\n\n- [ ] Tambahkan test tabel per handler yang menyuntikkan error internal dan memeriksa body 500.\n- [ ] Jalankan test web `app/(public)/kelas/[id]/_actions` untuk memastikan pemetaan 422 tidak berubah.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Sanitasi identity dan billing (issue terpisah).\n* Pesan validasi 400 dari binding JSON.\n* Perubahan pemetaan status error domain.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"academic-sanitize-5xx-responses\",\n  \"projectKey\": \"platform-security-hardening\",\n  \"title\": \"Respons 5xx academic tidak lagi membocorkan detail error internal tanpa mengubah pesan domain 4xx\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"academic\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Handler academic mengembalikan `err.Error()` mentah pada status 500 di `category_handler.go:67`, `class_handler.go:61,110`, `schedule_handler.go:119,182,245,308,371,428`, dan `enrollment_handler.go:278,331`. Selain itu ada jalur yang default-nya 500 tetapi tetap meneruskan `err.Error()`: `enrollment_handler.go:51-58` (assign schedule), `:166` (`CreateCatalogEnrollment`, checkout publik parent, lewat `catalogEnrollmentErrorStatus`), dan `:200-201` (cancel). Dokumentasi KEL-45 di `docs/08-known-gaps-and-risks.md` mencatat bahwa web sengaja mengganti pesan 5xx karena \\\"the academic handler answers `500` with the raw Go error string\\\". Mitigasi itu hanya ada di web, sedangkan klien API lain tetap menerima detail internal.\",\n    \"goal\": \"Semua respons 500 academic memakai pesan generik yang stabil dan detailnya hanya tercatat di log, sementara status dan pesan 4xx domain yang dipakai web tetap identik.\",\n    \"requirements\": [\n      \"Setiap cabang yang menghasilkan status 500 memakai pesan generik per operasi tanpa `err.Error()`.\",\n      \"Cabang 4xx yang sudah dipetakan (403, 404, 409, 422) tetap mengembalikan pesan domain yang sama seperti sekarang.\",\n      \"Error asli pada cabang 500 dicatat lewat `slog` dengan konteks operasi.\",\n      \"Envelope respons dan kode status yang ada tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Test handler untuk setiap titik di atas membuktikan body 500 tidak memuat teks error internal yang disuntikkan.\",\n      \"Test checkout publik membuktikan respons 422 untuk student bukan milik parent dan kelas yang tidak menerima enrollment masih memuat pesan domain yang sama seperti sebelum perubahan.\",\n      \"Error asli tercatat di log untuk cabang 500.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Evidence: path:line di atas (`kelolakelas-academic-service/internal/delivery/http/handler/*`). Web `app/(public)/kelas/[id]/_actions/actions.ts` (`responseMessage`) mencocokkan substring `student`, `belong`, `ownership`, `enroll`, `published`, dan `open` pada 422, sehingga pesan 4xx wajib dipertahankan. Handler academic saat ini belum memakai `slog`; gunakan logger default yang sudah dikonfigurasi di `cmd/server/main.go`. Pesan 400 hasil binding JSON tidak diubah. Perbarui `kelolakelas-docs` (halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup/menyempit, serta evidence index) dalam PR docs terpisah setelah PR kode merge.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/delivery/http/handler/category_handler.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/handler/class_handler.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/handler/schedule_handler.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go\"\n    ],\n    \"edgeCases\": [\n      \"`catalogEnrollmentErrorStatus` mengembalikan 4xx untuk sebagian error dan 500 untuk sisanya; hanya cabang 500 yang disanitasi.\",\n      \"Kegagalan panggilan billing saat checkout tetap dipetakan ke 5xx dan web tetap menampilkan pesan layanan pembayaran bermasalah.\",\n      \"Endpoint internal `ReleaseInternal` dipanggil billing; billing tidak boleh bergantung pada teks pesan 500.\"\n    ],\n    \"testingValidation\": [\n      \"Tambahkan test tabel per handler yang menyuntikkan error internal dan memeriksa body 500.\",\n      \"Jalankan test web `app/(public)/kelas/[id]/_actions` untuk memastikan pemetaan 422 tidak berubah.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Sanitasi identity dan billing (issue terpisah).\",\n      \"Pesan validasi 400 dari binding JSON.\",\n      \"Perubahan pemetaan status error domain.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-64/respons-5xx-academic-tidak-lagi-membocorkan-detail-error-internal",
+  "gitBranchName": "skinel123/kel-64-respons-5xx-academic-tidak-lagi-membocorkan-detail-error",
+  "createdAt": "2026-09-24T07:09:18.470Z",
+  "updatedAt": "2026-09-27T23:41:56.872Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T07:53:40.603Z",
+  "startedAt": "2026-09-26T07:10:46.460Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "academic",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "5d3a122a-b2c6-4f16-8312-0afdc34b13a8",
+      "title": "docs: record KEL-64 academic 5xx response sanitization",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/73"
+    },
+    {
+      "id": "7dbb6926-e9ae-4f3a-bedd-fd6ac75d4114",
+      "title": "KEL-64: redact academic 5xx handler errors",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/18"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T07:09:18.470Z",
+      "endedAt": "2026-09-26T07:10:46.471Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T07:10:46.471Z",
+      "endedAt": "2026-09-26T07:53:40.609Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T07:53:40.609Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pengerasan keamanan dan ketahanan runtime platform",
+  "projectId": "be75a629-541d-4d3d-9b72-d6098e99313a",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-67",
+        "title": "Pengguna dapat memulai dan menyelesaikan reset password dari web"
+      },
+      {
+        "id": "KEL-65",
+        "title": "Panggilan server-side web ke gateway membawa IP klien asli"
+      },
+      {
+        "id": "KEL-79",
+        "title": "Anggota Teacher dapat dipindah role tanpa mengizinkan perubahan role sendiri"
+      },
+      {
+        "id": "KEL-76",
+        "title": "Permission identity hanya berlaku bagi anggota tenant yang masih aktif dengan role saat ini"
+      },
+      {
+        "id": "KEL-45",
+        "title": "Sediakan pembatalan enrollment pending dari halaman parent"
+      },
+      {
+        "id": "KEL-107",
+        "title": "Parent dapat mengajukan jadwal kelas private dan tenant dapat meninjau atau menolaknya melalui API"
+      },
+      {
+        "id": "KEL-56",
+        "title": "Transaksi hanya ditandai lunas setelah status pembayaran dikonfirmasi ke Duitku"
+      },
+      {
+        "id": "KEL-51",
+        "title": "Perubahan jadwal dan tutor permanen menghasilkan jadwal pengganti yang valid dan mempertahankan peserta"
+      },
+      {
+        "id": "KEL-50",
+        "title": "Tenant dapat menetapkan kapasitas jadwal dan menambah jadwal kelas grup dari dashboard"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

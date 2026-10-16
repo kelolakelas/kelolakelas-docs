@@ -1,0 +1,92 @@
+{
+  "id": "KEL-24",
+  "uuid": "1fb64c3c-6648-4f0e-b0c1-7585afc60adb",
+  "title": "Pulihkan transaksi yang tertahan di status creating saat pembuatan invoice gagal",
+  "description": "## Background / Problem\n\n`GenerateSubscriptionPayment` mengklaim transaksi ke status `creating` melalui `ClaimInvoice` (`internal/repository/transaction_repository.go:111-116`) lalu memanggil Duitku; jika `CreateInvoice` gagal, fungsi mengembalikan error tanpa memulihkan status (`internal/usecase/transaction_usecase.go:176-207`). `ClaimInvoice` hanya mencocokkan `pending` atau `failed`, sehingga setiap retry dengan idempotency key yang sama mengembalikan `invoice creation is already in progress` selamanya; parent tidak pernah mendapat checkout URL sementara enrollment pending tetap menahan kuota. Status `creating` juga tidak ada dalam whitelist filter list transaksi (`internal/delivery/http/handler/transaction_handler.go:42`).\n\n## Goal\n\nKegagalan sementara provider tidak pernah meninggalkan transaksi dalam status yang tidak dapat diklaim ulang, dan retry berikutnya berhasil menghasilkan invoice.\n\n## Requirements\n\n* Ketika pembuatan invoice gagal, transaksi dikembalikan ke status yang dapat diklaim secara atomik dan alasan kegagalan tercatat.\n* Klaim yang ditinggalkan karena proses mati dapat diklaim ulang setelah batas waktu yang ditentukan.\n* Klaim tetap eksklusif: dua request paralel menghasilkan tepat satu invoice.\n* Filter status list transaksi mengenali seluruh status yang benar-benar ditulis kode.\n\n## Acceptance Criteria\n\n- [ ] Setelah kegagalan provider yang disimulasikan, request berikutnya dengan enrollment yang sama berhasil membuat invoice\n- [ ] Dua request paralel untuk enrollment yang sama menghasilkan tepat satu invoice Duitku\n- [ ] Transaksi berstatus creating yang lebih tua dari batas waktu dapat diklaim ulang\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nPemulihan harus terjadi pada jalur error yang sama dan tidak boleh menimpa transaksi yang sudah memiliki checkout URL. Batas waktu klaim harus dapat dikonfigurasi. Perbarui dokumentasi flow billing.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/internal/usecase/transaction_usecase.go`\n* `kelolakelas-billing-service/internal/repository/transaction_repository.go`\n* `kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go`\n\n## Edge Cases\n\n* Provider berhasil membuat invoice tetapi respons hilang; klaim berikutnya membuat invoice kedua dengan merchant order ID yang sama.\n* Update status setelah kegagalan juga gagal.\n* Transaksi renewal yang dibuat subscription worker.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Kedaluwarsa transaksi pending.\n* Perubahan payment method atau provider.\n* Notifikasi ke parent.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"billing-recover-stuck-invoice-claim\",\n  \"projectKey\": \"enrollment-payment-lifecycle\",\n  \"title\": \"Pulihkan transaksi yang tertahan di status creating saat pembuatan invoice gagal\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`GenerateSubscriptionPayment` mengklaim transaksi ke status `creating` melalui `ClaimInvoice` (`internal/repository/transaction_repository.go:111-116`) lalu memanggil Duitku; jika `CreateInvoice` gagal, fungsi mengembalikan error tanpa memulihkan status (`internal/usecase/transaction_usecase.go:176-207`). `ClaimInvoice` hanya mencocokkan `pending` atau `failed`, sehingga setiap retry dengan idempotency key yang sama mengembalikan `invoice creation is already in progress` selamanya; parent tidak pernah mendapat checkout URL sementara enrollment pending tetap menahan kuota. Status `creating` juga tidak ada dalam whitelist filter list transaksi (`internal/delivery/http/handler/transaction_handler.go:42`).\",\n    \"goal\": \"Kegagalan sementara provider tidak pernah meninggalkan transaksi dalam status yang tidak dapat diklaim ulang, dan retry berikutnya berhasil menghasilkan invoice.\",\n    \"requirements\": [\n      \"Ketika pembuatan invoice gagal, transaksi dikembalikan ke status yang dapat diklaim secara atomik dan alasan kegagalan tercatat.\",\n      \"Klaim yang ditinggalkan karena proses mati dapat diklaim ulang setelah batas waktu yang ditentukan.\",\n      \"Klaim tetap eksklusif: dua request paralel menghasilkan tepat satu invoice.\",\n      \"Filter status list transaksi mengenali seluruh status yang benar-benar ditulis kode.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Setelah kegagalan provider yang disimulasikan, request berikutnya dengan enrollment yang sama berhasil membuat invoice\",\n      \"Dua request paralel untuk enrollment yang sama menghasilkan tepat satu invoice Duitku\",\n      \"Transaksi berstatus creating yang lebih tua dari batas waktu dapat diklaim ulang\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Pemulihan harus terjadi pada jalur error yang sama dan tidak boleh menimpa transaksi yang sudah memiliki checkout URL. Batas waktu klaim harus dapat dikonfigurasi. Perbarui dokumentasi flow billing.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/internal/usecase/transaction_usecase.go\",\n      \"kelolakelas-billing-service/internal/repository/transaction_repository.go\",\n      \"kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go\"\n    ],\n    \"edgeCases\": [\n      \"Provider berhasil membuat invoice tetapi respons hilang; klaim berikutnya membuat invoice kedua dengan merchant order ID yang sama.\",\n      \"Update status setelah kegagalan juga gagal.\",\n      \"Transaksi renewal yang dibuat subscription worker.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Kedaluwarsa transaksi pending.\",\n      \"Perubahan payment method atau provider.\",\n      \"Notifikasi ke parent.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-24/pulihkan-transaksi-yang-tertahan-di-status-creating-saat-pembuatan",
+  "gitBranchName": "skinel123/kel-24-pulihkan-transaksi-yang-tertahan-di-status-creating-saat",
+  "createdAt": "2026-09-16T11:45:11.895Z",
+  "updatedAt": "2026-09-20T17:40:12.417Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-20T17:36:41.613Z",
+  "startedAt": "2026-09-20T17:18:48.003Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "b7165509-9e7f-4b2f-b11b-7334dca2ed0f",
+      "title": "KEL-24 document the invoice claim and its recovery",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/31"
+    },
+    {
+      "id": "eff1719c-b776-482c-89f2-5e7a905b05b1",
+      "title": "KEL-24 recover transactions stuck in the creating status during invoice creation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/7"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:45:11.895Z",
+      "endedAt": "2026-09-20T17:18:48.012Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-20T17:18:48.012Z",
+      "endedAt": "2026-09-20T17:36:41.618Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-20T17:36:41.618Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Siklus hidup enrollment dan pembayaran yang lengkap",
+  "projectId": "bebfbed6-762c-44ba-94c9-e6f7c20904d9",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

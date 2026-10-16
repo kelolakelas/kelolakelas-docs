@@ -1,0 +1,110 @@
+{
+  "id": "KEL-118",
+  "uuid": "10e9f052-a5f7-4fed-8d18-6d73fde6f341",
+  "title": "Academic menyediakan konteks permintaan jadwal private dan report untuk chat-service melalui endpoint internal",
+  "description": "## Background / Problem\n\nChat-service harus memastikan parent hanya membuka percakapan untuk permintaan jadwal miliknya, dan pengajar hanya membuka percakapan report di tenant-nya. Datanya hanya ada di academic:\n\n* permintaan jadwal private (`internal/domain/private_schedule_request.go`: `tenant_id`, `parent_id`, `class_id`, `student_id`, `status`);\n* report (`internal/domain/report.go`: `TenantID`, `EnrollmentID`, `ReporterID`);\n* relasi enrollment ke student (`internal/domain/enrollment.go:54`) dan pemilik student (`internal/domain/student.go:22` `ParentID`).\n\nEndpoint publik report hanya untuk anggota tenant (`cmd/server/attendance_report_routes.go:17-21`). Academic sudah memiliki grup internal ber-`InternalServiceAuth` (`cmd/server/routes.go:99-102`, header `X-Internal-Service-Credential`).\n\n## Goal\n\nChat-service dapat mengambil konteks minimal satu permintaan jadwal private atau satu report lewat endpoint internal yang dilindungi credential, tanpa membuka data tersebut ke publik.\n\n## Requirements\n\n* `GET /internal/chat-context/schedule-requests/:id` mengembalikan `id`, `tenant_id`, `parent_id`, `class_id`, `class_name`, `student_id`, `student_first_name`, dan `status`.\n* `GET /internal/chat-context/reports/:id` mengembalikan `id`, `tenant_id`, `enrollment_id`, `student_id`, `student_first_name`, `parent_id`, `class_name`, `title`, dan `reporter_id`.\n* Kedua endpoint hanya terdaftar di grup `/internal` dengan `InternalServiceAuth`, dan tidak ada route gateway baru.\n* ID tidak valid dijawab 400. Resource yang tidak ada atau sudah soft-deleted (termasuk report yang student-nya soft-deleted) dijawab 404 dengan envelope standar.\n* Response tidak memuat field lain: tanpa catatan parent, email parent, skor, atau isi evaluasi report.\n\n## Acceptance Criteria\n\n- [ ] Request tanpa credential atau dengan credential salah ditolak 401 tanpa menyentuh database.\n- [ ] Dengan credential benar, kedua endpoint mengembalikan konteks yang sesuai untuk permintaan jadwal dan report yang ada.\n- [ ] Resource yang sudah soft-deleted dijawab 404.\n- [ ] Perilaku endpoint publik report dan permintaan jadwal tidak berubah.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko utama: kebocoran data lintas tenant, karena endpoint internal ini tidak memfilter tenant. Chat-service wajib membandingkan `tenant_id` dan `parent_id` dengan token pemanggil (diatur di issue `chat-service-conversation-contexts`). Mitigasi di sisi academic adalah payload minimal dan credential wajib. Ikuti pola `ActivateInternal` (`internal/delivery/http/handler/enrollment_handler.go:390`). Nama field dan path di atas adalah kontrak untuk chat-service. Perbarui kelolakelas-docs `docs/api/academic.md` (bagian internal) dan `docs/api/endpoint-matrix.md`.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/cmd/server/routes.go`\n* `kelolakelas-academic-service/internal/delivery/http/handler`\n* `kelolakelas-academic-service/internal/delivery/http/middleware/auth_middleware.go`\n* `kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go`\n* `kelolakelas-academic-service/internal/usecase/report_usecase.go`\n* `kelolakelas-academic-service/internal/repository`\n\n## Edge Cases\n\n* Permintaan jadwal berstatus `cancelled` atau `rejected` tetap dikembalikan beserta statusnya.\n* UUID valid tetapi milik jenis resource lain, misalnya ID report di endpoint schedule-request, dijawab 404.\n* Kelas terkait sudah di-unpublish; `class_name` tetap dikembalikan.\n\n## Testing / Validation\n\n- [ ] Handler test kedua endpoint untuk 401 (tanpa credential dan credential salah), 400, 404, dan 200.\n- [ ] Test bahwa response hanya memuat field yang ditentukan, sebagai mitigasi kebocoran data.\n- [ ] Route test bahwa kedua endpoint tidak terdaftar di luar `/internal`.\n- [ ] Existing tests pass, `gofmt`/`go vet`/`go test -race` pass, dan acceptance criteria diverifikasi.\n\n## Out of Scope\n\n* Perubahan endpoint publik report atau permintaan jadwal.\n* Akses parent ke isi report.\n* Route gateway.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"projectKey\": \"tenant-parent-teacher-chat\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"externalDependencies\": [],\n  \"draftKey\": \"academic-chat-context-internal-api\",\n  \"title\": \"Academic menyediakan konteks permintaan jadwal private dan report untuk chat-service melalui endpoint internal\",\n  \"estimate\": \"M\",\n  \"complexity\": \"high\",\n  \"repositories\": [\n    \"academic\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Chat-service harus memastikan parent hanya membuka percakapan untuk permintaan jadwal miliknya, dan pengajar hanya membuka percakapan report di tenant-nya. Datanya hanya ada di academic:\\n- permintaan jadwal private (`internal/domain/private_schedule_request.go`: `tenant_id`, `parent_id`, `class_id`, `student_id`, `status`);\\n- report (`internal/domain/report.go`: `TenantID`, `EnrollmentID`, `ReporterID`);\\n- relasi enrollment ke student (`internal/domain/enrollment.go:54`) dan pemilik student (`internal/domain/student.go:22` `ParentID`).\\n\\nEndpoint publik report hanya untuk anggota tenant (`cmd/server/attendance_report_routes.go:17-21`). Academic sudah memiliki grup internal ber-`InternalServiceAuth` (`cmd/server/routes.go:99-102`, header `X-Internal-Service-Credential`).\",\n    \"goal\": \"Chat-service dapat mengambil konteks minimal satu permintaan jadwal private atau satu report lewat endpoint internal yang dilindungi credential, tanpa membuka data tersebut ke publik.\",\n    \"requirements\": [\n      \"`GET /internal/chat-context/schedule-requests/:id` mengembalikan `id`, `tenant_id`, `parent_id`, `class_id`, `class_name`, `student_id`, `student_first_name`, dan `status`.\",\n      \"`GET /internal/chat-context/reports/:id` mengembalikan `id`, `tenant_id`, `enrollment_id`, `student_id`, `student_first_name`, `parent_id`, `class_name`, `title`, dan `reporter_id`.\",\n      \"Kedua endpoint hanya terdaftar di grup `/internal` dengan `InternalServiceAuth`, dan tidak ada route gateway baru.\",\n      \"ID tidak valid dijawab 400. Resource yang tidak ada atau sudah soft-deleted (termasuk report yang student-nya soft-deleted) dijawab 404 dengan envelope standar.\",\n      \"Response tidak memuat field lain: tanpa catatan parent, email parent, skor, atau isi evaluasi report.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Request tanpa credential atau dengan credential salah ditolak 401 tanpa menyentuh database.\",\n      \"Dengan credential benar, kedua endpoint mengembalikan konteks yang sesuai untuk permintaan jadwal dan report yang ada.\",\n      \"Resource yang sudah soft-deleted dijawab 404.\",\n      \"Perilaku endpoint publik report dan permintaan jadwal tidak berubah.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko utama: kebocoran data lintas tenant, karena endpoint internal ini tidak memfilter tenant. Chat-service wajib membandingkan `tenant_id` dan `parent_id` dengan token pemanggil (diatur di issue `chat-service-conversation-contexts`). Mitigasi di sisi academic adalah payload minimal dan credential wajib. Ikuti pola `ActivateInternal` (`internal/delivery/http/handler/enrollment_handler.go:390`). Nama field dan path di atas adalah kontrak untuk chat-service. Perbarui kelolakelas-docs `docs/api/academic.md` (bagian internal) dan `docs/api/endpoint-matrix.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/cmd/server/routes.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/handler\",\n      \"kelolakelas-academic-service/internal/delivery/http/middleware/auth_middleware.go\",\n      \"kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go\",\n      \"kelolakelas-academic-service/internal/usecase/report_usecase.go\",\n      \"kelolakelas-academic-service/internal/repository\"\n    ],\n    \"edgeCases\": [\n      \"Permintaan jadwal berstatus `cancelled` atau `rejected` tetap dikembalikan beserta statusnya.\",\n      \"UUID valid tetapi milik jenis resource lain, misalnya ID report di endpoint schedule-request, dijawab 404.\",\n      \"Kelas terkait sudah di-unpublish; `class_name` tetap dikembalikan.\"\n    ],\n    \"testingValidation\": [\n      \"Handler test kedua endpoint untuk 401 (tanpa credential dan credential salah), 400, 404, dan 200.\",\n      \"Test bahwa response hanya memuat field yang ditentukan, sebagai mitigasi kebocoran data.\",\n      \"Route test bahwa kedua endpoint tidak terdaftar di luar `/internal`.\",\n      \"Existing tests pass, `gofmt`/`go vet`/`go test -race` pass, dan acceptance criteria diverifikasi.\"\n    ],\n    \"outOfScope\": [\n      \"Perubahan endpoint publik report atau permintaan jadwal.\",\n      \"Akses parent ke isi report.\",\n      \"Route gateway.\"\n    ]\n  },\n  \"labels\": [\n    \"academic\",\n    \"ai-ready\"\n  ]\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-118/academic-menyediakan-konteks-permintaan-jadwal-private-dan-report",
+  "gitBranchName": "skinel123/kel-118-academic-menyediakan-konteks-permintaan-jadwal-private-dan",
+  "createdAt": "2026-09-28T05:32:06.079Z",
+  "updatedAt": "2026-09-28T13:19:44.103Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-28T13:16:55.131Z",
+  "startedAt": "2026-09-28T13:02:20.151Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "academic",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "f6be6878-9810-427a-b619-82689f835730",
+      "title": "KEL-118: document internal academic chat-context endpoints",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/117"
+    },
+    {
+      "id": "f5f21a50-c95e-406e-a0e2-8ad644f9a0bc",
+      "title": "KEL-118: provide internal chat context for schedule requests and reports",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/37"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T05:32:06.079Z",
+      "endedAt": "2026-09-28T13:02:20.164Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-28T13:02:20.164Z",
+      "endedAt": "2026-09-28T13:16:55.138Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-28T13:16:55.138Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Chat realtime antara tenant, pengajar, dan parent",
+  "projectId": "6fd7df4e-3f90-4efc-b835-f60581a2ce78",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-120",
+        "title": "Chat-service mendukung percakapan parent\u2013admin tenant per permintaan jadwal private dan pengajar\u2013parent per report"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-115",
+        "title": "Tenant dapat menolak permintaan jadwal private dengan rekomendasi jadwal lain dan parent dapat menerimanya melalui API"
+      },
+      {
+        "id": "KEL-110",
+        "title": "Tenant meninjau, menyetujui, atau menolak permintaan jadwal private dari dashboard"
+      },
+      {
+        "id": "KEL-117",
+        "title": "Identity menyediakan permission tenant `chat:manage` untuk admin yang menangani chat"
+      }
+    ],
+    "duplicateOf": null
+  }
+}
