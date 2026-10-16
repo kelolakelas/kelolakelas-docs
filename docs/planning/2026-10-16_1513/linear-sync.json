@@ -1,0 +1,238 @@
+{
+  "schemaVersion": "kelolakelas.linear-sync/v1",
+  "runId": "2026-10-16_1513",
+  "approval": "User: ya setuju semua!",
+  "status": "released-and-verified",
+  "projects": {
+    "tenant-selling-operations": {
+      "identifier": "P-KEL-7",
+      "id": "0925b72f-fbab-4d82-b530-cac847cb5ec2",
+      "reused": true
+    }
+  },
+  "issues": {
+    "atomic-class-creation-api": {
+      "identifier": "KEL-196",
+      "id": "4e8453bc-18a6-4779-a12c-0651934e3615",
+      "url": "https://linear.app/farid-zamani/issue/KEL-196/simpan-kategori-kelas-pengajar-dan-jadwal-dalam-satu-transaksi-final",
+      "blockedBy": [],
+      "status": "released",
+      "labels": [
+        "academic",
+        "ai-ready"
+      ]
+    },
+    "deferred-class-creation-wizard": {
+      "identifier": "KEL-197",
+      "id": "fa478e91-76a5-4e83-aab5-24df9a6ce6d4",
+      "url": "https://linear.app/farid-zamani/issue/KEL-197/jadikan-wizard-kelas-draft-lokal-sampai-final-submit-berhasil",
+      "blockedBy": [
+        "KEL-196"
+      ],
+      "status": "released",
+      "labels": [
+        "web",
+        "ai-ready"
+      ]
+    },
+    "complete-class-editor": {
+      "identifier": "KEL-198",
+      "id": "d1b28992-f2f8-4400-b950-2d813291e37a",
+      "url": "https://linear.app/farid-zamani/issue/KEL-198/lengkapi-edit-kelas-dengan-kategori-dan-jadwal-lalu-hapus-add-schedule",
+      "blockedBy": [
+        "KEL-197"
+      ],
+      "status": "released",
+      "labels": [
+        "academic",
+        "web",
+        "ai-ready"
+      ]
+    },
+    "delete-class-action": {
+      "identifier": "KEL-199",
+      "id": "f36ef94d-bf6a-4814-a488-bf345069a05f",
+      "url": "https://linear.app/farid-zamani/issue/KEL-199/tambahkan-hapus-kelas-dengan-konfirmasi-dan-penanganan-konflik",
+      "blockedBy": [],
+      "status": "released",
+      "labels": [
+        "web",
+        "ai-ready"
+      ]
+    },
+    "schedule-form-layout": {
+      "identifier": "KEL-200",
+      "id": "05562b54-da7b-4ca5-95f1-a0f2727abb38",
+      "url": "https://linear.app/farid-zamani/issue/KEL-200/rapikan-day-of-week-start-time-dan-end-time-pada-form-jadwal",
+      "blockedBy": [
+        "KEL-198"
+      ],
+      "status": "released",
+      "labels": [
+        "web",
+        "ai-ready"
+      ]
+    },
+    "voucher-day-boundary-defaults": {
+      "identifier": "KEL-201",
+      "id": "3bb9740d-ffb1-414f-b9e6-1823dd8d06fe",
+      "url": "https://linear.app/farid-zamani/issue/KEL-201/default-waktu-voucher-dari-000000-sampai-235959",
+      "blockedBy": [],
+      "status": "released",
+      "labels": [
+        "web",
+        "ai-ready"
+      ]
+    },
+    "tenant-chat-layout": {
+      "identifier": "KEL-202",
+      "id": "066da230-de68-4265-9d5c-06b776fdaac5",
+      "url": "https://linear.app/farid-zamani/issue/KEL-202/rapikan-layout-dan-styling-halaman-chat-tenant",
+      "blockedBy": [],
+      "status": "released",
+      "labels": [
+        "web",
+        "ai-ready"
+      ]
+    },
+    "owner-account-request-members-only": {
+      "identifier": "KEL-203",
+      "id": "3b8ad9ee-4a3f-43ad-a7b8-c809aa5095f7",
+      "url": "https://linear.app/farid-zamani/issue/KEL-203/ubah-creator-request-menjadi-owner-account-request-dan-pindahkan-ke",
+      "blockedBy": [],
+      "status": "released",
+      "labels": [
+        "web",
+        "ai-ready"
+      ]
+    }
+  },
+  "verifiedAt": "2026-10-16T08:28:07.903Z",
+  "verification": {
+    "held": [
+      {
+        "id": "KEL-196",
+        "descriptionMatches": true,
+        "contractMatches": true,
+        "metadataMatches": true,
+        "labelsMatch": true,
+        "relationsMatch": true
+      },
+      {
+        "id": "KEL-197",
+        "descriptionMatches": true,
+        "contractMatches": true,
+        "metadataMatches": true,
+        "labelsMatch": true,
+        "relationsMatch": true
+      },
+      {
+        "id": "KEL-198",
+        "descriptionMatches": true,
+        "contractMatches": true,
+        "metadataMatches": true,
+        "labelsMatch": true,
+        "relationsMatch": true
+      },
+      {
+        "id": "KEL-199",
+        "descriptionMatches": true,
+        "contractMatches": true,
+        "metadataMatches": true,
+        "labelsMatch": true,
+        "relationsMatch": true
+      },
+      {
+        "id": "KEL-200",
+        "descriptionMatches": true,
+        "contractMatches": true,
+        "metadataMatches": true,
+        "labelsMatch": true,
+        "relationsMatch": true
+      },
+      {
+        "id": "KEL-201",
+        "descriptionMatches": true,
+        "contractMatches": true,
+        "metadataMatches": true,
+        "labelsMatch": true,
+        "relationsMatch": true
+      },
+      {
+        "id": "KEL-202",
+        "descriptionMatches": true,
+        "contractMatches": true,
+        "metadataMatches": true,
+        "labelsMatch": true,
+        "relationsMatch": true
+      },
+      {
+        "id": "KEL-203",
+        "descriptionMatches": true,
+        "contractMatches": true,
+        "metadataMatches": true,
+        "labelsMatch": true,
+        "relationsMatch": true
+      }
+    ],
+    "released": [
+      {
+        "id": "KEL-196",
+        "labelsMatch": true,
+        "relationsMatch": true,
+        "bodyUnchanged": true,
+        "metadataUnchanged": true
+      },
+      {
+        "id": "KEL-197",
+        "labelsMatch": true,
+        "relationsMatch": true,
+        "bodyUnchanged": true,
+        "metadataUnchanged": true
+      },
+      {
+        "id": "KEL-198",
+        "labelsMatch": true,
+        "relationsMatch": true,
+        "bodyUnchanged": true,
+        "metadataUnchanged": true
+      },
+      {
+        "id": "KEL-199",
+        "labelsMatch": true,
+        "relationsMatch": true,
+        "bodyUnchanged": true,
+        "metadataUnchanged": true
+      },
+      {
+        "id": "KEL-200",
+        "labelsMatch": true,
+        "relationsMatch": true,
+        "bodyUnchanged": true,
+        "metadataUnchanged": true
+      },
+      {
+        "id": "KEL-201",
+        "labelsMatch": true,
+        "relationsMatch": true,
+        "bodyUnchanged": true,
+        "metadataUnchanged": true
+      },
+      {
+        "id": "KEL-202",
+        "labelsMatch": true,
+        "relationsMatch": true,
+        "bodyUnchanged": true,
+        "metadataUnchanged": true
+      },
+      {
+        "id": "KEL-203",
+        "labelsMatch": true,
+        "relationsMatch": true,
+        "bodyUnchanged": true,
+        "metadataUnchanged": true
+      }
+    ],
+    "descriptionNormalization": "Linear canonicalizes bullet markers, escaped underscores and the P-KEL-17 project mention; contract JSON remained identical."
+  }
+}

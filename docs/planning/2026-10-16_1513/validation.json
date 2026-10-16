@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "method": "Current planning-contract.ts via Node native TypeScript; historical renderer ba4f3af replayed in memory",
+  "standardRender": "failed: retired",
+  "standardIntakeCommand": "unavailable: tsx not installed",
+  "schemaSha256": "a2c994ef33c08c8d50965ed336a6df2a1a6a595160783812e771493ccddf64af",
+  "projects": 1,
+  "issues": 8,
+  "sourceAbsent": true,
+  "repositoryToolingChanged": false
+}
