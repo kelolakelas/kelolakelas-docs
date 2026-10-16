@@ -1,5 +1,14 @@
 # Academic API
 
+## Complete class editing (KEL-198)
+
+**Implemented:** `PATCH /api/v1/classes/:id` accepts optional `category` (name/description, mutually exclusive with `category_id`), `is_published`, `enrollment_status` (`open|closed|full|archived`) and `teacher_ids`, alongside existing mutable attributes. Inline category creation additionally requires `category:create`. The class row is locked; category creation, Teacher replacement and class update commit together. Teacher IDs must be distinct active tenant memberships; identity failure is 503. Class reads add `teacher_ids`. Existing enrollment `gross_amount` is untouched.
+
+`PUT /api/v1/schedules/permanent` and the existing ID alias add optional `new_capacity`, `new_location`, `new_tutor_id`. Omitted fields retain stored values; zero UUID explicitly unassigns a tutor. Capacity is 1..2147483647 (private exactly 1), location at most 255 characters, weekday 1..7, and start precedes end. An owned schedule is locked, effective date must be within validity and no earlier than today in Asia/Jakarta, and affected sessions are locked. Completed sessions or attendance at/after the date cause 409; capacity below pending/active enrollments causes 409. Active enrollment links transfer to the replacement in the same transaction while earlier sessions/attendance and sold prices remain. New nonzero tutor IDs require active tenant membership (400 ineligible, 503 unavailable). No gateway change or migration is required.
+
+`DELETE /api/v1/schedules/:id` now locks the owned schedule and rejects pending/active seats or completed/attended sessions from today onward with 409. Otherwise it soft-deletes the schedule and cancels future scheduled sessions while retaining historical rows. Existing operation permissions (`class:update`, `schedule:create|update|delete`) remain independent. Evidence: academic class/schedule DTOs, repositories, usecases, handlers, registered routes and regenerated Swagger; [ADR 0069](../adr/0069-complete-class-editor.md).
+
+
 ## Atomic class configuration (KEL-196)
 
 **Implemented:** `POST /api/v1/classes/with-category` accepts exactly one of `category_id` (existing, owned by the JWT tenant) or `category: {name, description?}`, plus `class`, non-empty unique active tenant `teacher_ids`, and optional `schedules` (maximum 366). Each group slot uses the existing `ScheduleItemRequest` fields: capacity, ISO weekday, start/end time, optional assigned tutor, location and validity dates. Slot tutors must be included in `teacher_ids`; enrollment-bound creation slots are rejected. Private classes reject initial schedules and continue to schedule after enrollment.
