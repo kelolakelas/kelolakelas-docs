@@ -86,3 +86,7 @@ callback that arrives afterwards still marks the transaction `paid` and keeps
 [ADR 0009](../adr/0009-local-invoice-expiry-without-losing-late-payments.md).
 Evidence: `internal/usecase/transaction_expiry_worker.go`,
 `internal/repository/transaction_repository.go:147-166`, `cmd/server/main.go:110-115`.
+
+## Tenant voucher validity inputs (KEL-201)
+
+**Implemented:** the voucher form uses browser-local date/time controls with seconds. Choosing a new validity date sets the initial time to `00:00:00` (`valid_from`) or `23:59:59` (`valid_until`). Existing and deliberately changed times survive date changes; an untouched edit preserves the stored instant and fractional seconds. The browser sends ISO timestamps before the existing server action normalizes and forwards them, avoiding reinterpretation in the server timezone. Range validation and voucher eligibility rules are unchanged. See [web evidence](../components/web.md#voucher-local-day-defaults-and-second-precision-kel-201).
