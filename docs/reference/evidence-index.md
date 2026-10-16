@@ -229,3 +229,5 @@ Generated service Swagger (`docs/swagger.json`) was consulted as contract corrob
 | API → data | Existing academic main deletion transaction against isolated PostgreSQL 15 |
 | Data → response | Active enrollment refusal, then soft deletion after test enrollment cancellation |
 | Response → UI | Error dialog retained; successful deletion removed both layout rows; no runtime exceptions |
+
+- **KEL-200:** accessible schedule layout, instance-unique labels, described validation errors and synthetic browser evidence: web `a7e3beb`, `ScheduleForm.tsx`, `ClassConfigurationEditor.tsx`, `schedule-field-styles.ts`, adjacent tests; [component details and validation](../components/web.md#accessible-schedule-field-layout-kel-200).
