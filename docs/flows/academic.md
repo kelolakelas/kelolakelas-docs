@@ -1,5 +1,7 @@
 # Academic and enrollment flow
 
+**Implemented (KEL-196):** final aggregate API creation accepts a draft category or owned existing category plus class, active teacher assignments and optional group slots. It validates operation-specific permissions, locks an existing category and commits all records, generated start-month sessions and retry response together. Failure leaves no new records; the tenant/key fingerprint serializes concurrent retries. Private classes retain enrollment-time scheduling. Legacy standalone create routes remain. See [API](../api/academic.md#atomic-class-configuration-kel-196) and [ADR 0067](../adr/0067-atomic-class-creation.md).
+
 **Implemented (KEL-129):** after private-request approval, a tenant explicitly selects `Kirim tautan pembayaran`. Web sends only the request ID through the protected gateway route; academic checks live permissions, request/enrollment ownership and the existing pending invoice, then sends trusted context and expiry to chat. Chat reuses the request conversation and persists one system message per invoice; the parent reads it in the existing inbox. Lock-wait expiry and expired retries are refused without writes. See [ADR 0063](../adr/0063-private-payment-link-chat.md) and [API](../api/academic.md#private-payment-link-delivery). This does not automate sending or regenerate invoices.
 
 ```mermaid

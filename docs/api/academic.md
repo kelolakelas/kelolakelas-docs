@@ -1,5 +1,15 @@
 # Academic API
 
+## Atomic class configuration (KEL-196)
+
+**Implemented:** `POST /api/v1/classes/with-category` accepts exactly one of `category_id` (existing, owned by the JWT tenant) or `category: {name, description?}`, plus `class`, non-empty unique active tenant `teacher_ids`, and optional `schedules` (maximum 366). Each group slot uses the existing `ScheduleItemRequest` fields: capacity, ISO weekday, start/end time, optional assigned tutor, location and validity dates. Slot tutors must be included in `teacher_ids`; enrollment-bound creation slots are rejected. Private classes reject initial schedules and continue to schedule after enrollment.
+
+The route requires `class:create`; a new category additionally requires `category:create`, and initial schedules require `schedule:create`. Parent tokens are denied. Identity membership validation fails closed (400 for ineligible teachers, 503 for unavailable identity). Category selection is tenant-scoped and locked through commit. All category/class/teacher/schedule/session writes use one transaction; sessions and generation watermark preserve the existing start-month policy. Invalid payload/foreign category is 400, permission refusal 403, unexpected write failure 500 with rollback.
+
+Supply `Idempotency-Key` (maximum 128 characters) for a new category or any initial schedules. A tenant/key unique record stores the payload fingerprint and complete response in that same transaction. Concurrent identical retries return the original 201 response and IDs; a changed payload is 409. Failure rolls back the key so a retry can proceed. Keys are retained without automatic expiry; do not reuse one for another creation. The legacy existing-category + class + teacher_ids request remains valid without schedules or a key, but an unkeyed legacy retry has no duplicate guarantee. Response `data.class` remains; `data.category`, `data.schedules`, `data.sessions` are additive.
+
+Deploy migration `00001790900000_class_creation_requests.up.sql` before application rollout. The existing gateway route forwards the body and header without source changes. Evidence: academic `internal/usecase/class_creation_usecase.go`, `internal/repository/class_creation_store.go`, `internal/delivery/http/handler/class_handler.go`, `internal/usecase/class_creation_postgres_test.go`; [ADR 0067](../adr/0067-atomic-class-creation.md).
+
 ## Private payment-link delivery
 
 **Implemented (KEL-129):** `POST /api/v1/schedule-requests/:id/send-payment-link` accepts no body and requires a tenant JWT plus live `enrollment:update` and `chat:manage`; parent tokens are denied. Academic resolves the approved request in the JWT tenant, its pending enrollment by `private-request:<id>`, and its existing transaction via billing using the caller Bearer token (`billing:read` additionally required). Tenant, parent, student and enrollment must match. Only a pending invoice with a valid HTTP/HTTPS checkout URL and future `invoice_expires_at` can be shared; no invoice/enrollment mutation occurs.

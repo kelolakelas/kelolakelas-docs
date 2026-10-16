@@ -1,5 +1,7 @@
 # Evidence index
 
+**Atomic class creation (KEL-196):** academic `internal/usecase/class_creation_postgres_test.go` executes real PostgreSQL triggers that fail category/class/assignment/schedule/session and retry-response writes, verifies unchanged table counts after rollback and successful retry, 12 concurrent identical requests, conflict, existing/new categories, group/private, legacy payload, foreign tenant and membership/permission refusal. Local acceptance also uses the unmodified gateway executable to forward the aggregate and idempotency header. CI provisions PostgreSQL for this test; the optional gateway binary is supplied only in the local acceptance run. [ADR 0067](../adr/0067-atomic-class-creation.md).
+
 **Private payment-link delivery (KEL-129):** academic usecase/client/HTTP tests, chat domain/HTTP/PostgreSQL atomic scope and expiry lock tests, gateway route test and web action/button tests; [ADR 0063](../adr/0063-private-payment-link-chat.md). Final local Go format/vet/race/build and web tests/typecheck/lint/build passed. Real-stack `50beede1be82` PASS in `.kel-autopilot/kel129/manual-e2e.md` covers tenant send, parent inbox, concurrent retries and isolation plus expiry during delivery/lock wait. Stack removed; no separate review session. Four code PR gates and three Go main gates passed; revisions below.
 
 Source paths are repository-relative to `/home/faridzam/workspace/kelolakelas`. Line numbers refer to the analyzed snapshot and are provided where stable.

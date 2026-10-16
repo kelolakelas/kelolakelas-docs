@@ -31,3 +31,7 @@ erDiagram
 | `tenant_location_snapshots`, `seed_versions` | public-catalog tenant-location cache; seed tracking |
 
 `class_schedules.capacity` is the current write target; `classes.capacity` is retained for compatibility according to migration `000004`. All times were migrated to PostgreSQL `time` in `00001786681222`.
+
+## Class creation retry records (KEL-196)
+
+**Implemented:** `class_creation_requests` uses composite primary key `(tenant_id, request_key)`, SHA-256 `payload_hash`, JSONB `response` and `created_at`. Migration `00001790900000` creates the table. A successful aggregate and its response commit together; a failed transaction leaves no key. There is no cleanup/expiry policy in this change. Evidence: academic `internal/repository/class_creation_store.go` and migration.
