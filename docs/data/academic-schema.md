@@ -1,5 +1,10 @@
 # Academic schema
 
+## Class editor invariants (KEL-198)
+
+**Implemented:** no migration. Existing `class_teachers` assignments are preloaded into additive `teacher_ids` reads and replaced under the class lock in the same transaction as class/category updates. Existing schedule capacity/location/tutor columns are copied or overridden into a new effective-date version; pending/active enrollment links move atomically. The schedule lock serializes with seat reservations; affected session locks protect history checks. Sold enrollment amounts, completed sessions and attendance rows are not rewritten. Unoccupied schedule deletion remains soft deletion. Evidence: academic `class_repository.go`, `schedule_change_guard.go`, `schedule_usecase.go`, `class_editor_postgres_test.go`.
+
+
 **Implemented migration authority:** `kelolakelas-academic-service/migrations/00000000000000_init_schema.up.sql` plus subsequent migrations including `00001790600000_private_schedule_requests.up.sql` (KEL-107), `00001790600001_private_schedule_recommendations.up.sql` (KEL-115), `00001790812223_add_rescheduled_from_to_class_sessions.up.sql` (KEL-134: nullable self-FK `class_sessions.rescheduled_from_session_id` linking a reschedule replacement to its origin session, partial index, no backfill), and `00001790890000_class_reviews.up.sql` (KEL-159).
 
 ```mermaid
