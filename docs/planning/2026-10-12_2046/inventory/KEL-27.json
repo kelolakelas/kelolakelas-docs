@@ -1,0 +1,121 @@
+{
+  "id": "KEL-27",
+  "uuid": "92eb88be-4c5f-4fec-a2a0-6bfdddb96626",
+  "title": "Sediakan pembatalan enrollment pending oleh parent",
+  "description": "## Background / Problem\n\nTidak ada jalur pembatalan enrollment di academic maupun billing; `enrollmentRepo.Delete` tidak dipakai handler mana pun dan status `cancelled` hanya ada di whitelist filter billing tanpa pernah ditulis. Parent yang berubah pikiran sebelum membayar tetap menahan kursi sampai invoice kedaluwarsa.\n\n## Goal\n\nParent dapat membatalkan enrollment miliknya yang masih pending sehingga kursi dilepaskan dan transaksi terkait ditandai dibatalkan.\n\n## Requirements\n\n* Endpoint academic parent-scoped membatalkan enrollment pending milik parent menjadi dropped; enrollment aktif atau milik parent lain ditolak.\n* Billing menandai transaksi pending terkait sebagai cancelled melalui jalur internal yang idempotent.\n* Gateway mendaftarkan route baru pada grup protected dengan test routing.\n* Callback paid setelah pembatalan diperlakukan seperti pada pelepasan kursi: tercatat dan terlihat, tidak mengaktifkan enrollment.\n\n## Acceptance Criteria\n\n- [ ] Parent dapat membatalkan enrollment pending miliknya dan kursinya kembali tersedia\n- [ ] Enrollment aktif, milik parent lain, atau sudah dropped menghasilkan 409 atau 404 sesuai kasus\n- [ ] Transaksi terkait berstatus cancelled pada list transaksi parent\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nTidak ditemukan bukti API Duitku untuk membatalkan invoice di `_docs/duitku`; invoice tetap dapat dibayar di sisi provider sampai kedaluwarsa, sehingga edge case bayar-setelah-batal wajib dicatat. Urutan penulisan academic lalu billing harus didefinisikan agar retry aman.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go`\n* `kelolakelas-academic-service/internal/usecase/enrollment_usecase.go`\n* `kelolakelas-billing-service/internal/usecase/transaction_usecase.go`\n* `kelolakelas-api-gateway/internal/delivery/http/router.go`\n\n## Edge Cases\n\n* Pembatalan bersamaan dengan callback paid.\n* Enrollment pending tanpa transaksi karena invoice gagal dibuat.\n* Parent membatalkan lalu mendaftar ulang kelas dan jadwal yang sama.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Pembatalan enrollment aktif dan refund.\n* UI web pembatalan.\n* Pembatalan invoice di sisi provider.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"cancel-pending-enrollment-backend\",\n  \"projectKey\": \"enrollment-payment-lifecycle\",\n  \"title\": \"Sediakan pembatalan enrollment pending oleh parent\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"academic\",\n    \"billing\",\n    \"api-gateway\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\",\n    \"billing\",\n    \"api-gateway\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"academic-release-seat-on-payment-failure\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Tidak ada jalur pembatalan enrollment di academic maupun billing; `enrollmentRepo.Delete` tidak dipakai handler mana pun dan status `cancelled` hanya ada di whitelist filter billing tanpa pernah ditulis. Parent yang berubah pikiran sebelum membayar tetap menahan kursi sampai invoice kedaluwarsa.\",\n    \"goal\": \"Parent dapat membatalkan enrollment miliknya yang masih pending sehingga kursi dilepaskan dan transaksi terkait ditandai dibatalkan.\",\n    \"requirements\": [\n      \"Endpoint academic parent-scoped membatalkan enrollment pending milik parent menjadi dropped; enrollment aktif atau milik parent lain ditolak.\",\n      \"Billing menandai transaksi pending terkait sebagai cancelled melalui jalur internal yang idempotent.\",\n      \"Gateway mendaftarkan route baru pada grup protected dengan test routing.\",\n      \"Callback paid setelah pembatalan diperlakukan seperti pada pelepasan kursi: tercatat dan terlihat, tidak mengaktifkan enrollment.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Parent dapat membatalkan enrollment pending miliknya dan kursinya kembali tersedia\",\n      \"Enrollment aktif, milik parent lain, atau sudah dropped menghasilkan 409 atau 404 sesuai kasus\",\n      \"Transaksi terkait berstatus cancelled pada list transaksi parent\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Tidak ditemukan bukti API Duitku untuk membatalkan invoice di `_docs/duitku`; invoice tetap dapat dibayar di sisi provider sampai kedaluwarsa, sehingga edge case bayar-setelah-batal wajib dicatat. Urutan penulisan academic lalu billing harus didefinisikan agar retry aman.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go\",\n      \"kelolakelas-academic-service/internal/usecase/enrollment_usecase.go\",\n      \"kelolakelas-billing-service/internal/usecase/transaction_usecase.go\",\n      \"kelolakelas-api-gateway/internal/delivery/http/router.go\"\n    ],\n    \"edgeCases\": [\n      \"Pembatalan bersamaan dengan callback paid.\",\n      \"Enrollment pending tanpa transaksi karena invoice gagal dibuat.\",\n      \"Parent membatalkan lalu mendaftar ulang kelas dan jadwal yang sama.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Pembatalan enrollment aktif dan refund.\",\n      \"UI web pembatalan.\",\n      \"Pembatalan invoice di sisi provider.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-27/sediakan-pembatalan-enrollment-pending-oleh-parent",
+  "gitBranchName": "skinel123/kel-27-sediakan-pembatalan-enrollment-pending-oleh-parent",
+  "createdAt": "2026-09-16T11:46:27.261Z",
+  "updatedAt": "2026-09-20T15:18:52.675Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-20T14:55:55.970Z",
+  "startedAt": "2026-09-20T14:52:54.733Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "academic",
+    "api-gateway",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "6f23e3b7-7f2c-42cc-961b-69771519d161",
+      "title": "docs(KEL-27): record cancellation of a pending enrollment",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/26"
+    },
+    {
+      "id": "7b7363ac-4ae0-41e8-b119-10ce7777f9eb",
+      "title": "feat(gateway): route parent enrollment cancellation (KEL-27)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/6"
+    },
+    {
+      "id": "0d8bd0f9-52d6-4b88-a9f7-275ad7eb53b6",
+      "title": "feat(academic): let parents cancel their pending enrollment (KEL-27)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/8"
+    },
+    {
+      "id": "76cbd55c-5ff5-49a1-959e-ac002fa6e9b5",
+      "title": "feat(billing): cancel the unpaid transaction of a withdrawn enrollment (KEL-27)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/6"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:46:27.261Z",
+      "endedAt": "2026-09-20T14:52:54.750Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-20T14:52:54.750Z",
+      "endedAt": "2026-09-20T14:55:55.974Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-20T14:55:55.974Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Siklus hidup enrollment dan pembayaran yang lengkap",
+  "projectId": "bebfbed6-762c-44ba-94c9-e6f7c20904d9",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-45",
+        "title": "Sediakan pembatalan enrollment pending dari halaman parent"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-26",
+        "title": "Lepaskan kuota enrollment ketika pembayaran gagal atau kedaluwarsa"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-18",
+        "title": "Netralkan header konteks tenant dan internal dari client di gateway"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

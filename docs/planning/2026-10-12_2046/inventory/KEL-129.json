@@ -1,0 +1,82 @@
+{
+  "id": "KEL-129",
+  "uuid": "a9a83814-59d3-4b11-a969-5c6c53ddab99",
+  "title": "Payment link private dapat dikirim lewat percakapan request yang tepat",
+  "description": "## Background / Problem\n\nChat-service mendukung `schedule_request` (<issue id=\"ccecbcfe-1acf-4ffc-9536-6c4e54d468b8\" href=\"https://linear.app/farid-zamani/issue/KEL-120/chat-service-mendukung-percakapan-parent-admin-tenant-per-permintaan\">KEL-120</issue>) dan gateway memproxy-nya (<issue id=\"95f3ed11-ae4c-4d88-ae17-17a19eaae84e\" href=\"https://linear.app/farid-zamani/issue/KEL-122/gateway-meneruskan-rest-chat-dan-koneksi-websocket-chat-ke-chat\">KEL-122</issue>); inbox dan entry point web <issue id=\"f23b9e90-8570-4b1f-8f0b-453cfcea86a1\" href=\"https://linear.app/farid-zamani/issue/KEL-123/parent-dan-anggota-tenant-membaca-dan-membalas-chat-di-web-dengan\">KEL-123</issue>/124 masih Backlog. Approval private sudah menghasilkan checkout URL, tetapi tidak ada aksi tenant yang membagikannya ke percakapan parent.\n\n## Goal\n\nTenant berizin dapat membagikan payment link dari request yang disetujui ke percakapan parent yang sama tanpa bocor ke tenant atau parent lain.\n\n## Requirements\n\n* Dari request yang approved dan invoice masih valid, sediakan aksi kirim link ke percakapan `schedule_request` yang terikat ID request dan parent pemiliknya; otorisasi server-side dan idempotency wajib.\n* Tautkan aksi pada UI tenant yang ada tanpa membangun ulang inbox <issue id=\"f23b9e90-8570-4b1f-8f0b-453cfcea86a1\" href=\"https://linear.app/farid-zamani/issue/KEL-123/parent-dan-anggota-tenant-membaca-dan-membalas-chat-di-web-dengan\">KEL-123</issue> atau entry point <issue id=\"4b0d6ae9-ed19-452f-a472-b520433ec301\" href=\"https://linear.app/farid-zamani/issue/KEL-124/parent-admin-tenant-dan-pengajar-dapat-memulai-chat-dari-permintaan\">KEL-124</issue>; bila inbox belum tersedia, nyatakan prasyarat UI untuk uji E2E.\n* Jangan izinkan URL arbitrer dari klien; server mendapatkan link dari transaksi terotorisasi, memeriksa expiry/status sebelum mengirim, dan pesan tidak memuat data pribadi berlebihan.\n* Gagal kirim chat tidak mengubah enrollment atau invoice; retry aman dan status delivery teramati.\n\n## Acceptance Criteria\n\n- [ ] Admin tenant yang berizin mengirim link ke percakapan request yang benar; parent pemilik melihatnya ketika inbox <issue id=\"f23b9e90-8570-4b1f-8f0b-453cfcea86a1\" href=\"https://linear.app/farid-zamani/issue/KEL-123/parent-dan-anggota-tenant-membaca-dan-membalas-chat-di-web-dengan\">KEL-123</issue> tersedia.\n- [ ] Tenant/parent lain tidak bisa memicu atau membaca pesan/link; request ditolak/expired tidak dapat dibagikan sebagai link aktif.\n- [ ] Retry dan dua klik bersamaan tidak menciptakan dua invoice atau banyak pesan yang tak disengaja.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko high: bocornya checkout URL lintas tenant/parent, serta pesan ganda pada retry. Hak akses wajib dicek oleh academic + chat, bukan hanya UI; kontrak internal baru harus diautentikasi dan menghindari input URL bebas. <issue id=\"f23b9e90-8570-4b1f-8f0b-453cfcea86a1\" href=\"https://linear.app/farid-zamani/issue/KEL-123/parent-dan-anggota-tenant-membaca-dan-membalas-chat-di-web-dengan\">KEL-123</issue>/124 sudah Backlog: backend contract boleh dibangun lebih awal, tetapi sebelum label ai-ready dan penerimaan end-to-end, relasi native `blockedBy` ke <issue id=\"f23b9e90-8570-4b1f-8f0b-453cfcea86a1\" href=\"https://linear.app/farid-zamani/issue/KEL-123/parent-dan-anggota-tenant-membaca-dan-membalas-chat-di-web-dengan\">KEL-123</issue>/124 harus ditambahkan secara eksplisit pada write phase atau issue baru menunggu keduanya Done; `blockedByDraftKeys` hanya memuat issue dalam run ini. Jika kedua issue belum selesai saat persetujuan, jangan aktifkan `ai-ready` untuk item ini sampai relasi native dan kontrak dapat direkonsiliasi sesuai mekanisme lintas-run. Perbarui docs chat/private flow/security.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go`\n* `kelolakelas-chat-service/internal/chat/chat.go`\n* `kelolakelas-chat-service/internal/delivery/http/handler.go`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/schedule-requests`\n\n## Edge Cases\n\n* Request telah ditolak atau invoice expired di antara read dan send.\n* Percakapan belum dibuat; tenant mengirim bersamaan dari dua tab.\n* Chat-service 503 setelah invoice dibuat.\n\n## Testing / Validation\n\n- [ ] Uji end-to-end isolasi tenant/parent, status invoice, claim retry dan concurrent send dengan stub chat.\n- [ ] Setelah <issue id=\"f23b9e90-8570-4b1f-8f0b-453cfcea86a1\" href=\"https://linear.app/farid-zamani/issue/KEL-123/parent-dan-anggota-tenant-membaca-dan-membalas-chat-di-web-dengan\">KEL-123</issue>/124 selesai, uji manual tenant kirim lalu parent membaca di inbox; catat jika belum bisa karena blocker.\n- [ ] Jalankan test, lint, type check/build pada semua repo yang berubah.\n\n## Out of Scope\n\n* Membangun ulang inbox atau entry point <issue id=\"f23b9e90-8570-4b1f-8f0b-453cfcea86a1\" href=\"https://linear.app/farid-zamani/issue/KEL-123/parent-dan-anggota-tenant-membaca-dan-membalas-chat-di-web-dengan\">KEL-123</issue>/124.\n* Memperbolehkan klien mengirim URL checkout arbitrer.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"private-payment-link-chat\",\n  \"projectKey\": \"private-payment-link-delivery\",\n  \"title\": \"Payment link private dapat dikirim lewat percakapan request yang tepat\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"high\",\n  \"repositories\": [\n    \"academic\",\n    \"chat\",\n    \"web\"\n  ],\n  \"labels\": [\n    \"academic\",\n    \"chat\",\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"private-payment-link-email\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Chat-service mendukung `schedule_request` (KEL-120) dan gateway memproxy-nya (KEL-122); inbox dan entry point web KEL-123/124 masih Backlog. Approval private sudah menghasilkan checkout URL, tetapi tidak ada aksi tenant yang membagikannya ke percakapan parent.\",\n    \"goal\": \"Tenant berizin dapat membagikan payment link dari request yang disetujui ke percakapan parent yang sama tanpa bocor ke tenant atau parent lain.\",\n    \"requirements\": [\n      \"Dari request yang approved dan invoice masih valid, sediakan aksi kirim link ke percakapan `schedule_request` yang terikat ID request dan parent pemiliknya; otorisasi server-side dan idempotency wajib.\",\n      \"Tautkan aksi pada UI tenant yang ada tanpa membangun ulang inbox KEL-123 atau entry point KEL-124; bila inbox belum tersedia, nyatakan prasyarat UI untuk uji E2E.\",\n      \"Jangan izinkan URL arbitrer dari klien; server mendapatkan link dari transaksi terotorisasi, memeriksa expiry/status sebelum mengirim, dan pesan tidak memuat data pribadi berlebihan.\",\n      \"Gagal kirim chat tidak mengubah enrollment atau invoice; retry aman dan status delivery teramati.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Admin tenant yang berizin mengirim link ke percakapan request yang benar; parent pemilik melihatnya ketika inbox KEL-123 tersedia.\",\n      \"Tenant/parent lain tidak bisa memicu atau membaca pesan/link; request ditolak/expired tidak dapat dibagikan sebagai link aktif.\",\n      \"Retry dan dua klik bersamaan tidak menciptakan dua invoice atau banyak pesan yang tak disengaja.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko high: bocornya checkout URL lintas tenant/parent, serta pesan ganda pada retry. Hak akses wajib dicek oleh academic + chat, bukan hanya UI; kontrak internal baru harus diautentikasi dan menghindari input URL bebas. KEL-123/124 sudah Backlog: backend contract boleh dibangun lebih awal, tetapi sebelum label ai-ready dan penerimaan end-to-end, relasi native `blockedBy` ke KEL-123/124 harus ditambahkan secara eksplisit pada write phase atau issue baru menunggu keduanya Done; `blockedByDraftKeys` hanya memuat issue dalam run ini. Jika kedua issue belum selesai saat persetujuan, jangan aktifkan `ai-ready` untuk item ini sampai relasi native dan kontrak dapat direkonsiliasi sesuai mekanisme lintas-run. Perbarui docs chat/private flow/security.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go\",\n      \"kelolakelas-chat-service/internal/chat/chat.go\",\n      \"kelolakelas-chat-service/internal/delivery/http/handler.go\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/schedule-requests\"\n    ],\n    \"edgeCases\": [\n      \"Request telah ditolak atau invoice expired di antara read dan send.\",\n      \"Percakapan belum dibuat; tenant mengirim bersamaan dari dua tab.\",\n      \"Chat-service 503 setelah invoice dibuat.\"\n    ],\n    \"testingValidation\": [\n      \"Uji end-to-end isolasi tenant/parent, status invoice, claim retry dan concurrent send dengan stub chat.\",\n      \"Setelah KEL-123/124 selesai, uji manual tenant kirim lalu parent membaca di inbox; catat jika belum bisa karena blocker.\",\n      \"Jalankan test, lint, type check/build pada semua repo yang berubah.\"\n    ],\n    \"outOfScope\": [\n      \"Membangun ulang inbox atau entry point KEL-123/124.\",\n      \"Memperbolehkan klien mengirim URL checkout arbitrer.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-129/payment-link-private-dapat-dikirim-lewat-percakapan-request-yang-tepat",
+  "gitBranchName": "skinel123/kel-129-payment-link-private-dapat-dikirim-lewat-percakapan-request",
+  "createdAt": "2026-09-28T19:15:03.209Z",
+  "updatedAt": "2026-09-28T19:15:05.144Z",
+  "archivedAt": null,
+  "completedAt": null,
+  "startedAt": null,
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Backlog",
+  "statusType": "backlog",
+  "labels": [
+    "chat",
+    "academic",
+    "web",
+    "Feature"
+  ],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T19:15:03.209Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Distribusi aman payment link kelas private",
+  "projectId": "a8a950c3-945c-4daa-b266-53e3d61e394e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-128",
+        "title": "Parent menerima email payment link setelah jadwal private disetujui"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-122",
+        "title": "Gateway meneruskan REST chat dan koneksi WebSocket chat ke chat-service"
+      },
+      {
+        "id": "KEL-120",
+        "title": "Chat-service mendukung percakapan parent\u2013admin tenant per permintaan jadwal private dan pengajar\u2013parent per report"
+      },
+      {
+        "id": "KEL-124",
+        "title": "Parent, admin tenant, dan pengajar dapat memulai chat dari permintaan jadwal private dan dari report student"
+      },
+      {
+        "id": "KEL-123",
+        "title": "Parent dan anggota tenant membaca dan membalas chat di web dengan pesan baru muncul realtime"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

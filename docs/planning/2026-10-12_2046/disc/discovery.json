@@ -1,0 +1,42 @@
+{
+ "generated_at": "2026-10-12T13:47:57+00:00",
+ "counts": {
+  "issues": 179,
+  "ai_ready": 157,
+  "backlog_ai_ready": 6,
+  "eligible": 0,
+  "excluded": 6
+ },
+ "contracts_valid": 156,
+ "full_graph": "OK",
+ "vuln_blocked_repos": {},
+ "vuln_remediation": null,
+ "winner": null,
+ "ranking": [],
+ "excluded": [
+  {
+   "issue": "KEL-156",
+   "reason": "blocked: KEL-155 masih Backlog"
+  },
+  {
+   "issue": "KEL-155",
+   "reason": "externalDependencies ['resend-sender-domain'] butuh verifikasi manual"
+  },
+  {
+   "issue": "KEL-100",
+   "reason": "externalDependencies ['edge-deployment-topology'] butuh verifikasi manual"
+  },
+  {
+   "issue": "KEL-102",
+   "reason": "externalDependencies ['secret-manager-and-deployment'] butuh verifikasi manual"
+  },
+  {
+   "issue": "KEL-104",
+   "reason": "blocked: KEL-100 masih Backlog"
+  },
+  {
+   "issue": "KEL-101",
+   "reason": "externalDependencies ['service-deployment-topology'] butuh verifikasi manual"
+  }
+ ]
+}

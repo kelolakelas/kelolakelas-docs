@@ -1,0 +1,114 @@
+{
+  "id": "KEL-146",
+  "uuid": "d1d76cdf-f32f-4647-9619-3161afb3a1ce",
+  "title": "Platform admin memproses antrean penarikan tenant dari dashboard platform",
+  "description": "## Background / Problem\n\nDashboard platform memiliki halaman creator requests (`app/platform/creator-requests/page.tsx`) tetapi tidak ada halaman penarikan.\n\n## Goal\n\nPlatform admin dapat melihat antrean penarikan dan mencatat hasil transfer manual atau penolakan.\n\n## Requirements\n\n* Halaman antrean penarikan dengan tenant, jumlah, rekening tujuan lengkap, dan waktu pengajuan.\n* Aksi tandai dibayar dengan input referensi transfer dan aksi tolak dengan alasan, masing-masing dengan konfirmasi.\n\n## Acceptance Criteria\n\n- [ ] Admin mencatat pembayaran dan item keluar dari antrean.\n- [ ] Penolakan tanpa alasan dicegah di form.\n- [ ] Keputusan yang sudah diproses admin lain menampilkan pesan konflik yang jelas.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nIkuti pola halaman platform creator requests, termasuk alur challenge TOTP yang ada. Nomor rekening lengkap hanya ditampilkan di halaman ini. Perbarui `kelolakelas-docs/docs/components/web.md`.\n\nRelevant areas:\n\n* `kelolakelas-web/app/platform`\n* `kelolakelas-web/app/platform/creator-requests`\n\n## Edge Cases\n\n* Antrean kosong.\n* Sesi platform kedaluwarsa saat memproses.\n\n## Testing / Validation\n\n- [ ] Vitest untuk form keputusan dan state konflik.\n- [ ] Test, lint, type check, dan production build lulus.\n- [ ] Verifikasi manual sebagai platform admin.\n\n## Out of Scope\n\n* Ekspor laporan penarikan.\n* Disbursement otomatis.\n* Riwayat keputusan terbaru (dibayar/ditolak): ditunda ke <issue id=\"fdc5ed21-78bd-4879-ba04-ee41f50f699a\" href=\"https://linear.app/farid-zamani/issue/KEL-163/platform-admin-dapat-membaca-riwayat-keputusan-penarikan-terbaru-lewat\">KEL-163</issue> (API billing) dan <issue id=\"0eb437b6-03a0-4f70-9fec-281fc9e60c2a\" href=\"https://linear.app/farid-zamani/issue/KEL-164/platform-admin-melihat-riwayat-keputusan-penarikan-terbaru-di-halaman\">KEL-164</issue> (layar web) karena endpoint platform hanya mengembalikan penarikan berstatus requested; keputusan owner 2026-10-02.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-platform-withdrawal-queue\",\n  \"projectKey\": \"tenant-finance-payout\",\n  \"title\": \"Platform admin memproses antrean penarikan tenant dari dashboard platform\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"platform-withdrawal-processing\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Dashboard platform memiliki halaman creator requests (`app/platform/creator-requests/page.tsx`) tetapi tidak ada halaman penarikan.\",\n    \"goal\": \"Platform admin dapat melihat antrean penarikan dan mencatat hasil transfer manual atau penolakan.\",\n    \"requirements\": [\n      \"Halaman antrean penarikan dengan tenant, jumlah, rekening tujuan lengkap, dan waktu pengajuan.\",\n      \"Aksi tandai dibayar dengan input referensi transfer dan aksi tolak dengan alasan, masing-masing dengan konfirmasi.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Admin mencatat pembayaran dan item keluar dari antrean.\",\n      \"Penolakan tanpa alasan dicegah di form.\",\n      \"Keputusan yang sudah diproses admin lain menampilkan pesan konflik yang jelas.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Ikuti pola halaman platform creator requests, termasuk alur challenge TOTP yang ada. Nomor rekening lengkap hanya ditampilkan di halaman ini. Perbarui `kelolakelas-docs/docs/components/web.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/platform\",\n      \"kelolakelas-web/app/platform/creator-requests\"\n    ],\n    \"edgeCases\": [\n      \"Antrean kosong.\",\n      \"Sesi platform kedaluwarsa saat memproses.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest untuk form keputusan dan state konflik.\",\n      \"Test, lint, type check, dan production build lulus.\",\n      \"Verifikasi manual sebagai platform admin.\"\n    ],\n    \"outOfScope\": [\n      \"Ekspor laporan penarikan.\",\n      \"Disbursement otomatis.\",\n      \"Riwayat keputusan terbaru (dibayar/ditolak): ditunda ke KEL-163 (API billing) dan KEL-164 (layar web) karena endpoint platform hanya mengembalikan penarikan berstatus requested; keputusan owner 2026-10-02.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-146/platform-admin-memproses-antrean-penarikan-tenant-dari-dashboard",
+  "gitBranchName": "skinel123/kel-146-platform-admin-memproses-antrean-penarikan-tenant-dari",
+  "createdAt": "2026-09-30T10:58:09.328Z",
+  "updatedAt": "2026-10-12T14:08:04.037Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-02T11:02:16.637Z",
+  "startedAt": "2026-10-02T09:25:04.169Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "cce38105-485a-4b3e-97f5-03fc40adb908",
+      "title": "KEL-146: Document platform withdrawal queue and manual decisions",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/150"
+    },
+    {
+      "id": "6db3eb6b-3286-480c-9010-8c8dcdc0b2c6",
+      "title": "KEL-146: Platform admin withdrawal queue and manual decisions",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/67"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T10:58:09.328Z",
+      "endedAt": "2026-10-02T09:25:04.228Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-02T09:25:04.228Z",
+      "endedAt": "2026-10-02T11:02:16.647Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-02T11:02:16.647Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Keuangan tenant: laporan transaksi dan pencairan dana manual",
+  "projectId": "6bf64982-2039-4ab0-afe2-4c92c2ec79c0",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-164",
+        "title": "Platform admin melihat riwayat keputusan penarikan terbaru di halaman penarikan platform"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-144",
+        "title": "Platform admin memproses penarikan tenant secara manual dengan jejak audit"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-182",
+        "title": "Guard web menerima tenant zero UUID pada verified platform session"
+      },
+      {
+        "id": "KEL-163",
+        "title": "Platform admin dapat membaca riwayat keputusan penarikan terbaru lewat API billing"
+      },
+      {
+        "id": "KEL-151",
+        "title": "Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "id": "KEL-150",
+  "uuid": "27dddadb-2d14-43b9-aec4-c1ea58f8c2bc",
+  "title": "Renewal yang tidak dibayar setelah masa tenggang menangguhkan enrollment dan pulih saat dibayar",
+  "description": "## Background / Problem\n\nWorker renewal memproses subscription dengan `next_billing_date <= now+7d` (`internal/usecase/subscription_worker.go:73`) dan berhenti tanpa aksi setelah period+7 hari (`:90`); subscription tetap `active` dan hanya status pending serta active yang dipakai (`internal/domain/subscription.go:23`). Invoice renewal yang expired memicu job `release` (`internal/repository/transaction_repository.go:255-282`) yang tidak berdampak pada enrollment aktif.\n\n## Goal\n\nPeriode renewal yang tidak dibayar hingga akhir masa tenggang menangguhkan subscription dan enrollment, dan pembayaran terlambat yang sah memulihkannya.\n\n## Requirements\n\n* Masa tenggang dapat dikonfigurasi (default 7 hari, sama dengan jendela penagihan saat ini).\n* Setelah masa tenggang tanpa transaksi paid untuk periode itu, subscription menjadi tangguh dan billing memanggil suspend academic melalui job rekonsiliasi durable yang idempoten.\n* Worker berhenti menerbitkan invoice dan pengingat untuk subscription tangguh.\n* Pembayaran terlambat yang terkonfirmasi untuk periode tersebut mengaktifkan kembali subscription dan memanggil resume; bila resume konflik karena kursi penuh, catat status yang dapat diamati.\n* Dokumentasikan interaksi job release untuk invoice renewal yang expired.\n\n## Acceptance Criteria\n\n- [ ] Subscription tanpa pembayaran melewati masa tenggang menjadi tangguh tepat satu kali dan enrollment-nya tangguh.\n- [ ] Pembayaran terlambat memulihkan subscription dan enrollment; bila kursi penuh, status konflik tercatat dan dapat dilihat operator.\n- [ ] Menjalankan worker berulang tidak menggandakan panggilan atau pengingat.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko critical: pembayaran yang diterima tetapi akses tetap tangguh, atau akses berlanjut tanpa bayar. Gunakan pola rekonsiliasi durable (ADR 0001) dan konfirmasi status Duitku sebelum settlement (ADR 0033). Pembayaran terlambat mengikuti ADR 0009. Worker berjalan in-process tanpa leader election (known gap), jadi transisi harus aman terhadap eksekusi ganda. Perbarui `kelolakelas-docs` (flows/billing-and-subscriptions.md, 04-configuration.md, reference/environment-variables.md) dan ADR dunning.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/internal/usecase/subscription_worker.go`\n* `kelolakelas-billing-service/internal/domain/subscription.go`\n* `kelolakelas-billing-service/internal/repository/subscription_repository.go`\n* `kelolakelas-billing-service/internal/repository/transaction_repository.go`\n* `kelolakelas-billing-service/pkg/academic/client.go`\n\n## Edge Cases\n\n* Callback paid tiba tepat saat worker menangguhkan.\n* Academic tidak tersedia saat suspend.\n* Subscription lama tanpa billing email.\n\n## Testing / Validation\n\n- [ ] Postgres integration test race pembayaran terlambat vs suspend dan eksekusi worker ganda sebagai mitigasi risiko finansial.\n- [ ] Unit test dengan clock palsu untuk batas masa tenggang.\n- [ ] go vet, go test -race, dan build lulus.\n- [ ] Verifikasi manual alur tidak bayar \u2192 tangguh \u2192 bayar terlambat \u2192 aktif dengan database lokal.\n\n## Out of Scope\n\n* Denda keterlambatan.\n* Notifikasi khusus tangguh ke parent selain pengingat yang ada.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"billing-renewal-grace-suspend\",\n  \"projectKey\": \"renewal-dunning-refund\",\n  \"title\": \"Renewal yang tidak dibayar setelah masa tenggang menangguhkan enrollment dan pulih saat dibayar\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"critical\",\n  \"labels\": [\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"academic-enrollment-suspension\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Worker renewal memproses subscription dengan `next_billing_date <= now+7d` (`internal/usecase/subscription_worker.go:73`) dan berhenti tanpa aksi setelah period+7 hari (`:90`); subscription tetap `active` dan hanya status pending serta active yang dipakai (`internal/domain/subscription.go:23`). Invoice renewal yang expired memicu job `release` (`internal/repository/transaction_repository.go:255-282`) yang tidak berdampak pada enrollment aktif.\",\n    \"goal\": \"Periode renewal yang tidak dibayar hingga akhir masa tenggang menangguhkan subscription dan enrollment, dan pembayaran terlambat yang sah memulihkannya.\",\n    \"requirements\": [\n      \"Masa tenggang dapat dikonfigurasi (default 7 hari, sama dengan jendela penagihan saat ini).\",\n      \"Setelah masa tenggang tanpa transaksi paid untuk periode itu, subscription menjadi tangguh dan billing memanggil suspend academic melalui job rekonsiliasi durable yang idempoten.\",\n      \"Worker berhenti menerbitkan invoice dan pengingat untuk subscription tangguh.\",\n      \"Pembayaran terlambat yang terkonfirmasi untuk periode tersebut mengaktifkan kembali subscription dan memanggil resume; bila resume konflik karena kursi penuh, catat status yang dapat diamati.\",\n      \"Dokumentasikan interaksi job release untuk invoice renewal yang expired.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Subscription tanpa pembayaran melewati masa tenggang menjadi tangguh tepat satu kali dan enrollment-nya tangguh.\",\n      \"Pembayaran terlambat memulihkan subscription dan enrollment; bila kursi penuh, status konflik tercatat dan dapat dilihat operator.\",\n      \"Menjalankan worker berulang tidak menggandakan panggilan atau pengingat.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko critical: pembayaran yang diterima tetapi akses tetap tangguh, atau akses berlanjut tanpa bayar. Gunakan pola rekonsiliasi durable (ADR 0001) dan konfirmasi status Duitku sebelum settlement (ADR 0033). Pembayaran terlambat mengikuti ADR 0009. Worker berjalan in-process tanpa leader election (known gap), jadi transisi harus aman terhadap eksekusi ganda. Perbarui `kelolakelas-docs` (flows/billing-and-subscriptions.md, 04-configuration.md, reference/environment-variables.md) dan ADR dunning.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/internal/usecase/subscription_worker.go\",\n      \"kelolakelas-billing-service/internal/domain/subscription.go\",\n      \"kelolakelas-billing-service/internal/repository/subscription_repository.go\",\n      \"kelolakelas-billing-service/internal/repository/transaction_repository.go\",\n      \"kelolakelas-billing-service/pkg/academic/client.go\"\n    ],\n    \"edgeCases\": [\n      \"Callback paid tiba tepat saat worker menangguhkan.\",\n      \"Academic tidak tersedia saat suspend.\",\n      \"Subscription lama tanpa billing email.\"\n    ],\n    \"testingValidation\": [\n      \"Postgres integration test race pembayaran terlambat vs suspend dan eksekusi worker ganda sebagai mitigasi risiko finansial.\",\n      \"Unit test dengan clock palsu untuk batas masa tenggang.\",\n      \"go vet, go test -race, dan build lulus.\",\n      \"Verifikasi manual alur tidak bayar \u2192 tangguh \u2192 bayar terlambat \u2192 aktif dengan database lokal.\"\n    ],\n    \"outOfScope\": [\n      \"Denda keterlambatan.\",\n      \"Notifikasi khusus tangguh ke parent selain pengingat yang ada.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-150/renewal-yang-tidak-dibayar-setelah-masa-tenggang-menangguhkan",
+  "gitBranchName": "skinel123/kel-150-renewal-yang-tidak-dibayar-setelah-masa-tenggang",
+  "createdAt": "2026-09-30T10:59:50.229Z",
+  "updatedAt": "2026-10-02T12:04:02.469Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-02T11:57:17.108Z",
+  "startedAt": "2026-10-02T11:16:18.534Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "9a22bb77-1bcb-4fe3-bbd3-01c3e2b68237",
+      "title": "KEL-150: Document overdue renewal lifecycle and reconciliation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/151"
+    },
+    {
+      "id": "38871aaa-4e45-4341-873c-f63f96ddca1d",
+      "title": "KEL-150: Suspend overdue renewal enrollment and resume on late payment",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/33"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T10:59:50.229Z",
+      "endedAt": "2026-10-02T11:16:18.559Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-02T11:16:18.559Z",
+      "endedAt": "2026-10-02T11:57:17.114Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-02T11:57:17.114Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Penanganan tunggakan perpanjangan dan refund manual",
+  "projectId": "aaa30069-425f-4e0b-839b-765385f3d3ec",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-149",
+        "title": "Enrollment dapat ditangguhkan, dipulihkan, dan diakhiri melalui endpoint internal"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-151",
+        "title": "Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

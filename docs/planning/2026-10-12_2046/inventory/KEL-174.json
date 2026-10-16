@@ -1,0 +1,111 @@
+{
+  "id": "KEL-174",
+  "uuid": "74e2e129-ea3c-4fe3-8ab4-e4efdbe27b5b",
+  "title": "Pesan sukses \"Lokasi tenant berhasil disimpan\" tidak pernah tampil setelah simpan lokasi",
+  "description": "## Background / Problem\n\nDi `/dashboard/tenant/settings`, menekan \"Simpan lokasi\" berhasil (`PUT /api/v1/tenant/settings/location` \u2192 200, data tampil setelah reload), tetapi pesan \"Lokasi tenant berhasil disimpan.\" tidak pernah tampil. Server action memanggil `revalidatePath` lalu mengembalikan status sukses, sementara `settings/page.tsx` memberi `TenantLocationForm` `key` yang memuat `location?.location_updated_at`. Setelah revalidate, nilai itu berubah, form di-remount, dan state `useActionState` berisi pesan sukses hilang.\n\n## Goal\n\nSetelah lokasi tenant berhasil disimpan, pengguna melihat konfirmasi sukses dan form menampilkan nilai tersimpan terbaru.\n\n## Requirements\n\n* Pesan \"Lokasi tenant berhasil disimpan.\" tampil (role=status) setelah simpan lokasi berhasil.\n* Form menampilkan koordinat tersimpan terbaru setelah simpan.\n* Pesan error validasi dan error API yang ada tetap tampil seperti sebelumnya.\n* Form profil tenant di halaman yang sama tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Menyimpan latitude/longitude yang valid menampilkan pesan sukses tanpa reload.\n- [ ] Reload setelah simpan menampilkan nilai yang sama.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nPertahankan kemampuan form menerima nilai baru dari server tanpa menghapus state action. Perbarui kelolakelas-docs `docs/components/web.md` bila perilaku settings dijelaskan.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/page.tsx`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/_components/TenantLocationForm.tsx`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/_actions/settingsActions.ts`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/_components/forms.test.tsx`\n\n## Edge Cases\n\n* Simpan lokasi pertama kali (sebelumnya belum ada lokasi).\n* Simpan dua kali berturut-turut.\n* Pengguna read-only yang tidak boleh menyimpan.\n\n## Testing / Validation\n\n- [ ] Vitest bahwa pesan sukses tampil setelah action sukses dan tetap ada ketika data lokasi berubah.\n- [ ] Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.\n\n## Out of Scope\n\n* Perubahan API lokasi tenant.\n* Pemilihan lokasi lewat peta.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"tenant-location-success-message\",\n  \"projectKey\": null,\n  \"title\": \"Pesan sukses \\\"Lokasi tenant berhasil disimpan\\\" tidak pernah tampil setelah simpan lokasi\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Low\",\n  \"estimate\": \"S\",\n  \"complexity\": \"very-low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Di `/dashboard/tenant/settings`, menekan \\\"Simpan lokasi\\\" berhasil (`PUT /api/v1/tenant/settings/location` \u2192 200, data tampil setelah reload), tetapi pesan \\\"Lokasi tenant berhasil disimpan.\\\" tidak pernah tampil. Server action memanggil `revalidatePath` lalu mengembalikan status sukses, sementara `settings/page.tsx` memberi `TenantLocationForm` `key` yang memuat `location?.location_updated_at`. Setelah revalidate, nilai itu berubah, form di-remount, dan state `useActionState` berisi pesan sukses hilang.\",\n    \"goal\": \"Setelah lokasi tenant berhasil disimpan, pengguna melihat konfirmasi sukses dan form menampilkan nilai tersimpan terbaru.\",\n    \"requirements\": [\n      \"Pesan \\\"Lokasi tenant berhasil disimpan.\\\" tampil (role=status) setelah simpan lokasi berhasil.\",\n      \"Form menampilkan koordinat tersimpan terbaru setelah simpan.\",\n      \"Pesan error validasi dan error API yang ada tetap tampil seperti sebelumnya.\",\n      \"Form profil tenant di halaman yang sama tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Menyimpan latitude/longitude yang valid menampilkan pesan sukses tanpa reload.\",\n      \"Reload setelah simpan menampilkan nilai yang sama.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Pertahankan kemampuan form menerima nilai baru dari server tanpa menghapus state action. Perbarui kelolakelas-docs `docs/components/web.md` bila perilaku settings dijelaskan.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/page.tsx\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/_components/TenantLocationForm.tsx\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/_actions/settingsActions.ts\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/_components/forms.test.tsx\"\n    ],\n    \"edgeCases\": [\n      \"Simpan lokasi pertama kali (sebelumnya belum ada lokasi).\",\n      \"Simpan dua kali berturut-turut.\",\n      \"Pengguna read-only yang tidak boleh menyimpan.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest bahwa pesan sukses tampil setelah action sukses dan tetap ada ketika data lokasi berubah.\",\n      \"Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual.\"\n    ],\n    \"outOfScope\": [\n      \"Perubahan API lokasi tenant.\",\n      \"Pemilihan lokasi lewat peta.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 4,
+    "name": "Low"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-174/pesan-sukses-lokasi-tenant-berhasil-disimpan-tidak-pernah-tampil",
+  "gitBranchName": "skinel123/kel-174-pesan-sukses-lokasi-tenant-berhasil-disimpan-tidak-pernah",
+  "createdAt": "2026-10-08T17:48:05.164Z",
+  "updatedAt": "2026-10-09T14:25:35.890Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-09T14:20:15.343Z",
+  "startedAt": "2026-10-09T13:48:17.242Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "5e2698b6-0e56-4b8f-90f5-c10481259f46",
+      "title": "KEL-174: document persistent location save feedback",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/173"
+    },
+    {
+      "id": "5616c20a-1fea-4ca8-8167-000cf4583044",
+      "title": "KEL-174: retain location save success after revalidation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/85"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-10-08T17:48:05.164Z",
+      "endedAt": "2026-10-09T13:48:17.256Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-09T13:48:17.256Z",
+      "endedAt": "2026-10-09T14:20:15.350Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-09T14:20:15.350Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-175",
+        "title": "Tanggal lahir student di masa depan diterima tanpa validasi"
+      },
+      {
+        "id": "KEL-176",
+        "title": "Form jadwal kelas memperingatkan slot yang tumpang tindih pada hari yang sama sebelum disimpan"
+      },
+      {
+        "id": "KEL-171",
+        "title": "Overview tenant menampilkan nama dan status sistem hardcoded, bukan data pengguna atau layanan nyata"
+      },
+      {
+        "id": "KEL-172",
+        "title": "Form registrasi dan login mengosongkan semua isian saat validasi atau login gagal"
+      },
+      {
+        "id": "KEL-178",
+        "title": "Konfirmasi sukses pembatalan enrollment tidak pernah terlihat karena tombolnya ter-unmount saat baris diperbarui"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

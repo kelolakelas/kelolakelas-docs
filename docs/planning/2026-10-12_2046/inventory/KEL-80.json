@@ -1,0 +1,142 @@
+{
+  "id": "KEL-80",
+  "uuid": "dbd71706-e228-4301-b8a7-4c21f4607b8a",
+  "title": "Academic dan billing menolak akses anggota yang sudah dikeluarkan atau berganti role",
+  "description": "## Background / Problem\n\nMiddleware academic dan billing sudah mem-parse claim `member_id` dari JWT (`kelolakelas-academic-service/internal/delivery/http/middleware/auth_middleware.go:30,58`; `kelolakelas-billing-service/internal/delivery/http/middleware/auth_middleware.go:30`), tetapi klien permission keduanya hanya mengirim `role_id`, `permission`, dan `tenant_id` ke identity (`academic pkg/grpcclient/permission_client.go:34-52`, `billing pkg/identity/permission_client.go:46-60`). Tanpa `member_id`, identity tidak dapat menolak anggota yang sudah dikeluarkan atau diturunkan role-nya, sehingga route academic (katalog, jadwal, student, enrollment) dan transaksi billing (`billing:read`, <issue id=\"61e3bc4d-4d82-482c-b29c-930e8b24223b\" href=\"https://linear.app/farid-zamani/issue/KEL-57/transaksi-tenant-hanya-dapat-dibaca-anggota-dengan-permission\">KEL-57</issue>) tetap dapat diakses dengan token lama hingga 24 jam.\n\n## Goal\n\nSetiap pemeriksaan permission tenant di academic dan billing membawa identitas keanggotaan pemegang token, sehingga anggota yang dikeluarkan atau diubah role-nya langsung ditolak pada request berikutnya.\n\n## Requirements\n\n* Klien permission academic dan billing mengirim `member_id` dari claim JWT yang terverifikasi pada setiap pemeriksaan permission tenant.\n* Caller tenant (bukan parent) tanpa `member_id` yang valid ditolak 403 sebelum identity dipanggil.\n* Jalur parent pada `RequirePermissionUnlessParent` di academic tetap tidak memanggil identity dan tidak berubah perilakunya.\n* Jawaban deny dan error identity tetap dipetakan ke 403 dan 503 seperti sekarang.\n* Deadline pemeriksaan permission dari issue timeout academic tetap berlaku.\n\n## Acceptance Criteria\n\n- [ ] Request permission dari academic dan billing ke identity memuat `member_id` yang sama dengan claim token, dibuktikan oleh test klien.\n- [ ] Dengan identity yang sudah diperbarui, token milik anggota yang dikeluarkan ditolak 403 pada route academic yang dilindungi permission dan pada `GET /api/v1/billing/transactions`.\n- [ ] Token tenant tanpa claim `member_id` ditolak 403 di kedua service.\n- [ ] Parent tetap dapat membuat enrollment katalog, melihat, dan membatalkan enrollment miliknya.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nBergantung pada kontrak `member_id` opsional di gRPC `CheckPermission` dari issue identity. Academic dan billing dapat dirilis setelah identity dalam PR terpisah per repository. Evidence: academic `pkg/grpcclient/permission_client.go`, `internal/delivery/http/middleware/permission_middleware.go:55-78`; billing `pkg/identity/permission_client.go`, `internal/delivery/http/middleware/permission_middleware.go:59`. Asumsi: semua token tenant yang diterbitkan identity saat ini membawa `member_id` (`kelolakelas-identity-service/internal/usecase/auth_usecase.go:86`, `tenant_usecase.go:140`), sehingga penolakan token tanpa `member_id` tidak memengaruhi pengguna yang login ulang. Perbarui `kelolakelas-docs` dalam PR docs terpisah setelah PR kode merge, mencakup halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup atau menyempit, dan evidence index.\n\nComplexity: `medium`. Complexity rationale: Perubahan klien gRPC dan middleware bersifat simetris di dua service dan mengikuti kontrak dari issue identity. Risiko otorisasi sudah dimitigasi di sisi server, tetapi dua service harus dirilis konsisten dan jalur parent tidak boleh terdampak.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/pkg/grpcclient/permission_client.go`\n* `kelolakelas-academic-service/internal/delivery/http/middleware/permission_middleware.go`\n* `kelolakelas-billing-service/pkg/identity/permission_client.go`\n* `kelolakelas-billing-service/internal/delivery/http/middleware/permission_middleware.go`\n\n## Edge Cases\n\n* Parent yang juga memiliki claim keanggotaan tenant (ADR 0002 menghitungnya sebagai parent).\n* Claim `member_id` berupa string kosong atau bukan UUID.\n* Identity versi lama yang mengabaikan field `member_id` tetap mengembalikan keputusan berbasis role.\n\n## Testing / Validation\n\n- [ ] Tambahkan test klien gRPC di kedua service yang memeriksa field `member_id` pada request.\n- [ ] Tambahkan test middleware untuk token tanpa `member_id`, token parent, dan jawaban deny dari identity.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Perubahan evaluasi permission di identity (issue blocker).\n* Menegakkan permission pada route academic yang saat ini hanya memerlukan JWT (<issue id=\"3ef2eb6a-bf9f-4dbf-9481-72022a0bd98e\" href=\"https://linear.app/farid-zamani/issue/KEL-22/terapkan-permission-pada-attendance-dan-report\">KEL-22</issue>).\n* Pemeriksaan keanggotaan pada gateway.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"academic-billing-permission-check-sends-member\",\n  \"projectKey\": \"tenant-member-administration\",\n  \"title\": \"Academic dan billing menolak akses anggota yang sudah dikeluarkan atau berganti role\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"academic\",\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\",\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"identity-permission-requires-active-membership\",\n    \"academic-permission-check-deadline\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Middleware academic dan billing sudah mem-parse claim `member_id` dari JWT (`kelolakelas-academic-service/internal/delivery/http/middleware/auth_middleware.go:30,58`; `kelolakelas-billing-service/internal/delivery/http/middleware/auth_middleware.go:30`), tetapi klien permission keduanya hanya mengirim `role_id`, `permission`, dan `tenant_id` ke identity (`academic pkg/grpcclient/permission_client.go:34-52`, `billing pkg/identity/permission_client.go:46-60`). Tanpa `member_id`, identity tidak dapat menolak anggota yang sudah dikeluarkan atau diturunkan role-nya, sehingga route academic (katalog, jadwal, student, enrollment) dan transaksi billing (`billing:read`, KEL-57) tetap dapat diakses dengan token lama hingga 24 jam.\",\n    \"goal\": \"Setiap pemeriksaan permission tenant di academic dan billing membawa identitas keanggotaan pemegang token, sehingga anggota yang dikeluarkan atau diubah role-nya langsung ditolak pada request berikutnya.\",\n    \"requirements\": [\n      \"Klien permission academic dan billing mengirim `member_id` dari claim JWT yang terverifikasi pada setiap pemeriksaan permission tenant.\",\n      \"Caller tenant (bukan parent) tanpa `member_id` yang valid ditolak 403 sebelum identity dipanggil.\",\n      \"Jalur parent pada `RequirePermissionUnlessParent` di academic tetap tidak memanggil identity dan tidak berubah perilakunya.\",\n      \"Jawaban deny dan error identity tetap dipetakan ke 403 dan 503 seperti sekarang.\",\n      \"Deadline pemeriksaan permission dari issue timeout academic tetap berlaku.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Request permission dari academic dan billing ke identity memuat `member_id` yang sama dengan claim token, dibuktikan oleh test klien.\",\n      \"Dengan identity yang sudah diperbarui, token milik anggota yang dikeluarkan ditolak 403 pada route academic yang dilindungi permission dan pada `GET /api/v1/billing/transactions`.\",\n      \"Token tenant tanpa claim `member_id` ditolak 403 di kedua service.\",\n      \"Parent tetap dapat membuat enrollment katalog, melihat, dan membatalkan enrollment miliknya.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Bergantung pada kontrak `member_id` opsional di gRPC `CheckPermission` dari issue identity. Academic dan billing dapat dirilis setelah identity dalam PR terpisah per repository. Evidence: academic `pkg/grpcclient/permission_client.go`, `internal/delivery/http/middleware/permission_middleware.go:55-78`; billing `pkg/identity/permission_client.go`, `internal/delivery/http/middleware/permission_middleware.go:59`. Asumsi: semua token tenant yang diterbitkan identity saat ini membawa `member_id` (`kelolakelas-identity-service/internal/usecase/auth_usecase.go:86`, `tenant_usecase.go:140`), sehingga penolakan token tanpa `member_id` tidak memengaruhi pengguna yang login ulang. Perbarui `kelolakelas-docs` dalam PR docs terpisah setelah PR kode merge, mencakup halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup atau menyempit, dan evidence index.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/pkg/grpcclient/permission_client.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/middleware/permission_middleware.go\",\n      \"kelolakelas-billing-service/pkg/identity/permission_client.go\",\n      \"kelolakelas-billing-service/internal/delivery/http/middleware/permission_middleware.go\"\n    ],\n    \"edgeCases\": [\n      \"Parent yang juga memiliki claim keanggotaan tenant (ADR 0002 menghitungnya sebagai parent).\",\n      \"Claim `member_id` berupa string kosong atau bukan UUID.\",\n      \"Identity versi lama yang mengabaikan field `member_id` tetap mengembalikan keputusan berbasis role.\"\n    ],\n    \"testingValidation\": [\n      \"Tambahkan test klien gRPC di kedua service yang memeriksa field `member_id` pada request.\",\n      \"Tambahkan test middleware untuk token tanpa `member_id`, token parent, dan jawaban deny dari identity.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Perubahan evaluasi permission di identity (issue blocker).\",\n      \"Menegakkan permission pada route academic yang saat ini hanya memerlukan JWT (KEL-22).\",\n      \"Pemeriksaan keanggotaan pada gateway.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-80/academic-dan-billing-menolak-akses-anggota-yang-sudah-dikeluarkan-atau",
+  "gitBranchName": "skinel123/kel-80-academic-dan-billing-menolak-akses-anggota-yang-sudah",
+  "createdAt": "2026-09-24T12:02:35.314Z",
+  "updatedAt": "2026-09-26T10:50:54.946Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T10:45:59.589Z",
+  "startedAt": "2026-09-26T10:34:05.202Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "ai-ready",
+    "billing",
+    "academic",
+    "Improvement"
+  ],
+  "attachments": [
+    {
+      "id": "965fd23d-6f94-4e04-9508-21036a3a0652",
+      "title": "docs: KEL-80 academic and billing pin permission checks to member_id",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/79"
+    },
+    {
+      "id": "9b7311ce-cd86-48e0-88fa-793c6b4859a1",
+      "title": "billing PR #16 (KEL-80)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/16"
+    },
+    {
+      "id": "5359c7fc-bc5b-49ff-9f9f-67bdb95f6af1",
+      "title": "KEL-80: send member_id on academic permission checks",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/20"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T12:02:35.314Z",
+      "endedAt": "2026-09-26T10:34:05.214Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T10:34:05.214Z",
+      "endedAt": "2026-09-26T10:45:59.595Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T10:45:59.595Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Administrasi anggota tenant yang andal dan aman",
+  "projectId": "24479f4a-98ab-4255-a1e8-954da9ba6360",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-81",
+        "title": "Admin tenant dapat mengeluarkan anggota dari dashboard dengan aman"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-78",
+        "title": "Pemeriksaan permission academic dibatasi waktu ketika identity lambat atau tidak merespons"
+      },
+      {
+        "id": "KEL-76",
+        "title": "Permission identity hanya berlaku bagi anggota tenant yang masih aktif dengan role saat ini"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-54",
+        "title": "Pendaftaran ganda student ke kelas yang sama mendapat respons konflik yang jelas"
+      },
+      {
+        "id": "KEL-103",
+        "title": "Creator tenant dapat meminta dan platform admin dapat memutuskan Creator tambahan dari web"
+      },
+      {
+        "id": "KEL-98",
+        "title": "Platform admin dapat mengatur visibilitas katalog publik secara konsisten"
+      },
+      {
+        "id": "KEL-52",
+        "title": "Katalog dan enrollment hanya menawarkan jadwal yang masih berlaku"
+      },
+      {
+        "id": "KEL-22",
+        "title": "Terapkan permission pada attendance dan report"
+      },
+      {
+        "id": "KEL-57",
+        "title": "Transaksi tenant hanya dapat dibaca anggota dengan permission billing:read"
+      },
+      {
+        "id": "KEL-79",
+        "title": "Anggota Teacher dapat dipindah role tanpa mengizinkan perubahan role sendiri"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

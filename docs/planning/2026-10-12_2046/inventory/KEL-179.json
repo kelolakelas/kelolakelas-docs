@@ -1,0 +1,69 @@
+{
+  "id": "KEL-179",
+  "uuid": "8d2114fb-b91a-4d68-a25a-98b61739c48c",
+  "title": "Enrollment yang baru dibatalkan sempat tampil \"Pembayaran diterima, aktivasi diproses\" untuk transaksi cancelled",
+  "description": "## Ringkasan\n\nTepat setelah parent membatalkan enrollment pending, kartu di `/dashboard/parent/enrollments` menampilkan \"Pembayaran diterima, aktivasi diproses\" dengan detail \"Pembayaran sudah diterima ...\". Padahal transaksinya `cancelled` dan tidak ada pembayaran. Label ini menyesatkan untuk urusan uang. Setelah worker rekonsiliasi billing menyelesaikan job pelepasan kursi (sekitar \u22641 menit dengan setelan default), label berubah menjadi \"Pembayaran gagal\".\n\n## Langkah reproduksi\n\n1. Login sebagai parent dengan enrollment pending yang punya invoice belum dibayar.\n2. Batalkan dari `/dashboard/parent/enrollments`.\n3. Segera muat ulang halaman, sebelum worker rekonsiliasi billing berjalan.\n\n## Hasil aktual\n\nKartu: Enrollment dropped, status transaksi `cancelled`, label \"Pembayaran diterima, aktivasi diproses\".\n\n## Diharapkan\n\nTransaksi `cancelled` tidak pernah ditampilkan sebagai pembayaran diterima. Labelnya mencerminkan pembatalan, misalnya \"Dibatalkan\" atau \"Pembayaran gagal\".\n\n## Akar masalah\n\nDibaca dari kode `origin/main` (web 63023ff, billing a87e334), lalu dikonfirmasi lewat E2E.\n\n* Billing mengirim job pelepasan kursi sebagai rekonsiliasi `kind = release` (`internal/domain/payment_reconciliation.go:33`, dibuat di `internal/repository/transaction_repository.go:356-368`).\n* `transactionResponse` memetakan job pending/processing jenis APA PUN menjadi `reconciliation_status: \"reconciling\"` (`internal/usecase/transaction_usecase.go:571`), dan mengirim jenisnya di `reconciliation_kind` (`transaction_usecase.go:577`).\n* Web `lib/payment-status.ts:115` menganggap setiap `reconciling` sebagai aktivasi pembayaran yang sedang berjalan. Pengecekan itu dilakukan sebelum cabang `cancelled` (`:119`), dan `reconciliation_kind` tidak dibaca di mana pun di web.\n* `lib/payment-status.ts:134` (`paymentIsSettling`, dipakai halaman return pembayaran <issue id=\"9eae8dac-a2af-4613-a96c-d27fc4df9f58\" href=\"https://linear.app/farid-zamani/issue/KEL-44/sediakan-halaman-kembali-dari-pembayaran-dengan-pembaruan-status\">KEL-44</issue> untuk auto-refresh) juga menganggap `reconciling` jenis apa pun sebagai \"masih berproses\". Itu tidak salah untuk release, tetapi perlu ikut diperiksa supaya keputusan label dan auto-refresh tetap konsisten.\n\n## Saran perbaikan\n\nDi web, perlakukan `reconciling` sebagai \"aktivasi diproses\" hanya bila `reconciliation_kind` bernilai `activation` (atau bila kind kosong, untuk kompatibilitas data lama). Untuk `release`, tampilkan label berdasarkan status transaksi. Tambahkan test untuk kombinasi cancelled+release, expired+release, dan paid+activation. Periksa juga apakah halaman tenant (<issue id=\"8b45c634-0954-4e0a-9d35-57d0ebe73abb\" href=\"https://linear.app/farid-zamani/issue/KEL-33/tampilkan-enrollment-dan-status-pembayaran-kepada-tenant\">KEL-33</issue>) memakai fungsi yang sama.\n\n## Bukti\n\n* E2E operator <issue id=\"b7565cc5-f33c-4b6a-a877-a271c56b0ffd\" href=\"https://linear.app/farid-zamani/issue/KEL-168/pembatalan-enrollment-pending-oleh-parent-selalu-dijawab-409-padahal\">KEL-168</issue> (2026-10-09): `/home/faridzam/workspace/kelolakelas/.kel-autopilot/kel168/manual-e2e.md` \u00a7 Findings (lokal operator, tidak di-commit), temuan 2. Baris `payment_reconciliations` berisi `kind=release, status=pending` tepat setelah pembatalan.\n* Kode <issue id=\"b7565cc5-f33c-4b6a-a877-a271c56b0ffd\" href=\"https://linear.app/farid-zamani/issue/KEL-168/pembatalan-enrollment-pending-oleh-parent-selalu-dijawab-409-padahal\">KEL-168</issue> tidak menyentuh `lib/payment-status.ts`, jadi temuan ini sudah ada sebelumnya.",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-179/enrollment-yang-baru-dibatalkan-sempat-tampil-pembayaran-diterima",
+  "gitBranchName": "skinel123/kel-179-enrollment-yang-baru-dibatalkan-sempat-tampil-pembayaran",
+  "createdAt": "2026-10-09T07:01:38.454Z",
+  "updatedAt": "2026-10-09T07:01:38.454Z",
+  "archivedAt": null,
+  "completedAt": null,
+  "startedAt": null,
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Backlog",
+  "statusType": "backlog",
+  "labels": [
+    "web",
+    "Bug"
+  ],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-10-09T07:01:38.454Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-26",
+        "title": "Lepaskan kuota enrollment ketika pembayaran gagal atau kedaluwarsa"
+      },
+      {
+        "id": "KEL-44",
+        "title": "Sediakan halaman kembali dari pembayaran dengan pembaruan status otomatis"
+      },
+      {
+        "id": "KEL-33",
+        "title": "Tampilkan enrollment dan status pembayaran kepada tenant"
+      },
+      {
+        "id": "KEL-168",
+        "title": "Pembatalan enrollment pending oleh parent selalu dijawab 409 padahal pembatalan berhasil"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "id": "KEL-130",
+  "uuid": "2f454d50-9af3-483c-b2c8-ac0666d97f60",
+  "title": "Parent yang sudah memiliki student dapat menambah student lain dari detail kelas",
+  "description": "## Background / Problem\n\n<issue id=\"4f5c6bff-0fdd-412f-a577-f3d3e9c79706\" href=\"https://linear.app/farid-zamani/issue/KEL-111/parent-dapat-menambah-student-lewat-modal-di-detail-kelas-lalu\">KEL-111</issue> menambahkan modal pada `EnrollmentPanel.tsx:52-74` hanya saat daftar student kosong; saat sudah ada satu student, tombol tambah tidak tersedia tanpa meninggalkan detail kelas.\n\n## Goal\n\nParent dengan satu atau lebih student dapat menambah student lagi dari detail kelas dan langsung melanjutkan enrollment untuk student baru.\n\n## Requirements\n\n* Tampilkan affordance Tambah student juga saat daftar student tidak kosong untuk group dan private.\n* Gunakan modal/StudentForm yang sama seperti <issue id=\"4f5c6bff-0fdd-412f-a577-f3d3e9c79706\" href=\"https://linear.app/farid-zamani/issue/KEL-111/parent-dapat-menambah-student-lewat-modal-di-detail-kelas-lalu\">KEL-111</issue>, perbarui opsi dan pilih student baru tanpa pindah URL.\n* Pertahankan pemilihan student lama, modal empty state, aksesibilitas dan error handling existing.\n\n## Acceptance Criteria\n\n- [ ] Parent dengan student existing dapat menambah dan langsung memilih student baru di kelas yang sama.\n- [ ] Cancel/error tidak mengubah pilihan sebelumnya dan fokus kembali ke pemicu.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\n<issue id=\"4f5c6bff-0fdd-412f-a577-f3d3e9c79706\" href=\"https://linear.app/farid-zamani/issue/KEL-111/parent-dapat-menambah-student-lewat-modal-di-detail-kelas-lalu\">KEL-111</issue> Done; jangan mengubah API. `EnrollmentPanel.tsx:52-74` memiliki modal pada early-return empty state; saat memindahkan/berbagi markup, periksa dua tipe kelas dan pemulihan fokus pada trigger. Perbarui docs web.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx`\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/students/_components/StudentForm.tsx`\n\n## Edge Cases\n\n* Parent memiliki banyak student dan form private sedang memuat request.\n* Modal dibatalkan lalu dibuka kembali; create gagal/401.\n\n## Testing / Validation\n\n- [ ] Vitest dua jalur (zero-state dan existing students), group/private, sukses/cancel/error dan focus return.\n- [ ] Jalankan test, lint, type check dan build; verifikasi manual detail kelas.\n\n## Out of Scope\n\n* Edit dan hapus student dari detail kelas.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"student-modal-existing-list\",\n  \"projectKey\": null,\n  \"title\": \"Parent yang sudah memiliki student dapat menambah student lain dari detail kelas\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"repositories\": [\n    \"web\"\n  ],\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"KEL-111 menambahkan modal pada `EnrollmentPanel.tsx:52-74` hanya saat daftar student kosong; saat sudah ada satu student, tombol tambah tidak tersedia tanpa meninggalkan detail kelas.\",\n    \"goal\": \"Parent dengan satu atau lebih student dapat menambah student lagi dari detail kelas dan langsung melanjutkan enrollment untuk student baru.\",\n    \"requirements\": [\n      \"Tampilkan affordance Tambah student juga saat daftar student tidak kosong untuk group dan private.\",\n      \"Gunakan modal/StudentForm yang sama seperti KEL-111, perbarui opsi dan pilih student baru tanpa pindah URL.\",\n      \"Pertahankan pemilihan student lama, modal empty state, aksesibilitas dan error handling existing.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Parent dengan student existing dapat menambah dan langsung memilih student baru di kelas yang sama.\",\n      \"Cancel/error tidak mengubah pilihan sebelumnya dan fokus kembali ke pemicu.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"KEL-111 Done; jangan mengubah API. `EnrollmentPanel.tsx:52-74` memiliki modal pada early-return empty state; saat memindahkan/berbagi markup, periksa dua tipe kelas dan pemulihan fokus pada trigger. Perbarui docs web.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/students/_components/StudentForm.tsx\"\n    ],\n    \"edgeCases\": [\n      \"Parent memiliki banyak student dan form private sedang memuat request.\",\n      \"Modal dibatalkan lalu dibuka kembali; create gagal/401.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest dua jalur (zero-state dan existing students), group/private, sukses/cancel/error dan focus return.\",\n      \"Jalankan test, lint, type check dan build; verifikasi manual detail kelas.\"\n    ],\n    \"outOfScope\": [\n      \"Edit dan hapus student dari detail kelas.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-130/parent-yang-sudah-memiliki-student-dapat-menambah-student-lain-dari",
+  "gitBranchName": "skinel123/kel-130-parent-yang-sudah-memiliki-student-dapat-menambah-student",
+  "createdAt": "2026-09-28T19:15:07.210Z",
+  "updatedAt": "2026-09-29T14:03:37.968Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-29T13:56:15.931Z",
+  "startedAt": "2026-09-29T13:20:07.422Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "c27358f2-02ba-414f-bf9e-66d490299674",
+      "title": "KEL-130: Document add-student trigger on every populated enrollment branch",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/130"
+    },
+    {
+      "id": "afbc10c2-ba49-4721-ae09-2cb9b0796c56",
+      "title": "KEL-130: parent dengan student existing dapat menambah student lain dari detail kelas",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/58"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T19:15:07.210Z",
+      "endedAt": "2026-09-29T13:20:07.497Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-29T13:20:07.497Z",
+      "endedAt": "2026-09-29T13:56:15.944Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-29T13:56:15.944Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-132",
+        "title": "Academic menolak kapasitas jadwal private yang tidak sesuai satu student"
+      },
+      {
+        "id": "KEL-114",
+        "title": "Elemen yang dapat diklik di web menampilkan cursor pointer"
+      },
+      {
+        "id": "KEL-112",
+        "title": "Tenant dapat menghasilkan slot jadwal mingguan dari pilihan hari, jam, lama sesi, dan jeda"
+      },
+      {
+        "id": "KEL-111",
+        "title": "Parent dapat menambah student lewat modal di detail kelas lalu langsung melanjutkan enrollment"
+      },
+      {
+        "id": "KEL-113",
+        "title": "Form buat kelas tidak lagi menampilkan field kapasitas karena kapasitas diatur per jadwal"
+      },
+      {
+        "id": "KEL-128",
+        "title": "Parent menerima email payment link setelah jadwal private disetujui"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

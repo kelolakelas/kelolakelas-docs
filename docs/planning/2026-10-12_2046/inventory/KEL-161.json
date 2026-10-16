@@ -1,0 +1,123 @@
+{
+  "id": "KEL-161",
+  "uuid": "00301afd-705c-4323-b138-334314e6e21a",
+  "title": "Tenant dapat membuat, mengubah, dan menonaktifkan voucher",
+  "description": "## Background / Problem\n\nTabel `vouchers` (code unik per tenant, discount_type/value, max_discount_amount, min_transaction_amount, max_uses/current_uses, valid_from/until, is_active) ada di billing (`migrations/00000000000000_init_schema.up.sql:3-13`) dan permission `voucher:*` sudah di-seed di identity, tetapi `VoucherRepository` hanya interface (`internal/repository/interfaces.go:40`) dan tidak ada route maupun UI.\n\n## Goal\n\nTenant dapat mengelola voucher miliknya dari dashboard.\n\n## Requirements\n\n* Endpoint CRUD voucher dengan permission `voucher:create|read|update|delete`, di-scope tenant.\n* Validasi: kode unik case-insensitive per tenant, nilai persen 1-100 atau nominal positif, rentang tanggal valid, dan max_uses minimal current_uses.\n* Voucher yang pernah dipakai hanya dapat dinonaktifkan, bukan dihapus.\n* Gateway meneruskan route, dan web menyediakan halaman daftar serta form voucher.\n\n## Acceptance Criteria\n\n- [ ] Tenant membuat voucher dan melihatnya di daftar dengan jumlah pemakaian.\n- [ ] Kode duplikat dan nilai tidak valid ditolak dengan pesan jelas.\n- [ ] Tenant lain tidak dapat membaca atau mengubah voucher ini.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nPermission dicek lewat identity `CheckPermission` seperti `billing:read`. Belum ada efek pada harga checkout. Perbarui `kelolakelas-docs` (api/billing.md, api/gateway.md, components/web.md).\n\nRelevant areas:\n\n* `kelolakelas-billing-service/internal/domain/voucher.go`\n* `kelolakelas-billing-service/internal/repository/interfaces.go`\n* `kelolakelas-billing-service/cmd/server/routes.go`\n* `kelolakelas-api-gateway/internal/delivery/http/router.go`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant`\n\n## Edge Cases\n\n* Voucher kedaluwarsa diaktifkan kembali.\n* Kode dengan huruf besar dan kecil berbeda.\n\n## Testing / Validation\n\n- [ ] Unit test validasi dan scope tenant.\n- [ ] Router test gateway; go vet, go test -race, dan build billing lulus.\n- [ ] Vitest form voucher; test, lint, type check, dan build web lulus.\n\n## Out of Scope\n\n* Penukaran voucher di checkout.\n* Voucher lintas tenant atau dari platform.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"tenant-voucher-management\",\n  \"projectKey\": \"tenant-storefront-growth\",\n  \"title\": \"Tenant dapat membuat, mengubah, dan menonaktifkan voucher\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"billing\",\n    \"api-gateway\",\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"billing\",\n    \"api-gateway\",\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Tabel `vouchers` (code unik per tenant, discount_type/value, max_discount_amount, min_transaction_amount, max_uses/current_uses, valid_from/until, is_active) ada di billing (`migrations/00000000000000_init_schema.up.sql:3-13`) dan permission `voucher:*` sudah di-seed di identity, tetapi `VoucherRepository` hanya interface (`internal/repository/interfaces.go:40`) dan tidak ada route maupun UI.\",\n    \"goal\": \"Tenant dapat mengelola voucher miliknya dari dashboard.\",\n    \"requirements\": [\n      \"Endpoint CRUD voucher dengan permission `voucher:create|read|update|delete`, di-scope tenant.\",\n      \"Validasi: kode unik case-insensitive per tenant, nilai persen 1-100 atau nominal positif, rentang tanggal valid, dan max_uses minimal current_uses.\",\n      \"Voucher yang pernah dipakai hanya dapat dinonaktifkan, bukan dihapus.\",\n      \"Gateway meneruskan route, dan web menyediakan halaman daftar serta form voucher.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Tenant membuat voucher dan melihatnya di daftar dengan jumlah pemakaian.\",\n      \"Kode duplikat dan nilai tidak valid ditolak dengan pesan jelas.\",\n      \"Tenant lain tidak dapat membaca atau mengubah voucher ini.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Permission dicek lewat identity `CheckPermission` seperti `billing:read`. Belum ada efek pada harga checkout. Perbarui `kelolakelas-docs` (api/billing.md, api/gateway.md, components/web.md).\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/internal/domain/voucher.go\",\n      \"kelolakelas-billing-service/internal/repository/interfaces.go\",\n      \"kelolakelas-billing-service/cmd/server/routes.go\",\n      \"kelolakelas-api-gateway/internal/delivery/http/router.go\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant\"\n    ],\n    \"edgeCases\": [\n      \"Voucher kedaluwarsa diaktifkan kembali.\",\n      \"Kode dengan huruf besar dan kecil berbeda.\"\n    ],\n    \"testingValidation\": [\n      \"Unit test validasi dan scope tenant.\",\n      \"Router test gateway; go vet, go test -race, dan build billing lulus.\",\n      \"Vitest form voucher; test, lint, type check, dan build web lulus.\"\n    ],\n    \"outOfScope\": [\n      \"Penukaran voucher di checkout.\",\n      \"Voucher lintas tenant atau dari platform.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-161/tenant-dapat-membuat-mengubah-dan-menonaktifkan-voucher",
+  "gitBranchName": "skinel123/kel-161-tenant-dapat-membuat-mengubah-dan-menonaktifkan-voucher",
+  "createdAt": "2026-09-30T11:04:09.556Z",
+  "updatedAt": "2026-10-01T21:44:30.635Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-01T20:50:07.608Z",
+  "startedAt": "2026-10-01T19:25:15.575Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "api-gateway",
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "fb706182-640d-443b-b0fa-bb7631a1c49f",
+      "title": "KEL-161 docs: tenant voucher management current state",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/146"
+    },
+    {
+      "id": "4ab2618c-89c4-4231-8327-273f7f5e82dc",
+      "title": "KEL-161: tenant voucher management page",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/64"
+    },
+    {
+      "id": "b7a66da0-bb3d-4beb-8948-b002252a1530",
+      "title": "KEL-161: forward tenant voucher routes",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/37"
+    },
+    {
+      "id": "1d247c96-648f-4cb5-8082-8564b0d1d3db",
+      "title": "KEL-161: tenant voucher CRUD and scoped validation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/32"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T11:04:09.556Z",
+      "endedAt": "2026-10-01T19:25:15.584Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-01T19:25:15.584Z",
+      "endedAt": "2026-10-01T20:50:07.614Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-01T20:50:07.614Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Profil tenant publik, ulasan kelas, dan voucher",
+  "projectId": "1af5c085-6356-493d-8313-204e726a21c8",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-162",
+        "title": "Parent dapat memakai voucher tenant saat checkout kelas grup"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-151",
+        "title": "Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment"
+      },
+      {
+        "id": "KEL-143",
+        "title": "Tenant dapat mengajukan dan membatalkan penarikan dengan saldo yang ditahan secara atomik"
+      },
+      {
+        "id": "KEL-135",
+        "title": "Pengajar melihat sesinya sendiri dan akses sesi, tutor pengganti, serta laporan dijaga konsisten"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

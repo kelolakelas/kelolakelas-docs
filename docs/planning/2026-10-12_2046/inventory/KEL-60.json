@@ -1,0 +1,130 @@
+{
+  "id": "KEL-60",
+  "uuid": "297ff9c3-0aee-4f07-9ac4-d1e867974c3c",
+  "title": "Web berjalan di atas Next.js dan dependency produksi yang bebas advisory high/critical",
+  "description": "## Background / Problem\n\n`npm audit --omit=dev` pada `kelolakelas-web` (dijalankan 2026-09-24 di `main`) melaporkan 4 paket rentan: `next` critical (GHSA-p293-qw3h-jr36, unauthenticated RCE pada server Windows, dan GHSA-2xp9-vwfh-vxw4, RCE di Image Optimization API ketika file AVIF dipakai; range terdampak `>=16.0.0 <16.3.3`), serta `postcss` (arbitrary file read lewat `sourceMappingURL`), `sharp` (CVE libvips/libheif), dan `nanoid`, masing-masing high. `package.json:14` mem-pin `\"next\": \"16.2.12\"` (juga `eslint-config-next` 16.2.12 di baris 25), dan versi terpasang adalah 16.2.12. Audit menyebut fix non-major tersedia (`next@16.3.6`). Tidak ada pemakaian `next/image` di `app/` dan `next.config.ts` kosong, tetapi endpoint default `/_next/image` tetap tersedia, sehingga reachability advisory image masih Inferred. Web adalah permukaan publik untuk katalog, registrasi, dan checkout.\n\n## Goal\n\nBuild produksi web tidak lagi memuat versi Next.js, postcss, sharp, atau nanoid yang terdampak advisory high/critical, tanpa perubahan perilaku yang terlihat oleh pengguna.\n\n## Requirements\n\n* Naikkan `next` dan `eslint-config-next` ke rilis patch/minor terbaru yang menutup advisory di atas, tanpa major upgrade.\n* Pastikan versi transitif `postcss`, `sharp`, dan `nanoid` pada lockfile berada di luar range rentan; gunakan `overrides` hanya bila upgrade `next` tidak cukup.\n* `npm audit --omit=dev --audit-level=high` tidak melaporkan temuan.\n* Perilaku yang ada tetap terjaga: katalog publik, detail kelas, login/registrasi, dashboard tenant/parent, logout, error boundary, dan metadata.\n\n## Acceptance Criteria\n\n- [ ] `npm audit --omit=dev --audit-level=high` keluar dengan kode 0 pada branch issue.\n- [ ] `npm ci`, `npm run test`, `npx tsc --noEmit`, dan `npm run build` sukses dengan lockfile baru.\n- [ ] Smoke test build produksi terhadap stub gateway menampilkan `/kelas`, `/kelas/[id]`, `/login`, dan `/dashboard/tenant` tanpa error baru.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nEvidence: `kelolakelas-web/package.json:14,25`, output `npm audit --omit=dev --json` (next critical; postcss, sharp, nanoid high). `AGENTS.md` repo web mewajibkan membaca `node_modules/next/dist/docs/` sebelum menulis kode Next.js, termasuk catatan upgrade antar versi. Asumsi: tidak ada breaking change antara 16.2 dan 16.3 yang memengaruhi server action/route yang dipakai; implementer memverifikasinya lewat release notes. Tidak ada perubahan kode aplikasi yang direncanakan; bila upgrade memaksa perubahan, batasi pada adaptasi API yang berubah. Perbarui `kelolakelas-docs` (halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup/menyempit, serta evidence index) dalam PR docs terpisah setelah PR kode merge.\n\nComplexity: `medium`. Complexity rationale: Upgrade minor framework bersifat mekanis, tetapi menyentuh seluruh route, build, dan server action. Risikonya berupa regresi perilaku lintas halaman yang tidak tertangkap test unit.\n\nRelevant areas:\n\n* `kelolakelas-web/package.json`\n* `kelolakelas-web/package-lock.json`\n* `kelolakelas-web/next.config.ts`\n\n## Edge Cases\n\n* Rilis Next.js terbaru membawa advisory baru. Pilih versi patched terendah yang bersih, lalu catat alasannya.\n* `sharp` versi baru membutuhkan binary platform berbeda saat `npm ci` di CI.\n* Upgrade mengubah output `generateMetadata` atau perilaku cache `fetch` `no-store`.\n\n## Testing / Validation\n\n- [ ] Lampirkan output `npm audit --omit=dev` sebelum dan sesudah upgrade di deskripsi PR.\n- [ ] Jalankan smoke test manual build produksi terhadap stub gateway untuk route publik dan dashboard.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Major upgrade Next.js/React.\n* Konfigurasi `images` atau penonaktifan Image Optimization.\n* Gate audit di CI (issue terpisah).\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-upgrade-next-security-patches\",\n  \"projectKey\": \"platform-security-hardening\",\n  \"title\": \"Web berjalan di atas Next.js dan dependency produksi yang bebas advisory high/critical\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Urgent\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`npm audit --omit=dev` pada `kelolakelas-web` (dijalankan 2026-09-24 di `main`) melaporkan 4 paket rentan: `next` critical (GHSA-p293-qw3h-jr36, unauthenticated RCE pada server Windows, dan GHSA-2xp9-vwfh-vxw4, RCE di Image Optimization API ketika file AVIF dipakai; range terdampak `>=16.0.0 <16.3.3`), serta `postcss` (arbitrary file read lewat `sourceMappingURL`), `sharp` (CVE libvips/libheif), dan `nanoid`, masing-masing high. `package.json:14` mem-pin `\\\"next\\\": \\\"16.2.12\\\"` (juga `eslint-config-next` 16.2.12 di baris 25), dan versi terpasang adalah 16.2.12. Audit menyebut fix non-major tersedia (`next@16.3.6`). Tidak ada pemakaian `next/image` di `app/` dan `next.config.ts` kosong, tetapi endpoint default `/_next/image` tetap tersedia, sehingga reachability advisory image masih Inferred. Web adalah permukaan publik untuk katalog, registrasi, dan checkout.\",\n    \"goal\": \"Build produksi web tidak lagi memuat versi Next.js, postcss, sharp, atau nanoid yang terdampak advisory high/critical, tanpa perubahan perilaku yang terlihat oleh pengguna.\",\n    \"requirements\": [\n      \"Naikkan `next` dan `eslint-config-next` ke rilis patch/minor terbaru yang menutup advisory di atas, tanpa major upgrade.\",\n      \"Pastikan versi transitif `postcss`, `sharp`, dan `nanoid` pada lockfile berada di luar range rentan; gunakan `overrides` hanya bila upgrade `next` tidak cukup.\",\n      \"`npm audit --omit=dev --audit-level=high` tidak melaporkan temuan.\",\n      \"Perilaku yang ada tetap terjaga: katalog publik, detail kelas, login/registrasi, dashboard tenant/parent, logout, error boundary, dan metadata.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"`npm audit --omit=dev --audit-level=high` keluar dengan kode 0 pada branch issue.\",\n      \"`npm ci`, `npm run test`, `npx tsc --noEmit`, dan `npm run build` sukses dengan lockfile baru.\",\n      \"Smoke test build produksi terhadap stub gateway menampilkan `/kelas`, `/kelas/[id]`, `/login`, dan `/dashboard/tenant` tanpa error baru.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Evidence: `kelolakelas-web/package.json:14,25`, output `npm audit --omit=dev --json` (next critical; postcss, sharp, nanoid high). `AGENTS.md` repo web mewajibkan membaca `node_modules/next/dist/docs/` sebelum menulis kode Next.js, termasuk catatan upgrade antar versi. Asumsi: tidak ada breaking change antara 16.2 dan 16.3 yang memengaruhi server action/route yang dipakai; implementer memverifikasinya lewat release notes. Tidak ada perubahan kode aplikasi yang direncanakan; bila upgrade memaksa perubahan, batasi pada adaptasi API yang berubah. Perbarui `kelolakelas-docs` (halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup/menyempit, serta evidence index) dalam PR docs terpisah setelah PR kode merge.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/package.json\",\n      \"kelolakelas-web/package-lock.json\",\n      \"kelolakelas-web/next.config.ts\"\n    ],\n    \"edgeCases\": [\n      \"Rilis Next.js terbaru membawa advisory baru. Pilih versi patched terendah yang bersih, lalu catat alasannya.\",\n      \"`sharp` versi baru membutuhkan binary platform berbeda saat `npm ci` di CI.\",\n      \"Upgrade mengubah output `generateMetadata` atau perilaku cache `fetch` `no-store`.\"\n    ],\n    \"testingValidation\": [\n      \"Lampirkan output `npm audit --omit=dev` sebelum dan sesudah upgrade di deskripsi PR.\",\n      \"Jalankan smoke test manual build produksi terhadap stub gateway untuk route publik dan dashboard.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Major upgrade Next.js/React.\",\n      \"Konfigurasi `images` atau penonaktifan Image Optimization.\",\n      \"Gate audit di CI (issue terpisah).\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 1,
+    "name": "Urgent"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-60/web-berjalan-di-atas-nextjs-dan-dependency-produksi-yang-bebas",
+  "gitBranchName": "skinel123/kel-60-web-berjalan-di-atas-nextjs-dan-dependency-produksi-yang",
+  "createdAt": "2026-09-24T07:06:49.867Z",
+  "updatedAt": "2026-10-09T06:59:52.475Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-25T18:15:04.415Z",
+  "startedAt": "2026-09-25T17:50:44.387Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "4882e00c-f3b3-41fe-9119-9108d9b5d0e4",
+      "title": "docs: record patched web dependencies (KEL-60)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/63"
+    },
+    {
+      "id": "6591c823-5b7d-4575-8cfa-05aee3b5fa59",
+      "title": "fix(web): patch Next.js production dependencies (KEL-60)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/27"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T07:06:49.867Z",
+      "endedAt": "2026-09-25T17:50:44.401Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-25T17:50:44.401Z",
+      "endedAt": "2026-09-25T18:15:04.421Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-25T18:15:04.421Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pengerasan keamanan dan ketahanan runtime platform",
+  "projectId": "be75a629-541d-4d3d-9b72-d6098e99313a",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-68",
+        "title": "CI menolak PR yang memasukkan dependency dengan advisory high/critical"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-61",
+        "title": "Respons 5xx identity dan billing tidak lagi membocorkan detail error internal"
+      },
+      {
+        "id": "KEL-105",
+        "title": "Akses platform admin memerlukan faktor kedua sebelum sesi privileged diterbitkan"
+      },
+      {
+        "id": "KEL-53",
+        "title": "Parent dapat melanjutkan pembayaran yang masih menunggu dari halaman status enrollment"
+      },
+      {
+        "id": "KEL-97",
+        "title": "Platform admin dapat membuka dan menutup pendaftaran tenant baru"
+      },
+      {
+        "id": "KEL-177",
+        "title": "Advisory baru Go stdlib, golang.org/x/net, dan Next.js ditutup agar CI gate semua repository kembali hijau"
+      },
+      {
+        "id": "KEL-88",
+        "title": "Registrasi dan pengaturan tenant menolak input tidak valid dengan 400/409, bukan 500"
+      },
+      {
+        "id": "KEL-86",
+        "title": "Pembeli dapat membuka daftar kelas dari tenant yang sama melalui kartu dan detail kelas"
+      },
+      {
+        "id": "KEL-55",
+        "title": "Panggilan keluar billing dibatasi waktu dan worker renewal tidak menimpa status transaksi"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

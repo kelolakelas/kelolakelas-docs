@@ -1,0 +1,174 @@
+{
+ "totalIssues": 157,
+ "contractsValid": 156,
+ "errors": [
+  "KEL-21: Missing AI Orchestrator Contract"
+ ],
+ "fullGraph": "OK",
+ "open": [
+  {
+   "id": "KEL-100",
+   "status": "backlog",
+   "assignee": null,
+   "attachments": 0,
+   "prio": "High",
+   "est": "L",
+   "created": "2026-09-24T13:35:19.122Z",
+   "repos": [
+    "web",
+    "api-gateway",
+    "identity"
+   ],
+   "blockedBy": [
+    "KEL-96(completed)"
+   ],
+   "nativeBlockedBy": [
+    "KEL-96"
+   ],
+   "ext": [
+    "edge-deployment-topology"
+   ],
+   "openDescendants": [
+    "KEL-104"
+   ],
+   "unblocks": []
+  },
+  {
+   "id": "KEL-101",
+   "status": "backlog",
+   "assignee": null,
+   "attachments": 0,
+   "prio": "High",
+   "est": "L",
+   "created": "2026-09-24T13:35:25.276Z",
+   "repos": [
+    "identity",
+    "academic",
+    "billing"
+   ],
+   "blockedBy": [
+    "KEL-96(completed)"
+   ],
+   "nativeBlockedBy": [
+    "KEL-96"
+   ],
+   "ext": [
+    "service-deployment-topology"
+   ],
+   "openDescendants": [
+    "KEL-104"
+   ],
+   "unblocks": []
+  },
+  {
+   "id": "KEL-102",
+   "status": "backlog",
+   "assignee": null,
+   "attachments": 0,
+   "prio": "Urgent",
+   "est": "L",
+   "created": "2026-09-24T13:35:33.983Z",
+   "repos": [
+    "web",
+    "api-gateway",
+    "identity",
+    "academic",
+    "billing"
+   ],
+   "blockedBy": [
+    "KEL-96(completed)"
+   ],
+   "nativeBlockedBy": [
+    "KEL-96"
+   ],
+   "ext": [
+    "secret-manager-and-deployment"
+   ],
+   "openDescendants": [
+    "KEL-104"
+   ],
+   "unblocks": []
+  },
+  {
+   "id": "KEL-104",
+   "status": "backlog",
+   "assignee": null,
+   "attachments": 0,
+   "prio": "High",
+   "est": "L",
+   "created": "2026-09-24T13:35:46.748Z",
+   "repos": [
+    "web"
+   ],
+   "blockedBy": [
+    "KEL-97(completed)",
+    "KEL-98(completed)",
+    "KEL-99(completed)",
+    "KEL-100(backlog)",
+    "KEL-101(backlog)",
+    "KEL-102(backlog)"
+   ],
+   "nativeBlockedBy": [
+    "KEL-97",
+    "KEL-100",
+    "KEL-98",
+    "KEL-102",
+    "KEL-99",
+    "KEL-101"
+   ],
+   "ext": [],
+   "openDescendants": [],
+   "unblocks": []
+  },
+  {
+   "id": "KEL-155",
+   "status": "backlog",
+   "assignee": null,
+   "attachments": 0,
+   "prio": "Medium",
+   "est": "L",
+   "created": "2026-09-30T11:01:58.413Z",
+   "repos": [
+    "academic"
+   ],
+   "blockedBy": [
+    "KEL-154(completed)",
+    "KEL-134(completed)"
+   ],
+   "nativeBlockedBy": [
+    "KEL-134",
+    "KEL-154"
+   ],
+   "ext": [
+    "resend-sender-domain"
+   ],
+   "openDescendants": [
+    "KEL-156"
+   ],
+   "unblocks": [
+    "KEL-156"
+   ]
+  },
+  {
+   "id": "KEL-156",
+   "status": "backlog",
+   "assignee": null,
+   "attachments": 0,
+   "prio": "Medium",
+   "est": "S",
+   "created": "2026-09-30T11:02:18.267Z",
+   "repos": [
+    "academic"
+   ],
+   "blockedBy": [
+    "KEL-155(backlog)"
+   ],
+   "nativeBlockedBy": [
+    "KEL-155"
+   ],
+   "ext": [],
+   "openDescendants": [],
+   "unblocks": []
+  }
+ ]
+}

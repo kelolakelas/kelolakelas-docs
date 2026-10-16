@@ -1,0 +1,123 @@
+{
+  "id": "KEL-91",
+  "uuid": "a9b03a00-e7e1-477d-b573-ce99a070e229",
+  "title": "CI web menjalankan lint seluruh repository dan melaporkan status pada merge queue dan main",
+  "description": "## Background / Problem\n\nWorkflow web hanya berjalan pada `pull_request` ke `main` dan menjalankan ESLint hanya untuk file yang berubah (`kelolakelas-web/.github/workflows/ci.yml:3-6,25-28`). Repository Go sudah berjalan pada `pull_request`, `push` ke main, `merge_group`, dan `workflow_dispatch`. AGENTS.md mensyaratkan check CI yang wajib berjalan dan menganggap check yang tidak berjalan sebagai blocker merge; bila merge queue diaktifkan, check web tidak akan pernah melapor. `npx eslint .` saat ini keluar dengan kode 0 di `main` (dijalankan lokal saat discovery).\n\n## Goal\n\nSetiap perubahan ke main pada web melewati lint seluruh repository, dan check CI melapor pada PR, merge queue, dan push ke main.\n\n## Requirements\n\n* Job gate menjalankan `npm run lint` untuk seluruh repository sebagai pengganti lint file yang berubah.\n* Workflow dipicu oleh `pull_request` ke main, `push` ke main, `merge_group`, dan `workflow_dispatch`.\n* Nama job yang menjadi required check tidak berubah.\n* Langkah test, type check, dan build tetap berjalan.\n\n## Acceptance Criteria\n\n- [ ] PR yang memasukkan pelanggaran lint pada file yang tidak diubah tetap gagal di CI.\n- [ ] Workflow berjalan pada push ke main dan event merge_group.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\n`package.json` sudah memiliki script `lint: eslint`. Perbarui `kelolakelas-docs/docs/06-testing-and-quality.md`. Complexity rationale: perubahan satu workflow GitHub Actions; lint penuh sudah bersih secara lokal sehingga risiko kegagalan baru rendah.\n\nRelevant areas:\n\n* `kelolakelas-web/.github/workflows/ci.yml`\n* `kelolakelas-web/package.json`\n\n## Edge Cases\n\n* Checkout dangkal pada event push tidak lagi dibutuhkan untuk diff.\n* Event merge_group memakai ref sementara.\n\n## Testing / Validation\n\n- [ ] Verifikasi workflow dengan PR uji yang memicu lint penuh.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Audit dependency di CI (<issue id=\"3a74cd7d-4546-48b5-af43-d0340d17c0ee\" href=\"https://linear.app/farid-zamani/issue/KEL-68/ci-menolak-pr-yang-memasukkan-dependency-dengan-advisory-highcritical\">KEL-68</issue>).\n* Test end-to-end.\n* Perubahan versi Node.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-ci-full-gate\",\n  \"projectKey\": null,\n  \"title\": \"CI web menjalankan lint seluruh repository dan melaporkan status pada merge queue dan main\",\n  \"type\": \"Refactor\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"S\",\n  \"complexity\": \"very-low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Workflow web hanya berjalan pada `pull_request` ke `main` dan menjalankan ESLint hanya untuk file yang berubah (`kelolakelas-web/.github/workflows/ci.yml:3-6,25-28`). Repository Go sudah berjalan pada `pull_request`, `push` ke main, `merge_group`, dan `workflow_dispatch`. AGENTS.md mensyaratkan check CI yang wajib berjalan dan menganggap check yang tidak berjalan sebagai blocker merge; bila merge queue diaktifkan, check web tidak akan pernah melapor. `npx eslint .` saat ini keluar dengan kode 0 di `main` (dijalankan lokal saat discovery).\",\n    \"goal\": \"Setiap perubahan ke main pada web melewati lint seluruh repository, dan check CI melapor pada PR, merge queue, dan push ke main.\",\n    \"requirements\": [\n      \"Job gate menjalankan `npm run lint` untuk seluruh repository sebagai pengganti lint file yang berubah.\",\n      \"Workflow dipicu oleh `pull_request` ke main, `push` ke main, `merge_group`, dan `workflow_dispatch`.\",\n      \"Nama job yang menjadi required check tidak berubah.\",\n      \"Langkah test, type check, dan build tetap berjalan.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"PR yang memasukkan pelanggaran lint pada file yang tidak diubah tetap gagal di CI.\",\n      \"Workflow berjalan pada push ke main dan event merge_group.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"`package.json` sudah memiliki script `lint: eslint`. Perbarui `kelolakelas-docs/docs/06-testing-and-quality.md`. Complexity rationale: perubahan satu workflow GitHub Actions; lint penuh sudah bersih secara lokal sehingga risiko kegagalan baru rendah.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/.github/workflows/ci.yml\",\n      \"kelolakelas-web/package.json\"\n    ],\n    \"edgeCases\": [\n      \"Checkout dangkal pada event push tidak lagi dibutuhkan untuk diff.\",\n      \"Event merge_group memakai ref sementara.\"\n    ],\n    \"testingValidation\": [\n      \"Verifikasi workflow dengan PR uji yang memicu lint penuh.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Audit dependency di CI (KEL-68).\",\n      \"Test end-to-end.\",\n      \"Perubahan versi Node.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-91/ci-web-menjalankan-lint-seluruh-repository-dan-melaporkan-status-pada",
+  "gitBranchName": "skinel123/kel-91-ci-web-menjalankan-lint-seluruh-repository-dan-melaporkan",
+  "createdAt": "2026-09-24T12:26:51.944Z",
+  "updatedAt": "2026-09-26T16:22:44.788Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T16:19:53.406Z",
+  "startedAt": "2026-09-26T16:12:48.149Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "Refactor",
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "b00275a8-cd8d-4c3d-90fc-ce2da4115c07",
+      "title": "docs: record KEL-91 full web CI gate",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/87"
+    },
+    {
+      "id": "510c5def-b7bb-458a-a8a2-5b4856c9f4a8",
+      "title": "KEL-91: Run full web lint on PR, merge queue and main",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/39"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T12:26:51.944Z",
+      "endedAt": "2026-09-26T16:12:48.163Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T16:12:48.163Z",
+      "endedAt": "2026-09-26T16:19:53.414Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T16:19:53.414Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-28",
+        "title": "Kirim email konfirmasi pembayaran berhasil dan gagal kepada parent"
+      },
+      {
+        "id": "KEL-23",
+        "title": "Lindungi login dari brute force dan enumerasi akun"
+      },
+      {
+        "id": "KEL-22",
+        "title": "Terapkan permission pada attendance dan report"
+      },
+      {
+        "id": "KEL-39",
+        "title": "Catat request dan event domain dengan request ID di identity, academic, dan billing"
+      },
+      {
+        "id": "KEL-68",
+        "title": "CI menolak PR yang memasukkan dependency dengan advisory high/critical"
+      },
+      {
+        "id": "KEL-84",
+        "title": "Tenant melihat, mencabut, dan mengirim ulang undangan pending dari dashboard"
+      },
+      {
+        "id": "KEL-83",
+        "title": "Tenant dapat mengubah dan menghapus role custom dari web"
+      },
+      {
+        "id": "KEL-54",
+        "title": "Pendaftaran ganda student ke kelas yang sama mendapat respons konflik yang jelas"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

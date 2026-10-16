@@ -1,0 +1,125 @@
+{
+  "id": "KEL-125",
+  "uuid": "3f88fbc1-5ca3-49ca-8e1f-70621148f24b",
+  "title": "Billing menerima pilihan channel VA/QRIS atau kartu untuk invoice baru",
+  "description": "## Background / Problem\n\nPembacaan statis menunjukkan `billing-service/internal/usecase/transaction_usecase.go:290` memaksa PaymentMethod VC, sementara `academic-service/internal/usecase/enrollment_usecase.go:197,270,400` dan private flow `private_schedule_request_usecase.go:209` membuat invoice tanpa pilihan channel.\n\n## Goal\n\nParent dapat memilih channel pembayaran sebelum invoice dibuat, tanpa mematahkan pemanggil lama atau idempotensi.\n\n## Owner Decision (Zam, 29-09-2026, opsi A)\n\n* Alur pembelian kelas private tidak diubah di issue ini. `Approve` (tenant) dan `AcceptRecommendation` (parent) tetap menerbitkan invoice dengan channel default VC, tanpa field channel. Pilihan channel untuk private dipindah ke <issue id=\"668770ff-1c6e-46c1-b004-55e169e2e005\" href=\"https://linear.app/farid-zamani/issue/KEL-133/parent-memilih-channel-pembayaran-untuk-pembelian-kelas-private\">KEL-133</issue>.\n* Issue ini hanya menambahkan channel opsional untuk request enrollment publik dan request invoice internal `POST /internal/billing/transactions`.\n* Bukti sandbox: `getpaymentmethod` dan inquiry dijalankan operator pada 29-09-2026 terhadap merchant sandbox. Channel yang dipakai wajib diambil dari daftar yang terbukti aktif itu.\n\n## Requirements\n\n* Perluas request enrollment publik dan request invoice internal dengan channel opsional yang dibatasi ke channel Duitku yang benar-benar diverifikasi; pemanggil lama tanpa pilihan mempertahankan VC.\n* Tentukan dan validasi channel pada boundary tepercaya sebelum menulis transaksi; channel pada replay idempotency tidak boleh mengganti invoice yang telah diterbitkan.\n* Alur pembelian private tidak berubah (keputusan owner, opsi A): Approve dan AcceptRecommendation tetap menerbitkan invoice dengan channel default VC tanpa field channel; pilihan channel untuk private ada di issue follow-up terpisah. Pertahankan link lama dan aturan fee policy.\n* Jangan menerima data kartu atau CVV di sistem.\n\n## Acceptance Criteria\n\n- [ ] Invoice VA dan QRIS baru menggunakan channel yang diminta dan terbukti aktif di sandbox; kartu tetap mengikuti mekanisme provider.\n- [ ] Request tanpa field channel dan transaksi yang sudah ada tetap berfungsi seperti sebelumnya.\n- [ ] Replay atau dua request serentak dengan channel berbeda tidak menghasilkan dua invoice atau perubahan channel transaksi yang sudah terbit.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko critical: harga/invoice ganda dan status paid yang tidak sesuai enrollment saat channel berubah atau request diulang. Jangan mengganti link transaksi existing. Tinjau `ClaimInvoice`, `ClaimReinvoice`, `merchant_order_id`, fee snapshot dan `PrivateScheduleRequest.purchase`; rancangan pemilihan ulang channel saat invoice belum lunas membutuhkan keputusan eksplisit, default: tolak perubahan terhadap invoice yang masih valid. Owner menyatakan merchant telah mengaktifkan semua channel; ini bukan bukti sandbox. Kontrak request harus kompatibel dengan klien lama. Perbarui docs API academic/billing, billing flow dan ADR bila model berubah.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/internal/usecase/transaction_usecase.go`\n* `kelolakelas-billing-service/internal/domain/transaction.go`\n* `kelolakelas-academic-service/internal/usecase/enrollment_usecase.go`\n* `kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go`\n* `kelolakelas-academic-service/pkg/billing/client.go`\n\n## Edge Cases\n\n* Provider tidak mengaktifkan channel tertentu meski merchant menyatakan aktif.\n* Dua request checkout simultan memakai channel berbeda untuk enrollment sama.\n* Parent menerima rekomendasi jadwal setelah invoice lama diterbitkan.\n\n## Testing / Validation\n\n- [ ] Uji sandbox provider dengan VA, QRIS dan kartu; catat kode channel dan respons aktual tanpa data rahasia.\n- [ ] Integration test idempotensi serta race dua channel, callback paid, expiry, dan fee snapshot tanpa duplikasi.\n- [ ] Uji kompatibilitas request lama tanpa channel dan penolakan channel tak dikenal; jalankan go test -race, go vet dan build.\n- [ ] Regresi alur private: approval tenant dan AcceptRecommendation tetap menerbitkan satu invoice VC seperti sebelumnya, tanpa enrollment kedua.\n\n## Out of Scope\n\n* Penyimpanan data kartu/PCI dan halaman payment UI.\n* Ganti channel pada invoice aktif sebelum keputusan produk terpisah.\n* Pilihan channel untuk pembelian kelas private (<issue id=\"668770ff-1c6e-46c1-b004-55e169e2e005\" href=\"https://linear.app/farid-zamani/issue/KEL-133/parent-memilih-channel-pembayaran-untuk-pembelian-kelas-private\">KEL-133</issue>).\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"billing-payment-channel-selection\",\n  \"projectKey\": \"payment-experience-owned-page\",\n  \"title\": \"Billing menerima pilihan channel VA/QRIS atau kartu untuk invoice baru\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"critical\",\n  \"repositories\": [\n    \"academic\",\n    \"billing\"\n  ],\n  \"labels\": [\n    \"academic\",\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Pembacaan statis menunjukkan `billing-service/internal/usecase/transaction_usecase.go:290` memaksa PaymentMethod VC, sementara `academic-service/internal/usecase/enrollment_usecase.go:197,270,400` dan private flow `private_schedule_request_usecase.go:209` membuat invoice tanpa pilihan channel.\",\n    \"goal\": \"Parent dapat memilih channel pembayaran sebelum invoice dibuat, tanpa mematahkan pemanggil lama atau idempotensi.\",\n    \"requirements\": [\n      \"Perluas request enrollment publik dan request invoice internal dengan channel opsional yang dibatasi ke channel Duitku yang benar-benar diverifikasi; pemanggil lama tanpa pilihan mempertahankan VC.\",\n      \"Tentukan dan validasi channel pada boundary tepercaya sebelum menulis transaksi; channel pada replay idempotency tidak boleh mengganti invoice yang telah diterbitkan.\",\n      \"Alur pembelian private tidak berubah (keputusan owner, opsi A): Approve dan AcceptRecommendation tetap menerbitkan invoice dengan channel default VC tanpa field channel; pilihan channel untuk private ada di issue follow-up terpisah. Pertahankan link lama dan aturan fee policy.\",\n      \"Jangan menerima data kartu atau CVV di sistem.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Invoice VA dan QRIS baru menggunakan channel yang diminta dan terbukti aktif di sandbox; kartu tetap mengikuti mekanisme provider.\",\n      \"Request tanpa field channel dan transaksi yang sudah ada tetap berfungsi seperti sebelumnya.\",\n      \"Replay atau dua request serentak dengan channel berbeda tidak menghasilkan dua invoice atau perubahan channel transaksi yang sudah terbit.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko critical: harga/invoice ganda dan status paid yang tidak sesuai enrollment saat channel berubah atau request diulang. Jangan mengganti link transaksi existing. Tinjau `ClaimInvoice`, `ClaimReinvoice`, `merchant_order_id`, fee snapshot dan `PrivateScheduleRequest.purchase`; rancangan pemilihan ulang channel saat invoice belum lunas membutuhkan keputusan eksplisit, default: tolak perubahan terhadap invoice yang masih valid. Owner menyatakan merchant telah mengaktifkan semua channel; ini bukan bukti sandbox. Kontrak request harus kompatibel dengan klien lama. Perbarui docs API academic/billing, billing flow dan ADR bila model berubah.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/internal/usecase/transaction_usecase.go\",\n      \"kelolakelas-billing-service/internal/domain/transaction.go\",\n      \"kelolakelas-academic-service/internal/usecase/enrollment_usecase.go\",\n      \"kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go\",\n      \"kelolakelas-academic-service/pkg/billing/client.go\"\n    ],\n    \"edgeCases\": [\n      \"Provider tidak mengaktifkan channel tertentu meski merchant menyatakan aktif.\",\n      \"Dua request checkout simultan memakai channel berbeda untuk enrollment sama.\",\n      \"Parent menerima rekomendasi jadwal setelah invoice lama diterbitkan.\"\n    ],\n    \"testingValidation\": [\n      \"Uji sandbox provider dengan VA, QRIS dan kartu; catat kode channel dan respons aktual tanpa data rahasia.\",\n      \"Integration test idempotensi serta race dua channel, callback paid, expiry, dan fee snapshot tanpa duplikasi.\",\n      \"Uji kompatibilitas request lama tanpa channel dan penolakan channel tak dikenal; jalankan go test -race, go vet dan build.\",\n      \"Regresi alur private: approval tenant dan AcceptRecommendation tetap menerbitkan satu invoice VC seperti sebelumnya, tanpa enrollment kedua.\"\n    ],\n    \"outOfScope\": [\n      \"Penyimpanan data kartu/PCI dan halaman payment UI.\",\n      \"Ganti channel pada invoice aktif sebelum keputusan produk terpisah.\",\n      \"Pilihan channel untuk pembelian kelas private (issue follow-up terpisah).\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-125/billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk-invoice-baru",
+  "gitBranchName": "skinel123/kel-125-billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk",
+  "createdAt": "2026-09-28T19:14:45.334Z",
+  "updatedAt": "2026-09-29T06:45:07.465Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-29T06:37:44.914Z",
+  "startedAt": "2026-09-28T19:53:17.306Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "academic",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "2b446eaf-890e-4dd7-8b7a-eac999f34360",
+      "title": "KEL-125: document optional enrollment invoice channels",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/123"
+    },
+    {
+      "id": "88aeb36a-0850-48f5-bd6f-64949fa755f5",
+      "title": "KEL-125: forward selected enrollment invoice channel to billing",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/38"
+    },
+    {
+      "id": "02716f5e-f5bc-4def-8304-7d01bcd2f101",
+      "title": "KEL-125: support sandbox-proven channels on new subscription invoices",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/25"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T19:14:45.334Z",
+      "endedAt": "2026-09-28T19:53:17.320Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-28T19:53:17.320Z",
+      "endedAt": "2026-09-29T06:37:44.921Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-29T06:37:44.921Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pembayaran kelas dengan pilihan channel dan halaman KelolaKelas",
+  "projectId": "d1466cff-05f5-409d-aeba-c748ad1439fa",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-133",
+        "title": "Parent memilih channel pembayaran untuk pembelian kelas private"
+      },
+      {
+        "id": "KEL-126",
+        "title": "Billing menyimpan dan menyajikan instruksi pembayaran VA/QR untuk transaksi milik parent"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-124",
+        "title": "Parent, admin tenant, dan pengajar dapat memulai chat dari permintaan jadwal private dan dari report student"
+      },
+      {
+        "id": "KEL-113",
+        "title": "Form buat kelas tidak lagi menampilkan field kapasitas karena kapasitas diatur per jadwal"
+      },
+      {
+        "id": "KEL-131",
+        "title": "Riwayat enrollment parent membaca envelope daftar API dengan benar"
+      },
+      {
+        "id": "KEL-128",
+        "title": "Parent menerima email payment link setelah jadwal private disetujui"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "id": "KEL-39",
+  "uuid": "8125a129-1601-4af4-b23e-fcdf45fce94d",
+  "title": "Catat request dan event domain dengan request ID di identity, academic, dan billing",
+  "description": "## Background / Problem\n\nKetiga service memakai `slog` JSON hanya untuk event startup; tidak ada access log dan hampir tidak ada log di handler atau use case (billing hanya delapan baris log, semuanya di startup; academic tiga baris di repository student). Penolakan webhook, permission 503, dan kegagalan internal tidak meninggalkan jejak.\n\n## Goal\n\nSetiap request di ketiga service menghasilkan access log dengan request ID yang sama seperti gateway, dan event domain penting tercatat dengan konteks yang cukup untuk diagnosis.\n\n## Requirements\n\n* Middleware access log di setiap service mencatat request ID dari header (atau membuatnya), method, path, status, dan latensi.\n* Event penting dicatat dengan request ID: penolakan signature webhook, kegagalan panggilan internal atau gRPC, permission denied 403/503, dan error 5xx.\n* Log tidak memuat token, kredensial internal, password, atau PII di luar ID.\n* Perilaku bisnis tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Request yang sama dapat ditelusuri dari log gateway ke log service melalui request ID\n- [ ] Webhook dengan signature salah menghasilkan log peringatan dengan request ID\n- [ ] Tidak ada nilai Authorization atau kredensial di log\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nGunakan `slog` yang sudah dipasang; hindari dependency baru. Endpoint internal juga harus mencatat request ID untuk korelasi billing-academic. Perbarui dokumentasi operasi.\n\nRelevant areas:\n\n* `kelolakelas-identity-service/cmd/server/main.go`\n* `kelolakelas-academic-service/cmd/server/main.go`\n* `kelolakelas-billing-service/cmd/server/main.go`\n* `kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go`\n\n## Edge Cases\n\n* Request tanpa header request ID (akses langsung tanpa gateway).\n* Panggilan worker tanpa request HTTP.\n* Log volume tinggi pada katalog publik.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Metrics dan tracing.\n* Log rekonsiliasi rinci (issue billing terpisah).\n* Perubahan level log runtime.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"services-request-logging-with-correlation\",\n  \"projectKey\": \"platform-operability\",\n  \"title\": \"Catat request dan event domain dengan request ID di identity, academic, dan billing\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"identity\",\n    \"academic\",\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"identity\",\n    \"academic\",\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"gateway-request-id-and-access-log\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Ketiga service memakai `slog` JSON hanya untuk event startup; tidak ada access log dan hampir tidak ada log di handler atau use case (billing hanya delapan baris log, semuanya di startup; academic tiga baris di repository student). Penolakan webhook, permission 503, dan kegagalan internal tidak meninggalkan jejak.\",\n    \"goal\": \"Setiap request di ketiga service menghasilkan access log dengan request ID yang sama seperti gateway, dan event domain penting tercatat dengan konteks yang cukup untuk diagnosis.\",\n    \"requirements\": [\n      \"Middleware access log di setiap service mencatat request ID dari header (atau membuatnya), method, path, status, dan latensi.\",\n      \"Event penting dicatat dengan request ID: penolakan signature webhook, kegagalan panggilan internal atau gRPC, permission denied 403/503, dan error 5xx.\",\n      \"Log tidak memuat token, kredensial internal, password, atau PII di luar ID.\",\n      \"Perilaku bisnis tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Request yang sama dapat ditelusuri dari log gateway ke log service melalui request ID\",\n      \"Webhook dengan signature salah menghasilkan log peringatan dengan request ID\",\n      \"Tidak ada nilai Authorization atau kredensial di log\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Gunakan `slog` yang sudah dipasang; hindari dependency baru. Endpoint internal juga harus mencatat request ID untuk korelasi billing-academic. Perbarui dokumentasi operasi.\",\n    \"relevantAreas\": [\n      \"kelolakelas-identity-service/cmd/server/main.go\",\n      \"kelolakelas-academic-service/cmd/server/main.go\",\n      \"kelolakelas-billing-service/cmd/server/main.go\",\n      \"kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go\"\n    ],\n    \"edgeCases\": [\n      \"Request tanpa header request ID (akses langsung tanpa gateway).\",\n      \"Panggilan worker tanpa request HTTP.\",\n      \"Log volume tinggi pada katalog publik.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Metrics dan tracing.\",\n      \"Log rekonsiliasi rinci (issue billing terpisah).\",\n      \"Perubahan level log runtime.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-39/catat-request-dan-event-domain-dengan-request-id-di-identity-academic",
+  "gitBranchName": "skinel123/kel-39-catat-request-dan-event-domain-dengan-request-id-di-identity",
+  "createdAt": "2026-09-16T11:50:38.701Z",
+  "updatedAt": "2026-09-26T19:15:35.264Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T19:12:21.217Z",
+  "startedAt": "2026-09-26T18:39:20.281Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "identity",
+    "academic",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "0280413b-d36c-4cda-a904-beccd619a661",
+      "title": "docs: record KEL-39 request correlation and operations",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/91"
+    },
+    {
+      "id": "e24a16ca-78de-4e5c-b756-4a38c99ca457",
+      "title": "KEL-39: Catat request dan event domain dengan request ID",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/19"
+    },
+    {
+      "id": "54d16f8f-80fe-4c16-b080-3318839bf137",
+      "title": "KEL-39: Catat request dan event domain dengan request ID",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/26"
+    },
+    {
+      "id": "02dc00c0-fd8a-4be5-842d-9d17508a5224",
+      "title": "KEL-39: Catat request dan event domain dengan request ID",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/27"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:50:38.701Z",
+      "endedAt": "2026-09-26T18:39:20.289Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T18:39:20.289Z",
+      "endedAt": "2026-09-26T19:12:21.222Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T19:12:21.222Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Operabilitas, ketahanan, dan kebersihan repository",
+  "projectId": "38910b97-74c2-4dd1-855c-d4d460497327",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-38",
+        "title": "Tambahkan request ID dan access log terstruktur di gateway"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-69",
+        "title": "Identity dan academic berhenti secara graceful dengan timeout koneksi HTTP yang terbatas"
+      },
+      {
+        "id": "KEL-58",
+        "title": "Tenant melihat ringkasan penjualan kelas di dashboard"
+      },
+      {
+        "id": "KEL-70",
+        "title": "Parent melihat jadwal kelas yang dibeli pada halaman status enrollment"
+      },
+      {
+        "id": "KEL-40",
+        "title": "Sediakan readiness check dengan probe dependency di gateway dan ketiga service"
+      },
+      {
+        "id": "KEL-28",
+        "title": "Kirim email konfirmasi pembayaran berhasil dan gagal kepada parent"
+      },
+      {
+        "id": "KEL-23",
+        "title": "Lindungi login dari brute force dan enumerasi akun"
+      },
+      {
+        "id": "KEL-91",
+        "title": "CI web menjalankan lint seluruh repository dan melaporkan status pada merge queue dan main"
+      },
+      {
+        "id": "KEL-61",
+        "title": "Respons 5xx identity dan billing tidak lagi membocorkan detail error internal"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

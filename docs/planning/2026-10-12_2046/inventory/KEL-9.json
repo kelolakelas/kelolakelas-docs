@@ -1,0 +1,101 @@
+{
+  "id": "KEL-9",
+  "uuid": "a22656da-4514-49e1-9173-181cd9a6a748",
+  "title": "Jadikan koneksi web ke gateway eksplisit dan dapat diuji",
+  "description": "## Background / Problem\n\nSemua server action dan query web memakai fallback `http://localhost:3000`, sementara gateway berjalan pada `:8000` dan tidak ditemukan Next API proxy. Konfigurasi ini dapat membuat request menuju web sendiri dan gagal secara tidak jelas. Web juga belum memiliki test script.\n\n## Goal\n\nSeluruh request backend web menggunakan konfigurasi gateway yang tunggal, eksplisit, tervalidasi, dan memiliki automated coverage dasar.\n\n## Requirements\n\n* Backend API base harus berasal dari satu sumber konfigurasi.\n* Konfigurasi tidak valid atau hilang harus gagal dengan pesan yang dapat didiagnosis.\n* Auth, member, role, dan class request yang ada harus memakai konfigurasi yang sama.\n* Existing request headers, cookies, validation, dan error handling harus tetap terjaga.\n\n## Acceptance Criteria\n\n- [ ] Tidak ada server action/query yang diam-diam memakai web origin sebagai gateway\n- [ ] Konfigurasi valid mengarahkan request ke gateway yang ditentukan\n- [ ] Automated test dasar mencakup valid dan missing API configuration\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nKarena request dijalankan server-side, nama environment variable tidak harus public. Ikuti dokumentasi Next.js 16 yang tersedia di repository sebelum memilih API konfigurasi.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(auth)`\n* `kelolakelas-web/app/(dashboard)`\n* `kelolakelas-web/package.json`\n\n## Edge Cases\n\n* API URL memiliki trailing slash.\n* Environment variable tersedia tetapi kosong.\n* Gateway tidak dapat dijangkau atau mengembalikan non-JSON response.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Deployment platform tertentu.\n* Browser-side direct API access.\n* Redesign seluruh data-fetching layer.",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-9/jadikan-koneksi-web-ke-gateway-eksplisit-dan-dapat-diuji",
+  "gitBranchName": "skinel123/kel-9-jadikan-koneksi-web-ke-gateway-eksplisit-dan-dapat-diuji",
+  "createdAt": "2026-09-13T19:02:35.669Z",
+  "updatedAt": "2026-09-14T04:04:40.506Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-14T04:04:40.497Z",
+  "startedAt": "2026-09-14T03:53:13.236Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Improvement"
+  ],
+  "attachments": [
+    {
+      "id": "003172d0-177c-4152-934d-7ea0647298fa",
+      "title": "KEL-9 Document explicit web gateway configuration",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/4"
+    },
+    {
+      "id": "bf46ce44-0047-4658-af6a-41ce327d451e",
+      "title": "KEL-9 Configure web gateway explicitly",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/2"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:02:35.669Z",
+      "endedAt": "2026-09-14T03:53:13.249Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-14T03:53:13.249Z",
+      "endedAt": "2026-09-14T04:04:40.503Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-14T04:04:40.503Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Perjalanan pembelian kelas untuk parent",
+  "projectId": "f80b0535-5536-4f54-8f09-7a93f01a9f24",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-11",
+        "title": "Hadirkan discovery dan detail kelas publik"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-5",
+        "title": "Wajibkan JWT secret eksplisit pada seluruh boundary terkait"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

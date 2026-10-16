@@ -1,0 +1,133 @@
+{
+  "id": "KEL-154",
+  "uuid": "37b65a84-f4b1-4a17-9370-afce0576c734",
+  "title": "Chat service menerima pesan notifikasi sistem dari service internal",
+  "description": "## Background / Problem\n\nSemua route chat membutuhkan JWT pengguna (`internal/delivery/http/handler.go:73-113,157`); tidak ada route internal (`cmd/server/main.go:104-111`). `sender_kind` hanya parent atau member dengan `sender_user_id` wajib (`migrations/000001_chat.up.sql`), dan jenis percakapan hanya staff, schedule_request, dan report (`migrations/000002_context_chat.up.sql:2`).\n\n## Goal\n\nService internal dapat mengirim pesan sistem yang idempoten ke percakapan notifikasi per parent per tenant, yang tersampaikan realtime dan tercatat sebagai belum dibaca.\n\n## Requirements\n\n* Endpoint internal dengan kredensial `X-Internal-Service-Credential` untuk mengirim pesan sistem ke parent tertentu pada tenant tertentu.\n* Jenis percakapan notifikasi (satu per tenant dan parent) yang dibuat otomatis, dan sender sistem tanpa user id.\n* Idempotency key dari pengirim mencegah pesan ganda.\n* Parent dapat membaca tetapi tidak membalas percakapan notifikasi; anggota tenant tidak melihatnya di inbox.\n* Pesan baru di-fan-out lewat WebSocket dan menambah unread count.\n\n## Acceptance Criteria\n\n- [ ] Pesan internal muncul di inbox parent dengan unread count bertambah.\n- [ ] Mengirim ulang dengan idempotency key sama tidak menambah pesan.\n- [ ] Request tanpa kredensial internal atau parent membalas percakapan notifikasi ditolak.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko high: endpoint internal adalah jalur tulis baru, dan kesalahan scope dapat mengirim pesan ke parent atau tenant yang salah. Kredensial dibandingkan secara constant-time dan tidak dirouting lewat gateway. Migration memperluas CHECK kind dan sender_kind secara kompatibel; perbarui daftar kind di `internal/chat/chat.go:106,152` dan `handler.go:188`. Fan-out hanya single-instance (ADR 0047). Perbarui `kelolakelas-docs` (komponen chat, ADR pesan sistem).\n\nRelevant areas:\n\n* `kelolakelas-chat-service/cmd/server/main.go`\n* `kelolakelas-chat-service/internal/chat/chat.go`\n* `kelolakelas-chat-service/internal/postgres/store.go`\n* `kelolakelas-chat-service/internal/delivery/http/handler.go`\n* `kelolakelas-chat-service/migrations`\n\n## Edge Cases\n\n* Parent belum pernah membuka chat.\n* Pesan serentak dengan idempotency key sama.\n* Parent tidak terhubung ke WebSocket.\n\n## Testing / Validation\n\n- [ ] Postgres integration test idempotensi serentak dan scope percakapan sebagai mitigasi risiko salah kirim.\n- [ ] Unit test otorisasi kredensial internal dan larangan membalas.\n- [ ] go vet, go test -race, dan build lulus.\n\n## Out of Scope\n\n* Pemicu notifikasi dari academic.\n* Push notification, email, atau WhatsApp.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"chat-system-notification-channel\",\n  \"projectKey\": \"parent-schedule-notifications\",\n  \"title\": \"Chat service menerima pesan notifikasi sistem dari service internal\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"high\",\n  \"labels\": [\n    \"chat\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"chat\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Semua route chat membutuhkan JWT pengguna (`internal/delivery/http/handler.go:73-113,157`); tidak ada route internal (`cmd/server/main.go:104-111`). `sender_kind` hanya parent atau member dengan `sender_user_id` wajib (`migrations/000001_chat.up.sql`), dan jenis percakapan hanya staff, schedule_request, dan report (`migrations/000002_context_chat.up.sql:2`).\",\n    \"goal\": \"Service internal dapat mengirim pesan sistem yang idempoten ke percakapan notifikasi per parent per tenant, yang tersampaikan realtime dan tercatat sebagai belum dibaca.\",\n    \"requirements\": [\n      \"Endpoint internal dengan kredensial `X-Internal-Service-Credential` untuk mengirim pesan sistem ke parent tertentu pada tenant tertentu.\",\n      \"Jenis percakapan notifikasi (satu per tenant dan parent) yang dibuat otomatis, dan sender sistem tanpa user id.\",\n      \"Idempotency key dari pengirim mencegah pesan ganda.\",\n      \"Parent dapat membaca tetapi tidak membalas percakapan notifikasi; anggota tenant tidak melihatnya di inbox.\",\n      \"Pesan baru di-fan-out lewat WebSocket dan menambah unread count.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Pesan internal muncul di inbox parent dengan unread count bertambah.\",\n      \"Mengirim ulang dengan idempotency key sama tidak menambah pesan.\",\n      \"Request tanpa kredensial internal atau parent membalas percakapan notifikasi ditolak.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko high: endpoint internal adalah jalur tulis baru, dan kesalahan scope dapat mengirim pesan ke parent atau tenant yang salah. Kredensial dibandingkan secara constant-time dan tidak dirouting lewat gateway. Migration memperluas CHECK kind dan sender_kind secara kompatibel; perbarui daftar kind di `internal/chat/chat.go:106,152` dan `handler.go:188`. Fan-out hanya single-instance (ADR 0047). Perbarui `kelolakelas-docs` (komponen chat, ADR pesan sistem).\",\n    \"relevantAreas\": [\n      \"kelolakelas-chat-service/cmd/server/main.go\",\n      \"kelolakelas-chat-service/internal/chat/chat.go\",\n      \"kelolakelas-chat-service/internal/postgres/store.go\",\n      \"kelolakelas-chat-service/internal/delivery/http/handler.go\",\n      \"kelolakelas-chat-service/migrations\"\n    ],\n    \"edgeCases\": [\n      \"Parent belum pernah membuka chat.\",\n      \"Pesan serentak dengan idempotency key sama.\",\n      \"Parent tidak terhubung ke WebSocket.\"\n    ],\n    \"testingValidation\": [\n      \"Postgres integration test idempotensi serentak dan scope percakapan sebagai mitigasi risiko salah kirim.\",\n      \"Unit test otorisasi kredensial internal dan larangan membalas.\",\n      \"go vet, go test -race, dan build lulus.\"\n    ],\n    \"outOfScope\": [\n      \"Pemicu notifikasi dari academic.\",\n      \"Push notification, email, atau WhatsApp.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-154/chat-service-menerima-pesan-notifikasi-sistem-dari-service-internal",
+  "gitBranchName": "skinel123/kel-154-chat-service-menerima-pesan-notifikasi-sistem-dari-service",
+  "createdAt": "2026-09-30T11:01:23.141Z",
+  "updatedAt": "2026-10-01T01:29:23.056Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-01T01:21:12.307Z",
+  "startedAt": "2026-10-01T00:46:27.934Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "chat",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "f6cea484-65de-4762-895b-0b8adb14d721",
+      "title": "KEL-154 docs: document internal system notification channel",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/139"
+    },
+    {
+      "id": "5a8d83b8-cf5b-4b9f-b867-cbf96f6134a9",
+      "title": "KEL-154: Chat service menerima pesan notifikasi sistem dari service internal",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-chat-service/pull/4"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T11:01:23.141Z",
+      "endedAt": "2026-10-01T00:46:27.947Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-01T00:46:27.947Z",
+      "endedAt": "2026-10-01T01:21:12.314Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-01T01:21:12.314Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Notifikasi perubahan jadwal dan kehadiran ke parent",
+  "projectId": "4387984f-6485-429c-a03d-8c9c9ed498ec",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-157",
+        "title": "Inbox parent menampilkan percakapan notifikasi sistem dengan jelas"
+      },
+      {
+        "id": "KEL-155",
+        "title": "Parent diberi tahu lewat email dan chat saat sesi di-reschedule, tutor diganti, atau anak tidak hadir"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-140",
+        "title": "Parent dapat membaca sesi, kehadiran, dan laporan milik anaknya sendiri"
+      },
+      {
+        "id": "KEL-142",
+        "title": "Tenant dapat melihat saldo dan mutasi ledger serta mengelola rekening pencairan"
+      },
+      {
+        "id": "KEL-147",
+        "title": "Tenant dapat memfilter transaksi berdasarkan tanggal bayar dan mengekspornya ke CSV"
+      },
+      {
+        "id": "KEL-137",
+        "title": "Pengajar melihat sesi hari ini dan minggu ini serta mencatat kehadiran dari dashboard"
+      },
+      {
+        "id": "KEL-134",
+        "title": "Absensi dapat dicatat per sesi, termasuk sesi reschedule dan secara massal"
+      },
+      {
+        "id": "KEL-136",
+        "title": "Menu dashboard tenant hanya menampilkan area yang diizinkan permission anggota"
+      },
+      {
+        "id": "KEL-135",
+        "title": "Pengajar melihat sesinya sendiri dan akses sesi, tutor pengganti, serta laporan dijaga konsisten"
+      },
+      {
+        "id": "KEL-149",
+        "title": "Enrollment dapat ditangguhkan, dipulihkan, dan diakhiri melalui endpoint internal"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

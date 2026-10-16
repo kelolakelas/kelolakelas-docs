@@ -1,0 +1,159 @@
+{
+  "id": "KEL-138",
+  "uuid": "806bd637-6802-4c63-8c29-9826eab6d163",
+  "title": "Tenant dapat me-reschedule sesi dan menugaskan tutor pengganti dari detail sesi",
+  "description": "## Background / Problem\n\nEndpoint `POST /sessions/:id/reschedule` dan `PATCH /sessions/:id/substitute-tutor` sudah dirouting (gateway `router.go:205-212`) dengan permission `schedule:update`, tetapi tidak ada UI yang memanggilnya.\n\n## Goal\n\nAnggota dengan `schedule:update` dapat memindahkan satu sesi atau mengganti pengajarnya dari detail sesi.\n\n## Requirements\n\n* Aksi reschedule pada detail sesi dengan input tanggal dan jam baru serta konfirmasi.\n* Aksi tutor pengganti yang memilih dari daftar pengajar tenant (`GET /api/v1/tutors`).\n* Aksi disembunyikan bagi anggota tanpa `schedule:update`, dan penolakan backend tetap ditampilkan dengan jelas.\n* Setelah berhasil, daftar sesi dan detail diperbarui.\n\n## Acceptance Criteria\n\n- [ ] Sesi yang di-reschedule tampil di tanggal baru dan absensinya dapat dicatat.\n- [ ] Tutor pengganti tampil pada sesi dan sesi muncul di daftar milik tutor pengganti.\n- [ ] Error validasi backend (misalnya tutor tidak valid) ditampilkan tanpa kehilangan input.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nMutasi melalui server action; body mutasi saat ini membutuhkan id di body (catatan path-alias di `08-known-gaps-and-risks.md`), jadi pastikan payload sesuai kontrak backend. Konfirmasi memakai dialog in-page yang dapat diakses keyboard seperti pembatalan enrollment parent. Perbarui `kelolakelas-docs/docs/components/web.md`.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant`\n* `kelolakelas-api-gateway/internal/delivery/http/router.go`\n\n## Edge Cases\n\n* Reschedule ke waktu yang sudah lewat.\n* Tidak ada pengajar lain di tenant.\n* Sesi sudah dibatalkan oleh anggota lain.\n\n## Testing / Validation\n\n- [ ] Vitest untuk action dan komponen dialog termasuk error validasi.\n- [ ] Test, lint, type check, dan production build lulus.\n- [ ] Verifikasi manual reschedule dan tutor pengganti terhadap backend lokal.\n\n## Out of Scope\n\n* Perubahan jadwal permanen (sudah ada endpoint terpisah).\n* Notifikasi ke parent.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-session-reschedule-substitute\",\n  \"projectKey\": \"tutor-session-operations\",\n  \"title\": \"Tenant dapat me-reschedule sesi dan menugaskan tutor pengganti dari detail sesi\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"web-tutor-sessions-attendance\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Endpoint `POST /sessions/:id/reschedule` dan `PATCH /sessions/:id/substitute-tutor` sudah dirouting (gateway `router.go:205-212`) dengan permission `schedule:update`, tetapi tidak ada UI yang memanggilnya.\",\n    \"goal\": \"Anggota dengan `schedule:update` dapat memindahkan satu sesi atau mengganti pengajarnya dari detail sesi.\",\n    \"requirements\": [\n      \"Aksi reschedule pada detail sesi dengan input tanggal dan jam baru serta konfirmasi.\",\n      \"Aksi tutor pengganti yang memilih dari daftar pengajar tenant (`GET /api/v1/tutors`).\",\n      \"Aksi disembunyikan bagi anggota tanpa `schedule:update`, dan penolakan backend tetap ditampilkan dengan jelas.\",\n      \"Setelah berhasil, daftar sesi dan detail diperbarui.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Sesi yang di-reschedule tampil di tanggal baru dan absensinya dapat dicatat.\",\n      \"Tutor pengganti tampil pada sesi dan sesi muncul di daftar milik tutor pengganti.\",\n      \"Error validasi backend (misalnya tutor tidak valid) ditampilkan tanpa kehilangan input.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Mutasi melalui server action; body mutasi saat ini membutuhkan id di body (catatan path-alias di `08-known-gaps-and-risks.md`), jadi pastikan payload sesuai kontrak backend. Konfirmasi memakai dialog in-page yang dapat diakses keyboard seperti pembatalan enrollment parent. Perbarui `kelolakelas-docs/docs/components/web.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant\",\n      \"kelolakelas-api-gateway/internal/delivery/http/router.go\"\n    ],\n    \"edgeCases\": [\n      \"Reschedule ke waktu yang sudah lewat.\",\n      \"Tidak ada pengajar lain di tenant.\",\n      \"Sesi sudah dibatalkan oleh anggota lain.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest untuk action dan komponen dialog termasuk error validasi.\",\n      \"Test, lint, type check, dan production build lulus.\",\n      \"Verifikasi manual reschedule dan tutor pengganti terhadap backend lokal.\"\n    ],\n    \"outOfScope\": [\n      \"Perubahan jadwal permanen (sudah ada endpoint terpisah).\",\n      \"Notifikasi ke parent.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-138/tenant-dapat-me-reschedule-sesi-dan-menugaskan-tutor-pengganti-dari",
+  "gitBranchName": "skinel123/kel-138-tenant-dapat-me-reschedule-sesi-dan-menugaskan-tutor",
+  "createdAt": "2026-09-30T10:54:39.400Z",
+  "updatedAt": "2026-10-12T14:08:11.969Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-04T04:28:20.552Z",
+  "startedAt": "2026-10-02T16:40:46.397Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "627389d6-cfb8-4291-ac1f-322366c953e4",
+      "title": "KEL-138: document verified session contract correction",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/157"
+    },
+    {
+      "id": "3cf42ae1-ab9b-43b7-a165-354a6fc0d492",
+      "title": "KEL-138: fix reschedule date and substitute tutor member ID",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/72"
+    },
+    {
+      "id": "324437a7-0080-47eb-8d6b-51cad4494880",
+      "title": "KEL-138: document tenant session reschedule and substitute tutor",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/156"
+    },
+    {
+      "id": "616ecabc-ec93-4d4d-b1b6-c5e721e50a8b",
+      "title": "KEL-138: tenant session reschedule and substitute tutor",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/71"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T10:54:39.400Z",
+      "endedAt": "2026-10-02T16:40:46.409Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-02T16:40:46.409Z",
+      "endedAt": "2026-10-03T04:51:11.262Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-03T04:51:11.262Z",
+      "endedAt": "2026-10-03T04:56:06.445Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-03T04:56:06.445Z",
+      "endedAt": "2026-10-04T04:28:20.558Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-04T04:28:20.558Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Operasional sesi, absensi, dan laporan oleh pengajar",
+  "projectId": "7e1ccc42-2a77-480b-941b-4db7141c4716",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-137",
+        "title": "Pengajar melihat sesi hari ini dan minggu ini serta mencatat kehadiran dari dashboard"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-148",
+        "title": "Tenant melihat daftar transaksi dengan filter dan mengunduh CSV"
+      },
+      {
+        "id": "KEL-152",
+        "title": "Tenant dapat mencatat refund manual untuk transaksi paid dan mengakhiri enrollment terkait"
+      },
+      {
+        "id": "KEL-139",
+        "title": "Pengajar menulis dan mengelola laporan evaluasi siswa dari dashboard"
+      },
+      {
+        "id": "KEL-158",
+        "title": "Calon parent dapat membuka profil publik tenant beserta kelas yang dipublikasikan"
+      },
+      {
+        "id": "KEL-183",
+        "title": "Tanggal sesi dari timestamp API tampil di kartu dan dialog teacher"
+      },
+      {
+        "id": "KEL-165",
+        "title": "Daftar anggota tenant tidak gagal 500 saat dipanggil tanpa parameter sort"
+      },
+      {
+        "id": "KEL-157",
+        "title": "Inbox parent menampilkan percakapan notifikasi sistem dengan jelas"
+      },
+      {
+        "id": "KEL-163",
+        "title": "Platform admin dapat membaca riwayat keputusan penarikan terbaru lewat API billing"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

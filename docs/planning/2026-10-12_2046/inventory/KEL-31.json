@@ -1,0 +1,97 @@
+{
+  "id": "KEL-31",
+  "uuid": "d33c5ff7-e657-4b10-83a0-be7421169ce4",
+  "title": "Sediakan kontrol publikasi kelas di dashboard tenant",
+  "description": "## Background / Problem\n\nHalaman `app/(dashboard)/dashboard/tenant/classes` hanya menampilkan daftar kelas dan wizard pembuatan; pencarian kata `published` di direktori tersebut tidak menemukan kontrol apa pun. Endpoint `PATCH /api/v1/classes/:id/published` sudah tersedia di academic dan gateway dengan permission `class:update`. Tanpa kontrol ini tenant tidak dapat membuat kelasnya muncul di katalog publik dari web.\n\n## Goal\n\nTenant dapat memublikasikan dan menarik publikasi kelas dari dashboard dan langsung melihat statusnya.\n\n## Requirements\n\n* Daftar kelas menampilkan status publikasi dan enrollment_status setiap kelas.\n* Aksi publish/unpublish memanggil endpoint publikasi melalui Server Action dengan session cookie dan me-revalidate daftar.\n* State loading, sukses, 403 tanpa permission, dan error API ditampilkan dengan jelas.\n* Wizard pembuatan kelas dan daftar yang ada tetap berfungsi.\n\n## Acceptance Criteria\n\n- [ ] Tenant dapat memublikasikan kelas dan kelas tersebut muncul di /kelas\n- [ ] Tenant dapat menarik publikasi dan kelas hilang dari /kelas\n- [ ] Member tanpa class:update melihat pesan forbidden tanpa perubahan\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nIkuti pola Server Action dan query tenant yang ada; baca panduan Next.js 16 di node_modules sebelum coding sesuai AGENTS.md web. Jangan mengirim tenant ID dari browser sebagai sumber otorisasi.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/classes`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_actions/classActions.ts`\n\n## Edge Cases\n\n* Kelas tanpa jadwal dipublikasikan (backend mungkin menolak; tampilkan pesan backend).\n* Double click pada tombol publikasi.\n* Sesi kedaluwarsa saat aksi dijalankan.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Edit kelas.\n* Pengaturan enrollment_status manual.\n* Preview kelas.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-tenant-class-publication\",\n  \"projectKey\": \"tenant-selling-operations\",\n  \"title\": \"Sediakan kontrol publikasi kelas di dashboard tenant\",\n  \"type\": \"Feature\",\n  \"priority\": \"Urgent\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Halaman `app/(dashboard)/dashboard/tenant/classes` hanya menampilkan daftar kelas dan wizard pembuatan; pencarian kata `published` di direktori tersebut tidak menemukan kontrol apa pun. Endpoint `PATCH /api/v1/classes/:id/published` sudah tersedia di academic dan gateway dengan permission `class:update`. Tanpa kontrol ini tenant tidak dapat membuat kelasnya muncul di katalog publik dari web.\",\n    \"goal\": \"Tenant dapat memublikasikan dan menarik publikasi kelas dari dashboard dan langsung melihat statusnya.\",\n    \"requirements\": [\n      \"Daftar kelas menampilkan status publikasi dan enrollment_status setiap kelas.\",\n      \"Aksi publish/unpublish memanggil endpoint publikasi melalui Server Action dengan session cookie dan me-revalidate daftar.\",\n      \"State loading, sukses, 403 tanpa permission, dan error API ditampilkan dengan jelas.\",\n      \"Wizard pembuatan kelas dan daftar yang ada tetap berfungsi.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Tenant dapat memublikasikan kelas dan kelas tersebut muncul di /kelas\",\n      \"Tenant dapat menarik publikasi dan kelas hilang dari /kelas\",\n      \"Member tanpa class:update melihat pesan forbidden tanpa perubahan\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Ikuti pola Server Action dan query tenant yang ada; baca panduan Next.js 16 di node_modules sebelum coding sesuai AGENTS.md web. Jangan mengirim tenant ID dari browser sebagai sumber otorisasi.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/classes\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_actions/classActions.ts\"\n    ],\n    \"edgeCases\": [\n      \"Kelas tanpa jadwal dipublikasikan (backend mungkin menolak; tampilkan pesan backend).\",\n      \"Double click pada tombol publikasi.\",\n      \"Sesi kedaluwarsa saat aksi dijalankan.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Edit kelas.\",\n      \"Pengaturan enrollment_status manual.\",\n      \"Preview kelas.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 1,
+    "name": "Urgent"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-31/sediakan-kontrol-publikasi-kelas-di-dashboard-tenant",
+  "gitBranchName": "skinel123/kel-31-sediakan-kontrol-publikasi-kelas-di-dashboard-tenant",
+  "createdAt": "2026-09-16T11:47:52.606Z",
+  "updatedAt": "2026-09-20T15:43:47.748Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-20T15:41:53.513Z",
+  "startedAt": "2026-09-20T15:34:11.004Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "835c9ccb-9038-4ae5-bf9d-1e73bc310a22",
+      "title": "docs(KEL-31): document tenant class publication and list-envelope unwrapping",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/29"
+    },
+    {
+      "id": "b5913139-bcbf-4182-b173-8676d97585ac",
+      "title": "feat(KEL-31): publish and unpublish classes from the tenant dashboard",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/8"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:47:52.606Z",
+      "endedAt": "2026-09-20T15:34:11.014Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-20T15:34:11.014Z",
+      "endedAt": "2026-09-20T15:41:53.518Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-20T15:41:53.518Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Operasional tenant untuk menjual kelas",
+  "projectId": "0925b72f-fbab-4d82-b530-cac847cb5ec2",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-43",
+        "title": "Perbaiki field last_name student dan segarkan kontrak Swagger academic"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

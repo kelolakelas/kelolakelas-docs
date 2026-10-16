@@ -1,0 +1,136 @@
+{
+  "id": "KEL-54",
+  "uuid": "77b0b2a0-9ec8-4900-8f89-562cedaba373",
+  "title": "Pendaftaran ganda student ke kelas yang sama mendapat respons konflik yang jelas",
+  "description": "## Background / Problem\n\nUnique index `idx_student_class_active` (`init_schema.up.sql:36`) membatasi satu enrollment pending/active per student dan kelas. Halaman kelas membuat idempotency key baru pada setiap render, sehingga percobaan kedua melanggar index tersebut. GORM dibuka dengan `gorm.Config{}` tanpa `TranslateError` (`pkg/database/db.go:17`), dan error itu tidak dipetakan sehingga `catalogEnrollmentErrorStatus` jatuh ke 500 (`enrollment_handler.go:216-229`). Web lalu memetakan >= 500 menjadi \"Checkout belum tersedia karena layanan pembayaran sedang bermasalah\" (`kelas/[id]/_actions/actions.ts:25`). Alur ini disimpulkan dari kode, belum dieksekusi.\n\n## Goal\n\nParent mengetahui bahwa student sudah memiliki enrollment di kelas tersebut dan diarahkan ke halaman status enrollment.\n\n## Requirements\n\n* Academic mendeteksi enrollment pending/active yang sudah ada untuk student dan kelas yang sama, termasuk pelanggaran unique index saat race, lalu mengembalikan 409 yang dapat dibedakan dari jadwal penuh.\n* Web menampilkan pesan bahwa student sudah terdaftar atau memiliki pembayaran tertunda, beserta tautan ke `/dashboard/parent/enrollments`.\n* Retry dengan idempotency key yang sama tetap mengembalikan enrollment yang sama.\n* Pesan untuk jadwal penuh dan idempotency conflict tetap seperti sebelumnya.\n\n## Acceptance Criteria\n\n- [ ] Mendaftarkan student yang sudah memiliki enrollment pending/active di kelas yang sama menghasilkan HTTP 409, bukan 500.\n- [ ] Halaman kelas menampilkan pesan enrollment ganda dan tautan ke status enrollment.\n- [ ] Dua request bersamaan dengan idempotency key berbeda menghasilkan satu enrollment dan satu 409.\n- [ ] Student dengan enrollment cancelled atau expired dapat mendaftar ulang.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nTambahkan sentinel error domain untuk enrollment ganda. Pembeda di respons diputuskan saat implementasi dan didokumentasikan di `docs/api/academic.md`. Jangan mengaktifkan `TranslateError` secara global tanpa memverifikasi jalur lain, karena `attendance_usecase.go:70` juga memeriksa `gorm.ErrDuplicatedKey`.\n\nComplexity rationale: Dua repo dan penanganan race pada unique index; kontrak error baru harus konsisten dengan mapping web.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/usecase/enrollment_usecase.go`\n* `kelolakelas-academic-service/internal/repository/enrollment_repository.go`\n* `kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go`\n* `kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts`\n\n## Edge Cases\n\n* Race antara dua tab parent.\n* Kelas private tanpa jadwal.\n* Retry dengan key yang sama setelah menerima 409.\n\n## Testing / Validation\n\n- [ ] Test repository terhadap PostgreSQL untuk pelanggaran unique index dan test handler untuk mapping 409.\n- [ ] Test web untuk pesan 409 enrollment ganda yang berbeda dari jadwal penuh.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Melanjutkan pembayaran pending (issue terpisah).\n* Mengubah pembuatan idempotency key per render.\n* Perbaikan deteksi duplikat attendance.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"academic-duplicate-enrollment-conflict\",\n  \"projectKey\": \"buyer-purchase-continuity\",\n  \"title\": \"Pendaftaran ganda student ke kelas yang sama mendapat respons konflik yang jelas\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"academic\",\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\",\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Unique index `idx_student_class_active` (`init_schema.up.sql:36`) membatasi satu enrollment pending/active per student dan kelas. Halaman kelas membuat idempotency key baru pada setiap render, sehingga percobaan kedua melanggar index tersebut. GORM dibuka dengan `gorm.Config{}` tanpa `TranslateError` (`pkg/database/db.go:17`), dan error itu tidak dipetakan sehingga `catalogEnrollmentErrorStatus` jatuh ke 500 (`enrollment_handler.go:216-229`). Web lalu memetakan >= 500 menjadi \\\"Checkout belum tersedia karena layanan pembayaran sedang bermasalah\\\" (`kelas/[id]/_actions/actions.ts:25`). Alur ini disimpulkan dari kode, belum dieksekusi.\",\n    \"goal\": \"Parent mengetahui bahwa student sudah memiliki enrollment di kelas tersebut dan diarahkan ke halaman status enrollment.\",\n    \"requirements\": [\n      \"Academic mendeteksi enrollment pending/active yang sudah ada untuk student dan kelas yang sama, termasuk pelanggaran unique index saat race, lalu mengembalikan 409 yang dapat dibedakan dari jadwal penuh.\",\n      \"Web menampilkan pesan bahwa student sudah terdaftar atau memiliki pembayaran tertunda, beserta tautan ke `/dashboard/parent/enrollments`.\",\n      \"Retry dengan idempotency key yang sama tetap mengembalikan enrollment yang sama.\",\n      \"Pesan untuk jadwal penuh dan idempotency conflict tetap seperti sebelumnya.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Mendaftarkan student yang sudah memiliki enrollment pending/active di kelas yang sama menghasilkan HTTP 409, bukan 500.\",\n      \"Halaman kelas menampilkan pesan enrollment ganda dan tautan ke status enrollment.\",\n      \"Dua request bersamaan dengan idempotency key berbeda menghasilkan satu enrollment dan satu 409.\",\n      \"Student dengan enrollment cancelled atau expired dapat mendaftar ulang.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Tambahkan sentinel error domain untuk enrollment ganda. Pembeda di respons diputuskan saat implementasi dan didokumentasikan di `docs/api/academic.md`. Jangan mengaktifkan `TranslateError` secara global tanpa memverifikasi jalur lain, karena `attendance_usecase.go:70` juga memeriksa `gorm.ErrDuplicatedKey`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/usecase/enrollment_usecase.go\",\n      \"kelolakelas-academic-service/internal/repository/enrollment_repository.go\",\n      \"kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go\",\n      \"kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts\"\n    ],\n    \"edgeCases\": [\n      \"Race antara dua tab parent.\",\n      \"Kelas private tanpa jadwal.\",\n      \"Retry dengan key yang sama setelah menerima 409.\"\n    ],\n    \"testingValidation\": [\n      \"Test repository terhadap PostgreSQL untuk pelanggaran unique index dan test handler untuk mapping 409.\",\n      \"Test web untuk pesan 409 enrollment ganda yang berbeda dari jadwal penuh.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Melanjutkan pembayaran pending (issue terpisah).\",\n      \"Mengubah pembuatan idempotency key per render.\",\n      \"Perbaikan deteksi duplikat attendance.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-54/pendaftaran-ganda-student-ke-kelas-yang-sama-mendapat-respons-konflik",
+  "gitBranchName": "skinel123/kel-54-pendaftaran-ganda-student-ke-kelas-yang-sama-mendapat",
+  "createdAt": "2026-09-23T22:26:08.341Z",
+  "updatedAt": "2026-09-27T23:45:24.664Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T14:29:52.579Z",
+  "startedAt": "2026-09-26T14:08:26.610Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "academic",
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "3f24853d-a5be-47fb-b6b4-1583eb4f9bdb",
+      "title": "docs: KEL-54 duplicate enrollment 409 distinguisher",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/83"
+    },
+    {
+      "id": "d9b83f71-39fb-4449-8d84-999fca7c9816",
+      "title": "KEL-54: Pendaftaran ganda student ke kelas yang sama mendapat respons konflik yang jelas",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/34"
+    },
+    {
+      "id": "9e29470f-3c14-4507-9310-2a924c4dfb01",
+      "title": "KEL-54: Pendaftaran ganda student ke kelas yang sama mendapat respons konflik yang jelas",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/23"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-23T22:26:08.341Z",
+      "endedAt": "2026-09-26T14:08:26.639Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T14:08:26.639Z",
+      "endedAt": "2026-09-26T14:29:52.584Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T14:29:52.584Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Kelanjutan pembelian parent tanpa jalan buntu",
+  "projectId": "e021260a-3b44-4e8b-852c-28d42ed3ae6e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-83",
+        "title": "Tenant dapat mengubah dan menghapus role custom dari web"
+      },
+      {
+        "id": "KEL-91",
+        "title": "CI web menjalankan lint seluruh repository dan melaporkan status pada merge queue dan main"
+      },
+      {
+        "id": "KEL-84",
+        "title": "Tenant melihat, mencabut, dan mengirim ulang undangan pending dari dashboard"
+      },
+      {
+        "id": "KEL-68",
+        "title": "CI menolak PR yang memasukkan dependency dengan advisory high/critical"
+      },
+      {
+        "id": "KEL-108",
+        "title": "Persetujuan tenant atas permintaan jadwal private membuat enrollment, jadwal, dan payment link"
+      },
+      {
+        "id": "KEL-106",
+        "title": "Parent dan tenant mendapat pesan jelas saat checkout ditolak karena biaya platform melebihi pembayaran"
+      },
+      {
+        "id": "KEL-52",
+        "title": "Katalog dan enrollment hanya menawarkan jadwal yang masih berlaku"
+      },
+      {
+        "id": "KEL-98",
+        "title": "Platform admin dapat mengatur visibilitas katalog publik secara konsisten"
+      },
+      {
+        "id": "KEL-80",
+        "title": "Academic dan billing menolak akses anggota yang sudah dikeluarkan atau berganti role"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

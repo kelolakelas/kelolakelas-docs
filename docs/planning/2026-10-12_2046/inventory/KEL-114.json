@@ -1,0 +1,119 @@
+{
+  "id": "KEL-114",
+  "uuid": "87c3c411-e815-4228-92d4-848ce34d061f",
+  "title": "Elemen yang dapat diklik di web menampilkan cursor pointer",
+  "description": "## Background / Problem\n\nWeb memakai Tailwind CSS v4. Preflight v4 tidak lagi memberi `cursor: pointer` pada `button` (`node_modules/tailwindcss/preflight.css`), dan `app/globals.css` tidak menambahkan base rule. Hanya 2 file yang memakai `cursor-pointer`, padahal ada sekitar 99 elemen `<button>`. Akibatnya tab Parent/Organization di `app/(auth)/register/_components/RegisterFormSwitch.tsx` dan tombol lain terlihat tidak dapat diklik.\n\n## Goal\n\nSemua elemen interaktif yang aktif menampilkan cursor pointer, dan elemen nonaktif tidak menampilkannya.\n\n## Requirements\n\n* Base style global memberi `cursor: pointer` pada button, elemen `role=\"button\"`/`role=\"tab\"`, `summary`, `select`, label yang terhubung ke checkbox/radio, serta input checkbox, radio, submit, button, dan reset yang tidak disabled.\n* Elemen disabled menampilkan `cursor: not-allowed` tanpa mengubah perilaku `disabled:cursor-not-allowed` yang sudah ada.\n* Tab registrasi Parent/Organization menampilkan cursor pointer.\n* Tidak ada perubahan tampilan lain.\n\n## Acceptance Criteria\n\n- [ ] Hover pada tab registrasi, tombol form, tombol dialog, dan checkbox izin role menampilkan pointer.\n- [ ] Tombol disabled menampilkan not-allowed.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nPerubahan cukup satu base layer di `app/globals.css` sesuai konvensi Tailwind v4 (`@layer base`), tanpa menambah `cursor-pointer` per komponen. Utility per komponen yang sudah ada tetap berlaku. Perbarui kelolakelas-docs `docs/components/web.md` bila konvensi styling didokumentasikan.\n\nRelevant areas:\n\n* `kelolakelas-web/app/globals.css`\n* `kelolakelas-web/app/(auth)/register/_components/RegisterFormSwitch.tsx`\n\n## Edge Cases\n\n* Elemen dengan `aria-disabled=\"true\"` tetapi tidak `disabled`.\n* Link yang dirender sebagai `<a>` tetap memakai pointer bawaan browser.\n\n## Testing / Validation\n\n- [ ] Verifikasi manual di halaman register, katalog dan detail kelas, dashboard tenant, dan dashboard parent.\n- [ ] Existing tests pass, `npm run lint` pass, `next build` pass, dan acceptance criteria diverifikasi.\n\n## Out of Scope\n\n* Redesign visual komponen.\n* Perubahan komponen per halaman.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"pointer-cursor-clickable-elements\",\n  \"projectKey\": null,\n  \"title\": \"Elemen yang dapat diklik di web menampilkan cursor pointer\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Low\",\n  \"estimate\": \"S\",\n  \"complexity\": \"very-low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Web memakai Tailwind CSS v4. Preflight v4 tidak lagi memberi `cursor: pointer` pada `button` (`node_modules/tailwindcss/preflight.css`), dan `app/globals.css` tidak menambahkan base rule. Hanya 2 file yang memakai `cursor-pointer`, padahal ada sekitar 99 elemen `<button>`. Akibatnya tab Parent/Organization di `app/(auth)/register/_components/RegisterFormSwitch.tsx` dan tombol lain terlihat tidak dapat diklik.\",\n    \"goal\": \"Semua elemen interaktif yang aktif menampilkan cursor pointer, dan elemen nonaktif tidak menampilkannya.\",\n    \"requirements\": [\n      \"Base style global memberi `cursor: pointer` pada button, elemen `role=\\\"button\\\"`/`role=\\\"tab\\\"`, `summary`, `select`, label yang terhubung ke checkbox/radio, serta input checkbox, radio, submit, button, dan reset yang tidak disabled.\",\n      \"Elemen disabled menampilkan `cursor: not-allowed` tanpa mengubah perilaku `disabled:cursor-not-allowed` yang sudah ada.\",\n      \"Tab registrasi Parent/Organization menampilkan cursor pointer.\",\n      \"Tidak ada perubahan tampilan lain.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Hover pada tab registrasi, tombol form, tombol dialog, dan checkbox izin role menampilkan pointer.\",\n      \"Tombol disabled menampilkan not-allowed.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Perubahan cukup satu base layer di `app/globals.css` sesuai konvensi Tailwind v4 (`@layer base`), tanpa menambah `cursor-pointer` per komponen. Utility per komponen yang sudah ada tetap berlaku. Perbarui kelolakelas-docs `docs/components/web.md` bila konvensi styling didokumentasikan.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/globals.css\",\n      \"kelolakelas-web/app/(auth)/register/_components/RegisterFormSwitch.tsx\"\n    ],\n    \"edgeCases\": [\n      \"Elemen dengan `aria-disabled=\\\"true\\\"` tetapi tidak `disabled`.\",\n      \"Link yang dirender sebagai `<a>` tetap memakai pointer bawaan browser.\"\n    ],\n    \"testingValidation\": [\n      \"Verifikasi manual di halaman register, katalog dan detail kelas, dashboard tenant, dan dashboard parent.\",\n      \"Existing tests pass, `npm run lint` pass, `next build` pass, dan acceptance criteria diverifikasi.\"\n    ],\n    \"outOfScope\": [\n      \"Redesign visual komponen.\",\n      \"Perubahan komponen per halaman.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 4,
+    "name": "Low"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-114/elemen-yang-dapat-diklik-di-web-menampilkan-cursor-pointer",
+  "gitBranchName": "skinel123/kel-114-elemen-yang-dapat-diklik-di-web-menampilkan-cursor-pointer",
+  "createdAt": "2026-09-27T23:48:41.066Z",
+  "updatedAt": "2026-09-29T15:44:37.019Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-29T15:41:26.929Z",
+  "startedAt": "2026-09-29T15:31:52.152Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "13af8cba-5297-452b-9222-5de5ce9ce1a6",
+      "title": "KEL-114: document pointer cursor on clickable web elements",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/133"
+    },
+    {
+      "id": "ed7094e2-a37e-486a-b6f6-0dd14a53b108",
+      "title": "KEL-114: Elemen yang dapat diklik di web menampilkan cursor pointer",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/60"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-27T23:48:41.066Z",
+      "endedAt": "2026-09-29T15:31:52.182Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-29T15:31:52.182Z",
+      "endedAt": "2026-09-29T15:41:26.935Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-29T15:41:26.935Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-132",
+        "title": "Academic menolak kapasitas jadwal private yang tidak sesuai satu student"
+      },
+      {
+        "id": "KEL-130",
+        "title": "Parent yang sudah memiliki student dapat menambah student lain dari detail kelas"
+      },
+      {
+        "id": "KEL-113",
+        "title": "Form buat kelas tidak lagi menampilkan field kapasitas karena kapasitas diatur per jadwal"
+      },
+      {
+        "id": "KEL-122",
+        "title": "Gateway meneruskan REST chat dan koneksi WebSocket chat ke chat-service"
+      },
+      {
+        "id": "KEL-121",
+        "title": "Chat-service mengirim pesan baru secara realtime lewat WebSocket dengan tiket sekali pakai"
+      },
+      {
+        "id": "KEL-119",
+        "title": "Chat-service menyimpan percakapan pengajar\u2013admin tenant dan pesannya melalui REST API"
+      },
+      {
+        "id": "KEL-115",
+        "title": "Tenant dapat menolak permintaan jadwal private dengan rekomendasi jadwal lain dan parent dapat menerimanya melalui API"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

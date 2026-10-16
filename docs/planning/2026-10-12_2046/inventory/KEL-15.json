@@ -1,0 +1,100 @@
+{
+  "id": "KEL-15",
+  "uuid": "c7f5c3c9-a770-431c-925a-7256e7cd58db",
+  "title": "Tampilkan status enrollment dan pembayaran kepada parent",
+  "description": "## Background / Problem\n\nAcademic dan billing menyediakan parent-scoped enrollment serta transaction queries, tetapi web tidak memiliki halaman konfirmasi atau riwayat. Setelah kembali dari provider, parent tidak dapat membedakan pending, paid, failed, atau paid yang masih menunggu aktivasi enrollment.\n\n## Goal\n\nParent dapat melihat status enrollment dan pembayaran secara akurat setelah checkout maupun dari riwayat akun.\n\n## Requirements\n\n* Tampilkan daftar dan detail enrollment milik parent.\n* Kaitkan status transaksi yang relevan tanpa membuka transaksi parent lain.\n* Bedakan pending, paid/active, failed/expired, dan reconciliation-pending.\n* Checkout flow dan API scoping yang ada harus tetap terjaga.\n\n## Acceptance Criteria\n\n- [ ] Parent dapat membuka status enrollment/transaksi miliknya setelah kembali dari checkout\n- [ ] Perubahan status setelah callback dapat terlihat tanpa membuat pembayaran baru\n- [ ] Missing, forbidden, pending, failed, expired, dan reconciliation state ditampilkan dengan jelas\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nGunakan GET enrollment dan billing transaction yang sudah parent-scoped. Jangan menganggap redirect provider sebagai bukti pembayaran; status backend tetap menjadi sumber kebenaran.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)`\n* `kelolakelas-academic-service/internal/delivery/http/handler/enrollment_query_handler.go`\n* `kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go`\n\n## Edge Cases\n\n* Provider redirect terjadi sebelum callback diproses.\n* Transaction paid tetapi enrollment masih direkonsiliasi.\n* ID valid milik parent lain.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Refund request.\n* Download invoice formal.\n* Sales report tenant.",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-15/tampilkan-status-enrollment-dan-pembayaran-kepada-parent",
+  "gitBranchName": "skinel123/kel-15-tampilkan-status-enrollment-dan-pembayaran-kepada-parent",
+  "createdAt": "2026-09-13T19:04:28.101Z",
+  "updatedAt": "2026-09-15T05:07:01.644Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-15T05:07:01.630Z",
+  "startedAt": "2026-09-15T05:02:29.770Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature"
+  ],
+  "attachments": [
+    {
+      "id": "fd2e0b31-a897-4539-a8d7-3dab3548c0a5",
+      "title": "docs(KEL-15): document parent payment status",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/10"
+    },
+    {
+      "id": "c0df217b-33e9-454c-8465-98b00245dd98",
+      "title": "feat(KEL-15): show parent enrollment payment status",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/7"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:04:28.101Z",
+      "endedAt": "2026-09-15T05:02:29.781Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-15T05:02:29.781Z",
+      "endedAt": "2026-09-15T05:07:01.639Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-15T05:07:01.639Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Perjalanan pembelian kelas untuk parent",
+  "projectId": "f80b0535-5536-4f54-8f09-7a93f01a9f24",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-8",
+        "title": "Rekonsiliasi pembayaran paid dengan aktivasi enrollment secara durable"
+      },
+      {
+        "id": "KEL-14",
+        "title": "Bawa parent dari kelas ke checkout pembayaran"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

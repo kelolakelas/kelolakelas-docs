@@ -1,0 +1,95 @@
+{
+  "id": "KEL-90",
+  "uuid": "bf454b38-148e-48b2-8b00-1b701701d840",
+  "title": "Sesi kelas tersedia untuk bulan-bulan berikutnya selama jadwal masih berlaku",
+  "description": "## Background / Problem\n\n`generateSessionsForSchedule` hanya membuat sesi dari tanggal mulai hingga akhir bulan berjalan (`kelolakelas-academic-service/internal/usecase/schedule_usecase.go:120-135`) dan hanya dipanggil saat jadwal dibuat (`:244-250`) atau diubah permanen (`:389-391`). Academic tidak memiliki worker atau ticker (`cmd/server/main.go`), dan tabel `class_sessions` tidak memiliki constraint unik per jadwal dan tanggal (`migrations/00000000000000_init_schema.up.sql:51-57`). Inferensi dari kode: mulai bulan berikutnya, jadwal aktif tidak memiliki sesi, sehingga `GET /sessions` kosong dan attendance tidak dapat dicatat karena membutuhkan sesi yang ada (`internal/repository/session_repository.go:59-65`). <issue id=\"bc92eb4b-40c6-4b82-b888-256e2b579e32\" href=\"https://linear.app/farid-zamani/issue/KEL-51/perubahan-jadwal-dan-tutor-permanen-menghasilkan-jadwal-pengganti-yang\">KEL-51</issue> secara eksplisit mengeluarkan \"Generasi sesi melewati akhir bulan berjalan\" dari scope-nya.\n\n## Goal\n\nSetiap jadwal yang masih berlaku selalu memiliki sesi untuk periode berjalan dan periode berikutnya tanpa duplikasi.\n\n## Requirements\n\n* Sesi dibuat berkelanjutan untuk jadwal aktif sampai horizon terdokumentasi (minimal bulan berjalan dan bulan berikutnya), dibatasi `valid_until`.\n* Pembuatan idempoten: menjalankan ulang tidak membuat sesi ganda untuk jadwal dan tanggal yang sama, termasuk saat beberapa instance berjalan bersamaan.\n* Sesi yang dihapus atau dipindah jadwalnya oleh tenant tidak dibuat ulang.\n* Jadwal yang dihapus atau berakhir tidak mendapat sesi baru.\n* Perilaku pembuatan sesi saat jadwal dibuat dan diubah permanen tetap sama.\n\n## Acceptance Criteria\n\n- [ ] Jadwal yang dibuat bulan ini memiliki sesi untuk bulan berikutnya setelah proses berjalan.\n- [ ] Menjalankan proses dua kali atau secara paralel tidak menambah sesi.\n- [ ] Sesi yang dihapus tenant tidak muncul kembali.\n- [ ] Jadwal dengan `valid_until` di bulan ini tidak mendapat sesi setelah tanggal tersebut.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko utama: sesi ganda atau sesi yang dihapus tenant muncul kembali, yang merusak attendance dan kuota; juga beban database bila proses berjalan di setiap instance. Mekanisme pemicu (worker periodik atau pembuatan saat dibutuhkan) diputuskan implementer dan dicatat sebagai ADR ringan. Implementer perlu memverifikasi bagaimana reschedule menyimpan sesi (ubah tanggal atau sesi baru) sebelum menentukan kunci keunikan. Perbarui `kelolakelas-docs/docs/flows/academic.md` dan `docs/components/academic-service.md`. Complexity rationale: menambah pembuatan sesi berulang di academic yang harus idempoten, aman saat berjalan paralel, dan tidak menghidupkan kembali sesi yang dihapus atau dipindah tenant.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/usecase/schedule_usecase.go`\n* `kelolakelas-academic-service/internal/repository/session_repository.go`\n* `kelolakelas-academic-service/cmd/server/main.go`\n* `kelolakelas-academic-service/migrations`\n\n## Edge Cases\n\n* Pergantian tahun (Desember ke Januari).\n* Jadwal private yang terikat enrollment.\n* Sesi yang direschedule ke tanggal lain.\n\n## Testing / Validation\n\n- [ ] Mitigasi risiko: test idempotensi dengan dua eksekusi berurutan dan paralel terhadap database, serta test bahwa sesi soft-deleted tidak dibuat ulang.\n- [ ] Test batas valid_until dan pergantian tahun.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* UI sesi dan attendance di web.\n* Akses parent ke jadwal sesi.\n* Perubahan aturan perubahan jadwal permanen (<issue id=\"bc92eb4b-40c6-4b82-b888-256e2b579e32\" href=\"https://linear.app/farid-zamani/issue/KEL-51/perubahan-jadwal-dan-tutor-permanen-menghasilkan-jadwal-pengganti-yang\">KEL-51</issue>).\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"academic-session-generation-horizon\",\n  \"projectKey\": null,\n  \"title\": \"Sesi kelas tersedia untuk bulan-bulan berikutnya selama jadwal masih berlaku\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"high\",\n  \"labels\": [\n    \"academic\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`generateSessionsForSchedule` hanya membuat sesi dari tanggal mulai hingga akhir bulan berjalan (`kelolakelas-academic-service/internal/usecase/schedule_usecase.go:120-135`) dan hanya dipanggil saat jadwal dibuat (`:244-250`) atau diubah permanen (`:389-391`). Academic tidak memiliki worker atau ticker (`cmd/server/main.go`), dan tabel `class_sessions` tidak memiliki constraint unik per jadwal dan tanggal (`migrations/00000000000000_init_schema.up.sql:51-57`). Inferensi dari kode: mulai bulan berikutnya, jadwal aktif tidak memiliki sesi, sehingga `GET /sessions` kosong dan attendance tidak dapat dicatat karena membutuhkan sesi yang ada (`internal/repository/session_repository.go:59-65`). KEL-51 secara eksplisit mengeluarkan \\\"Generasi sesi melewati akhir bulan berjalan\\\" dari scope-nya.\",\n    \"goal\": \"Setiap jadwal yang masih berlaku selalu memiliki sesi untuk periode berjalan dan periode berikutnya tanpa duplikasi.\",\n    \"requirements\": [\n      \"Sesi dibuat berkelanjutan untuk jadwal aktif sampai horizon terdokumentasi (minimal bulan berjalan dan bulan berikutnya), dibatasi `valid_until`.\",\n      \"Pembuatan idempoten: menjalankan ulang tidak membuat sesi ganda untuk jadwal dan tanggal yang sama, termasuk saat beberapa instance berjalan bersamaan.\",\n      \"Sesi yang dihapus atau dipindah jadwalnya oleh tenant tidak dibuat ulang.\",\n      \"Jadwal yang dihapus atau berakhir tidak mendapat sesi baru.\",\n      \"Perilaku pembuatan sesi saat jadwal dibuat dan diubah permanen tetap sama.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Jadwal yang dibuat bulan ini memiliki sesi untuk bulan berikutnya setelah proses berjalan.\",\n      \"Menjalankan proses dua kali atau secara paralel tidak menambah sesi.\",\n      \"Sesi yang dihapus tenant tidak muncul kembali.\",\n      \"Jadwal dengan `valid_until` di bulan ini tidak mendapat sesi setelah tanggal tersebut.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko utama: sesi ganda atau sesi yang dihapus tenant muncul kembali, yang merusak attendance dan kuota; juga beban database bila proses berjalan di setiap instance. Mekanisme pemicu (worker periodik atau pembuatan saat dibutuhkan) diputuskan implementer dan dicatat sebagai ADR ringan. Implementer perlu memverifikasi bagaimana reschedule menyimpan sesi (ubah tanggal atau sesi baru) sebelum menentukan kunci keunikan. Perbarui `kelolakelas-docs/docs/flows/academic.md` dan `docs/components/academic-service.md`. Complexity rationale: menambah pembuatan sesi berulang di academic yang harus idempoten, aman saat berjalan paralel, dan tidak menghidupkan kembali sesi yang dihapus atau dipindah tenant.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/usecase/schedule_usecase.go\",\n      \"kelolakelas-academic-service/internal/repository/session_repository.go\",\n      \"kelolakelas-academic-service/cmd/server/main.go\",\n      \"kelolakelas-academic-service/migrations\"\n    ],\n    \"edgeCases\": [\n      \"Pergantian tahun (Desember ke Januari).\",\n      \"Jadwal private yang terikat enrollment.\",\n      \"Sesi yang direschedule ke tanggal lain.\"\n    ],\n    \"testingValidation\": [\n      \"Mitigasi risiko: test idempotensi dengan dua eksekusi berurutan dan paralel terhadap database, serta test bahwa sesi soft-deleted tidak dibuat ulang.\",\n      \"Test batas valid_until dan pergantian tahun.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"UI sesi dan attendance di web.\",\n      \"Akses parent ke jadwal sesi.\",\n      \"Perubahan aturan perubahan jadwal permanen (KEL-51).\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-90/sesi-kelas-tersedia-untuk-bulan-bulan-berikutnya-selama-jadwal-masih",
+  "gitBranchName": "skinel123/kel-90-sesi-kelas-tersedia-untuk-bulan-bulan-berikutnya-selama",
+  "createdAt": "2026-09-24T12:26:25.319Z",
+  "updatedAt": "2026-09-27T07:52:12.509Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-27T07:46:36.134Z",
+  "startedAt": "2026-09-27T05:13:40.672Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "academic",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "e8357892-fd79-4d86-abf1-0cbee5c98d5c",
+      "title": "KEL-90: document rolling session generation horizon (ADR 0042)",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/99"
+    },
+    {
+      "id": "66723207-8b9f-4275-9cc6-7a08f1e75fa5",
+      "title": "KEL-90: keep class sessions generated through the end of next month",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/31"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T12:26:25.319Z",
+      "endedAt": "2026-09-27T05:13:40.682Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-27T05:13:40.682Z",
+      "endedAt": "2026-09-27T07:46:36.139Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-27T07:46:36.139Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-51",
+        "title": "Perubahan jadwal dan tutor permanen menghasilkan jadwal pengganti yang valid dan mempertahankan peserta"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

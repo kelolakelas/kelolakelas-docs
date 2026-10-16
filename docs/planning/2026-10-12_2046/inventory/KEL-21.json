@@ -1,0 +1,108 @@
+{
+  "id": "KEL-21",
+  "uuid": "9bdc25db-09b8-4d82-b1cc-f400621c2226",
+  "title": "Terapkan permission pada operasi student dan enrollment sisi tenant",
+  "description": "## Background\n\nRoute student (`cmd/server/main.go:118-122`) dan enrollment (`:132-136`) hanya memerlukan JWT: setiap pemegang token tenant yang valid bisa memanggilnya tanpa permission. Route katalog sudah dijaga `RequirePermission`, tetapi operasi student dan enrollment belum.\n\n## Goal\n\nOperasi student dan enrollment yang dijalankan atas nama tenant hanya dapat dilakukan oleh role dengan permission terkait, sementara jalur parent yang berbasis ownership tetap tidak berubah.\n\n## Acceptance Criteria\n\n* Role `Teacher` yang tidak memiliki permission `student:*` / `enrollment:*` menerima `403`.\n* Role dengan permission lengkap (`Creator`) tetap dapat menjalankan seluruh operasi student dan enrollment.\n* Parent tetap dapat mengakses route yang memang ditujukan untuknya tanpa memerlukan `role_id` pada token.\n* Fungsi yang sudah ada (katalog, parent enrollment, attendance, report) tidak berubah perilakunya.\n* Error dan validasi (404, 400, 401, 503) tetap konsisten.\n\n## Edge Cases\n\n* Token parent yang juga memiliki membership tenant.\n* Member tanpa `role_id` pada route tenant.\n* Identity gRPC tidak tersedia saat parent mengakses route yang tidak memerlukan permission.\n\n## Out of Scope\n\n* Permission `attendance` dan `report`.\n* `PATCH /enrollments/:id/schedule` oleh tenant.\n* UI permission-aware di web.\n\n## Implementation\n\n`internal/delivery/http/middleware/permission_middleware.go` menambahkan `RequirePermissionUnlessParent(client, permission)` di atas helper `permissionAllowed` yang dipakai bersama `RequirePermission`. Varian ini mengembalikan `c.Next()` ketika `is_parent` benar **sebelum** lookup identity, sehingga token parent tidak pernah memicu panggilan gRPC. `cmd/server/main.go` memasang:\n\n| Route | Permission |\n| -- | -- |\n| `GET /students` | `student:read` |\n| `POST /students` | `student:create` |\n| `GET /students/:id` | `student:read` |\n| `PATCH /students/:id` | `student:update` |\n| `DELETE /students/:id` | `student:delete` |\n| `POST /tenants/:tenant_id/enrollments` | `enrollment:create` |\n| `GET /enrollments` | `enrollment:read` |\n| `GET /enrollments/:id` | `enrollment:read` |\n\nRoute `POST /catalog/classes/:class_id/enrollments`, `POST /enrollments/:id/cancel`, dan `PATCH /enrollments/:id/schedule` sengaja dibiarkan tanpa guard sesuai Out of Scope.\n\n## Evidence\n\nAkademik PR <pull-request id=\"eb29303d-babd-4271-8292-213575d37735\" href=\"https://linear.app/farid-zamani/review/kel-21-enforce-student-and-enrollment-permissions-for-tenant-callers-12265fe880f3\">kelolakelas/kelolakelas-academic-service#11</pull-request> \u2014 squash merge `e8446635e9e73b220d6b26dd491b3a72708958e4` @ 2026-09-21T05:37:34Z.\n\nDokumentasi PR <pull-request id=\"49fc3ddc-c08c-4097-bb3a-ce56258ede4e\" href=\"https://linear.app/farid-zamani/review/kel-21-document-tenant-side-student-and-enrollment-permission-f9c0c1860e8a\">kelolakelas/kelolakelas-docs#37</pull-request> \u2014 squash merge `6002c6daea8005b3350d8f26280afa8eeec42604` @ 2026-09-21T05:37:49Z.\n\nSnapshot PR <pull-request id=\"ea265615-6a6b-4f5c-a098-4e4d37b65309\" href=\"https://linear.app/farid-zamani/review/kel-21-refresh-readme-snapshot-for-academic-revision-6543b0218824\">kelolakelas/kelolakelas-docs#38</pull-request> \u2014 squash merge `1b3d386ee611112843dc91afef9899e514b18ed6` @ 2026-09-21T05:41:40Z.\n\nKetiga merge commit terbukti reachable dari `origin/main` (`git merge-base --is-ancestor` sukses setelah `git fetch origin`), dan CI `main` pasca-merge hijau di akademik dan docs.\n\n## Validation\n\n* `gofmt -l .` bersih, `go mod verify` \"all modules verified\", `go vet ./...` bersih, `go test -race -count=1 ./...` ok untuk 11 paket, `go build ./...` bersih.\n* `permission_middleware_test.go`: `TestRequirePermissionUnlessParent` menutup edge case parent tanpa `role_id`/`tenant_id`, parent saat identity tidak tersedia, member tanpa `role_id` \u2192 403, ditolak \u2192 403, diizinkan \u2192 204, identity gagal \u2192 503.\n* `student_enrollment_permission_handler_test.go`: 8 route ditolak \u2192 403 dengan **nol** panggilan usecase (membuktikan \"403 tanpa perubahan data\"); 8 route diizinkan \u2192 sukses; parent bypass dengan identity tidak tersedia \u2192 sukses tanpa lookup; parent dengan membership tenant tetap bypass; member tanpa `role_id` \u2192 403 tanpa lookup; identity gagal \u2192 503; route katalog publik tidak terpengaruh.\n* CI GitHub `gate` hijau pada ketiga PR sebelum merge.",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-21/terapkan-permission-pada-operasi-student-dan-enrollment-sisi-tenant",
+  "gitBranchName": "skinel123/kel-21-terapkan-permission-pada-operasi-student-dan-enrollment-sisi",
+  "createdAt": "2026-09-16T11:44:03.379Z",
+  "updatedAt": "2026-09-21T05:42:03.428Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-21T05:37:51.215Z",
+  "startedAt": "2026-09-21T05:22:00.118Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "academic",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "391d11b7-0d37-4aad-8af2-33b6735e7ce8",
+      "title": "KEL-21: refresh README snapshot for academic revision",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/38"
+    },
+    {
+      "id": "1bcbd95c-a292-4025-a5cd-59da66f7b5e4",
+      "title": "KEL-21: document tenant-side student and enrollment permission enforcement",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/37"
+    },
+    {
+      "id": "c0125639-2ab0-4344-81b7-dd14d13c6930",
+      "title": "KEL-21: enforce student and enrollment permissions for tenant callers",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/11"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:44:03.379Z",
+      "endedAt": "2026-09-21T05:22:00.131Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-21T05:22:00.131Z",
+      "endedAt": "2026-09-21T05:37:51.230Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-21T05:37:51.230Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Isolasi tenant dan otorisasi menyeluruh",
+  "projectId": "617bb373-7df5-49dc-b9c7-38cf9ca0df5e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-19",
+        "title": "Ambil konteks tenant academic hanya dari claim JWT dan cocokkan tenant pada path"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-10",
+        "title": "Terapkan permission pada mutasi katalog kelas"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

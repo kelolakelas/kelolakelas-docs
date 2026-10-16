@@ -1,0 +1,97 @@
+{
+  "id": "KEL-166",
+  "uuid": "599f32c1-6f62-42aa-ad22-a8d4e897f600",
+  "title": "Perbaiki format jam request jadwal private agar parent dapat mengajukan enrollment",
+  "description": "## Background / Problem\n\nParent gagal mengajukan jadwal kelas private dari halaman detail kelas ketika memilih slot yang valid, misalnya Senin 16:00\u201317:00: form menampilkan \u201cPermintaan jadwal tidak dapat diproses. Periksa student, periode, dan slot Anda.\u201d sehingga alur pembelian terhenti sebelum tenant dapat meninjau permintaan. Penyebab (Inferred dari kode `origin/main`, respons/log backend deployment belum diverifikasi): `scheduleRequestPayload` di `kelolakelas-web/lib/schedule-request.ts` meneruskan `start_time`/`end_time` dalam format `HH:mm` apa adanya, `createScheduleRequest` di `kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts` mengirimnya ke `POST /api/v1/catalog/classes/:class_id/schedule-requests`, sedangkan `validatePrivateSlots` di `kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go` mewajibkan `HH:mm:ss` (`time.Parse(\"15:04:05\", ...)`). Nilai `16:00` ditolak sebagai `ErrPrivateRequestSlots` (HTTP 422) lalu `scheduleRequestErrorMessage` menggantinya dengan pesan umum. Kontrak API yang terdokumentasi (`kelolakelas-docs/docs/api/academic.md`) memang `HH:MM:SS`; test web yang ada mengharapkan `HH:mm` di body sehingga mismatch tertutup oleh mock.\n\n## Goal\n\nParent dapat mengirim permintaan jadwal kelas private dengan slot valid dari halaman detail kelas, dan permintaan tersimpan `pending` untuk ditinjau tenant, tanpa mengubah format input jam di UI maupun kontrak backend.\n\n## Requirements\n\n* Payload `POST /api/v1/catalog/classes/:class_id/schedule-requests` mengirim `start_time` dan `end_time` setiap slot dalam format `HH:mm:ss` (mis. `16:00` menjadi `16:00:00`); normalisasi terjadi di boundary penyusunan payload API.\n* Input form tetap `HH:mm`, dan validasi client (format jam, `end_time` setelah `start_time`, minimal satu slot) tetap berlaku seperti sekarang.\n* `day_of_week`, `student_id`, `billing_cycle`, dan semantik catatan kosong (field `note` tidak dikirim) tidak berubah.\n* Kontrak backend academic, otorisasi parent, dan alur persetujuan tenant tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Parent dengan student miliknya dapat mengirim slot Senin 16:00\u201317:00 ke kelas private yang published dan open; body request berisi `16:00:00` dan `17:00:00`.\n- [ ] API mengembalikan sukses, permintaan tersimpan `pending`, dan muncul di daftar permintaan parent pada halaman detail kelas.\n- [ ] Pengiriman permintaan belum membuat enrollment atau invoice; persetujuan tenant tetap mengikuti alur yang ada.\n- [ ] Semua slot dalam satu permintaan dinormalisasi secara konsisten.\n- [ ] Error kepemilikan student dan permintaan duplikat (409) tetap mengikuti perilaku yang ada.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\n`kelolakelas-web/lib/schedule-request.ts` sudah memiliki `scheduleRequestTimeForBackend` (dipakai server action reject tenant untuk `recommended_slots`); pakai ulang helper itu di `scheduleRequestPayload` alih-alih membuat konversi baru. Perbarui test yang kini mengharapkan `HH:mm` di body (`lib/schedule-request.test.ts`, `app/(public)/kelas/[id]/_actions/schedule-request-actions.test.ts`). Periksa juga jalur web lain yang mengirim slot parent ke academic; ubah hanya bila terbukti mengirim `HH:mm` ke endpoint yang mewajibkan `HH:mm:ss`, dan catat temuannya di PR. `kelolakelas-academic-service` hanya dibaca sebagai acuan kontrak, tidak diubah. Dokumentasi: perbarui paragraf <issue id=\"94fa0753-0ab2-42fb-a233-53dd7a7be087\" href=\"https://linear.app/farid-zamani/issue/KEL-109/parent-mengajukan-jadwal-kelas-private-dari-detail-kelas-dan-memantau\">KEL-109</issue> di `kelolakelas-docs/docs/components/web.md` yang menyebut slot dikirim sebagai `HH:MM`. Complexity medium karena ini jalur pembelian kelas private dan bug lolos dari test mock; mitigasinya verifikasi round trip pada stack lokal (lihat Testing / Validation).\n\nRelevant areas:\n\n* `kelolakelas-web/lib/schedule-request.ts`\n* `kelolakelas-web/lib/schedule-request.test.ts`\n* `kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts`\n* `kelolakelas-web/app/(public)/kelas/[id]/_actions/schedule-request-actions.test.ts`\n\n## Edge Cases\n\n* Beberapa slot pada hari yang sama maupun berbeda dalam satu permintaan.\n* Catatan kosong atau hanya spasi tetap tidak mengirim field `note`.\n* Nilai jam yang sudah berformat `HH:mm:ss` tidak berubah (tidak menjadi `HH:mm:ss:00`).\n* Slot dengan `end_time` sama dengan atau sebelum `start_time` tetap ditolak di client sebelum request dikirim.\n\n## Testing / Validation\n\n- [ ] Regression test `scheduleRequestPayload`: input `HH:mm` menghasilkan `HH:mm:ss` untuk setiap slot.\n- [ ] Test server action `createScheduleRequest` memeriksa body fetch yang sebenarnya, termasuk beberapa slot dan catatan kosong.\n- [ ] Verifikasi manual terhadap stack lokal (web \u2192 gateway \u2192 academic) dengan parent, student, dan kelas private uji yang valid: slot Senin 16:00\u201317:00 tersimpan `pending` dan tampil di daftar permintaan parent.\n- [ ] Existing tests pass, `npm run lint` pass, type check dan `next build` pass, dan acceptance criteria diverifikasi manual.\n\n## Out of Scope\n\n* Perubahan otorisasi parent, aturan kepemilikan student, status kelas, atau billing.\n* Perubahan format input waktu di UI.\n* Perubahan kontrak backend academic agar menerima format tambahan.\n* Perombakan pesan error umum permintaan jadwal.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"private-schedule-request-time-format\",\n  \"projectKey\": \"private-class-scheduled-purchase\",\n  \"title\": \"Perbaiki format jam request jadwal private agar parent dapat mengajukan enrollment\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Parent gagal mengajukan jadwal kelas private dari halaman detail kelas ketika memilih slot yang valid, misalnya Senin 16:00\u201317:00: form menampilkan \u201cPermintaan jadwal tidak dapat diproses. Periksa student, periode, dan slot Anda.\u201d sehingga alur pembelian terhenti sebelum tenant dapat meninjau permintaan. Penyebab (Inferred dari kode `origin/main`, respons/log backend deployment belum diverifikasi): `scheduleRequestPayload` di `kelolakelas-web/lib/schedule-request.ts` meneruskan `start_time`/`end_time` dalam format `HH:mm` apa adanya, `createScheduleRequest` di `kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts` mengirimnya ke `POST /api/v1/catalog/classes/:class_id/schedule-requests`, sedangkan `validatePrivateSlots` di `kelolakelas-academic-service/internal/usecase/private_schedule_request_usecase.go` mewajibkan `HH:mm:ss` (`time.Parse(\\\"15:04:05\\\", ...)`). Nilai `16:00` ditolak sebagai `ErrPrivateRequestSlots` (HTTP 422) lalu `scheduleRequestErrorMessage` menggantinya dengan pesan umum. Kontrak API yang terdokumentasi (`kelolakelas-docs/docs/api/academic.md`) memang `HH:MM:SS`; test web yang ada mengharapkan `HH:mm` di body sehingga mismatch tertutup oleh mock.\",\n    \"goal\": \"Parent dapat mengirim permintaan jadwal kelas private dengan slot valid dari halaman detail kelas, dan permintaan tersimpan `pending` untuk ditinjau tenant, tanpa mengubah format input jam di UI maupun kontrak backend.\",\n    \"requirements\": [\n      \"Payload `POST /api/v1/catalog/classes/:class_id/schedule-requests` mengirim `start_time` dan `end_time` setiap slot dalam format `HH:mm:ss` (mis. `16:00` menjadi `16:00:00`); normalisasi terjadi di boundary penyusunan payload API.\",\n      \"Input form tetap `HH:mm`, dan validasi client (format jam, `end_time` setelah `start_time`, minimal satu slot) tetap berlaku seperti sekarang.\",\n      \"`day_of_week`, `student_id`, `billing_cycle`, dan semantik catatan kosong (field `note` tidak dikirim) tidak berubah.\",\n      \"Kontrak backend academic, otorisasi parent, dan alur persetujuan tenant tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Parent dengan student miliknya dapat mengirim slot Senin 16:00\u201317:00 ke kelas private yang published dan open; body request berisi `16:00:00` dan `17:00:00`.\",\n      \"API mengembalikan sukses, permintaan tersimpan `pending`, dan muncul di daftar permintaan parent pada halaman detail kelas.\",\n      \"Pengiriman permintaan belum membuat enrollment atau invoice; persetujuan tenant tetap mengikuti alur yang ada.\",\n      \"Semua slot dalam satu permintaan dinormalisasi secara konsisten.\",\n      \"Error kepemilikan student dan permintaan duplikat (409) tetap mengikuti perilaku yang ada.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"`kelolakelas-web/lib/schedule-request.ts` sudah memiliki `scheduleRequestTimeForBackend` (dipakai server action reject tenant untuk `recommended_slots`); pakai ulang helper itu di `scheduleRequestPayload` alih-alih membuat konversi baru. Perbarui test yang kini mengharapkan `HH:mm` di body (`lib/schedule-request.test.ts`, `app/(public)/kelas/[id]/_actions/schedule-request-actions.test.ts`). Periksa juga jalur web lain yang mengirim slot parent ke academic; ubah hanya bila terbukti mengirim `HH:mm` ke endpoint yang mewajibkan `HH:mm:ss`, dan catat temuannya di PR. `kelolakelas-academic-service` hanya dibaca sebagai acuan kontrak, tidak diubah. Dokumentasi: perbarui paragraf KEL-109 di `kelolakelas-docs/docs/components/web.md` yang menyebut slot dikirim sebagai `HH:MM`. Complexity medium karena ini jalur pembelian kelas private dan bug lolos dari test mock; mitigasinya verifikasi round trip pada stack lokal (lihat Testing / Validation).\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/lib/schedule-request.ts\",\n      \"kelolakelas-web/lib/schedule-request.test.ts\",\n      \"kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts\",\n      \"kelolakelas-web/app/(public)/kelas/[id]/_actions/schedule-request-actions.test.ts\"\n    ],\n    \"edgeCases\": [\n      \"Beberapa slot pada hari yang sama maupun berbeda dalam satu permintaan.\",\n      \"Catatan kosong atau hanya spasi tetap tidak mengirim field `note`.\",\n      \"Nilai jam yang sudah berformat `HH:mm:ss` tidak berubah (tidak menjadi `HH:mm:ss:00`).\",\n      \"Slot dengan `end_time` sama dengan atau sebelum `start_time` tetap ditolak di client sebelum request dikirim.\"\n    ],\n    \"testingValidation\": [\n      \"Regression test `scheduleRequestPayload`: input `HH:mm` menghasilkan `HH:mm:ss` untuk setiap slot.\",\n      \"Test server action `createScheduleRequest` memeriksa body fetch yang sebenarnya, termasuk beberapa slot dan catatan kosong.\",\n      \"Verifikasi manual terhadap stack lokal (web \u2192 gateway \u2192 academic) dengan parent, student, dan kelas private uji yang valid: slot Senin 16:00\u201317:00 tersimpan `pending` dan tampil di daftar permintaan parent.\",\n      \"Existing tests pass, `npm run lint` pass, type check dan `next build` pass, dan acceptance criteria diverifikasi manual.\"\n    ],\n    \"outOfScope\": [\n      \"Perubahan otorisasi parent, aturan kepemilikan student, status kelas, atau billing.\",\n      \"Perubahan format input waktu di UI.\",\n      \"Perubahan kontrak backend academic agar menerima format tambahan.\",\n      \"Perombakan pesan error umum permintaan jadwal.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-166/perbaiki-format-jam-request-jadwal-private-agar-parent-dapat",
+  "gitBranchName": "skinel123/kel-166-perbaiki-format-jam-request-jadwal-private-agar-parent-dapat",
+  "createdAt": "2026-10-04T08:59:20.856Z",
+  "updatedAt": "2026-10-11T19:31:33.265Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-11T19:30:06.954Z",
+  "startedAt": "2026-10-11T19:17:48.191Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Bug",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "6b37a468-6ee7-41f5-aafe-59fce14159b0",
+      "title": "KEL-166: document private schedule request wire format",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/176"
+    },
+    {
+      "id": "ba107b80-13d9-4878-a766-84ad12510979",
+      "title": "KEL-166: fix private schedule request time payload",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/88"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-10-04T08:59:20.856Z",
+      "endedAt": "2026-10-11T19:17:48.214Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-11T19:17:48.214Z",
+      "endedAt": "2026-10-11T19:30:06.967Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-11T19:30:06.967Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pembelian kelas private dengan jadwal yang disepakati",
+  "projectId": "66af01b4-f443-465d-9f4e-af651d2854db",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-107",
+        "title": "Parent dapat mengajukan jadwal kelas private dan tenant dapat meninjau atau menolaknya melalui API"
+      },
+      {
+        "id": "KEL-109",
+        "title": "Parent mengajukan jadwal kelas private dari detail kelas dan memantau status permintaannya"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

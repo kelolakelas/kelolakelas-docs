@@ -1,0 +1,122 @@
+{
+  "id": "KEL-70",
+  "uuid": "aed86642-ff35-4130-8e14-c5be1da3f8cd",
+  "title": "Parent melihat jadwal kelas yang dibeli pada halaman status enrollment",
+  "description": "## Background / Problem\n\nParent memilih jadwal saat checkout kelas grup, tetapi halaman `/dashboard/parent/enrollments` hanya menampilkan nama kelas, nama student, status enrollment, serta status dan nominal transaksi (`app/(dashboard)/dashboard/parent/enrollments/page.tsx`). Tipe `EnrollmentRecord` di web (`lib/payment-status.ts`) tidak memiliki data jadwal. Di academic, `EnrollmentResponse` hanya membawa `schedule_id` (`internal/domain/enrollment.go:77`), dan list enrollment hanya mem-preload `Student` dan `Class` (`internal/repository/enrollment_repository.go:111`). Parent juga tidak dapat mengambil jadwal secara terpisah, karena `GET /api/v1/schedules` (`list_handler.go:118-124`) memerlukan konteks tenant dari token (`tenantIDFromContext`), sedangkan token parent tidak memiliki klaim tenant (Inferred dari dokumentasi <issue id=\"55db2fdb-9e2a-4ea6-8202-d302df623164\" href=\"https://linear.app/farid-zamani/issue/KEL-16/ambil-konteks-tenant-identity-hanya-dari-claim-jwt\">KEL-16</issue>/<issue id=\"dc22925c-d856-40a6-bb6d-c0a1493bc440\" href=\"https://linear.app/farid-zamani/issue/KEL-19/ambil-konteks-tenant-academic-hanya-dari-claim-jwt-dan-cocokkan-tenant\">KEL-19</issue>). Dashboard tenant sudah menyelesaikan kebutuhan serupa lewat lookup jadwal terpisah (`dashboard/tenant/enrollments/_queries/queries.ts:164-192`).\n\n## Goal\n\nParent dapat melihat hari, jam, dan lokasi jadwal yang terikat pada setiap enrollment miliknya tanpa menghubungi tenant.\n\n## Requirements\n\n* Respons list dan detail enrollment menyertakan ringkasan jadwal (hari, jam mulai/selesai, lokasi bila ada) ketika enrollment memiliki `schedule_id`, sebagai field aditif.\n* Data jadwal hanya berasal dari enrollment yang sudah ter-scope ke parent/tenant pemilik; tidak ada endpoint jadwal baru untuk parent.\n* Web menampilkan ringkasan jadwal pada kartu enrollment parent dengan nama hari berbahasa Indonesia.\n* Enrollment tanpa jadwal (kelas private atau jadwal terhapus) tetap tampil tanpa error.\n* Field dan perilaku respons yang ada, serta dashboard tenant, tetap sama.\n\n## Acceptance Criteria\n\n- [ ] Test repository/usecase membuktikan list enrollment parent memuat ringkasan jadwal untuk enrollment grup.\n- [ ] Test membuktikan parent A tidak menerima data jadwal enrollment milik parent B.\n- [ ] Kartu enrollment parent menampilkan hari dan jam jadwal, dibuktikan oleh test query/komponen web.\n- [ ] Enrollment tanpa jadwal menampilkan kartu tanpa baris jadwal atau dengan label jadwal tidak tersedia.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\n`ClassSchedule` memiliki `DayOfWeek` (ISO, 1 = Senin), `StartTime`, `EndTime`, `Location`, dan soft delete (`internal/domain/class_schedule.go:14-25`). Asumsi produk: tampilkan jadwal yang terikat pada enrollment walaupun jadwal itu sudah berakhir atau diganti (perubahan permanen ditangani <issue id=\"bc92eb4b-40c6-4b82-b888-256e2b579e32\" href=\"https://linear.app/farid-zamani/issue/KEL-51/perubahan-jadwal-dan-tutor-permanen-menghasilkan-jadwal-pengganti-yang\">KEL-51</issue>), dan tampilkan label \"Jadwal tidak tersedia\" bila jadwal sudah dihapus. Preload tambahan tidak boleh menimbulkan N+1 query. Perbarui Swagger academic untuk field baru. Dashboard tenant boleh tetap memakai lookup yang ada. Perbarui `kelolakelas-docs` (halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup/menyempit, serta evidence index) dalam PR docs terpisah setelah PR kode merge.\n\nComplexity: `medium`. Complexity rationale: Menambah data jadwal pada kontrak respons enrollment yang dipakai parent dan tenant. Perubahan harus aditif dan tetap ter-scope pada parent/tenant pemilik, serta membutuhkan perubahan web yang terkoordinasi.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/domain/enrollment.go`\n* `kelolakelas-academic-service/internal/repository/enrollment_repository.go`\n* `kelolakelas-academic-service/internal/usecase/enrollment_usecase.go`\n* `kelolakelas-web/lib/payment-status.ts`\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments`\n\n## Edge Cases\n\n* Jadwal di-soft-delete setelah enrollment dibuat.\n* Enrollment kelas private tanpa `schedule_id`.\n* Jadwal dengan `Location` kosong.\n\n## Testing / Validation\n\n- [ ] Test isolasi parent/tenant pada data jadwal yang dikembalikan.\n- [ ] Verifikasi manual halaman parent terhadap stub gateway.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Kalender sesi atau daftar pertemuan.\n* Pindah jadwal oleh parent.\n* Perubahan dashboard tenant.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"parent-enrollment-schedule-visibility\",\n  \"projectKey\": null,\n  \"title\": \"Parent melihat jadwal kelas yang dibeli pada halaman status enrollment\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"academic\",\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\",\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Parent memilih jadwal saat checkout kelas grup, tetapi halaman `/dashboard/parent/enrollments` hanya menampilkan nama kelas, nama student, status enrollment, serta status dan nominal transaksi (`app/(dashboard)/dashboard/parent/enrollments/page.tsx`). Tipe `EnrollmentRecord` di web (`lib/payment-status.ts`) tidak memiliki data jadwal. Di academic, `EnrollmentResponse` hanya membawa `schedule_id` (`internal/domain/enrollment.go:77`), dan list enrollment hanya mem-preload `Student` dan `Class` (`internal/repository/enrollment_repository.go:111`). Parent juga tidak dapat mengambil jadwal secara terpisah, karena `GET /api/v1/schedules` (`list_handler.go:118-124`) memerlukan konteks tenant dari token (`tenantIDFromContext`), sedangkan token parent tidak memiliki klaim tenant (Inferred dari dokumentasi KEL-16/KEL-19). Dashboard tenant sudah menyelesaikan kebutuhan serupa lewat lookup jadwal terpisah (`dashboard/tenant/enrollments/_queries/queries.ts:164-192`).\",\n    \"goal\": \"Parent dapat melihat hari, jam, dan lokasi jadwal yang terikat pada setiap enrollment miliknya tanpa menghubungi tenant.\",\n    \"requirements\": [\n      \"Respons list dan detail enrollment menyertakan ringkasan jadwal (hari, jam mulai/selesai, lokasi bila ada) ketika enrollment memiliki `schedule_id`, sebagai field aditif.\",\n      \"Data jadwal hanya berasal dari enrollment yang sudah ter-scope ke parent/tenant pemilik; tidak ada endpoint jadwal baru untuk parent.\",\n      \"Web menampilkan ringkasan jadwal pada kartu enrollment parent dengan nama hari berbahasa Indonesia.\",\n      \"Enrollment tanpa jadwal (kelas private atau jadwal terhapus) tetap tampil tanpa error.\",\n      \"Field dan perilaku respons yang ada, serta dashboard tenant, tetap sama.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Test repository/usecase membuktikan list enrollment parent memuat ringkasan jadwal untuk enrollment grup.\",\n      \"Test membuktikan parent A tidak menerima data jadwal enrollment milik parent B.\",\n      \"Kartu enrollment parent menampilkan hari dan jam jadwal, dibuktikan oleh test query/komponen web.\",\n      \"Enrollment tanpa jadwal menampilkan kartu tanpa baris jadwal atau dengan label jadwal tidak tersedia.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"`ClassSchedule` memiliki `DayOfWeek` (ISO, 1 = Senin), `StartTime`, `EndTime`, `Location`, dan soft delete (`internal/domain/class_schedule.go:14-25`). Asumsi produk: tampilkan jadwal yang terikat pada enrollment walaupun jadwal itu sudah berakhir atau diganti (perubahan permanen ditangani KEL-51), dan tampilkan label \\\"Jadwal tidak tersedia\\\" bila jadwal sudah dihapus. Preload tambahan tidak boleh menimbulkan N+1 query. Perbarui Swagger academic untuk field baru. Dashboard tenant boleh tetap memakai lookup yang ada. Perbarui `kelolakelas-docs` (halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup/menyempit, serta evidence index) dalam PR docs terpisah setelah PR kode merge.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/domain/enrollment.go\",\n      \"kelolakelas-academic-service/internal/repository/enrollment_repository.go\",\n      \"kelolakelas-academic-service/internal/usecase/enrollment_usecase.go\",\n      \"kelolakelas-web/lib/payment-status.ts\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments\"\n    ],\n    \"edgeCases\": [\n      \"Jadwal di-soft-delete setelah enrollment dibuat.\",\n      \"Enrollment kelas private tanpa `schedule_id`.\",\n      \"Jadwal dengan `Location` kosong.\"\n    ],\n    \"testingValidation\": [\n      \"Test isolasi parent/tenant pada data jadwal yang dikembalikan.\",\n      \"Verifikasi manual halaman parent terhadap stub gateway.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Kalender sesi atau daftar pertemuan.\",\n      \"Pindah jadwal oleh parent.\",\n      \"Perubahan dashboard tenant.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-70/parent-melihat-jadwal-kelas-yang-dibeli-pada-halaman-status-enrollment",
+  "gitBranchName": "skinel123/kel-70-parent-melihat-jadwal-kelas-yang-dibeli-pada-halaman-status",
+  "createdAt": "2026-09-24T07:12:44.762Z",
+  "updatedAt": "2026-09-28T02:03:44.714Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-27T01:50:01.578Z",
+  "startedAt": "2026-09-27T01:29:06.455Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "academic",
+    "web",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "d3194d41-f7f5-416f-9642-9ccd06f5f4cc",
+      "title": "docs: KEL-70 parent enrollment schedule summary",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/95"
+    },
+    {
+      "id": "c203cbb5-b9db-4c5e-b675-cedad01b3644",
+      "title": "KEL-70: show class schedule on parent enrollment cards",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/41"
+    },
+    {
+      "id": "aaffbca5-f019-4954-8910-87fa8843cba5",
+      "title": "KEL-70: expose schedule summary on parent enrollment list and detail",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/29"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T07:12:44.762Z",
+      "endedAt": "2026-09-27T01:29:06.501Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-27T01:29:06.501Z",
+      "endedAt": "2026-09-27T01:50:01.582Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-27T01:50:01.582Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-51",
+        "title": "Perubahan jadwal dan tutor permanen menghasilkan jadwal pengganti yang valid dan mempertahankan peserta"
+      },
+      {
+        "id": "KEL-19",
+        "title": "Ambil konteks tenant academic hanya dari claim JWT dan cocokkan tenant pada path"
+      },
+      {
+        "id": "KEL-16",
+        "title": "Ambil konteks tenant identity hanya dari claim JWT"
+      },
+      {
+        "id": "KEL-116",
+        "title": "Tenant mengirim rekomendasi jadwal saat menolak dan parent dapat menerima atau menolaknya di web"
+      },
+      {
+        "id": "KEL-109",
+        "title": "Parent mengajukan jadwal kelas private dari detail kelas dan memantau status permintaannya"
+      },
+      {
+        "id": "KEL-39",
+        "title": "Catat request dan event domain dengan request ID di identity, academic, dan billing"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

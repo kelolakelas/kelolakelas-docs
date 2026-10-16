@@ -1,0 +1,1471 @@
+{
+  "projects": [
+    {
+      "id": "P-KEL-34",
+      "uuid": "53a97201-1a7b-491d-95e1-cd1162522dcc",
+      "icon": null,
+      "color": "#bec2c8",
+      "name": "QA: pemeliharaan kategori tenant",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nQA: pemeliharaan kategori tenant\n\n## Masalah yang diselesaikan\n\nTemuan QA stack nyata menunjukkan flow belum dapat dipakai secara konsisten.\n\n## Nilai dan prioritas\n\nPrioritas berdasarkan impact QA, confidence kode origin/main; tidak mengklaim bukti produksi.\n\n## Scope\n\n* Tenant dapat memperbarui nama dan deskripsi kategori melalui API scoped\n* Tenant dapat mengedit dan menghapus kategori dari dashboard\n\n## Di luar scope\n\n* \u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/qa-pemeliharaan-kategori-tenant-dd42232d0200",
+      "createdAt": "2026-10-12T13:59:24.585Z",
+      "updatedAt": "2026-10-12T13:59:24.585Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-33",
+      "uuid": "7f4ae5a9-1def-45c4-ba4b-b62e764824ac",
+      "icon": null,
+      "color": "#26b5ce",
+      "name": "QA: sesi dan identitas laporan pengajaran",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nQA: sesi dan identitas laporan pengajaran\n\n## Masalah yang diselesaikan\n\nTemuan QA stack nyata menunjukkan flow belum dapat dipakai secara konsisten.\n\n## Nilai dan prioritas\n\nPrioritas berdasarkan impact QA, confidence kode origin/main; tidak mengklaim bukti produksi.\n\n## Scope\n\n* Tanggal sesi dari timestamp API tampil di kartu dan dialog teacher\n* Respons report menyertakan identitas student dan class untuk daftar\n* Tenant \u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/qa-sesi-dan-identitas-laporan-pengajaran-318723110647",
+      "createdAt": "2026-10-12T13:59:21.232Z",
+      "updatedAt": "2026-10-12T13:59:21.232Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-32",
+      "uuid": "fd3d84e8-5646-468b-8dd5-4677993dea63",
+      "icon": null,
+      "color": "#bec2c8",
+      "name": "QA: pemulihan alur platform admin",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nQA: pemulihan alur platform admin\n\n## Masalah yang diselesaikan\n\nTemuan QA stack nyata menunjukkan flow belum dapat dipakai secara konsisten.\n\n## Nilai dan prioritas\n\nPrioritas berdasarkan impact QA, confidence kode origin/main; tidak mengklaim bukti produksi.\n\n## Scope\n\n* Enrollment TOTP pertama menerbitkan sesi dengan factor version yang tersimpan\n* Approve dan reject Creator memakai primary key assignment yang benar\n* Gua\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/qa-pemulihan-alur-platform-admin-bd84089b6f6d",
+      "createdAt": "2026-10-12T13:59:16.377Z",
+      "updatedAt": "2026-10-12T13:59:16.377Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-31",
+      "uuid": "1af5c085-6356-493d-8313-204e726a21c8",
+      "icon": null,
+      "color": "#bec2c8",
+      "name": "Profil tenant publik, ulasan kelas, dan voucher",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nCalon parent dapat melihat profil publik tenant dan ulasan kelas, dan tenant dapat membuat voucher yang ditukar dengan aman saat checkout kelas grup.\n\n## Masalah yang diselesaikan\n\nNama tenant di katalog hanya memfilter daftar kelas; tidak ada profil publik, ulasan, maupun penukaran voucher meski tabel dan permission voucher sudah ada.\n\n## Nilai dan prioritas\n\nMedium: meningkatkan kepercayaan dan konversi katalog; dikerjakan\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/profil-tenant-publik-ulasan-kelas-dan-voucher-e150bef1846a",
+      "createdAt": "2026-09-30T10:51:39.929Z",
+      "updatedAt": "2026-09-30T10:51:39.929Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-30",
+      "uuid": "4387984f-6485-429c-a03d-8c9c9ed498ec",
+      "icon": null,
+      "color": "#bec2c8",
+      "name": "Notifikasi perubahan jadwal dan kehadiran ke parent",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nParent diberi tahu lewat email dan pesan chat saat sesi anaknya di-reschedule, tutornya diganti, anaknya tercatat tidak hadir, dan sehari sebelum sesi.\n\n## Masalah yang diselesaikan\n\nReschedule, tutor pengganti, dan absensi tidak menghasilkan komunikasi apa pun; academic tidak memiliki email atau outbox, dan chat tidak dapat menerima pesan dari sistem.\n\n## Nilai dan prioritas\n\nMedium: mengurangi sesi terlewat dan beban komun\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/notifikasi-perubahan-jadwal-dan-kehadiran-ke-parent-5fef3a647b4d",
+      "createdAt": "2026-09-30T10:51:37.803Z",
+      "updatedAt": "2026-09-30T10:51:37.803Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-29",
+      "uuid": "aaa30069-425f-4e0b-839b-765385f3d3ec",
+      "icon": null,
+      "color": "#f7c8c1",
+      "name": "Penanganan tunggakan perpanjangan dan refund manual",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nEnrollment yang tagihan perpanjangannya tidak dibayar melewati masa tenggang ditangguhkan dan kursinya dilepas, dapat pulih bila pembayaran terlambat diterima, dan tenant dapat mencatat refund manual dengan konsekuensi yang konsisten.\n\n## Masalah yang diselesaikan\n\nSetelah masa penagihan lewat, worker renewal berhenti tanpa konsekuensi dan subscription tetap aktif; status enrollment tidak punya bentuk tangguh, refund tidak p\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/penanganan-tunggakan-perpanjangan-dan-refund-manual-78987e478cd0",
+      "createdAt": "2026-09-30T10:51:36.109Z",
+      "updatedAt": "2026-09-30T10:51:36.109Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-28",
+      "uuid": "6bf64982-2039-4ab0-afe2-4c92c2ec79c0",
+      "icon": null,
+      "color": "#bec2c8",
+      "name": "Keuangan tenant: laporan transaksi dan pencairan dana manual",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nTenant dapat melihat saldo, mutasi, dan transaksi yang dapat diekspor, lalu mengajukan penarikan ke rekening terdaftar yang diproses manual oleh platform admin.\n\n## Masalah yang diselesaikan\n\nPembayaran parent sudah dikreditkan ke wallet dan ledger tenant, tetapi tenant tidak dapat melihat saldo, mendaftarkan rekening, atau menarik dana; laporan transaksi hanya berupa kartu ringkasan tanpa daftar lengkap maupun ekspor.\n\n## N\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/keuangan-tenant-laporan-transaksi-dan-pencairan-dana-manual-dbaf9f2a57e9",
+      "createdAt": "2026-09-30T10:50:51.874Z",
+      "updatedAt": "2026-09-30T10:50:51.874Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-27",
+      "uuid": "88279533-8410-42e6-a6c1-4d66976952a7",
+      "icon": null,
+      "color": "#eb5757",
+      "name": "Portal belajar parent: jadwal, kehadiran, dan rapor anak",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nParent dapat melihat jadwal sesi berikutnya, riwayat kehadiran, dan laporan evaluasi milik anaknya sendiri tanpa dapat membaca data anak lain.\n\n## Masalah yang diselesaikan\n\nParent hanya dapat melihat enrollment, data anak, dan chat; endpoint sesi, absensi, dan laporan tidak memiliki jalur parent, dan token parent yang membawa tenant claim berpotensi melewati pemeriksaan permission.\n\n## Nilai dan prioritas\n\nHigh: visibilitas\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/portal-belajar-parent-jadwal-kehadiran-dan-rapor-anak-ca6d547e0dcd",
+      "createdAt": "2026-09-30T10:50:50.189Z",
+      "updatedAt": "2026-09-30T10:50:50.189Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-26",
+      "uuid": "7e1ccc42-2a77-480b-941b-4db7141c4716",
+      "icon": null,
+      "color": "#f2994a",
+      "name": "Operasional sesi, absensi, dan laporan oleh pengajar",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nPengajar dapat melihat sesi yang menjadi tanggung jawabnya, mencatat kehadiran, mengubah jadwal atau mengganti pengajar, dan menulis laporan evaluasi siswa dari dashboard KelolaKelas.\n\n## Masalah yang diselesaikan\n\nBackend sesi, absensi, dan laporan sudah ada, tetapi tidak ada satu pun layar web yang memakainya; absensi gagal untuk sesi yang di-reschedule, guard pengajar tidak konsisten, dan menu tenant statis sehingga penga\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/operasional-sesi-absensi-dan-laporan-oleh-pengajar-691831fb15ac",
+      "createdAt": "2026-09-30T10:50:21.966Z",
+      "updatedAt": "2026-09-30T10:50:21.966Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 0,
+        "name": "No priority"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-25",
+      "uuid": "a8a950c3-945c-4daa-b266-53e3d61e394e",
+      "icon": null,
+      "color": "#26b5ce",
+      "name": "Distribusi aman payment link kelas private",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nParent menerima payment link dari keputusan jadwal private melalui email dan percakapan private yang tepat, tanpa duplikasi berbahaya.\n\n## Masalah yang diselesaikan\n\nPersetujuan membuat invoice dan link, tetapi tidak mengirimkannya sebagai pesan email/chat yang dapat ditemukan parent.\n\n## Nilai dan prioritas\n\nHigh: menutup jeda antara persetujuan tenant dan pembayaran parent, tanpa membuat ulang checkout.\n\n## Scope\n\n* Kirim \u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/distribusi-aman-payment-link-kelas-private-4c5c457294f4",
+      "createdAt": "2026-09-28T19:14:40.045Z",
+      "updatedAt": "2026-09-28T19:14:40.045Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-24",
+      "uuid": "d1466cff-05f5-409d-aeba-c748ad1439fa",
+      "icon": null,
+      "color": "#f7c8c1",
+      "name": "Pembayaran kelas dengan pilihan channel dan halaman KelolaKelas",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nParent dapat memilih VA atau QRIS dan melihat instruksi pembayaran di KelolaKelas; channel kartu yang membutuhkan otorisasi eksternal tetap diarahkan ke Duitku.\n\n## Masalah yang diselesaikan\n\nBilling memaksa VC dan hanya menyimpan paymentUrl, sehingga web harus redirect dan tidak dapat menampilkan VA atau QR.\n\n## Nilai dan prioritas\n\nHigh: konversi checkout dan kejelasan status transaksi; perubahan finansial dikerjakan berla\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/pembayaran-kelas-dengan-pilihan-channel-dan-halaman-kelolakelas-84997cfcfa61",
+      "createdAt": "2026-09-28T19:14:37.493Z",
+      "updatedAt": "2026-09-28T19:14:37.493Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-23",
+      "uuid": "6fd7df4e-3f90-4efc-b835-f60581a2ce78",
+      "icon": null,
+      "color": "#eb5757",
+      "name": "Chat realtime antara tenant, pengajar, dan parent",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nParent dapat berdiskusi dengan admin tenant tentang permintaan jadwal private, pengajar dapat berdiskusi dengan admin tenant, dan pengajar dapat berdiskusi dengan parent tentang report student. Pesan baru muncul realtime melalui WebSocket.\n\n## Masalah yang diselesaikan\n\nBelum ada kanal komunikasi di dalam KelolaKelas: tidak ada kode chat, WebSocket, atau notifikasi di repo mana pun. Web tidak memiliki library WebSocket/SSE, \u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/chat-realtime-antara-tenant-pengajar-dan-parent-f963bcc87b57",
+      "createdAt": "2026-09-28T05:32:00.141Z",
+      "updatedAt": "2026-09-28T05:32:00.141Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-22",
+      "uuid": "66af01b4-f443-465d-9f4e-af651d2854db",
+      "icon": null,
+      "color": "#f7c8c1",
+      "name": "Pembelian kelas private dengan jadwal yang disepakati",
+      "summary": "",
+      "description": "## Tujuan/outcome\n\nParent dapat mengajukan jadwal kelas private, tenant meninjau lalu menyetujui, menolak, atau menolak dengan rekomendasi jadwal lain, lalu parent membayar melalui payment link sehingga enrollment aktif dengan jadwal yang disepakati.\n\n## Masalah yang diselesaikan\n\nKelas private kini dibeli langsung tanpa jadwal (academic `internal/usecase/enrollment_usecase.go:168,217`). Jadwal private hanya dapat dibuat tenant melalui `POST /\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/pembelian-kelas-private-dengan-jadwal-yang-disepakati-dcafb274e95b",
+      "createdAt": "2026-09-27T23:41:06.775Z",
+      "updatedAt": "2026-09-28T02:00:46.798Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-21",
+      "uuid": "ec13327b-4cd2-4226-84c1-019b5e88a53e",
+      "icon": null,
+      "color": "#eb5757",
+      "name": "Kontrol platform terpusat oleh platform admin",
+      "summary": "Platform admin menyetujui Creator tambahan dan mengelola konfigurasi aplikasi lintas layanan, termasuk rotasi secret, dengan audit.",
+      "description": "## Outcome\n\nPlatform admin dapat menyetujui penambahan Creator dan mengendalikan konfigurasi aplikasi KelolaKelas lintas layanan, termasuk rotasi secret, melalui alur terotorisasi dan teraudit.\n\n## Problem\n\nBelum ada principal platform admin; tenant dapat mengundang Creator; konfigurasi tersebar di environment statis tanpa control plane atau audit.\n\n## Scope\n\n* Principal platform admin dan bootstrap terkontrol.\n* Permintaan Creator oleh Creato\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/kontrol-platform-terpusat-oleh-platform-admin-df045d911207",
+      "createdAt": "2026-09-24T13:33:38.389Z",
+      "updatedAt": "2026-09-24T13:33:38.389Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 1,
+        "name": "Urgent"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-20",
+      "uuid": "deb9b7e3-21fc-4429-9a1a-c618e3c4b57d",
+      "icon": null,
+      "color": "#95a2b3",
+      "name": "Validasi input tanpa error 500 dan akun ganda",
+      "summary": "Input tidak valid atau terlalu panjang menghasilkan 400/409, bukan 500, dan satu email hanya memiliki satu akun.",
+      "description": "## Tujuan / outcome\n\nInput yang terlalu panjang, tidak valid, atau duplikat menghasilkan respons 4xx yang jelas, bukan 500, dan satu email hanya dapat memiliki satu akun.\n\n## Masalah yang diselesaikan\n\nBanyak field teks tanpa batas panjang dipetakan ke kolom varchar sehingga menghasilkan 500; password di atas 72 byte gagal di bcrypt dengan 500; rename tenant ke nama yang sudah ada selalu 500; page dan search katalog publik tidak dibatasi; emai\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/validasi-input-tanpa-error-500-dan-akun-ganda-f05a956f6f92",
+      "createdAt": "2026-09-24T12:00:50.975Z",
+      "updatedAt": "2026-09-24T12:00:50.975Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-19",
+      "uuid": "a4bb2374-5c38-4756-a883-7d6466112e8a",
+      "icon": null,
+      "color": "#f2c94c",
+      "name": "Informasi keputusan beli di katalog publik",
+      "summary": "Pengunjung katalog melihat sisa kursi, lokasi jadwal, dan kelas lain dari tenant yang sama sebelum checkout.",
+      "description": "## Tujuan / outcome\n\nPengunjung katalog dapat menilai ketersediaan kursi, lokasi jadwal, dan kelas lain dari tenant yang sama sebelum login atau checkout.\n\n## Masalah yang diselesaikan\n\nAPI katalog sudah menghitung available_slots per jadwal, tetapi web hanya menampilkannya di select parent yang sudah login dan punya student; lokasi jadwal tidak diekspos; nama tenant tidak dapat diklik walaupun filter tenant_id sudah didukung.\n\n## Nilai dan pr\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/informasi-keputusan-beli-di-katalog-publik-24fc4cc49e4d",
+      "createdAt": "2026-09-24T12:00:30.546Z",
+      "updatedAt": "2026-09-24T12:00:30.546Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-18",
+      "uuid": "5b07f6fe-d763-4bab-a83e-99e37d7bb40d",
+      "icon": null,
+      "color": "#f2c94c",
+      "name": "Administrasi tim tenant yang dapat diandalkan dari web",
+      "summary": "Owner tenant mengelola anggota, role, dan undangan dari web tanpa angka menyesatkan, jalan buntu, atau eskalasi hak akses.",
+      "description": "## Tujuan / outcome\n\nOwner tenant dapat melihat, mengundang, mengubah, dan mencabut akses anggota timnya dari web tanpa angka menyesatkan, jalan buntu, atau eskalasi hak akses.\n\n## Masalah yang diselesaikan\n\nDaftar anggota di web membaca kontrak list yang salah sehingga kosong, metrik Pending Invites selalu 0, undangan tidak dapat dilihat atau dicabut, anggota Teacher tidak dapat dipindah role, penghapusan anggota tidak melindungi owner, dan r\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/administrasi-tim-tenant-yang-dapat-diandalkan-dari-web-efc9536149ee",
+      "createdAt": "2026-09-24T12:00:12.676Z",
+      "updatedAt": "2026-09-24T12:18:33.553Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": "2026-09-24T12:18:33.552Z",
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "b17fe1c1-086c-4306-a44f-dab82336dd29",
+        "name": "Canceled",
+        "type": "canceled"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-17",
+      "uuid": "24479f4a-98ab-4255-a1e8-954da9ba6360",
+      "icon": null,
+      "color": "#f7c8c1",
+      "name": "Administrasi anggota tenant yang andal dan aman",
+      "summary": "Admin tenant melihat dan mengeluarkan anggota; pencabutan keanggotaan atau perubahan role langsung menghentikan akses di identity, academic, dan billing.",
+      "description": "## Tujuan / outcome\n\nAdmin tenant dapat melihat seluruh anggotanya dan mengeluarkan anggota dari dashboard. Pencabutan keanggotaan atau perubahan role langsung menghentikan akses yang dilindungi permission di identity, academic, dan billing, tanpa menunggu JWT 24 jam kedaluwarsa. Admin juga dapat mengelola undangan dan role custom dari web tanpa jalan buntu atau eskalasi hak akses.\n\n## Masalah yang diselesaikan\n\nHalaman anggota dan kartu \"Tota\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/administrasi-anggota-tenant-yang-andal-dan-aman-c08607fa8356",
+      "createdAt": "2026-09-24T11:59:07.630Z",
+      "updatedAt": "2026-09-24T12:46:30.854Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-16",
+      "uuid": "3dbd5a50-8cfd-47f5-9e23-335b5600bcc3",
+      "icon": null,
+      "color": "#eb5757",
+      "name": "Pemulihan akun mandiri",
+      "summary": "Parent dan anggota tenant dapat mengatur ulang password lewat email tanpa bantuan manual.",
+      "description": "## Tujuan / outcome\n\nParent dan anggota tenant yang lupa password dapat mengatur ulang password lewat email tanpa bantuan manual, sehingga akses ke pembelian dan dashboard tidak terputus.\n\n## Masalah yang diselesaikan\n\nTidak ditemukan endpoint maupun halaman reset password (08-known-gaps: \"No refresh, password-reset, or MFA endpoints were found\"). Project isolasi tenant dan <issue id=\"df0b74cb-e337-4383-bcba-dbe39469af8e\" href=\"https://linear.\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/pemulihan-akun-mandiri-f061e3bc0a5b",
+      "createdAt": "2026-09-24T07:06:09.538Z",
+      "updatedAt": "2026-09-24T07:39:32.037Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-15",
+      "uuid": "2ade2354-6971-4e10-afeb-94ba4ff407bf",
+      "icon": null,
+      "color": "#eb5757",
+      "name": "Rate limit berbasis klien nyata di balik web server",
+      "summary": "Kuota rate limit login, registrasi, dan katalog dihitung per klien asli, bukan per server web.",
+      "description": "## Tujuan / outcome\n\nKuota rate limit login, registrasi, dan katalog dihitung per klien asli, sehingga satu pengguna tidak dapat menghabiskan kuota semua pengguna web.\n\n## Masalah yang diselesaikan\n\nGateway menjalankan SetTrustedProxies(nil) dan mengunci bucket rate limit dengan c.ClientIP(). Web memanggil gateway dari server Next.js tanpa meneruskan IP klien, sehingga semua pengguna web kemungkinan berbagi satu bucket per path: login 5, regis\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/rate-limit-berbasis-klien-nyata-di-balik-web-server-ae60b61f607b",
+      "createdAt": "2026-09-24T07:05:49.181Z",
+      "updatedAt": "2026-09-24T07:05:49.181Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-14",
+      "uuid": "be75a629-541d-4d3d-9b72-d6098e99313a",
+      "icon": null,
+      "color": "#26b5ce",
+      "name": "Pengerasan keamanan dan ketahanan runtime platform",
+      "summary": "Dependency bebas advisory reachable, respons 5xx tanpa detail internal, dan service Go berhenti graceful dengan timeout terbatas.",
+      "description": "## Tujuan / outcome\n\nTidak ada advisory keamanan yang reachable pada dependency produksi, respons 5xx tidak lagi membocorkan detail internal, dan setiap service Go berhenti secara graceful dengan timeout koneksi yang terbatas.\n\n## Masalah yang diselesaikan\n\nScan 2026-09-24 menemukan advisory critical pada Next.js 16.2.12 serta advisory reachable pada Go stdlib 1.26.5, grpc v1.82.1, dan pgx v5.6.0. Belasan jalur 5xx di identity, academic, dan b\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/pengerasan-keamanan-dan-ketahanan-runtime-platform-78bae6a09b93",
+      "createdAt": "2026-09-24T07:05:28.228Z",
+      "updatedAt": "2026-09-24T07:05:28.228Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 1,
+        "name": "Urgent"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-13",
+      "uuid": "5a09f7a4-8599-4cb4-8a3e-500eb92c5685",
+      "icon": null,
+      "color": "#95a2b3",
+      "name": "Visibilitas penjualan tenant yang terotorisasi",
+      "summary": "Transaksi tenant dilindungi billing:read dan tenant melihat ringkasan penjualan di dashboard.",
+      "description": "## Tujuan / outcome\n\nAnggota tenant yang berwenang dapat melihat ringkasan penjualan kelas mereka, dan data transaksi tenant hanya dapat dibaca oleh anggota dengan permission billing:read.\n\n## Masalah yang diselesaikan\n\nEndpoint transaksi billing untuk tenant hanya memeriksa JWT, sehingga setiap anggota tenant dapat membaca seluruh transaksi meskipun permission billing:read sudah di-seed. Tenant juga belum memiliki ringkasan penjualan; dashboa\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/visibilitas-penjualan-tenant-yang-terotorisasi-3a5ceae27294",
+      "createdAt": "2026-09-23T22:23:06.587Z",
+      "updatedAt": "2026-09-23T22:23:06.587Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-12",
+      "uuid": "9a9bd006-84a5-4bc1-95a3-7530cdd0772a",
+      "icon": null,
+      "color": "#5e6ad2",
+      "name": "Integritas status pembayaran dan keandalan worker billing",
+      "summary": "Paid hanya setelah konfirmasi Duitku; panggilan keluar billing dibatasi waktu dan worker renewal aman.",
+      "description": "## Tujuan / outcome\n\nTransaksi hanya menjadi paid setelah dikonfirmasi provider, dan panggilan keluar serta worker renewal billing tidak dapat menggantung atau menimpa status paid.\n\n## Masalah yang diselesaikan\n\nSignature callback Duitku tidak mencakup resultCode dan billing tidak memverifikasi status ke API transactionStatus sebelum mengkredit wallet. HTTP client Duitku dan Resend tidak memiliki timeout, dan worker renewal menyimpan ulang sel\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/integritas-status-pembayaran-dan-keandalan-worker-billing-b0e5242b8bf3",
+      "createdAt": "2026-09-23T22:22:50.698Z",
+      "updatedAt": "2026-09-23T22:22:50.698Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-11",
+      "uuid": "e021260a-3b44-4e8b-852c-28d42ed3ae6e",
+      "icon": null,
+      "color": "#eb5757",
+      "name": "Kelanjutan pembelian parent tanpa jalan buntu",
+      "summary": "Parent dapat melanjutkan pembayaran pending dan mendapat respons jelas saat mendaftar ganda.",
+      "description": "## Tujuan / outcome\n\nParent yang meninggalkan checkout atau mencoba mendaftar ulang selalu mendapat jalan lanjut yang jelas: melanjutkan pembayaran yang masih berlaku atau diarahkan ke enrollment yang sudah ada.\n\n## Masalah yang diselesaikan\n\nHalaman status enrollment tidak menampilkan tautan checkout meskipun billing mengembalikannya. Mendaftar ulang untuk student dan kelas yang sama melanggar unique index dan kemungkinan berakhir sebagai 500\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/kelanjutan-pembelian-parent-tanpa-jalan-buntu-57d47ddc1480",
+      "createdAt": "2026-09-23T22:22:33.548Z",
+      "updatedAt": "2026-09-23T22:22:33.548Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-10",
+      "uuid": "ce2d931c-9450-4b1f-9014-52bf2789d0b6",
+      "icon": null,
+      "color": "#4cb782",
+      "name": "Jadwal kelas grup yang dapat dijual dan dipelihara",
+      "summary": "Kelas grup dapat dijadwalkan dan dijual dari web; perubahan jadwal permanen konsisten; jadwal berakhir tidak ditawarkan.",
+      "description": "## Tujuan / outcome\n\nTenant dapat membuat dan mengubah jadwal kelas grup dari web sehingga kelas grup dapat dibeli, dan setiap perubahan jadwal permanen menghasilkan jadwal, sesi, serta kuota yang konsisten.\n\n## Masalah yang diselesaikan\n\nForm jadwal di web tidak mengirim capacity yang wajib di academic, sehingga kelas grup buatan web tidak memiliki jadwal dan tidak dapat dibeli. Perubahan jadwal/tutor permanen menghasilkan rentang validitas t\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/jadwal-kelas-grup-yang-dapat-dijual-dan-dipelihara-91fa210d992c",
+      "createdAt": "2026-09-23T22:22:17.293Z",
+      "updatedAt": "2026-09-23T22:22:17.293Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-9",
+      "uuid": "8a1ae159-de9c-462a-a5aa-43528ab4c1bb",
+      "icon": null,
+      "color": "#4cb782",
+      "name": "Pengalaman pembeli yang lengkap di web",
+      "summary": "Parent kembali dari pembayaran dengan status terkini, dapat membatalkan enrollment pending, logout, dan menemukan katalog lewat mesin pencari.",
+      "description": "## Tujuan / outcome\n\nParent dapat menyelesaikan siklus akun dan pembelian di web tanpa jalan buntu: kembali dari pembayaran dengan status terkini, membatalkan enrollment pending, keluar dari sesi, dan menemukan halaman katalog melalui mesin pencari.\n\n## Masalah yang diselesaikan\n\nSetelah membayar parent diarahkan ke URL callback billing, halaman status harus dimuat ulang manual, tidak ada logout, halaman katalog tidak memiliki metadata dan mem\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/pengalaman-pembeli-yang-lengkap-di-web-9638ccc8830f",
+      "createdAt": "2026-09-16T11:40:50.728Z",
+      "updatedAt": "2026-09-16T11:40:50.728Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-8",
+      "uuid": "38910b97-74c2-4dd1-855c-d4d460497327",
+      "icon": null,
+      "color": "#5e6ad2",
+      "name": "Operabilitas, ketahanan, dan kebersihan repository",
+      "summary": "Request ID dan access log lintas service, readiness check, proxy gateway yang tahan downstream lambat, dan repository bebas artefak/kredensial contoh.",
+      "description": "## Tujuan / outcome\n\nOperator dapat mendiagnosis request lintas service, mendeteksi dependency yang tidak sehat, dan gateway tetap stabil saat downstream lambat; repository bebas artefak build dan kredensial contoh nyata.\n\n## Masalah yang diselesaikan\n\nTidak ada request ID, access log, readiness check, atau timeout proxy; binary build dan dump Redis ter-commit; contoh env billing berisi nilai kredensial nyata; katalog memanggil gRPC dan menuli\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/operabilitas-ketahanan-dan-kebersihan-repository-580297047275",
+      "createdAt": "2026-09-16T11:40:37.435Z",
+      "updatedAt": "2026-09-16T11:40:37.435Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-7",
+      "uuid": "0925b72f-fbab-4d82-b530-cac847cb5ec2",
+      "icon": null,
+      "color": "#eb5757",
+      "name": "Operasional tenant untuk menjual kelas",
+      "summary": "Tenant dapat memublikasikan, memperbarui, dan memantau penjualan kelas serta mengelola profil dan tim dari web.",
+      "description": "## Tujuan / outcome\n\nOwner dan staf tenant dapat memublikasikan, memperbarui, dan memantau penjualan kelas serta mengelola profil dan tim mereka dari web tanpa akses API langsung.\n\n## Masalah yang diselesaikan\n\nDashboard tenant web hanya dapat membuat kelas; tidak ada kontrol publikasi, tidak ada edit kelas (API pun belum ada), tidak ada tampilan enrollment/pembayaran, halaman pengaturan masih placeholder, dan tautan undangan email mengarah ke\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/operasional-tenant-untuk-menjual-kelas-d4a117aa5e06",
+      "createdAt": "2026-09-16T11:40:24.385Z",
+      "updatedAt": "2026-09-16T11:40:24.385Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-6",
+      "uuid": "bebfbed6-762c-44ba-94c9-e6f7c20904d9",
+      "icon": null,
+      "color": "#eb5757",
+      "name": "Siklus hidup enrollment dan pembayaran yang lengkap",
+      "summary": "Enrollment mencapai status final yang benar, kuota mencerminkan pembayaran nyata, dan parent menerima konfirmasi hasil pembayaran.",
+      "description": "## Tujuan / outcome\n\nSetiap enrollment berakhir pada status final yang benar (aktif, dibatalkan, atau kedaluwarsa), kuota selalu mencerminkan pembayaran nyata, dan parent menerima konfirmasi hasil pembayaran.\n\n## Masalah yang diselesaikan\n\nEnrollment pending menahan kuota tanpa batas waktu, transaksi tidak pernah kedaluwarsa secara lokal, kegagalan pembuatan invoice meninggalkan transaksi tertahan di status creating, callback dengan result cod\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/siklus-hidup-enrollment-dan-pembayaran-yang-lengkap-c2ce1ae886bd",
+      "createdAt": "2026-09-16T11:40:20.945Z",
+      "updatedAt": "2026-09-16T11:40:20.945Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-5",
+      "uuid": "617bb373-7df5-49dc-b9c7-38cf9ca0df5e",
+      "icon": null,
+      "color": "#5e6ad2",
+      "name": "Isolasi tenant dan otorisasi menyeluruh",
+      "summary": "Menutup jalur akses lintas tenant (header fallback, mutasi sesi/jadwal tanpa tenant) dan melengkapi permission enforcement domain akademik.",
+      "description": "## Tujuan / outcome\n\nSetiap operasi tenant hanya berjalan dalam konteks tenant yang berasal dari membership terverifikasi, dan seluruh domain akademik sisi tenant memiliki permission enforcement yang konsisten.\n\n## Masalah yang diselesaikan\n\nIdentity dan academic masih menerima header X-Tenant-ID dari client ketika claim tenant kosong, gateway tidak menetralkan header tersebut, lima operasi sesi/jadwal academic tidak di-scope tenant, permissio\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/isolasi-tenant-dan-otorisasi-menyeluruh-00b4a0acc6fc",
+      "createdAt": "2026-09-16T11:39:50.798Z",
+      "updatedAt": "2026-09-16T11:39:50.798Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 1,
+        "name": "Urgent"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-4",
+      "uuid": "f80b0535-5536-4f54-8f09-7a93f01a9f24",
+      "icon": null,
+      "color": "#4cb782",
+      "name": "Perjalanan pembelian kelas untuk parent",
+      "summary": "Memungkinkan parent menemukan kelas, mengelola student, checkout, dan memantau hasil pembayaran dari web.",
+      "description": "## Tujuan / outcome\n\nParent dapat menemukan kelas, masuk atau mendaftar, mengelola student, memulai pembayaran, dan memantau hasilnya dari web.\n\n## Masalah yang diselesaikan\n\nBackend marketplace tersedia, tetapi belum memiliki perjalanan pengguna end-to-end.\n\n## Scope\n\n* Konektivitas web ke gateway.\n* Katalog dan detail kelas publik.\n* Autentikasi dan navigasi parent.\n* Student management.\n* Checkout enrollment.\n* Status enrollment dan pembaya\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/perjalanan-pembelian-kelas-untuk-parent-23949109edf9",
+      "createdAt": "2026-09-13T19:00:43.174Z",
+      "updatedAt": "2026-09-13T19:00:43.174Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-3",
+      "uuid": "7a8b0290-48d2-4226-ab3c-fa971eb42dc0",
+      "icon": null,
+      "color": "#f2994a",
+      "name": "Pembayaran kelas konsisten dan terpercaya",
+      "summary": "Menjamin invoice berasal dari enrollment sah dan pembayaran paid dapat direkonsiliasi menjadi enrollment aktif.",
+      "description": "## Tujuan / outcome\n\nInvoice hanya berasal dari enrollment yang sah dan pembayaran berhasil selalu dapat direkonsiliasi menjadi enrollment aktif.\n\n## Masalah yang diselesaikan\n\nEndpoint user dapat membuat invoice dari payload tak tepercaya dan aktivasi enrollment dapat gagal setelah transaksi berstatus paid.\n\n## Scope\n\n* Mengunci jalur pembuatan transaksi.\n* Rekonsiliasi durable dan idempotent antara billing dan academic.\n\n## Di luar scope\n\n* \u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/pembayaran-kelas-konsisten-dan-terpercaya-bfe8ff7beb5d",
+      "createdAt": "2026-09-13T19:00:38.041Z",
+      "updatedAt": "2026-09-13T19:00:38.041Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-2",
+      "uuid": "c75be77a-273e-4882-9242-c6a3abd34372",
+      "icon": null,
+      "color": "#5e6ad2",
+      "name": "Fondasi otorisasi multi-tenant",
+      "summary": "Memastikan operasi tenant dan katalog hanya dapat dijalankan oleh principal dan role yang berwenang.",
+      "description": "## Tujuan / outcome\n\nHanya principal dan role yang berwenang dapat menjalankan operasi administratif atau mengubah katalog tenant.\n\n## Masalah yang diselesaikan\n\nJWT fallback dan enforcement permission yang tidak konsisten membuka risiko token palsu serta privilege escalation.\n\n## Scope\n\n* Validasi JWT secret pada identity, API gateway, dan academic.\n* Permission enforcement pada administrasi identity.\n* Permission enforcement pada mutasi kata\u2026 (truncated, use `get_project` for full description)",
+      "url": "https://linear.app/farid-zamani/project/fondasi-otorisasi-multi-tenant-08f5d7464990",
+      "createdAt": "2026-09-13T19:00:32.880Z",
+      "updatedAt": "2026-09-13T19:00:32.880Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 2,
+        "name": "High"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {},
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    },
+    {
+      "id": "P-KEL-1",
+      "uuid": "a2ee0cfc-7e83-45e0-b8ca-48e015dc90f3",
+      "icon": null,
+      "color": "#4cb782",
+      "name": "KelolaKelas",
+      "summary": "",
+      "description": "",
+      "url": "https://linear.app/farid-zamani/project/kelolakelas-5fd235d97763",
+      "trashed": true,
+      "createdAt": "2026-09-13T18:10:07.626Z",
+      "updatedAt": "2026-09-13T18:10:28.460Z",
+      "startedAt": null,
+      "completedAt": null,
+      "canceledAt": null,
+      "startDate": null,
+      "startDateResolution": null,
+      "targetDate": null,
+      "targetDateResolution": null,
+      "priority": {
+        "value": 3,
+        "name": "Medium"
+      },
+      "labels": [],
+      "initiatives": [],
+      "lead": {
+        "id": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+        "name": "Farid Zam"
+      },
+      "leadTeam": {
+        "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+        "name": "KelolaKelas",
+        "key": "KEL"
+      },
+      "status": {
+        "id": "df92275b-82d6-4ade-887a-653f2fb81b67",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "teams": [
+        {
+          "id": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+          "name": "KelolaKelas",
+          "key": "KEL"
+        }
+      ]
+    }
+  ],
+  "hasNextPage": false
+}

@@ -1,0 +1,102 @@
+{
+  "id": "KEL-8",
+  "uuid": "329c3405-6842-4347-8f57-be7f2374ce09",
+  "title": "Rekonsiliasi pembayaran paid dengan aktivasi enrollment secara durable",
+  "description": "## Background / Problem\n\nBilling meng-commit transaksi paid dan subscription sebelum memanggil academic untuk mengaktifkan enrollment. Jika academic gagal, callback mengembalikan error setelah pembayaran tersimpan. Replay callback mencoba aktivasi lagi, tetapi penyelesaian saat ini bergantung pada callback eksternal diulang.\n\n## Goal\n\nPembayaran valid akhirnya menghasilkan enrollment aktif tanpa memerlukan callback manual, dengan proses yang idempotent dan dapat diamati.\n\n## Requirements\n\n* Kegagalan aktivasi setelah transaksi paid harus disimpan sebagai pekerjaan rekonsiliasi.\n* Retry aktivasi harus idempotent dan aman terhadap callback berulang.\n* Operator atau client dapat membedakan paid-and-reconciling dari paid-and-active.\n* Signature, amount validation, dan sandbox ledger behavior harus tetap terjaga.\n\n## Acceptance Criteria\n\n- [ ] Kegagalan academic setelah commit pembayaran menghasilkan retry yang durable\n- [ ] Retry berhasil mengaktifkan enrollment tanpa membuat transaksi, subscription, atau ledger ganda\n- [ ] Status rekonsiliasi dan kegagalan terminal dapat diobservasi\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nMekanisme dapat berupa outbox atau state retry persisten, tetapi harus dicatat melalui ADR bila memperkenalkan pola lintas service yang baru. Internal activation endpoint yang ada harus tetap idempotent.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/internal/usecase/transaction_usecase.go`\n* `kelolakelas-billing-service/internal/usecase/subscription_worker.go`\n* `kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go`\n\n## Edge Cases\n\n* Callback paid diterima beberapa kali.\n* Academic tidak tersedia lebih lama dari interval retry.\n* Enrollment sudah aktif sebelum retry berikutnya.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Refund otomatis ketika aktivasi gagal.\n* Message broker baru tanpa keputusan arsitektur.\n* Reconciliation untuk subscription renewal selain enrollment awal.",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-8/rekonsiliasi-pembayaran-paid-dengan-aktivasi-enrollment-secara-durable",
+  "gitBranchName": "skinel123/kel-8-rekonsiliasi-pembayaran-paid-dengan-aktivasi-enrollment",
+  "createdAt": "2026-09-13T19:02:29.814Z",
+  "updatedAt": "2026-09-15T04:41:39.919Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-15T04:41:39.909Z",
+  "startedAt": "2026-09-14T20:32:20.081Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "academic",
+    "Improvement"
+  ],
+  "attachments": [
+    {
+      "id": "5569eb6d-bf8e-4c6f-a125-f58865d42dff",
+      "title": "KEL-8: document durable payment reconciliation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/9"
+    },
+    {
+      "id": "26e6548c-83ba-4d22-9f00-ab239f16cb6a",
+      "title": "KEL-8: durable paid enrollment reconciliation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/3"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:02:29.814Z",
+      "endedAt": "2026-09-14T20:32:20.125Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-14T20:32:20.125Z",
+      "endedAt": "2026-09-15T04:41:39.915Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-15T04:41:39.915Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pembayaran kelas konsisten dan terpercaya",
+  "projectId": "7a8b0290-48d2-4226-ab3c-fa971eb42dc0",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-15",
+        "title": "Tampilkan status enrollment dan pembayaran kepada parent"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-6",
+        "title": "Batasi pembuatan invoice ke enrollment terverifikasi"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

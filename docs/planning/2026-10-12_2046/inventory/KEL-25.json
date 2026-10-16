@@ -1,0 +1,97 @@
+{
+  "id": "KEL-25",
+  "uuid": "89f67045-5fc4-4be1-ab98-3ed67983638b",
+  "title": "Kedaluwarsakan transaksi yang tidak dibayar dan tangani result code callback secara eksplisit",
+  "description": "## Background / Problem\n\nInvoice Duitku dibuat dengan `ExpiryPeriod: 0` yang berarti 1440 menit (`pkg/duitku/client.go:61-63`), tetapi billing tidak menyimpan waktu kedaluwarsa dan tidak pernah menulis status `expired`; status itu hanya dibaca oleh subscription worker untuk renewal (`internal/usecase/subscription_worker.go:100-101`). Callback dengan result code selain `00`, `01`, `02` mengembalikan sukses tanpa perubahan atau log (`internal/usecase/transaction_usecase.go:474-486`). Akibatnya transaksi pending yang tidak dibayar hidup selamanya dan enrollment terkait menahan kuota.\n\n## Goal\n\nSetiap transaksi pending mencapai status final kedaluwarsa setelah invoice tidak lagi dapat dibayar, dan setiap callback yang tidak dikenali tercatat dan tidak diabaikan diam-diam.\n\n## Requirements\n\n* Transaksi menyimpan waktu kedaluwarsa invoice; job periodik menandai pending yang lewat waktu sebagai expired secara idempotent.\n* Transaksi expired dapat dibuatkan invoice baru melalui alur idempotent yang ada ketika enrollment masih valid.\n* Callback paid untuk transaksi yang sudah expired tetap diterima, ditandai paid, dan direkonsiliasi seperti biasa.\n* Result code yang tidak dikenali dicatat dengan log terstruktur dan tidak mengubah status.\n\n## Acceptance Criteria\n\n- [ ] Transaksi pending yang melewati waktu kedaluwarsa berubah menjadi expired dan terlihat pada list/detail transaksi parent\n- [ ] Callback paid setelah expired menghasilkan status paid dan rekonsiliasi aktivasi\n- [ ] Callback dengan result code tidak dikenal menghasilkan log dan tidak mengubah transaksi\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko utama: kebenaran finansial; pembayaran sah yang callback-nya terlambat tidak boleh hilang karena kedaluwarsa lokal, dan renewal subscription worker sudah memakai status expired. Keputusan apakah callback tak dikenal menjawab sukses ke provider harus didokumentasikan berdasarkan `_docs/duitku/api.md`. Perbarui dokumentasi flow callback dan billing.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/internal/usecase/transaction_usecase.go`\n* `kelolakelas-billing-service/internal/usecase/subscription_worker.go`\n* `kelolakelas-billing-service/migrations`\n* `kelolakelas-billing-service/internal/domain/transaction.go`\n\n## Edge Cases\n\n* Callback paid tiba beberapa detik setelah job menandai expired.\n* Transaksi renewal dengan masa kedaluwarsa berbeda.\n* Beberapa replika billing menjalankan job kedaluwarsa bersamaan.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n- [ ] Test membuktikan callback paid setelah expired tetap menghasilkan paid dan rekonsiliasi tanpa transaksi ganda\n\n## Out of Scope\n\n* Pelepasan kuota di academic.\n* Email pemberitahuan kedaluwarsa.\n* Pembatalan oleh parent.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"billing-expire-unpaid-transactions\",\n  \"projectKey\": \"enrollment-payment-lifecycle\",\n  \"title\": \"Kedaluwarsakan transaksi yang tidak dibayar dan tangani result code callback secara eksplisit\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"high\",\n  \"labels\": [\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Invoice Duitku dibuat dengan `ExpiryPeriod: 0` yang berarti 1440 menit (`pkg/duitku/client.go:61-63`), tetapi billing tidak menyimpan waktu kedaluwarsa dan tidak pernah menulis status `expired`; status itu hanya dibaca oleh subscription worker untuk renewal (`internal/usecase/subscription_worker.go:100-101`). Callback dengan result code selain `00`, `01`, `02` mengembalikan sukses tanpa perubahan atau log (`internal/usecase/transaction_usecase.go:474-486`). Akibatnya transaksi pending yang tidak dibayar hidup selamanya dan enrollment terkait menahan kuota.\",\n    \"goal\": \"Setiap transaksi pending mencapai status final kedaluwarsa setelah invoice tidak lagi dapat dibayar, dan setiap callback yang tidak dikenali tercatat dan tidak diabaikan diam-diam.\",\n    \"requirements\": [\n      \"Transaksi menyimpan waktu kedaluwarsa invoice; job periodik menandai pending yang lewat waktu sebagai expired secara idempotent.\",\n      \"Transaksi expired dapat dibuatkan invoice baru melalui alur idempotent yang ada ketika enrollment masih valid.\",\n      \"Callback paid untuk transaksi yang sudah expired tetap diterima, ditandai paid, dan direkonsiliasi seperti biasa.\",\n      \"Result code yang tidak dikenali dicatat dengan log terstruktur dan tidak mengubah status.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Transaksi pending yang melewati waktu kedaluwarsa berubah menjadi expired dan terlihat pada list/detail transaksi parent\",\n      \"Callback paid setelah expired menghasilkan status paid dan rekonsiliasi aktivasi\",\n      \"Callback dengan result code tidak dikenal menghasilkan log dan tidak mengubah transaksi\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko utama: kebenaran finansial; pembayaran sah yang callback-nya terlambat tidak boleh hilang karena kedaluwarsa lokal, dan renewal subscription worker sudah memakai status expired. Keputusan apakah callback tak dikenal menjawab sukses ke provider harus didokumentasikan berdasarkan `_docs/duitku/api.md`. Perbarui dokumentasi flow callback dan billing.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/internal/usecase/transaction_usecase.go\",\n      \"kelolakelas-billing-service/internal/usecase/subscription_worker.go\",\n      \"kelolakelas-billing-service/migrations\",\n      \"kelolakelas-billing-service/internal/domain/transaction.go\"\n    ],\n    \"edgeCases\": [\n      \"Callback paid tiba beberapa detik setelah job menandai expired.\",\n      \"Transaksi renewal dengan masa kedaluwarsa berbeda.\",\n      \"Beberapa replika billing menjalankan job kedaluwarsa bersamaan.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\",\n      \"Test membuktikan callback paid setelah expired tetap menghasilkan paid dan rekonsiliasi tanpa transaksi ganda\"\n    ],\n    \"outOfScope\": [\n      \"Pelepasan kuota di academic.\",\n      \"Email pemberitahuan kedaluwarsa.\",\n      \"Pembatalan oleh parent.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-25/kedaluwarsakan-transaksi-yang-tidak-dibayar-dan-tangani-result-code",
+  "gitBranchName": "skinel123/kel-25-kedaluwarsakan-transaksi-yang-tidak-dibayar-dan-tangani",
+  "createdAt": "2026-09-16T11:45:39.896Z",
+  "updatedAt": "2026-09-19T21:41:40.082Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-19T21:39:22.999Z",
+  "startedAt": "2026-09-19T21:05:39.373Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "9bc16059-1cd4-4e5a-ab4b-38140049fa4c",
+      "title": "KEL-25: document local invoice expiry and explicit callback result codes",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/18"
+    },
+    {
+      "id": "4c582584-775f-4fc3-8c25-aa75d8eef6bc",
+      "title": "KEL-25: expire unpaid transactions and handle callback result codes explicitly",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/4"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:45:39.896Z",
+      "endedAt": "2026-09-19T21:05:39.385Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-19T21:05:39.385Z",
+      "endedAt": "2026-09-19T21:39:23.007Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-19T21:39:23.007Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Siklus hidup enrollment dan pembayaran yang lengkap",
+  "projectId": "bebfbed6-762c-44ba-94c9-e6f7c20904d9",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-26",
+        "title": "Lepaskan kuota enrollment ketika pembayaran gagal atau kedaluwarsa"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

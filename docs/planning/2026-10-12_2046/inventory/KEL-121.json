@@ -1,0 +1,119 @@
+{
+  "id": "KEL-121",
+  "uuid": "8595e6a0-fe96-4603-8f1c-b4d6125513e7",
+  "title": "Chat-service mengirim pesan baru secara realtime lewat WebSocket dengan tiket sekali pakai",
+  "description": "## Background / Problem\n\nOwner memutuskan pesan baru muncul lewat WebSocket sejak awal. Web memanggil backend hanya dari server (`kelolakelas-web/lib/gateway.ts:148-176`, kelolakelas-docs `docs/components/web.md:60-64`) dan menyimpan JWT di cookie `httpOnly` (`app/(auth)/login/_actions/actions.ts:73-74`). Akibatnya browser tidak dapat mengirim header `Authorization` saat membuka WebSocket. Belum ada library WebSocket di repo Go mana pun.\n\n## Goal\n\nKlien terautentikasi dapat membuka WebSocket dengan tiket sekali pakai dan menerima event pesan baru serta status baca untuk percakapan yang boleh dilihatnya, tanpa polling.\n\n## Requirements\n\n* `POST /api/v1/chat/ws-tickets` (JWT wajib) mengembalikan `ticket` acak minimal 32 byte dan `expires_at`. Tiket berlaku paling lama 60 detik, sekali pakai, hanya disimpan sebagai hash, dan terikat ke `user_id`, `tenant_id`, `role_id`, `member_id`, `is_parent`, serta `exp` token.\n* `GET /api/v1/chat/ws?ticket=` melakukan upgrade WebSocket hanya bila tiket valid, belum dipakai, dan belum kedaluwarsa. Selain itu request ditolak 401 sebelum upgrade.\n* Server mengirim event JSON `message.created` (`conversation_id` dan pesan) dan `conversation.read` (`conversation_id`, `user_id`, penanda baca) hanya ke koneksi yang lolos fungsi visibilitas yang sama dengan REST.\n* Pesan tetap dikirim lewat REST; selain ping/pong, WebSocket hanya berarah dari server ke klien.\n* Ping dikirim setiap 30 detik. Koneksi ditutup bila pong tidak diterima dalam dua interval, saat `exp` token tercapai, atau setelah umur koneksi 30 menit (klien lalu meminta tiket baru). Hak `chat:manage`/`report:read` koneksi dievaluasi saat terhubung.\n* Ada batas ukuran frame dari klien (mis. 4 KB) dan batas jumlah koneksi per pengguna (mis. 5) untuk mencegah penyalahgunaan.\n* Fan-out memakai hub di memori untuk satu instance, dan shutdown menutup koneksi dengan close code normal.\n\n## Acceptance Criteria\n\n- [ ] Klien dengan tiket valid menerima `message.created` untuk pesan yang dikirim peserta lain lewat REST, tanpa reload.\n- [ ] Klien yang tidak berhak melihat percakapan, termasuk anggota tenant lain dan parent lain, tidak menerima event-nya.\n- [ ] Tiket kedaluwarsa, sudah dipakai, atau acak ditolak 401 tanpa upgrade.\n- [ ] Koneksi ditutup saat token kedaluwarsa atau setelah batas umur koneksi tercapai.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko utama: autentikasi WebSocket dan kebocoran event. Mitigasinya:\n\n* tiket sekali pakai berumur pendek, dan JWT tidak pernah dikirim lewat query;\n* tiket disimpan sebagai hash;\n* fan-out lewat fungsi visibilitas tunggal.\n\nPilih library WebSocket Go yang aktif dipelihara dan lolos govulncheck, lalu catat alasannya di ADR. Gateway meneruskan upgrade dan menegakkan Origin lewat `CORSMiddleware` (api-gateway `internal/delivery/http/router.go:76`). Access log gateway hanya mencatat path tanpa query (`internal/delivery/http/middleware/access_log_middleware.go:35-40`), sehingga tiket tidak tercatat.\n\nAsumsi: chat-service berjalan satu instance. Fan-out multi-instance (mis. PostgreSQL LISTEN/NOTIFY) di luar scope dan dicatat sebagai risiko.\n\nPerbarui kelolakelas-docs: `docs/api/chat.md` (protokol event), `docs/components/chat-service.md`, dan ADR baru untuk autentikasi WebSocket berbasis tiket.\n\nRelevant areas:\n\n* `kelolakelas-chat-service/cmd/server`\n* `kelolakelas-chat-service/internal/delivery`\n* `kelolakelas-chat-service/internal/usecase`\n* `kelolakelas-chat-service/migrations`\n\n## Edge Cases\n\n* Tiket yang sama dipakai dua kali bersamaan; hanya satu yang berhasil.\n* Klien lambat yang buffer kirimnya penuh diputus agar tidak memblokir hub.\n* Permission dicabut saat koneksi masih terbuka; perubahan berlaku paling lambat saat batas umur koneksi.\n* Pengguna membuka beberapa tab.\n\n## Testing / Validation\n\n- [ ] Unit test tiket (kedaluwarsa, sekali pakai, hash) dan hub (fan-out hanya ke koneksi yang berhak).\n- [ ] Integration test WebSocket dengan `httptest` untuk upgrade, event, isolasi tenant/parent sebagai mitigasi kebocoran, dan penutupan saat token kedaluwarsa.\n- [ ] Test race untuk pemakaian tiket bersamaan dengan `go test -race`.\n- [ ] CI `gate` pass (`gofmt`, `go vet`, `go test -race`, build, govulncheck), existing tests pass, dan acceptance criteria diverifikasi.\n\n## Out of Scope\n\n* Mengirim pesan lewat WebSocket.\n* Fan-out multi-instance.\n* Indikator mengetik dan status online.\n* Route gateway (issue terpisah).\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"projectKey\": \"tenant-parent-teacher-chat\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"externalDependencies\": [],\n  \"draftKey\": \"chat-service-websocket-realtime\",\n  \"title\": \"Chat-service mengirim pesan baru secara realtime lewat WebSocket dengan tiket sekali pakai\",\n  \"estimate\": \"L\",\n  \"complexity\": \"high\",\n  \"repositories\": [\n    \"chat\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"chat-service-core-api\",\n    \"chat-service-conversation-contexts\"\n  ],\n  \"body\": {\n    \"backgroundProblem\": \"Owner memutuskan pesan baru muncul lewat WebSocket sejak awal. Web memanggil backend hanya dari server (`kelolakelas-web/lib/gateway.ts:148-176`, kelolakelas-docs `docs/components/web.md:60-64`) dan menyimpan JWT di cookie `httpOnly` (`app/(auth)/login/_actions/actions.ts:73-74`). Akibatnya browser tidak dapat mengirim header `Authorization` saat membuka WebSocket. Belum ada library WebSocket di repo Go mana pun.\",\n    \"goal\": \"Klien terautentikasi dapat membuka WebSocket dengan tiket sekali pakai dan menerima event pesan baru serta status baca untuk percakapan yang boleh dilihatnya, tanpa polling.\",\n    \"requirements\": [\n      \"`POST /api/v1/chat/ws-tickets` (JWT wajib) mengembalikan `ticket` acak minimal 32 byte dan `expires_at`. Tiket berlaku paling lama 60 detik, sekali pakai, hanya disimpan sebagai hash, dan terikat ke `user_id`, `tenant_id`, `role_id`, `member_id`, `is_parent`, serta `exp` token.\",\n      \"`GET /api/v1/chat/ws?ticket=` melakukan upgrade WebSocket hanya bila tiket valid, belum dipakai, dan belum kedaluwarsa. Selain itu request ditolak 401 sebelum upgrade.\",\n      \"Server mengirim event JSON `message.created` (`conversation_id` dan pesan) dan `conversation.read` (`conversation_id`, `user_id`, penanda baca) hanya ke koneksi yang lolos fungsi visibilitas yang sama dengan REST.\",\n      \"Pesan tetap dikirim lewat REST; selain ping/pong, WebSocket hanya berarah dari server ke klien.\",\n      \"Ping dikirim setiap 30 detik. Koneksi ditutup bila pong tidak diterima dalam dua interval, saat `exp` token tercapai, atau setelah umur koneksi 30 menit (klien lalu meminta tiket baru). Hak `chat:manage`/`report:read` koneksi dievaluasi saat terhubung.\",\n      \"Ada batas ukuran frame dari klien (mis. 4 KB) dan batas jumlah koneksi per pengguna (mis. 5) untuk mencegah penyalahgunaan.\",\n      \"Fan-out memakai hub di memori untuk satu instance, dan shutdown menutup koneksi dengan close code normal.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Klien dengan tiket valid menerima `message.created` untuk pesan yang dikirim peserta lain lewat REST, tanpa reload.\",\n      \"Klien yang tidak berhak melihat percakapan, termasuk anggota tenant lain dan parent lain, tidak menerima event-nya.\",\n      \"Tiket kedaluwarsa, sudah dipakai, atau acak ditolak 401 tanpa upgrade.\",\n      \"Koneksi ditutup saat token kedaluwarsa atau setelah batas umur koneksi tercapai.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko utama: autentikasi WebSocket dan kebocoran event. Mitigasinya:\\n- tiket sekali pakai berumur pendek, dan JWT tidak pernah dikirim lewat query;\\n- tiket disimpan sebagai hash;\\n- fan-out lewat fungsi visibilitas tunggal.\\n\\nPilih library WebSocket Go yang aktif dipelihara dan lolos govulncheck, lalu catat alasannya di ADR. Gateway meneruskan upgrade dan menegakkan Origin lewat `CORSMiddleware` (api-gateway `internal/delivery/http/router.go:76`). Access log gateway hanya mencatat path tanpa query (`internal/delivery/http/middleware/access_log_middleware.go:35-40`), sehingga tiket tidak tercatat.\\n\\nAsumsi: chat-service berjalan satu instance. Fan-out multi-instance (mis. PostgreSQL LISTEN/NOTIFY) di luar scope dan dicatat sebagai risiko.\\n\\nPerbarui kelolakelas-docs: `docs/api/chat.md` (protokol event), `docs/components/chat-service.md`, dan ADR baru untuk autentikasi WebSocket berbasis tiket.\",\n    \"relevantAreas\": [\n      \"kelolakelas-chat-service/cmd/server\",\n      \"kelolakelas-chat-service/internal/delivery\",\n      \"kelolakelas-chat-service/internal/usecase\",\n      \"kelolakelas-chat-service/migrations\"\n    ],\n    \"edgeCases\": [\n      \"Tiket yang sama dipakai dua kali bersamaan; hanya satu yang berhasil.\",\n      \"Klien lambat yang buffer kirimnya penuh diputus agar tidak memblokir hub.\",\n      \"Permission dicabut saat koneksi masih terbuka; perubahan berlaku paling lambat saat batas umur koneksi.\",\n      \"Pengguna membuka beberapa tab.\"\n    ],\n    \"testingValidation\": [\n      \"Unit test tiket (kedaluwarsa, sekali pakai, hash) dan hub (fan-out hanya ke koneksi yang berhak).\",\n      \"Integration test WebSocket dengan `httptest` untuk upgrade, event, isolasi tenant/parent sebagai mitigasi kebocoran, dan penutupan saat token kedaluwarsa.\",\n      \"Test race untuk pemakaian tiket bersamaan dengan `go test -race`.\",\n      \"CI `gate` pass (`gofmt`, `go vet`, `go test -race`, build, govulncheck), existing tests pass, dan acceptance criteria diverifikasi.\"\n    ],\n    \"outOfScope\": [\n      \"Mengirim pesan lewat WebSocket.\",\n      \"Fan-out multi-instance.\",\n      \"Indikator mengetik dan status online.\",\n      \"Route gateway (issue terpisah).\"\n    ]\n  },\n  \"labels\": [\n    \"chat\",\n    \"ai-ready\"\n  ]\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 3,
+    "name": "3 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-121/chat-service-mengirim-pesan-baru-secara-realtime-lewat-websocket",
+  "gitBranchName": "skinel123/kel-121-chat-service-mengirim-pesan-baru-secara-realtime-lewat",
+  "createdAt": "2026-09-28T05:32:17.168Z",
+  "updatedAt": "2026-09-28T16:37:22.724Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-28T16:28:11.795Z",
+  "startedAt": "2026-09-28T14:43:13.678Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "chat",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "97fadff8-ae3f-423f-9781-5bfa5d5f21b4",
+      "title": "KEL-121: Document ticket-based chat WebSocket realtime",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/120"
+    },
+    {
+      "id": "af92edf4-ebb5-4e34-adf7-10ca28896481",
+      "title": "KEL-121: Chat-service mengirim pesan baru secara realtime lewat WebSocket",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-chat-service/pull/3"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-28T05:32:17.168Z",
+      "endedAt": "2026-09-28T14:43:13.692Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-28T14:43:13.692Z",
+      "endedAt": "2026-09-28T16:28:11.805Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-28T16:28:11.805Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Chat realtime antara tenant, pengajar, dan parent",
+  "projectId": "6fd7df4e-3f90-4efc-b835-f60581a2ce78",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-122",
+        "title": "Gateway meneruskan REST chat dan koneksi WebSocket chat ke chat-service"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-119",
+        "title": "Chat-service menyimpan percakapan pengajar\u2013admin tenant dan pesannya melalui REST API"
+      },
+      {
+        "id": "KEL-120",
+        "title": "Chat-service mendukung percakapan parent\u2013admin tenant per permintaan jadwal private dan pengajar\u2013parent per report"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-112",
+        "title": "Tenant dapat menghasilkan slot jadwal mingguan dari pilihan hari, jam, lama sesi, dan jeda"
+      },
+      {
+        "id": "KEL-114",
+        "title": "Elemen yang dapat diklik di web menampilkan cursor pointer"
+      },
+      {
+        "id": "KEL-113",
+        "title": "Form buat kelas tidak lagi menampilkan field kapasitas karena kapasitas diatur per jadwal"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

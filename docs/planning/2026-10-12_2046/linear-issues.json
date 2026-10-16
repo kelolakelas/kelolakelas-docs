@@ -1,0 +1,2175 @@
+{
+  "issues": [
+    {
+      "id": "KEL-166",
+      "title": "Perbaiki format jam request jadwal private agar parent dapat mengajukan enrollment",
+      "description": "## Background / Problem\n\nParent gagal mengajukan jadwal kelas private dari halaman detail kelas ketika memilih slot yang valid, misalnya Senin 16:00\u201317:00: form menampilkan \u201cPermintaan jadwal tidak dapat diproses. Periksa student, periode, dan slot Anda.\u201d sehingga alur pembelian terhenti sebelum tenant dapat meninjau permintaan. Penyebab (Inferred dari kode `origin/main`, respons/log backend deployment belum diverifikasi): `scheduleRequestPayloa\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Bug",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-11T19:31:33.265Z"
+    },
+    {
+      "id": "KEL-176",
+      "title": "Form jadwal kelas memperingatkan slot yang tumpang tindih pada hari yang sama sebelum disimpan",
+      "description": "## Background / Problem\n\nQA membuat kelas grup lewat wizard. Generator slot (Senin & Selasa, 08:00, 90 menit, jeda 15) menambahkan 4 slot ke slot manual awal Senin 09:00\u201310:30, sehingga kelas tersimpan dengan 5 jadwal dan Senin 08:00\u201309:30 tumpang tindih dengan Senin 09:00\u201310:30 tanpa peringatan. Menambahkan slot generator ke slot manual adalah perilaku yang disengaja dan diuji (`ScheduleForm.test.tsx`), dan pencegahan duplikat di form hanya men\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T16:48:17.981Z"
+    },
+    {
+      "id": "KEL-175",
+      "title": "Tanggal lahir student di masa depan diterima tanpa validasi",
+      "description": "## Background / Problem\n\nParent dapat menyimpan student dengan tanggal lahir di masa depan (QA: 2030-01-15 pada 9 Okt 2026), dan daftar student menampilkannya tanpa error. Web `lib/students.ts` (`studentFormSchema.date_of_birth`) hanya memvalidasi format tanggal, input `type=\"date\"` di `StudentForm.tsx` tidak memiliki `max`, dan academic `internal/usecase/student_usecase.go` (create dan update) hanya melakukan `time.Parse(\"2006-01-02\", ...)` tan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T16:25:45.760Z"
+    },
+    {
+      "id": "KEL-174",
+      "title": "Pesan sukses \"Lokasi tenant berhasil disimpan\" tidak pernah tampil setelah simpan lokasi",
+      "description": "## Background / Problem\n\nDi `/dashboard/tenant/settings`, menekan \"Simpan lokasi\" berhasil (`PUT /api/v1/tenant/settings/location` \u2192 200, data tampil setelah reload), tetapi pesan \"Lokasi tenant berhasil disimpan.\" tidak pernah tampil. Server action memanggil `revalidatePath` lalu mengembalikan status sukses, sementara `settings/page.tsx` memberi `TenantLocationForm` `key` yang memuat `location?.location_updated_at`. Setelah revalidate, nilai it\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T14:25:35.890Z"
+    },
+    {
+      "id": "KEL-171",
+      "title": "Overview tenant menampilkan nama dan status sistem hardcoded, bukan data pengguna atau layanan nyata",
+      "description": "## Background / Problem\n\nOverview tenant (`/dashboard/tenant`) menampilkan teks statis yang tidak berasal dari data: sapaan \"Welcome back, Tenant Admin\" untuk semua pengguna (`tenant/page.tsx`), subjudul sidebar \"Tenant Member\" yang statis (`TenantSidebar.tsx`), kartu \"System Status\" yang selalu \"Operational / Identity & Academic Services online\" tanpa health check (`OverviewMetrics.tsx`), panel \"Platform Architecture\" berisi copy internal devel\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T13:36:08.328Z"
+    },
+    {
+      "id": "KEL-173",
+      "title": "Form undang anggota menampilkan checkbox permission yang semuanya tercentang tetapi diabaikan",
+      "description": "## Background / Problem\n\nDi form Invite Member (`/dashboard/tenant/members`), seluruh checkbox \"Assigned Permissions\" (49 permission) sudah tercentang sebelum role dipilih, karena `activePermissions` jatuh ke semua permission tenant saat role kosong dan checkbox memakai `defaultChecked`. Server action membaca `permissionIds` tetapi hanya mengirim `{ email, role_id }` ke `POST /api/v1/invitations`, dan payload identity (`CreateInvitationPayload`)\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T12:51:43.916Z"
+    },
+    {
+      "id": "KEL-172",
+      "title": "Form registrasi dan login mengosongkan semua isian saat validasi atau login gagal",
+      "description": "## Background / Problem\n\nQA menemukan dua masalah pada form auth. (1) Registrasi organisasi (`/register` \u2192 Register Organization) dengan password terlalu pendek menampilkan pesan validasi, tetapi semua field (nama organisasi, telepon, alamat, nama, email) ikut kosong sehingga pengguna harus mengetik ulang semuanya. (2) Login dengan password salah mengosongkan field email, dan banner hijau \"Account created successfully. Sign in to continue.\" (dar\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T12:31:13.201Z"
+    },
+    {
+      "id": "KEL-170",
+      "title": "Sesi parent dapat membuka halaman dashboard tenant karena proxy tidak mengarahkan balik",
+      "description": "## Background / Problem\n\nQA menemukan bahwa parent yang login dapat membuka seluruh halaman `/dashboard/tenant/*` (mis. `/dashboard/tenant/members` menampilkan \"Tenant Member Management\" dan tombol Invite Member). `proxy.ts` hanya memiliki guard `isParentRoute && !is_parent` yang menjauhkan sesi tenant dari `/dashboard/parent/*`, tetapi tidak ada guard sebaliknya. Backend tetap menolak operasi sehingga tidak ada kebocoran data, tetapi parent mel\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T11:57:35.574Z"
+    },
+    {
+      "id": "KEL-169",
+      "title": "Batas waktu invoice dan undangan tampil bergeser +7 jam karena timestamp lokal disimpan tanpa zona",
+      "description": "## Background / Problem\n\nQA end-to-end pada stack lokal (proses berjalan dengan zona host `Asia/Jakarta`) menemukan tenggat yang tampil 7 jam terlalu lambat. Checkout VA pada 9 Okt 2026 00:26 WIB menyimpan `transactions.invoice_expires_at` = `2026-10-23 00:26`, API mengembalikannya sebagai `2026-10-23T00:26:00Z`, dan web menampilkan \"23 Okt 2026, 07.26 WIB\". `created_at` pada baris yang sama (default DB `now()`) benar (`17:26Z`). Undangan anggot\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "identity",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T11:33:21.307Z"
+    },
+    {
+      "id": "KEL-168",
+      "title": "Pembatalan enrollment pending oleh parent selalu dijawab 409 padahal pembatalan berhasil",
+      "description": "## Background / Problem\n\nQA end-to-end (agent-browser, stack lokal, main 9 Okt 2026) menemukan bahwa `POST /api/v1/enrollments/{id}/cancel` untuk enrollment `pending` milik parent selalu dijawab `409 Enrollment can no longer be cancelled`, padahal enrollment sudah `dropped`, transaksi billing `cancelled`, dan kursi kembali tersedia. Reproduksi dua kali pada enrollment baru dengan hasil sama. Penyebab di academic `internal/usecase/enrollment_usec\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T09:16:31.876Z"
+    },
+    {
+      "id": "KEL-178",
+      "title": "Konfirmasi sukses pembatalan enrollment tidak pernah terlihat karena tombolnya ter-unmount saat baris diperbarui",
+      "description": "## Ringkasan\n\nSetelah parent membatalkan enrollment pending dan backend menjawab 200, teks sukses `role=\"status\"` (\"Pendaftaran berhasil dibatalkan ...\") tidak pernah tampil di halaman `/dashboard/parent/enrollments`. Baris memang diperbarui tanpa reload, tetapi parent tidak melihat konfirmasi apa pun. Ini pola yang sama dengan <issue id=\"74e2e129-ea3c-4fe3-8ab4-e4efdbe27b5b\" href=\"https://linear.app/farid-zamani/issue/KEL-174/pesan-sukses-lokas\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "started",
+      "labels": [
+        "web",
+        "Bug"
+      ],
+      "updatedAt": "2026-10-09T09:16:07.634Z"
+    },
+    {
+      "id": "KEL-177",
+      "title": "Advisory baru Go stdlib, golang.org/x/net, dan Next.js ditutup agar CI gate semua repository kembali hijau",
+      "description": "## Background / Problem\n\nRequired check `gate` sekarang gagal di setiap PR baru pada keenam repository aplikasi, walaupun kode PR tidak bermasalah. Contoh: PR <issue id=\"b7565cc5-f33c-4b6a-a877-a271c56b0ffd\" href=\"https://linear.app/farid-zamani/issue/KEL-168/pembatalan-enrollment-pending-oleh-parent-selalu-dijawab-409-padahal\">KEL-168</issue> academic #47 (run 37890835026) dan web #79 (run 37890879561) hanya gagal di langkah audit dependency. P\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "chat",
+        "billing",
+        "identity",
+        "academic",
+        "api-gateway",
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T07:51:32.890Z"
+    },
+    {
+      "id": "KEL-26",
+      "title": "Lepaskan kuota enrollment ketika pembayaran gagal atau kedaluwarsa",
+      "description": "## Background / Problem\n\nEnrollment `pending` dihitung terhadap kapasitas jadwal (`internal/repository/enrollment_repository.go:54`, `catalog_repository.go:73`) tanpa batas waktu. Status `dropped` dan `completed` didefinisikan (`internal/domain/enrollment.go:27`) tetapi tidak ada kode yang menulisnya. Billing hanya memiliki jalur aktivasi (`pkg/academic/client.go:39-52`) dan tidak memberi tahu academic ketika transaksi gagal atau kedaluwarsa, se\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "academic",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T07:01:39.820Z"
+    },
+    {
+      "id": "KEL-44",
+      "title": "Sediakan halaman kembali dari pembayaran dengan pembaruan status otomatis",
+      "description": "## Background / Problem\n\nHalaman `/dashboard/parent/enrollments` meminta parent memuat ulang secara manual setelah kembali dari provider (`page.tsx:14`) dan tidak ada polling atau route pendaratan khusus. Billing memakai `DUITKU_RETURN_URL` yang bila kosong jatuh ke URL callback webhook (`config.go:194-195`), sehingga parent dapat mendarat pada endpoint webhook billing. Status backend adalah satu-satunya sumber kebenaran; redirect provider tidak\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T07:01:39.079Z"
+    },
+    {
+      "id": "KEL-33",
+      "title": "Tampilkan enrollment dan status pembayaran kepada tenant",
+      "description": "## Background / Problem\n\nDashboard tenant tidak memiliki tampilan enrollment, pendaftar, atau pembayaran. Backend sudah menyediakan `GET /api/v1/enrollments` dan `GET /api/v1/enrollments/:id` tenant-scoped dengan filter status, serta `GET /api/v1/billing/transactions` tenant-scoped dengan filter status, student, enrollment, dan tanggal. Halaman parent `/dashboard/parent/enrollments` sudah menggabungkan kedua sumber dan dapat menjadi pola.\n\n## Go\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T07:01:39.079Z"
+    },
+    {
+      "id": "KEL-179",
+      "title": "Enrollment yang baru dibatalkan sempat tampil \"Pembayaran diterima, aktivasi diproses\" untuk transaksi cancelled",
+      "description": "## Ringkasan\n\nTepat setelah parent membatalkan enrollment pending, kartu di `/dashboard/parent/enrollments` menampilkan \"Pembayaran diterima, aktivasi diproses\" dengan detail \"Pembayaran sudah diterima ...\". Padahal transaksinya `cancelled` dan tidak ada pembayaran. Label ini menyesatkan untuk urusan uang. Setelah worker rekonsiliasi billing menyelesaikan job pelepasan kursi (sekitar \u22641 menit dengan setelan default), label berubah menjadi \"Pemba\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "backlog",
+      "labels": [
+        "web",
+        "Bug"
+      ],
+      "updatedAt": "2026-10-09T07:01:38.454Z"
+    },
+    {
+      "id": "KEL-45",
+      "title": "Sediakan pembatalan enrollment pending dari halaman parent",
+      "description": "## Background / Problem\n\nHalaman enrollments parent hanya menampilkan status; tidak ada aksi untuk membatalkan enrollment pending yang belum dibayar. Setelah endpoint pembatalan backend tersedia, parent memerlukan UI untuk melepaskan pendaftaran yang tidak jadi dilanjutkan.\n\n## Goal\n\nParent dapat membatalkan enrollment pending miliknya dari halaman enrollments dengan konfirmasi dan melihat status terbaru.\n\n## Requirements\n\n* Aksi batal hanya mun\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T07:01:34.617Z"
+    },
+    {
+      "id": "KEL-63",
+      "title": "Service Go dibangun dengan toolchain dan modul yang bebas vulnerability reachable",
+      "description": "## Background / Problem\n\n`govulncheck ./...` (dijalankan 2026-09-24 terhadap `main`) melaporkan vulnerability yang reachable dari kode di keempat service Go. Stdlib Go 1.26.5 (`go.mod:3` di semua repo) terdampak GO-2026-6089/5026 (`net/http`), GO-2026-6090 (`crypto/tls`), GO-2026-5972 (`encoding/asn1`), GO-2026-6218 (`net/url`, kecuali gateway), GO-2026-6091 (`html/template`, kecuali gateway), dan GO-2026-6088 (`encoding/xml`, khusus billing); s\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "identity",
+        "academic",
+        "api-gateway",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T06:59:52.475Z"
+    },
+    {
+      "id": "KEL-60",
+      "title": "Web berjalan di atas Next.js dan dependency produksi yang bebas advisory high/critical",
+      "description": "## Background / Problem\n\n`npm audit --omit=dev` pada `kelolakelas-web` (dijalankan 2026-09-24 di `main`) melaporkan 4 paket rentan: `next` critical (GHSA-p293-qw3h-jr36, unauthenticated RCE pada server Windows, dan GHSA-2xp9-vwfh-vxw4, RCE di Image Optimization API ketika file AVIF dipakai; range terdampak `>=16.0.0 <16.3.3`), serta `postcss` (arbitrary file read lewat `sourceMappingURL`), `sharp` (CVE libvips/libheif), dan `nanoid`, masing-masi\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-09T06:59:52.475Z"
+    },
+    {
+      "id": "KEL-112",
+      "title": "Tenant dapat menghasilkan slot jadwal mingguan dari pilihan hari, jam, lama sesi, dan jeda",
+      "description": "## Background / Problem\n\n`ScheduleForm.tsx` (dipakai wizard kelas dan `AddScheduleModal.tsx`) mengharuskan tenant menambah slot satu per satu dengan hari, jam mulai, jam selesai, kapasitas, dan lokasi. Kelas dengan banyak sesi per hari atau per minggu lambat disiapkan dan rawan salah input.\n\n## Goal\n\nTenant memilih hari melalui checkbox, lalu mengisi jam mulai, jam selesai, lama sesi, dan jeda antar sesi. Form menghasilkan slot yang dapat ditinj\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-08T18:56:40.753Z"
+    },
+    {
+      "id": "KEL-160",
+      "title": "Detail kelas menampilkan rating dan ulasan, dan parent dapat menulis ulasan",
+      "description": "## Background / Problem\n\nDetail kelas publik (`app/(public)/kelas/[id]/page.tsx`) dan kartu katalog tidak menampilkan rating atau ulasan.\n\n## Goal\n\nPengunjung melihat rating dan ulasan pada detail kelas, dan parent yang memenuhi syarat dapat menulis ulasan dari enrollment-nya.\n\n## Requirements\n\n* Ringkasan rating dan daftar ulasan berhalaman di detail kelas; rata-rata di kartu katalog bila tersedia.\n* Form ulasan (rating yang dapat diakses keybo\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-05T16:09:54.684Z"
+    },
+    {
+      "id": "KEL-162",
+      "title": "Parent dapat memakai voucher tenant saat checkout kelas grup",
+      "description": "## Background / Problem\n\nInvoice internal menerima `VoucherID` dan `DiscountAmount` dari pemanggil tanpa validasi atau hitungan pemakaian (`kelolakelas-billing-service/internal/domain/transaction.go:185-187`, `internal/usecase/transaction_usecase.go:155`). Checkout web hanya memilih channel (`kelolakelas-web/app/(public)/kelas/[id]/_actions/actions.ts:42-120`).\n\n## Goal\n\nParent dapat memasukkan kode voucher saat checkout kelas grup, dan diskon d\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "academic",
+        "web",
+        "ai-ready",
+        "api-gateway"
+      ],
+      "updatedAt": "2026-10-05T15:09:47.923Z"
+    },
+    {
+      "id": "KEL-158",
+      "title": "Calon parent dapat membuka profil publik tenant beserta kelas yang dipublikasikan",
+      "description": "## Background / Problem\n\nNama tenant di katalog hanya menautkan filter `/kelas?tenant_id=` (`kelolakelas-web/app/(public)/kelas/_components/CatalogCard.tsx:10`). Identity hanya mengekspos `GetTenantPublicInfo` lewat gRPC (`internal/delivery/grpc/tenant_handler.go:59-85`); tidak ada endpoint HTTP publik tenant. Field tenant: name, phone, address, address_formatted, lat/lng, about (jsonb bebas), dan status (`internal/domain/tenant.go:19-35`).\n\n## \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-05T10:42:57.798Z"
+    },
+    {
+      "id": "KEL-153",
+      "title": "Tenant mencatat refund manual dari halaman transaksi",
+      "description": "## Background / Problem\n\nTidak ada UI untuk refund. Halaman transaksi tenant didraft pada issue terpisah.\n\n## Goal\n\nAnggota dengan `billing:refund` dapat mencatat refund manual untuk transaksi paid dari daftar transaksi.\n\n## Requirements\n\n* Aksi catat refund pada transaksi paid, disembunyikan tanpa permission.\n* Dialog dengan alasan dan referensi transfer wajib serta peringatan bahwa enrollment akan diakhiri.\n* Status transaksi dan enrollment di\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-05T10:06:49.709Z"
+    },
+    {
+      "id": "KEL-152",
+      "title": "Tenant dapat mencatat refund manual untuk transaksi paid dan mengakhiri enrollment terkait",
+      "description": "## Background / Problem\n\nStatus transaksi `refunded` hanya konstanta dan tidak pernah ditulis (`internal/domain/transaction.go:32-39`); pembatalan setelah paid ditolak 409 (`internal/delivery/http/handler/transaction_handler.go:232`). Tidak ada permission refund (seeder identity hanya `billing:read` dan `billing:withdraw`).\n\n## Goal\n\nTenant dapat mencatat bahwa transaksi paid telah di-refund secara manual, dengan enrollment terkait diakhiri dan \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "identity",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-05T09:24:28.822Z"
+    },
+    {
+      "id": "KEL-151",
+      "title": "Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment",
+      "description": "## Background / Problem\n\n`app/(dashboard)/dashboard/parent/enrollments/page.tsx:21` membangun `new Map(transactions.map(t => [t.enrollment_id, t]))` sehingga baris terakhir menang, padahal billing mengembalikan transaksi `created_at DESC`. Parent dengan renewal melihat transaksi tertua; halaman tenant sudah memilih `transactions[0]`.\n\n## Goal\n\nParent melihat status pembayaran terbaru dan tagihan perpanjangan yang masih harus dibayar untuk setiap\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-05T03:23:09.667Z"
+    },
+    {
+      "id": "KEL-148",
+      "title": "Tenant melihat daftar transaksi dengan filter dan mengunduh CSV",
+      "description": "## Background / Problem\n\nTenant hanya punya kartu ringkasan (`SalesSummaryCard.tsx`) dan halaman enrollment dengan status bayar; tidak ada daftar transaksi lengkap atau unduhan.\n\n## Goal\n\nTenant dapat menelusuri transaksi dan mengunduh CSV untuk rentang yang dipilih.\n\n## Requirements\n\n* Halaman transaksi dengan filter status, rentang tanggal (basis tanggal bayar), dan pencarian order id, serta pagination.\n* Kolom gross, fee, net, status, dan tan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-05T03:05:45.398Z"
+    },
+    {
+      "id": "KEL-139",
+      "title": "Pengajar menulis dan mengelola laporan evaluasi siswa dari dashboard",
+      "description": "## Background / Problem\n\nAPI laporan (`/api/v1/reports`, model `Report` dengan title, evaluation_notes, score 0-100) sudah ada, tetapi web hanya memanggilnya dari picker chat (`app/(dashboard)/dashboard/tenant/chat/_queries/queries.ts:94`) dan tidak pernah menampilkan isi laporan.\n\n## Goal\n\nPengajar dapat membuat, membaca, mengubah, dan menghapus laporan evaluasi untuk siswa di kelas yang diajarnya.\n\n## Requirements\n\n* Halaman laporan dengan fil\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-05T02:09:31.177Z"
+    },
+    {
+      "id": "KEL-167",
+      "title": "Pilihan siswa di form laporan tidak terpotong pada 1000 sesi/enrollment",
+      "description": "## Background / Problem\n\n<issue id=\"2e039e11-bf90-42e6-a9a8-494e17c9e59b\" href=\"https://linear.app/farid-zamani/issue/KEL-139/pengajar-menulis-dan-mengelola-laporan-evaluasi-siswa-dari-dashboard\">KEL-139</issue> menambahkan halaman laporan evaluasi siswa. Pilihan siswa di form buat laporan dibangun dengan membaca seluruh halaman `/api/v1/enrollments?status=active` (Creator) atau `/api/v1/sessions?mine=true` + attendees (Teacher default), tetapi \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "backlog",
+      "labels": [
+        "web"
+      ],
+      "updatedAt": "2026-10-12T14:08:18.837Z"
+    },
+    {
+      "id": "KEL-107",
+      "title": "Parent dapat mengajukan jadwal kelas private dan tenant dapat meninjau atau menolaknya melalui API",
+      "description": "## Background / Problem\n\nKelas private kini dapat dibeli langsung melalui `POST /api/v1/catalog/classes/:class_id/enrollments` tanpa jadwal. Pada academic `internal/usecase/enrollment_usecase.go:217`, hanya kelas group yang wajib `schedule_id`. Jadwal private hanya dapat dibuat tenant melalui `POST /schedules` dengan `enrollment_id` (`internal/usecase/schedule_usecase.go:221-239`) setelah enrollment ada. Parent tidak punya cara menyampaikan jadw\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-04T08:59:21.101Z"
+    },
+    {
+      "id": "KEL-109",
+      "title": "Parent mengajukan jadwal kelas private dari detail kelas dan memantau status permintaannya",
+      "description": "## Background / Problem\n\nPanel enrollment di detail kelas (`app/(public)/kelas/[id]/_components/EnrollmentPanel.tsx`) menampilkan form checkout yang sama untuk kelas private dan group. Setelah API permintaan jadwal tersedia dan checkout langsung kelas private ditolak, parent membutuhkan UI untuk mengajukan jadwal dan mengikuti hasil peninjauan.\n\n## Goal\n\nParent dapat mengajukan satu atau lebih slot jadwal untuk kelas private langsung dari detail\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-04T08:59:21.101Z"
+    },
+    {
+      "id": "KEL-137",
+      "title": "Pengajar melihat sesi hari ini dan minggu ini serta mencatat kehadiran dari dashboard",
+      "description": "## Background / Problem\n\nTidak ada kode web yang memanggil `/api/v1/sessions`, `/sessions/:id/attendees`, atau `/attendance`; tipe `ClassSession` di `app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts:440-449` tidak pernah dirender. Pengajar tidak dapat mengelola sesi dari aplikasi.\n\n## Goal\n\nPengajar membuka satu halaman untuk melihat sesinya hari ini atau minggu ini dan mencatat kehadiran seluruh siswa satu sesi.\n\n## Requirements\n\n* Halam\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-12T14:08:11.969Z"
+    },
+    {
+      "id": "KEL-165",
+      "title": "Daftar anggota tenant tidak gagal 500 saat dipanggil tanpa parameter sort",
+      "description": "## Background / Problem\n\n`GET /api/v1/members` tanpa parameter `sort` (atau dengan nilai yang tidak dikenal) menjawab 500. `kelolakelas-identity-service/internal/repository/member_repository.go` (ListMembers) memetakan `sort` ke kolom urutan dan, bila kosong, jatuh ke `tm.created_at`, padahal tabel `tenant_members` tidak punya kolom itu (yang ada `joined_at`). Ditemukan saat verifikasi manual <issue id=\"806bd637-6802-4c63-8c29-9826eab6d163\" href\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-04T08:43:43.490Z"
+    },
+    {
+      "id": "KEL-138",
+      "title": "Tenant dapat me-reschedule sesi dan menugaskan tutor pengganti dari detail sesi",
+      "description": "## Background / Problem\n\nEndpoint `POST /sessions/:id/reschedule` dan `PATCH /sessions/:id/substitute-tutor` sudah dirouting (gateway `router.go:205-212`) dengan permission `schedule:update`, tetapi tidak ada UI yang memanggilnya.\n\n## Goal\n\nAnggota dengan `schedule:update` dapat memindahkan satu sesi atau mengganti pengajarnya dari detail sesi.\n\n## Requirements\n\n* Aksi reschedule pada detail sesi dengan input tanggal dan jam baru serta konfirmas\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-12T14:08:11.969Z"
+    },
+    {
+      "id": "KEL-164",
+      "title": "Platform admin melihat riwayat keputusan penarikan terbaru di halaman penarikan platform",
+      "description": "## Background / Problem\n\n<issue id=\"d1d76cdf-f32f-4647-9619-3161afb3a1ce\" href=\"https://linear.app/farid-zamani/issue/KEL-146/platform-admin-memproses-antrean-penarikan-tenant-dari-dashboard\">KEL-146</issue> menghadirkan halaman `/platform/withdrawals` untuk antrean dan keputusan penarikan, tetapi riwayat keputusan terbaru dikeluarkan dari scope-nya (keputusan owner 2026-10-02) karena API billing belum menyediakannya. Setelah billing menyediakan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-12T14:08:04.037Z"
+    },
+    {
+      "id": "KEL-157",
+      "title": "Inbox parent menampilkan percakapan notifikasi sistem dengan jelas",
+      "description": "## Background / Problem\n\n`ChatInbox.tsx` hanya mengenal pesan parent dan member; tidak ada tampilan pesan sistem.\n\n## Goal\n\nParent dapat membedakan percakapan notifikasi dari tenant dan membaca pesannya tanpa kolom balasan.\n\n## Requirements\n\n* Percakapan notifikasi diberi label tenant dan ikon yang berbeda serta muncul di inbox dengan unread count.\n* Pesan sistem dirender dengan gaya berbeda dan tanpa input balasan.\n* Jenis percakapan atau sende\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-02T16:02:42.226Z"
+    },
+    {
+      "id": "KEL-141",
+      "title": "Parent melihat jadwal, riwayat kehadiran, dan rapor anak dari dashboard",
+      "description": "## Background / Problem\n\nArea parent hanya berisi enrollments, students, dan chat tanpa layout atau navigasi bersama; halaman saling menautkan secara manual (`app/(public)/kelas/page.tsx:32`, `parent/enrollments/page.tsx:33-35`, `StudentsManager.tsx:41`, `parent/chat/page.tsx:33`). Jadwal sesi, kehadiran, dan laporan anak belum ditampilkan.\n\n## Goal\n\nParent memiliki area dashboard yang konsisten untuk melihat jadwal sesi mendatang, riwayat kehad\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-02T15:17:25.000Z"
+    },
+    {
+      "id": "KEL-163",
+      "title": "Platform admin dapat membaca riwayat keputusan penarikan terbaru lewat API billing",
+      "description": "## Background / Problem\n\nAntrean platform `GET /api/v1/platform/withdrawals` (<issue id=\"2fe4bf70-b498-4dfd-8e18-c73a47f1a500\" href=\"https://linear.app/farid-zamani/issue/KEL-144/platform-admin-memproses-penarikan-tenant-secara-manual-dengan-jejak\">KEL-144</issue>) hanya mengembalikan penarikan berstatus `requested` (`kelolakelas-billing-service/internal/repository/withdrawal_repository.go:106-117`, `ListRequested`). Penarikan yang sudah `paid` \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-02T12:43:15.201Z"
+    },
+    {
+      "id": "KEL-150",
+      "title": "Renewal yang tidak dibayar setelah masa tenggang menangguhkan enrollment dan pulih saat dibayar",
+      "description": "## Background / Problem\n\nWorker renewal memproses subscription dengan `next_billing_date <= now+7d` (`internal/usecase/subscription_worker.go:73`) dan berhenti tanpa aksi setelah period+7 hari (`:90`); subscription tetap `active` dan hanya status pending serta active yang dipakai (`internal/domain/subscription.go:23`). Invoice renewal yang expired memicu job `release` (`internal/repository/transaction_repository.go:255-282`) yang tidak berdampak\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-02T12:04:02.469Z"
+    },
+    {
+      "id": "KEL-146",
+      "title": "Platform admin memproses antrean penarikan tenant dari dashboard platform",
+      "description": "## Background / Problem\n\nDashboard platform memiliki halaman creator requests (`app/platform/creator-requests/page.tsx`) tetapi tidak ada halaman penarikan.\n\n## Goal\n\nPlatform admin dapat melihat antrean penarikan dan mencatat hasil transfer manual atau penolakan.\n\n## Requirements\n\n* Halaman antrean penarikan dengan tenant, jumlah, rekening tujuan lengkap, dan waktu pengajuan.\n* Aksi tandai dibayar dengan input referensi transfer dan aksi tolak \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-12T14:08:04.037Z"
+    },
+    {
+      "id": "KEL-144",
+      "title": "Platform admin memproses penarikan tenant secara manual dengan jejak audit",
+      "description": "## Background / Problem\n\nGateway `RequirePlatform` hanya memeriksa claim JWT; identity memeriksa ulang assignment platform admin secara live untuk route-nya sendiri (ADR 0026), tetapi gRPC identity hanya menyediakan ValidateTenantStatus, GetTenantPublicInfo, CheckPermission, CatalogPolicy, dan FeePolicy (`kelolakelas-identity-service/cmd/server/main.go:230-233`). Billing tidak dapat memverifikasi platform admin dan tidak memiliki alur pemrosesan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "identity",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-02T10:58:35.941Z"
+    },
+    {
+      "id": "KEL-145",
+      "title": "Tenant melihat saldo, mutasi, rekening, dan mengajukan penarikan dari halaman keuangan",
+      "description": "## Background / Problem\n\nSettings tenant hanya mencakup profil dan lokasi (`app/(dashboard)/dashboard/tenant/settings/_queries/queries.ts:117,152`); tidak ada UI saldo, rekening, atau penarikan.\n\n## Goal\n\nTenant memiliki satu halaman keuangan untuk memantau saldo dan mengajukan pencairan ke rekeningnya.\n\n## Requirements\n\n* Kartu saldo tersedia dan tertahan, serta daftar mutasi berhalaman.\n* Form kelola rekening bank utama dengan nomor tersamar.\n\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-02T09:07:05.323Z"
+    },
+    {
+      "id": "KEL-142",
+      "title": "Tenant dapat melihat saldo dan mutasi ledger serta mengelola rekening pencairan",
+      "description": "## Background / Problem\n\nCallback sukses mengkreditkan `NetAmount` ke `AvailableBalance` wallet tenant dan menulis ledger `payment_received` (`internal/usecase/transaction_usecase.go:976-1021`), tetapi tidak ada route untuk membaca saldo atau ledger. Tabel `bank_accounts` ada (`migrations/00000000000000_init_schema.up.sql`), tetapi repository dan usecase penarikan hanya berupa interface (`internal/repository/interfaces.go:34,40`, `internal/useca\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-01T21:44:30.635Z"
+    },
+    {
+      "id": "KEL-149",
+      "title": "Enrollment dapat ditangguhkan, dipulihkan, dan diakhiri melalui endpoint internal",
+      "description": "## Background / Problem\n\nStatus enrollment hanya pending, active, completed, dan dropped (`internal/domain/enrollment.go:58`). Endpoint internal hanya activate dan release; release tidak pernah mencabut enrollment aktif (`internal/usecase/enrollment_usecase.go:472-512`). Tidak ada cara bagi billing untuk menangguhkan akses atau mengakhiri enrollment aktif.\n\n## Goal\n\nBilling dapat menangguhkan enrollment aktif dengan melepas kursinya, memulihkann\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-01T21:44:30.635Z"
+    },
+    {
+      "id": "KEL-140",
+      "title": "Parent dapat membaca sesi, kehadiran, dan laporan milik anaknya sendiri",
+      "description": "## Background / Problem\n\nHandler sesi, absensi, dan laporan membutuhkan tenant claim sehingga parent tanpa tenant mendapat 401 (`internal/delivery/http/handler/attendance_handler.go:75-78`). Middleware melewati pemeriksaan permission untuk parent (`internal/delivery/http/middleware/permission_middleware.go:51-66`), sementara list usecase hanya memfilter tenant (`internal/usecase/attendance_usecase.go:32-44`, `report_usecase.go:31-43`). Akibatnya\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-01T21:44:30.635Z"
+    },
+    {
+      "id": "KEL-161",
+      "title": "Tenant dapat membuat, mengubah, dan menonaktifkan voucher",
+      "description": "## Background / Problem\n\nTabel `vouchers` (code unik per tenant, discount_type/value, max_discount_amount, min_transaction_amount, max_uses/current_uses, valid_from/until, is_active) ada di billing (`migrations/00000000000000_init_schema.up.sql:3-13`) dan permission `voucher:*` sudah di-seed di identity, tetapi `VoucherRepository` hanya interface (`internal/repository/interfaces.go:40`) dan tidak ada route maupun UI.\n\n## Goal\n\nTenant dapat menge\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "api-gateway",
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-01T21:44:30.635Z"
+    },
+    {
+      "id": "KEL-159",
+      "title": "Parent yang pernah terdaftar dapat memberi rating dan ulasan kelas",
+      "description": "## Background / Problem\n\nTidak ada tabel, route, atau data ulasan di academic maupun gateway; katalog publik (`cmd/server/routes.go:43-44`) tidak memuat rating.\n\n## Goal\n\nParent dengan enrollment aktif atau selesai dapat memberi satu ulasan per enrollment, dan pengunjung dapat melihat rata-rata rating dan ulasan kelas.\n\n## Requirements\n\n* Parent membuat atau mengubah ulasannya sendiri (rating 1-5 dan komentar opsional dengan batas panjang) untuk\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-01T21:27:38.945Z"
+    },
+    {
+      "id": "KEL-147",
+      "title": "Tenant dapat memfilter transaksi berdasarkan tanggal bayar dan mengekspornya ke CSV",
+      "description": "## Background / Problem\n\n`GET /api/v1/billing/transactions` memfilter tanggal berdasarkan `created_at`, bukan `paid_at` (`internal/delivery/http/handler/transaction_handler.go:44-80`, `internal/repository/transaction_repository.go:89-103`), sementara summary memakai `paid_at` (ADR 0039). Tidak ada ekspor.\n\n## Goal\n\nTenant dapat mengambil daftar transaksi yang cocok dengan ringkasan penjualan dan mengekspornya sebagai CSV untuk pembukuan.\n\n## Req\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-01T19:16:44.187Z"
+    },
+    {
+      "id": "KEL-143",
+      "title": "Tenant dapat mengajukan dan membatalkan penarikan dengan saldo yang ditahan secara atomik",
+      "description": "## Background / Problem\n\nDomain `Withdrawal` (amount, admin_fee, net_amount, status, provider_payout_id, requested_at, processed_at) dan tabel `withdrawals` sudah ada, tetapi `WithdrawalUsecase.RequestWithdrawal` hanya interface (`internal/usecase/interfaces.go:32`). `PendingBalance` wallet tidak pernah dipakai.\n\n## Goal\n\nTenant dapat mengajukan penarikan ke rekening utama tanpa kemungkinan saldo dipakai dua kali, dan dapat membatalkannya selama\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-01T17:14:13.786Z"
+    },
+    {
+      "id": "KEL-154",
+      "title": "Chat service menerima pesan notifikasi sistem dari service internal",
+      "description": "## Background / Problem\n\nSemua route chat membutuhkan JWT pengguna (`internal/delivery/http/handler.go:73-113,157`); tidak ada route internal (`cmd/server/main.go:104-111`). `sender_kind` hanya parent atau member dengan `sender_user_id` wajib (`migrations/000001_chat.up.sql`), dan jenis percakapan hanya staff, schedule_request, dan report (`migrations/000002_context_chat.up.sql:2`).\n\n## Goal\n\nService internal dapat mengirim pesan sistem yang ide\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "chat",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-01T01:29:23.056Z"
+    },
+    {
+      "id": "KEL-134",
+      "title": "Absensi dapat dicatat per sesi, termasuk sesi reschedule dan secara massal",
+      "description": "## Background / Problem\n\nRequest absensi memakai `enrollment_id + schedule_id + date` (`internal/domain/attendance.go:92-97`) lalu dicari lewat `FindForAttendance` yang mencocokkan `schedule_id` dan `session_date` (`internal/repository/session_repository.go:59-65`). Sesi hasil `RescheduleSession` dibuat dengan `ScheduleID=nil` (`internal/usecase/schedule_usecase.go:338-348`), sehingga absensinya tidak dapat dicatat dan `GetSessionAttendees` gaga\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-01T00:39:11.282Z"
+    },
+    {
+      "id": "KEL-136",
+      "title": "Menu dashboard tenant hanya menampilkan area yang diizinkan permission anggota",
+      "description": "## Background / Problem\n\n`TENANT_NAV_ITEMS` statis (`kelolakelas-web/app/(dashboard)/dashboard/tenant/_constants/constants.ts:7-48`) dirender penuh di `TenantSidebar.tsx:197` dan `MobileNav.tsx:378`, dengan footer tetap \"Tenant Admin / Organization Owner\" (`TenantSidebar.tsx:228-231`). JWT tidak membawa daftar permission (`kelolakelas-identity-service/pkg/jwt/jwt.go:17-29`) dan `GET /permissions` mengembalikan katalog, bukan permission pemanggil\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-30T22:57:17.757Z"
+    },
+    {
+      "id": "KEL-135",
+      "title": "Pengajar melihat sesinya sendiri dan akses sesi, tutor pengganti, serta laporan dijaga konsisten",
+      "description": "## Background / Problem\n\n`GET /sessions`, `/sessions/:id`, dan `/sessions/:id/attendees` hanya di-scope tenant tanpa permission (`cmd/server/routes.go:93,94,100`). Filter `tutor_id` ada (`internal/delivery/http/handler/session_handler.go:37`) tetapi tidak diturunkan dari JWT. Tutor pengganti hanya menimpa `tutor_id` tanpa memeriksa bahwa ia anggota aktif tenant (`internal/usecase/schedule_usecase.go:473-506`). Update dan delete laporan tidak mem\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "academic",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-30T19:41:24.986Z"
+    },
+    {
+      "id": "KEL-156",
+      "title": "Parent menerima pengingat sehari sebelum sesi anaknya",
+      "description": "## Background / Problem\n\nTidak ada pengingat sesi; session generation worker sudah membuat sesi hingga horizon satu bulan (`internal/usecase/session_generation_worker.go:14-18,61-99`).\n\n## Goal\n\nParent dengan enrollment aktif menerima satu pengingat untuk setiap sesi anaknya sekitar satu hari sebelumnya.\n\n## Requirements\n\n* Worker berkala menulis event pengingat ke outbox notifikasi untuk sesi terjadwal dalam jendela H-1 (Asia/Jakarta).\n* Satu p\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "backlog",
+      "labels": [
+        "academic",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-30T11:07:54.554Z"
+    },
+    {
+      "id": "KEL-155",
+      "title": "Parent diberi tahu lewat email dan chat saat sesi di-reschedule, tutor diganti, atau anak tidak hadir",
+      "description": "## Background / Problem\n\nAcademic tidak memiliki email client, outbox, maupun event (`internal/usecase` tanpa notifikasi); reschedule dan tutor pengganti (`internal/usecase/schedule_usecase.go:338-348,473-506`) serta absensi tidak memberi tahu siapa pun. Email parent dari JWT diteruskan ke billing saat checkout tetapi tidak disimpan di enrollment (`internal/domain/enrollment.go:95`).\n\n## Goal\n\nSetiap reschedule, tutor pengganti, dan absensi alfa\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "backlog",
+      "labels": [
+        "academic",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-30T11:07:51.272Z"
+    },
+    {
+      "id": "KEL-22",
+      "title": "Terapkan permission pada attendance dan report",
+      "description": "## Background / Problem\n\nRoute attendance (`cmd/server/main.go:123-126`) dan report (`:127-131`) hanya memerlukan JWT. Otorisasi bergantung pada pemeriksaan ad-hoc tutor yang ditugaskan (`internal/usecase/attendance_usecase.go:54-60,85-90`, `report_usecase.go:49-55`). Permission `attendance:create|read|update` dan `report:create|read|update|delete` sudah di-seed dan dimiliki role Teacher, tetapi tidak pernah dievaluasi.\n\n## Goal\n\nOperasi attenda\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-30T10:55:37.966Z"
+    },
+    {
+      "id": "KEL-114",
+      "title": "Elemen yang dapat diklik di web menampilkan cursor pointer",
+      "description": "## Background / Problem\n\nWeb memakai Tailwind CSS v4. Preflight v4 tidak lagi memberi `cursor: pointer` pada `button` (`node_modules/tailwindcss/preflight.css`), dan `app/globals.css` tidak menambahkan base rule. Hanya 2 file yang memakai `cursor-pointer`, padahal ada sekitar 99 elemen `<button>`. Akibatnya tab Parent/Organization di `app/(auth)/register/_components/RegisterFormSwitch.tsx` dan tombol lain terlihat tidak dapat diklik.\n\n## Goal\n\nS\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T15:44:37.019Z"
+    },
+    {
+      "id": "KEL-87",
+      "title": "Input academic dan katalog publik yang melebihi batas ditolak dengan 400, bukan 500",
+      "description": "## Background / Problem\n\nEndpoint katalog publik tanpa autentikasi menerima `page` tanpa batas atas (`kelolakelas-academic-service/internal/delivery/http/handler/catalog_handler.go:70-80`) yang langsung menjadi `OFFSET` (`internal/repository/catalog_repository.go:95`), dan `search` tanpa batas panjang dipakai dalam `ILIKE` dengan wildcard di depan tanpa escape `%`/`_` (`catalog_repository.go:49`; pola sama di repository category, class, session,\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T15:22:31.401Z"
+    },
+    {
+      "id": "KEL-132",
+      "title": "Academic menolak kapasitas jadwal private yang tidak sesuai satu student",
+      "description": "## Background / Problem\n\n`Class.Capacity` sudah deprecated (`domain/class.go:37`); kapasitas jadwal masih diteruskan dari `ScheduleItemRequest.Capacity` (`schedule_usecase.go:218-231`) tanpa aturan pembeda private/group. <issue id=\"6affb88e-0336-42d3-ab52-755de9a916c1\" href=\"https://linear.app/farid-zamani/issue/KEL-113/form-buat-kelas-tidak-lagi-menampilkan-field-kapasitas-karena\">KEL-113</issue> hanya menghapus input kapasitas di form kelas.\n\n\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T15:21:36.685Z"
+    },
+    {
+      "id": "KEL-100",
+      "title": "Konfigurasi operasional web dan gateway dapat diterapkan dengan rollback",
+      "description": "## Background / Problem\n\nOrigin web, gateway targets, CORS, rate limit, proxy trust, ukuran body, dan timeout kini dibaca saat startup. Perubahan tidak dapat dikelola atau diverifikasi admin platform.\n\n## Goal\n\nAdmin dapat mengelola seluruh setting operasional non-secret web/gateway dari inventory dengan validasi, rollout, status, dan rollback.\n\n## Requirements\n\n* Implementasikan jalur penerapan semua key non-secret web/gateway yang terinventari\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "backlog",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T14:59:28.827Z"
+    },
+    {
+      "id": "KEL-102",
+      "title": "Platform admin dapat merotasi secret layanan tanpa menampilkan nilainya kembali",
+      "description": "## Background / Problem\n\nJWT_SECRET, DATABASE_URL, kredensial internal, Redis, Resend, Maps, dan Duitku berasal dari environment. Tidak ada secret manager atau deployment topology yang terbukti di repo; memindahkan plaintext ke tabel aplikasi akan meningkatkan risiko kebocoran.\n\n## Goal\n\nAdmin dapat memulai dan memantau rotasi setiap secret aplikasi yang terinventaris melalui secret manager dan deployment tanpa pernah membaca kembali nilainya.\n\n\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "backlog",
+      "labels": [
+        "billing",
+        "identity",
+        "academic",
+        "api-gateway",
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T14:59:28.827Z"
+    },
+    {
+      "id": "KEL-104",
+      "title": "Platform admin dapat meninjau, mengubah, dan memantau konfigurasi dari dashboard",
+      "description": "## Background / Problem\n\nTidak ada UI platform admin untuk inventory setting, versi desired/applied, audit, atau rotasi secret. Konfigurasi tersebar di deployment sehingga operator tidak memiliki satu tampilan yang dapat dipercaya.\n\n## Goal\n\nAdmin platform dapat mengelola seluruh setting aplikasi yang terinventaris dari dashboard dan melihat apakah perubahan benar-benar diterapkan.\n\n## Requirements\n\n* Tampilkan inventory berdasarkan domain/layan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "backlog",
+      "labels": [
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T14:59:28.827Z"
+    },
+    {
+      "id": "KEL-101",
+      "title": "Konfigurasi operasional identity, academic, dan billing dapat diterapkan dengan rollback",
+      "description": "## Background / Problem\n\nTTL katalog, timeout gRPC, geocoding, permission flag, interval/enable worker, expiry, serta provider URL non-secret dibaca saat startup dan tidak memiliki control plane.\n\n## Goal\n\nAdmin dapat mengelola semua setting operasional non-secret tiga service dari inventory dengan status applied dan rollback aman.\n\n## Requirements\n\n* Implementasikan jalur penerapan semua key non-secret identity/academic/billing dari inventory; \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "backlog",
+      "labels": [
+        "billing",
+        "identity",
+        "academic",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T14:59:28.827Z"
+    },
+    {
+      "id": "KEL-130",
+      "title": "Parent yang sudah memiliki student dapat menambah student lain dari detail kelas",
+      "description": "## Background / Problem\n\n<issue id=\"4f5c6bff-0fdd-412f-a577-f3d3e9c79706\" href=\"https://linear.app/farid-zamani/issue/KEL-111/parent-dapat-menambah-student-lewat-modal-di-detail-kelas-lalu\">KEL-111</issue> menambahkan modal pada `EnrollmentPanel.tsx:52-74` hanya saat daftar student kosong; saat sudah ada satu student, tombol tambah tidak tersedia tanpa meninggalkan detail kelas.\n\n## Goal\n\nParent dengan satu atau lebih student dapat menambah stud\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T14:03:37.968Z"
+    },
+    {
+      "id": "KEL-113",
+      "title": "Form buat kelas tidak lagi menampilkan field kapasitas karena kapasitas diatur per jadwal",
+      "description": "## Background / Problem\n\n`ClassForm.tsx:180-201` menampilkan input \"Max Student Capacity\" untuk semua tipe kelas, termasuk Private. Nilainya dikirim `createClass` (`_actions/classActions.ts:128`) ke `POST /api/v1/classes`, tetapi academic tidak menyimpannya: `Class.Capacity` deprecated dengan `json:\"-\"` (`internal/domain/class.go:37`) dan `CreateClassRequest` tidak memiliki field kapasitas (`class.go:47`). Kapasitas yang berlaku diisi per jadwal\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T13:12:52.103Z"
+    },
+    {
+      "id": "KEL-133",
+      "title": "Parent memilih channel pembayaran untuk pembelian kelas private",
+      "description": "## Background / Problem\n\nFollow-up dari keputusan owner pada <issue id=\"3f88fbc1-5ca3-49ca-8e1f-70621148f24b\" href=\"https://linear.app/farid-zamani/issue/KEL-125/billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk-invoice-baru\">KEL-125</issue> (opsi A, 29-09-2026): <issue id=\"3f88fbc1-5ca3-49ca-8e1f-70621148f24b\" href=\"https://linear.app/farid-zamani/issue/KEL-125/billing-menerima-pilihan-channel-vaqris-atau-kartu-untuk-invoice-baru\">KEL-12\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "backlog",
+      "labels": [
+        "billing",
+        "academic",
+        "Feature"
+      ],
+      "updatedAt": "2026-09-29T12:39:34.508Z"
+    },
+    {
+      "id": "KEL-128",
+      "title": "Parent menerima email payment link setelah jadwal private disetujui",
+      "description": "## Background / Problem\n\n<issue id=\"64bcb38d-294e-426b-b773-36fa1f5033f6\" href=\"https://linear.app/farid-zamani/issue/KEL-108/persetujuan-tenant-atas-permintaan-jadwal-private-membuat-enrollment\">KEL-108</issue> membuat invoice di `academic-service/internal/usecase/private_schedule_request_usecase.go:209` dan menyimpan email parent dari token; billing hanya mengirim link pada worker renewal `subscription_worker.go:210-234`. Persetujuan pertama t\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "academic",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T12:39:34.289Z"
+    },
+    {
+      "id": "KEL-127",
+      "title": "Parent membayar VA/QRIS dari halaman KelolaKelas dan kartu melalui redirect Duitku",
+      "description": "## Background / Problem\n\n`app/(public)/kelas/[id]/_actions/actions.ts:86-92` langsung redirect ke checkout_session_url; halaman return <issue id=\"9eae8dac-a2af-4613-a96c-d27fc4df9f58\" href=\"https://linear.app/farid-zamani/issue/KEL-44/sediakan-halaman-kembali-dari-pembayaran-dengan-pembaruan-status\">KEL-44</issue> hanya menampilkan status sesudah provider. Parent tidak melihat instruksi VA/QR di KelolaKelas.\n\n## Goal\n\nParent dapat memilih channe\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T11:48:07.138Z"
+    },
+    {
+      "id": "KEL-124",
+      "title": "Parent, admin tenant, dan pengajar dapat memulai chat dari permintaan jadwal private dan dari report student",
+      "description": "## Background / Problem\n\nOwner menginginkan parent dapat chat dengan admin tenant saat mengajukan jadwal private, dan pengajar dapat chat dengan parent terkait report student. Halaman status permintaan untuk parent dan halaman tinjauan untuk tenant dibangun di <issue id=\"94fa0753-0ab2-42fb-a233-53dd7a7be087\" href=\"https://linear.app/farid-zamani/issue/KEL-109/parent-mengajukan-jadwal-kelas-private-dari-detail-kelas-dan-memantau\">KEL-109</issue> \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T10:00:31.771Z"
+    },
+    {
+      "id": "KEL-131",
+      "title": "Riwayat enrollment parent membaca envelope daftar API dengan benar",
+      "description": "## Background / Problem\n\nPembacaan statis `parent/enrollments/_queries/queries.ts:11-22` menunjukkan `getEnrollmentHistory` membaca `data.items`, sedangkan dua service mengembalikan `{status,data:{items,pagination}}`; fungsi return landing di file yang sama `:61-74` sudah memakai `normalizeListEnvelope`.\n\n## Goal\n\nParent melihat enrollment dan transaksi nyata di riwayat, bukan empty state palsu.\n\n## Requirements\n\n* Normalisasi envelope pada kedu\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T08:18:29.778Z"
+    },
+    {
+      "id": "KEL-126",
+      "title": "Billing menyimpan dan menyajikan instruksi pembayaran VA/QR untuk transaksi milik parent",
+      "description": "## Background / Problem\n\n`pkg/duitku/client.go:42-47` hanya membaca reference dan paymentUrl; respons provider tentang VA/QR tidak sampai ke transaction. Endpoint transaksi `cmd/server/routes.go:36-38` hanya menyajikan metadata lama.\n\n## Goal\n\nParent dapat membaca instruksi pembayaran miliknya sendiri beserta status dan expiry melalui API yang sudah terlindungi.\n\n## Requirements\n\n* Baca dan simpan instruksi provider yang diverifikasi untuk invoi\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T07:30:20.328Z"
+    },
+    {
+      "id": "KEL-125",
+      "title": "Billing menerima pilihan channel VA/QRIS atau kartu untuk invoice baru",
+      "description": "## Background / Problem\n\nPembacaan statis menunjukkan `billing-service/internal/usecase/transaction_usecase.go:290` memaksa PaymentMethod VC, sementara `academic-service/internal/usecase/enrollment_usecase.go:197,270,400` dan private flow `private_schedule_request_usecase.go:209` membuat invoice tanpa pilihan channel.\n\n## Goal\n\nParent dapat memilih channel pembayaran sebelum invoice dibuat, tanpa mematahkan pemanggil lama atau idempotensi.\n\n## O\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "academic",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-29T06:45:07.465Z"
+    },
+    {
+      "id": "KEL-123",
+      "title": "Parent dan anggota tenant membaca dan membalas chat di web dengan pesan baru muncul realtime",
+      "description": "## Background / Problem\n\nWeb belum memiliki halaman chat maupun library WebSocket. Semua panggilan backend berjalan di Server Actions/Components ke `GATEWAY_API_URL`, yang sengaja server-only (`lib/gateway.ts:148-176`, kelolakelas-docs `docs/components/web.md:60-64`). Satu-satunya pola pembaruan berkala saat ini adalah `PaymentReturnRefresher` (`router.refresh()`). Navigasi tenant didefinisikan di `app/(dashboard)/dashboard/tenant/_constants/con\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T19:39:49.431Z"
+    },
+    {
+      "id": "KEL-111",
+      "title": "Parent dapat menambah student lewat modal di detail kelas lalu langsung melanjutkan enrollment",
+      "description": "## Background / Problem\n\nSaat parent belum memiliki student, `EnrollmentPanel.tsx:38` hanya menampilkan tautan ke `/dashboard/parent/students?returnTo=/kelas/<id>`. Parameter `returnTo` tidak dibaca di mana pun, sehingga setelah membuat student parent harus kembali ke katalog dan mencari kelasnya lagi. Ini memutus konversi enrollment.\n\n## Goal\n\nParent dapat membuat profil student melalui modal di detail kelas dan langsung memilih student baru un\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T19:15:07.671Z"
+    },
+    {
+      "id": "KEL-129",
+      "title": "Payment link private dapat dikirim lewat percakapan request yang tepat",
+      "description": "## Background / Problem\n\nChat-service mendukung `schedule_request` (<issue id=\"ccecbcfe-1acf-4ffc-9536-6c4e54d468b8\" href=\"https://linear.app/farid-zamani/issue/KEL-120/chat-service-mendukung-percakapan-parent-admin-tenant-per-permintaan\">KEL-120</issue>) dan gateway memproxy-nya (<issue id=\"95f3ed11-ae4c-4d88-ae17-17a19eaae84e\" href=\"https://linear.app/farid-zamani/issue/KEL-122/gateway-meneruskan-rest-chat-dan-koneksi-websocket-chat-ke-chat\">K\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "backlog",
+      "labels": [
+        "chat",
+        "academic",
+        "web",
+        "Feature"
+      ],
+      "updatedAt": "2026-09-28T19:15:05.144Z"
+    },
+    {
+      "id": "KEL-120",
+      "title": "Chat-service mendukung percakapan parent\u2013admin tenant per permintaan jadwal private dan pengajar\u2013parent per report",
+      "description": "## Background / Problem\n\nOwner menetapkan dua alur: parent dapat chat dengan admin tenant saat mengajukan jadwal private, dan pengajar dapat chat dengan parent terkait report student. Hak akses keduanya hanya dapat dibuktikan dari data academic, yang disediakan lewat endpoint internal (issue `academic-chat-context-internal-api`). Parent tidak dapat membaca report lewat API publik (academic `internal/usecase/report_usecase.go:62` hanya menyediaka\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "chat",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T19:15:04.111Z"
+    },
+    {
+      "id": "KEL-122",
+      "title": "Gateway meneruskan REST chat dan koneksi WebSocket chat ke chat-service",
+      "description": "## Background / Problem\n\nGateway saat ini hanya mengenal tiga upstream (`internal/config/config.go:58-60`, `internal/delivery/http/handler/proxy_handler.go:47-83`). Setiap proxy dibatasi `context.WithTimeout` selama `PROXY_UPSTREAM_TIMEOUT_SECONDS` (default 30 detik) untuk seluruh pertukaran (`proxy_handler.go:115-138`). `httputil.ReverseProxy` meneruskan upgrade WebSocket dan menutup koneksi backend ketika context request selesai, sehingga rout\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T19:15:04.111Z"
+    },
+    {
+      "id": "KEL-108",
+      "title": "Persetujuan tenant atas permintaan jadwal private membuat enrollment, jadwal, dan payment link",
+      "description": "## Background / Problem\n\nSetelah permintaan jadwal private tersedia, tenant perlu mengubah permintaan yang disetujui menjadi pembelian yang dapat dibayar. Academic sudah mampu membuat enrollment `pending` beserta invoice billing (`internal/usecase/enrollment_usecase.go:331` `EnrollStudent`, `pkg/billing/client.go` `GenerateInvoice`) dan membuat jadwal private terikat `enrollment_id` (`internal/usecase/schedule_usecase.go:221-239`). Billing juga \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T19:14:59.044Z"
+    },
+    {
+      "id": "KEL-121",
+      "title": "Chat-service mengirim pesan baru secara realtime lewat WebSocket dengan tiket sekali pakai",
+      "description": "## Background / Problem\n\nOwner memutuskan pesan baru muncul lewat WebSocket sejak awal. Web memanggil backend hanya dari server (`kelolakelas-web/lib/gateway.ts:148-176`, kelolakelas-docs `docs/components/web.md:60-64`) dan menyimpan JWT di cookie `httpOnly` (`app/(auth)/login/_actions/actions.ts:73-74`). Akibatnya browser tidak dapat mengirim header `Authorization` saat membuka WebSocket. Belum ada library WebSocket di repo Go mana pun.\n\n## Goa\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "chat",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T16:37:22.724Z"
+    },
+    {
+      "id": "KEL-119",
+      "title": "Chat-service menyimpan percakapan pengajar\u2013admin tenant dan pesannya melalui REST API",
+      "description": "## Background / Problem\n\nOwner memutuskan (2026-09-28) bahwa chat dibangun sebagai service dan repo baru `kelolakelas-chat-service` dengan WebSocket. Operator membuat repo berisi kerangka Go dan CI `gate` sebelum issue ini diberi `ai-ready`, tetapi domain chat belum ada. Service lain menyediakan pola yang bisa diikuti:\n\n* JWT HS256 dengan `JWT_SECRET` bersama dan klaim `user_id`, `tenant_id`, `role_id`, `member_id`, `is_parent` (identity `pkg/jw\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "chat",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T13:58:28.831Z"
+    },
+    {
+      "id": "KEL-118",
+      "title": "Academic menyediakan konteks permintaan jadwal private dan report untuk chat-service melalui endpoint internal",
+      "description": "## Background / Problem\n\nChat-service harus memastikan parent hanya membuka percakapan untuk permintaan jadwal miliknya, dan pengajar hanya membuka percakapan report di tenant-nya. Datanya hanya ada di academic:\n\n* permintaan jadwal private (`internal/domain/private_schedule_request.go`: `tenant_id`, `parent_id`, `class_id`, `student_id`, `status`);\n* report (`internal/domain/report.go`: `TenantID`, `EnrollmentID`, `ReporterID`);\n* relasi enroll\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T13:19:44.103Z"
+    },
+    {
+      "id": "KEL-116",
+      "title": "Tenant mengirim rekomendasi jadwal saat menolak dan parent dapat menerima atau menolaknya di web",
+      "description": "## Background / Problem\n\nSetelah API rekomendasi tersedia, tenant membutuhkan cara menyertakan slot alternatif saat menolak dari dashboard, dan parent membutuhkan cara melihat serta menerima atau menolak rekomendasi dari daftar permintaannya. Dialog tolak tenant dan daftar permintaan parent dibuat oleh issue web tenant dan issue web parent.\n\n## Goal\n\nTenant dapat memilih menolak begitu saja atau menolak dengan rekomendasi jadwal lain. Parent dap\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T12:56:09.056Z"
+    },
+    {
+      "id": "KEL-115",
+      "title": "Tenant dapat menolak permintaan jadwal private dengan rekomendasi jadwal lain dan parent dapat menerimanya melalui API",
+      "description": "## Background / Problem\n\nOwner memutuskan (2026-09-28) bahwa tenant dapat menolak permintaan jadwal private begitu saja atau menolak dengan rekomendasi jadwal lain. Penolakan biasa dan persetujuan disediakan oleh issue API permintaan jadwal dan issue persetujuan. Belum ada cara bagi tenant menyertakan slot alternatif, maupun bagi parent menerima rekomendasi tersebut sehingga pembelian dapat dilanjutkan tanpa mengajukan ulang dari awal.\n\n## Goal\n\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T11:48:43.226Z"
+    },
+    {
+      "id": "KEL-110",
+      "title": "Tenant meninjau, menyetujui, atau menolak permintaan jadwal private dari dashboard",
+      "description": "## Background / Problem\n\nDashboard tenant memiliki halaman enrollments (`app/(dashboard)/dashboard/tenant/enrollments`) tetapi tidak memiliki tempat untuk permintaan jadwal private. Tanpa UI, API peninjauan dan persetujuan tidak dapat dipakai tenant. Chat dan email payment link belum tersedia, sehingga tenant juga membutuhkan cara membagikan payment link secara manual.\n\n## Goal\n\nAnggota tenant yang berizin dapat melihat permintaan jadwal private\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T10:55:36.805Z"
+    },
+    {
+      "id": "KEL-117",
+      "title": "Identity menyediakan permission tenant `chat:manage` untuk admin yang menangani chat",
+      "description": "## Background / Problem\n\nChat membutuhkan cara menentukan siapa admin tenant yang menangani percakapan dengan parent dan pengajar. Katalog permission disimpan di tabel `permissions` dengan `name` unik (`migrations/00000000000000_init_schema.up.sql:29-30`) dan diisi oleh `seeders/000001_default_permissions_and_roles.sql`. Role sistem `Creator` hanya mendapat semua permission saat seed dijalankan (`seeders/000001_default_permissions_and_roles.sql:\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T07:41:36.867Z"
+    },
+    {
+      "id": "KEL-70",
+      "title": "Parent melihat jadwal kelas yang dibeli pada halaman status enrollment",
+      "description": "## Background / Problem\n\nParent memilih jadwal saat checkout kelas grup, tetapi halaman `/dashboard/parent/enrollments` hanya menampilkan nama kelas, nama student, status enrollment, serta status dan nominal transaksi (`app/(dashboard)/dashboard/parent/enrollments/page.tsx`). Tipe `EnrollmentRecord` di web (`lib/payment-status.ts`) tidak memiliki data jadwal. Di academic, `EnrollmentResponse` hanya membawa `schedule_id` (`internal/domain/enrollm\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-28T02:03:44.714Z"
+    },
+    {
+      "id": "KEL-106",
+      "title": "Parent dan tenant mendapat pesan jelas saat checkout ditolak karena biaya platform melebihi pembayaran",
+      "description": "## Background / Problem\n\n<issue id=\"df8c080e-3071-4421-88a7-9d6acff931c3\" href=\"https://linear.app/farid-zamani/issue/KEL-99/platform-admin-dapat-menetapkan-biaya-platform-untuk-transaksi-baru\">KEL-99</issue> membuat billing menolak invoice bila platform_fee + payment_gateway_fee melebihi gross_amount, dengan HTTP 422, code platform_fee_exceeds_gross, dan pesan 'Biaya platform melebihi jumlah pembayaran' (keputusan owner 2026-09-28). Academic be\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "ai-ready",
+        "academic",
+        "web",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-28T02:03:10.858Z"
+    },
+    {
+      "id": "KEL-50",
+      "title": "Tenant dapat menetapkan kapasitas jadwal dan menambah jadwal kelas grup dari dashboard",
+      "description": "## Background / Problem\n\nLangkah 3 wizard pembuatan kelas (`ScheduleForm`) mengirim slot jadwal tanpa `capacity`: state awal slot dan `scheduleItemSchema` tidak memiliki field tersebut, sedangkan academic `ScheduleItemRequest` mewajibkan `capacity` (`binding:\"required,min=1\"`). Dari pembacaan kode (belum dieksekusi), setiap jadwal yang dibuat dari web ditolak 400, sehingga kelas grup buatan web tidak memiliki jadwal dan tidak dapat dibeli: panel\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-12T14:08:27.563Z"
+    },
+    {
+      "id": "KEL-53",
+      "title": "Parent dapat melanjutkan pembayaran yang masih menunggu dari halaman status enrollment",
+      "description": "## Background / Problem\n\n`/dashboard/parent/enrollments` membaca transaksi parent (`_queries/queries.ts:18`), dan respons billing sudah memuat `checkout_session_url` serta `invoice_expires_at` (`billing internal/domain/transaction.go:204-205`). Namun `TransactionRecord` (`lib/payment-status.ts:9-18`) tidak memuat kedua field itu dan halaman tidak menampilkan tautan pembayaran. Parent yang menutup halaman Duitku tidak memiliki jalan untuk membaya\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T23:46:03.409Z"
+    },
+    {
+      "id": "KEL-54",
+      "title": "Pendaftaran ganda student ke kelas yang sama mendapat respons konflik yang jelas",
+      "description": "## Background / Problem\n\nUnique index `idx_student_class_active` (`init_schema.up.sql:36`) membatasi satu enrollment pending/active per student dan kelas. Halaman kelas membuat idempotency key baru pada setiap render, sehingga percobaan kedua melanggar index tersebut. GORM dibuka dengan `gorm.Config{}` tanpa `TranslateError` (`pkg/database/db.go:17`), dan error itu tidak dipetakan sehingga `catalogEnrollmentErrorStatus` jatuh ke 500 (`enrollment\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T23:45:24.664Z"
+    },
+    {
+      "id": "KEL-64",
+      "title": "Respons 5xx academic tidak lagi membocorkan detail error internal tanpa mengubah pesan domain 4xx",
+      "description": "## Background / Problem\n\nHandler academic mengembalikan `err.Error()` mentah pada status 500 di `category_handler.go:67`, `class_handler.go:61,110`, `schedule_handler.go:119,182,245,308,371,428`, dan `enrollment_handler.go:278,331`. Selain itu ada jalur yang default-nya 500 tetapi tetap meneruskan `err.Error()`: `enrollment_handler.go:51-58` (assign schedule), `:166` (`CreateCatalogEnrollment`, checkout publik parent, lewat `catalogEnrollmentErr\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T23:41:56.872Z"
+    },
+    {
+      "id": "KEL-75",
+      "title": "Invoice checkout parent menyimpan email parent sehingga email tagihan dan pengingat dapat terkirim",
+      "description": "## Background / Problem\n\n`InvoiceRequest` di academic (`kelolakelas-academic-service/pkg/billing/client.go:25-37`) tidak memiliki field email. Tidak ada kode academic yang mengirim `sender_email`, sehingga ketiga pemanggil `GenerateInvoice` (`internal/usecase/enrollment_usecase.go:184,244,308`) tidak pernah mengisinya. Billing menerima `SenderEmail` opsional tanpa validasi format (`internal/domain/transaction.go:174`), lalu menyalinnya ke `Subsc\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "ai-ready",
+        "billing",
+        "academic",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-27T23:41:56.872Z"
+    },
+    {
+      "id": "KEL-99",
+      "title": "Platform admin dapat menetapkan biaya platform untuk transaksi baru secara aman",
+      "description": "## Background / Problem\n\nBilling saat ini menerima platform_fee dari request internal dan menghitung net_amount dari nilai tersebut. Belum ada formula atau sumber kebijakan platform yang disetujui.\n\n## Goal\n\nAdmin dapat mengubah biaya platform yang hanya berlaku pada transaksi baru menurut kebijakan bisnis yang disetujui, dengan jejak versi.\n\n## Owner Decision (Zam, 2026-09-28): ADR kebijakan biaya platform disetujui\n\nKeputusan ini memenuhi exte\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "identity",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T18:45:05.336Z"
+    },
+    {
+      "id": "KEL-92",
+      "title": "Filter katalog serta halaman login dan registrasi dapat digunakan dengan pembaca layar",
+      "description": "## Background / Problem\n\nSemua kontrol filter `/kelas` (pencarian, tipe, harga minimum/maksimum, urutan) hanya memakai placeholder atau tidak memiliki label, dan form tidak memiliki nama aksesibel (`kelolakelas-web/app/(public)/kelas/page.tsx:24`). Halaman login dan registrasi tidak memiliki `<h1>` karena judul form memakai `<h2>` (`app/(auth)/login/_components/LoginForm.tsx:60`, `app/(auth)/register/_components/ParentRegisterForm.tsx:68`). Tomb\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T11:53:43.036Z"
+    },
+    {
+      "id": "KEL-73",
+      "title": "Konfirmasi hapus profil student dapat diakses dan konsisten dengan dialog pembatalan enrollment",
+      "description": "## Background / Problem\n\n`app/(dashboard)/dashboard/parent/students/_components/DeleteStudentButton.tsx:23` masih memakai `window.confirm(\"Hapus profil student ini?\")`. `docs/08-known-gaps-and-risks.md` (bagian <issue id=\"837cee6c-af51-450f-b186-94fa6cd475d3\" href=\"https://linear.app/farid-zamani/issue/KEL-45/sediakan-pembatalan-enrollment-pending-dari-halaman-parent\">KEL-45</issue>) mencatat penggunaan ini sebagai follow-up yang belum dikerjaka\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T11:35:06.788Z"
+    },
+    {
+      "id": "KEL-72",
+      "title": "Mesin pencari dapat menemukan katalog dan kelas yang dipublikasikan lewat sitemap dan robots",
+      "description": "## Background / Problem\n\nTidak ada `sitemap.ts` maupun `robots.ts` di `kelolakelas-web/app` (pencarian file tidak menemukan hasil). <issue id=\"a6e49ffb-f05b-4147-a12f-3fef88936633\" href=\"https://linear.app/farid-zamani/issue/KEL-47/rapikan-metadata-halaman-publik-bahasa-dokumen-dan-branding-web\">KEL-47</issue> merapikan metadata halaman publik (`lib/site-metadata.ts`: `getAppUrl`, `catalogListMetadata`, `classDetailMetadata`), tetapi secara eksp\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T11:03:22.987Z"
+    },
+    {
+      "id": "KEL-71",
+      "title": "Gateway berhenti secara graceful dan server HTTP billing memiliki timeout koneksi",
+      "description": "## Background / Problem\n\nGateway sudah memakai `http.Server` dengan timeout (<issue id=\"15f320de-152e-4cc4-8b8e-b5f570f80a27\" href=\"https://linear.app/farid-zamani/issue/KEL-37/terapkan-timeout-batas-body-dan-error-envelope-pada-proxy-gateway\">KEL-37</issue>), tetapi `server.ListenAndServe()` (`cmd/server/main.go:80`) berjalan tanpa penanganan sinyal, sehingga restart memutus request yang sedang di-proxy. Billing sudah menangani SIGTERM dan `Shu\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "api-gateway",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T10:21:44.201Z"
+    },
+    {
+      "id": "KEL-86",
+      "title": "Pembeli dapat membuka daftar kelas dari tenant yang sama melalui kartu dan detail kelas",
+      "description": "## Background / Problem\n\nAPI katalog mendukung filter `tenant_id` (`kelolakelas-academic-service/internal/delivery/http/handler/catalog_handler.go:91-99`, `internal/repository/catalog_repository.go:54-56`) dan web meneruskannya dari URL (`kelolakelas-web/lib/catalog.ts:35`). Namun nama tenant di kartu (`app/(public)/kelas/_components/CatalogCard.tsx:10`) dan detail (`app/(public)/kelas/[id]/page.tsx:35`) hanya teks biasa, dan halaman `/kelas` ti\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T09:50:13.731Z"
+    },
+    {
+      "id": "KEL-59",
+      "title": "Tambahkan index untuk pencarian transaksi per enrollment dan membership per user",
+      "description": "## Background / Problem\n\nMigration billing `000003_subscription_renewals.up.sql:13` menghapus `idx_transactions_enrollment_id`, dan tidak ada migration berikutnya yang membuatnya kembali. Padahal transaksi dicari berdasarkan `enrollment_id` di `transaction_repository.go:52` (transaksi terbaru per enrollment untuk pembayaran, pembatalan, dan renewal) dan `:87` (filter list yang dipanggil per row oleh halaman enrollment tenant). Login identity mem\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "identity",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T09:41:21.105Z"
+    },
+    {
+      "id": "KEL-43",
+      "title": "Perbaiki field last_name student dan segarkan kontrak Swagger academic",
+      "description": "## Background / Problem\n\nStruct `Student` menyerialisasi nama belakang dengan tag `last\u00e5_name` (`internal/domain/student.go:24`) dan web menormalkannya (`kelolakelas-web/lib/students.ts:29-30`, `lib/payment-status.ts:5`). Swagger academic terakhir dibuat 6 September sebelum perubahan permission 15 September: route alias body-param tidak terdokumentasi, anotasi security salah untuk `POST /tenants/{tenant_id}/enrollments` dan endpoint internal, da\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "Refactor",
+        "academic",
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T09:08:40.183Z"
+    },
+    {
+      "id": "KEL-90",
+      "title": "Sesi kelas tersedia untuk bulan-bulan berikutnya selama jadwal masih berlaku",
+      "description": "## Background / Problem\n\n`generateSessionsForSchedule` hanya membuat sesi dari tanggal mulai hingga akhir bulan berjalan (`kelolakelas-academic-service/internal/usecase/schedule_usecase.go:120-135`) dan hanya dipanggil saat jadwal dibuat (`:244-250`) atau diubah permanen (`:389-391`). Academic tidak memiliki worker atau ticker (`cmd/server/main.go`), dan tabel `class_sessions` tidak memiliki constraint unik per jadwal dan tanggal (`migrations/00\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T07:52:12.509Z"
+    },
+    {
+      "id": "KEL-89",
+      "title": "Satu email hanya dapat memiliki satu akun tanpa bergantung pada huruf besar-kecil",
+      "description": "## Background / Problem\n\nIdentity tidak menormalisasi email: satu-satunya `ToLower` di identity ada di parsing header Bearer (`kelolakelas-identity-service/internal/delivery/http/middleware/auth_middleware.go:26`). Lookup memakai `email = ?` (`internal/repository/user_repository.go:47`) dan index unik `users.email` bersifat case-sensitive (`migrations/00000000000000_init_schema.up.sql:4`). Akibatnya `Parent@x.com` dan `parent@x.com` dapat menjad\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T05:00:04.358Z"
+    },
+    {
+      "id": "KEL-76",
+      "title": "Permission identity hanya berlaku bagi anggota tenant yang masih aktif dengan role saat ini",
+      "description": "## Background / Problem\n\nMenghapus anggota melakukan soft delete baris `tenant_members` (`kelolakelas-identity-service/internal/repository/member_repository.go:34-45`, `domain/tenant_member.go:18`), dan mengubah role memperbarui `tenant_members.role_id` (`member_repository.go:47+`). Namun, evaluasi permission hanya mencocokkan `role_id` dari token dengan `role_permissions`, baik di HTTP identity (`internal/usecase/permission.go:14-27`, `member_r\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "ai-ready",
+        "identity",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-27T02:41:02.181Z"
+    },
+    {
+      "id": "KEL-81",
+      "title": "Admin tenant dapat mengeluarkan anggota dari dashboard dengan aman",
+      "description": "## Background / Problem\n\nIdentity menyediakan `DELETE /api/v1/members/:id` dengan permission `member:delete` (`kelolakelas-identity-service/cmd/server/main.go:118`, `internal/usecase/member_usecase.go:53-62`), dan gateway mem-proxy route tersebut (`kelolakelas-api-gateway/internal/delivery/http/router.go:109`). Namun, web tidak memiliki aksi maupun kontrol untuk mengeluarkan anggota: `members/_actions/actions.ts` hanya berisi undangan dan `updat\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T02:40:07.817Z"
+    },
+    {
+      "id": "KEL-69",
+      "title": "Identity dan academic berhenti secara graceful dengan timeout koneksi HTTP yang terbatas",
+      "description": "## Background / Problem\n\nIdentity (`cmd/server/main.go:164`) dan academic (`cmd/server/main.go:171`) dijalankan lewat `r.Run(\"0.0.0.0:\" + cfg.Port)`, sehingga semua timeout `http.Server` bernilai nol dan tidak ada penanganan SIGTERM. Identity juga menjalankan server gRPC `:50051` di goroutine (`main.go:135-160`) tanpa `GracefulStop`. Akibatnya, setiap deploy/restart memutus request in-flight, termasuk checkout enrollment dan aktivasi internal da\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T01:23:24.489Z"
+    },
+    {
+      "id": "KEL-58",
+      "title": "Tenant melihat ringkasan penjualan kelas di dashboard",
+      "description": "## Background / Problem\n\nBilling tidak memiliki endpoint agregat; list transaksi hanya mengembalikan halaman berisi row (`transaction_usecase.go:544-560`). Beranda dashboard tenant (`OverviewMetrics.tsx`) hanya menampilkan jumlah anggota dan role. Tenant tidak dapat melihat pendapatan tanpa membuka transaksi satu per satu. Project <project id=\"0925b72f-fbab-4d82-b530-cac847cb5ec2\" href=\"https://linear.app/farid-zamani/project/operasional-tenant-\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "api-gateway",
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-27T00:31:24.233Z"
+    },
+    {
+      "id": "KEL-40",
+      "title": "Sediakan readiness check dengan probe dependency di gateway dan ketiga service",
+      "description": "## Background / Problem\n\nSemua `GET /health` mengembalikan JSON statis tanpa memeriksa apa pun (`cmd/server/health.go` di tiap service; gateway `router.go:29-34`). Service dapat dinyatakan sehat ketika database, Redis, identity gRPC, atau downstream tidak tersedia. Tidak ada pemisahan liveness dan readiness.\n\n## Goal\n\nOrkestrator atau operator dapat membedakan proses hidup dari service yang siap melayani, berdasarkan status dependency yang seben\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "identity",
+        "academic",
+        "api-gateway",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T23:42:07.727Z"
+    },
+    {
+      "id": "KEL-39",
+      "title": "Catat request dan event domain dengan request ID di identity, academic, dan billing",
+      "description": "## Background / Problem\n\nKetiga service memakai `slog` JSON hanya untuk event startup; tidak ada access log dan hampir tidak ada log di handler atau use case (billing hanya delapan baris log, semuanya di startup; academic tiga baris di repository student). Penolakan webhook, permission 503, dan kegagalan internal tidak meninggalkan jejak.\n\n## Goal\n\nSetiap request di ketiga service menghasilkan access log dengan request ID yang sama seperti gatew\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "identity",
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T19:15:35.264Z"
+    },
+    {
+      "id": "KEL-28",
+      "title": "Kirim email konfirmasi pembayaran berhasil dan gagal kepada parent",
+      "description": "## Background / Problem\n\nBilling hanya mengirim dua email dari subscription worker: tautan pembayaran dan pengingat (`internal/usecase/subscription_worker.go:238,254`). Tidak ada email saat pembayaran berhasil atau gagal, sehingga parent hanya tahu hasilnya dengan membuka halaman status. Klien Resend memakai `http.Client{}` tanpa timeout (`pkg/email/resend.go:97,109-119`). Alamat email berasal dari `sender_email` request internal yang tidak diva\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T18:21:39.306Z"
+    },
+    {
+      "id": "KEL-23",
+      "title": "Lindungi login dari brute force dan enumerasi akun",
+      "description": "## Background / Problem\n\nIdentity tidak memiliki pelacakan percobaan gagal, lockout, atau throttling per akun (pencarian repo-wide tidak menemukan apa pun). Satu-satunya pembatas adalah rate limit gateway 5 request per menit per IP yang fail-open saat Redis bermasalah dan, dengan `SetTrustedProxies(nil)`, menggabungkan semua klien di belakang load balancer ke satu IP. `Login` mengembalikan lebih cepat untuk email yang tidak terdaftar karena bcry\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T17:32:41.651Z"
+    },
+    {
+      "id": "KEL-91",
+      "title": "CI web menjalankan lint seluruh repository dan melaporkan status pada merge queue dan main",
+      "description": "## Background / Problem\n\nWorkflow web hanya berjalan pada `pull_request` ke `main` dan menjalankan ESLint hanya untuk file yang berubah (`kelolakelas-web/.github/workflows/ci.yml:3-6,25-28`). Repository Go sudah berjalan pada `pull_request`, `push` ke main, `merge_group`, dan `workflow_dispatch`. AGENTS.md mensyaratkan check CI yang wajib berjalan dan menganggap check yang tidak berjalan sebagai blocker merge; bila merge queue diaktifkan, check \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "Refactor",
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T16:22:44.788Z"
+    },
+    {
+      "id": "KEL-84",
+      "title": "Tenant melihat, mencabut, dan mengirim ulang undangan pending dari dashboard",
+      "description": "## Background / Problem\n\nKartu Pending Invites menghitung anggota dengan `status === \"pending\"` (`kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/OverviewMetrics.tsx:57`), sedangkan identity hanya mengembalikan status `active` atau `inactive` (`kelolakelas-identity-service/internal/repository/member_repository.go:24`). Nilainya selalu 0. Web tidak memiliki tampilan undangan sehingga owner tidak dapat mengetahui atau mencabut undanga\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T16:00:15.552Z"
+    },
+    {
+      "id": "KEL-83",
+      "title": "Tenant dapat mengubah dan menghapus role custom dari web",
+      "description": "## Background / Problem\n\nGateway sudah mem-proxy `PUT /roles/:id` dan `DELETE /roles/:id` (`kelolakelas-api-gateway/internal/delivery/http/router.go:119-120`), dan identity menegakkan `role:update` serta `role:delete` dengan pesan 403/404/409 (`kelolakelas-identity-service/internal/delivery/http/handler/role_handler.go:215-239,299-323`; `ErrRoleAssignedToActiveMembers` dan `ErrSystemRoleCannotBeModified` di `internal/domain/rbac.go:13-15`). Web \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T15:29:29.816Z"
+    },
+    {
+      "id": "KEL-68",
+      "title": "CI menolak PR yang memasukkan dependency dengan advisory high/critical",
+      "description": "## Background / Problem\n\nWorkflow CI saat ini tidak memuat pemeriksaan kerentanan dependency. Web menjalankan `npm ci`, `npm run test`, `npx tsc --noEmit`, eslint, dan `npm run build` pada job `gate` (`kelolakelas-web/.github/workflows/ci.yml:12-29`), sedangkan repo Go menjalankan `go mod download/verify`, gofmt, `go vet`, `go test -race`, dan `go build` pada job `gate` (`.github/workflows/ci.yml:21-56`). Akibatnya, advisory critical Next.js dan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "identity",
+        "academic",
+        "api-gateway",
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T15:02:49.996Z"
+    },
+    {
+      "id": "KEL-52",
+      "title": "Katalog dan enrollment hanya menawarkan jadwal yang masih berlaku",
+      "description": "## Background / Problem\n\nSubquery jadwal katalog list dan detail (`catalog_repository.go:89,103`) hanya menyaring `deleted_at IS NULL`, sehingga `valid_from`/`valid_until` diabaikan. `CreateIfCapacityAvailable` (`enrollment_repository.go:36-63`) memeriksa kepemilikan kelas dan kapasitas, tetapi tidak memeriksa masa berlaku jadwal. Jadwal yang sudah diakhiri, misalnya oleh perubahan permanen (`valid_until = effective_date - 1`), tetap tampil dan \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T13:55:07.688Z"
+    },
+    {
+      "id": "KEL-103",
+      "title": "Creator tenant dapat meminta dan platform admin dapat memutuskan Creator tambahan dari web",
+      "description": "## Background / Problem\n\nWeb hanya memiliki dashboard tenant dan parent; belum ada permintaan Creator maupun dashboard platform. API approval tanpa UI tidak mendukung alur operator sehari-hari.\n\n## Goal\n\nCreator tenant dapat mengajukan dan melacak request, sementara platform admin meninjau, menyetujui, atau menolak request di area terpisah.\n\n## Requirements\n\n* Tambahkan jalur login/dashboard platform yang hanya mengarahkan principal platform dan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "ai-ready",
+        "identity",
+        "api-gateway"
+      ],
+      "updatedAt": "2026-10-12T14:08:04.037Z"
+    },
+    {
+      "id": "KEL-98",
+      "title": "Platform admin dapat mengatur visibilitas katalog publik secara konsisten",
+      "description": "## Background / Problem\n\nKatalog publik saat ini menampilkan kelas published/open milik tenant aktif, dengan snapshot tenant di academic. Tidak ada sakelar global platform atau status applied lintas list/detail.\n\n## Goal\n\nAdmin dapat membuka atau menutup katalog publik tanpa mengubah kelas dan tenant, dengan hasil konsisten pada daftar dan detail.\n\n## Requirements\n\n* Setting boolean bertipe default aktif mempertahankan perilaku katalog saat ini.\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "academic",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T12:00:22.843Z"
+    },
+    {
+      "id": "KEL-80",
+      "title": "Academic dan billing menolak akses anggota yang sudah dikeluarkan atau berganti role",
+      "description": "## Background / Problem\n\nMiddleware academic dan billing sudah mem-parse claim `member_id` dari JWT (`kelolakelas-academic-service/internal/delivery/http/middleware/auth_middleware.go:30,58`; `kelolakelas-billing-service/internal/delivery/http/middleware/auth_middleware.go:30`), tetapi klien permission keduanya hanya mengirim `role_id`, `permission`, dan `tenant_id` ke identity (`academic pkg/grpcclient/permission_client.go:34-52`, `billing pkg/\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "ai-ready",
+        "billing",
+        "academic",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-26T10:50:54.946Z"
+    },
+    {
+      "id": "KEL-79",
+      "title": "Anggota Teacher dapat dipindah role tanpa mengizinkan perubahan role sendiri",
+      "description": "## Background / Problem\n\n<issue id=\"119d2a1f-cc6b-4eed-aafd-e42544cd4134\" href=\"https://linear.app/farid-zamani/issue/KEL-79/perubahan-role-dan-penghapusan-anggota-melindungi-owner-dan-mencegah\">KEL-79</issue> semula menggabungkan perlindungan Creator, demosi owner, dan perubahan role Teacher. Kebijakan baru menetapkan Creator tambahan hanya melalui request Creator tenant yang disetujui platform admin (<issue id=\"c45f9b03-8d33-45aa-9e69-260ded07\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T10:30:17.297Z"
+    },
+    {
+      "id": "KEL-96",
+      "title": "Platform admin memiliki katalog konfigurasi terpusat dengan audit dan status penerapan",
+      "description": "## Background / Problem\n\nKonfigurasi aplikasi tersebar di environment web, gateway, identity, academic, dan billing. Tidak ada inventory managed settings, API platform, history, atau penanda nilai sudah diterapkan; secret tidak boleh dibaca kembali.\n\n## Goal\n\nAdmin platform dapat mengetahui seluruh konfigurasi aplikasi yang didukung, mengajukan perubahan bertipe, serta melihat audit dan status penerapannya.\n\n## Requirements\n\n* Inventaris setiap \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T09:58:08.934Z"
+    },
+    {
+      "id": "KEL-78",
+      "title": "Pemeriksaan permission academic dibatasi waktu ketika identity lambat atau tidak merespons",
+      "description": "## Background / Problem\n\n`permissionClient.CheckPermission` di academic (`kelolakelas-academic-service/pkg/grpcclient/permission_client.go:22-52`) memanggil identity dengan context request apa adanya, tanpa deadline. Klien ini dipakai `RequirePermission`/`RequirePermissionUnlessParent` pada 28 route tenant (`cmd/server/main.go`, `internal/delivery/http/middleware/permission_middleware.go:68`). Bila identity tidak merespons (bukan menolak koneksi\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "ai-ready",
+        "academic",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-26T09:57:37.934Z"
+    },
+    {
+      "id": "KEL-67",
+      "title": "Pengguna dapat memulai dan menyelesaikan reset password dari web",
+      "description": "## Background / Problem\n\nGrup route `(auth)` web hanya berisi `invitations`, `login`, `logout`, dan `register`, dan tidak ada halaman lupa password. `proxy.ts:8-11` hanya mengenal `protectedRoutes = [\"/dashboard\", \"/profile\"]` dan `publicRoutes = [\"/login\", \"/register\"]`. Setelah API reset tersedia (issue blocker), pengguna membutuhkan titik masuk dari halaman login dan halaman untuk menetapkan password baru dari tautan email.\n\n## Goal\n\nPengguna\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T09:03:57.559Z"
+    },
+    {
+      "id": "KEL-65",
+      "title": "Panggilan server-side web ke gateway membawa IP klien asli",
+      "description": "## Background / Problem\n\nSeluruh panggilan web ke gateway terjadi di server Next.js (Server Action dan server query), misalnya login `app/(auth)/login/_actions/actions.ts:52-60`, katalog `lib/catalog.ts:53`, dan checkout `app/(public)/kelas/[id]/_actions/actions.ts`. Panggilan tersebut hanya mengirim `Content-Type`, `Accept`, dan `Authorization`. Pencarian `x-forwarded-for` dan `x-real-ip` di `app/`, `lib/`, dan `proxy.ts` tidak menemukan hasil.\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T08:34:42.009Z"
+    },
+    {
+      "id": "KEL-56",
+      "title": "Transaksi hanya ditandai lunas setelah status pembayaran dikonfirmasi ke Duitku",
+      "description": "## Background / Problem\n\nSignature callback Duitku dihitung dari `merchantCode + amount + merchantOrderId` (`pkg/duitku/client.go:96-105`), sehingga `resultCode` tidak dilindungi dan semua callback untuk order yang sama membawa signature yang identik. Callback `resultCode=00` langsung menandai transaksi paid, mengaktifkan enrollment, dan mengkredit wallet tenant (`transaction_usecase.go`, sekitar baris 700-797). Duitku menyediakan endpoint `tran\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T07:01:52.643Z"
+    },
+    {
+      "id": "KEL-51",
+      "title": "Perubahan jadwal dan tutor permanen menghasilkan jadwal pengganti yang valid dan mempertahankan peserta",
+      "description": "## Background / Problem\n\n`ChangeSchedulePermanent` dan `ChangeTutorPermanent` (`schedule_usecase.go:361,377` dan `:470,487`) mengisi `oldSchedule.ValidUntil = &prevDay`, lalu menyalin pointer yang sama ke `ValidUntil` jadwal pengganti. Akibatnya rentang validitas terbalik dan `generateSessionsForSchedule` tidak membuat sesi (known gap High di `docs/08-known-gaps-and-risks.md`). Jadwal pengganti juga tidak mengisi `Capacity`, sehingga bernilai 0 \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T06:36:03.858Z"
+    },
+    {
+      "id": "KEL-55",
+      "title": "Panggilan keluar billing dibatasi waktu dan worker renewal tidak menimpa status transaksi",
+      "description": "## Background / Problem\n\n`duitku.NewClient(..., nil)` memakai `&http.Client{}` tanpa timeout (`cmd/server/main.go:55`, `pkg/duitku/client.go:47-50`), begitu juga `ResendClient` (`pkg/email/resend.go:19`). Pola timeout sudah ada di client billing academic (10 detik) dan Resend identity (<issue id=\"1d1e97a0-ff0a-43ec-be09-f1175a22087f\" href=\"https://linear.app/farid-zamani/issue/KEL-36/laporkan-kegagalan-pengiriman-email-undangan\">KEL-36</issue>).\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T06:17:42.528Z"
+    },
+    {
+      "id": "KEL-66",
+      "title": "Pengguna dapat meminta dan mengonfirmasi reset password lewat token email sekali pakai",
+      "description": "## Background / Problem\n\nTidak ada endpoint reset password. Route publik identity hanya `auth/register`, `auth/login`, `tenants/register`, `invitations/verify`, dan `invitations/register` (`cmd/server/main.go:103-107`), dan gateway hanya mem-proxy route publik yang sama (`internal/delivery/http/router.go:57-61`). `docs/08-known-gaps-and-risks.md` mencatat \"No refresh, password-reset, or MFA endpoints were found\". Project Linear \"Isolasi tenant d\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T06:17:42.528Z"
+    },
+    {
+      "id": "KEL-62",
+      "title": "Gateway dapat menentukan IP klien asli dari proxy tepercaya untuk rate limit dan access log",
+      "description": "## Background / Problem\n\nRouter gateway memanggil `r.SetTrustedProxies(nil)` (`internal/delivery/http/router.go:23`), sehingga `c.ClientIP()` selalu berupa alamat socket peer. Kunci rate limit adalah `rate_limit:<ClientIP>:<method>:<path>:<window>` (`middleware/rate_limit_middleware.go:90`), dan access log juga mencatat `client_ip` dari sumber yang sama (`access_log_middleware.go:43`). Login dan registrasi web dijalankan sebagai Server Action di\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "api-gateway",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-26T06:17:42.528Z"
+    },
+    {
+      "id": "KEL-61",
+      "title": "Respons 5xx identity dan billing tidak lagi membocorkan detail error internal",
+      "description": "## Background / Problem\n\nBeberapa jalur 500 mengembalikan `err.Error()` mentah ke klien. Di identity: `auth_handler.go:189` (`\"Failed to register tenant and user: \" + err.Error()`, endpoint publik `POST /api/v1/tenants/register`), `invitation_handler.go:123` (`\"Failed to create invitation: \" + err.Error()`), dan `invitation_handler.go:260` (`\"Failed to register invited user: \" + err.Error()`, endpoint publik `POST /api/v1/invitations/register`).\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "identity",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-25T23:43:01.029Z"
+    },
+    {
+      "id": "KEL-105",
+      "title": "Akses platform admin memerlukan faktor kedua sebelum sesi privileged diterbitkan",
+      "description": "**Linear metadata**\n\n* **Project:** Kontrol platform terpusat oleh platform admin\n* **Type:** Feature\n* **Priority:** Urgent (1)\n* **Estimate:** L (3 points, mengikuti pemetaan backlog project)\n* **Complexity:** high\n* **Complexity rationale:** State autentikasi lintas tiga repository, risiko bypass/replay dan lockout recovery; independen dari estimate.\n* **Labels:** identity, api-gateway, web, ai-ready (ditambahkan setelah verifikasi)\n* **Depen\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "web",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-12T13:59:28.988Z"
+    },
+    {
+      "id": "KEL-97",
+      "title": "Platform admin dapat membuka dan menutup pendaftaran tenant baru",
+      "description": "## Background / Problem\n\nPOST /tenants/register saat ini publik dan selalu dapat membuat tenant serta Creator pertama. Platform admin belum dapat mengendalikan onboarding tanpa deployment.\n\n## Goal\n\nSetting platform untuk penerimaan tenant baru berlaku pada registrasi dan dapat diamati oleh admin.\n\n## Requirements\n\n* Setting boolean bertipe memiliki default yang mempertahankan registrasi aktif.\n* Registrasi memeriksa nilai efektif sebelum membua\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-25T21:10:10.299Z"
+    },
+    {
+      "id": "KEL-93",
+      "title": "Platform admin dapat masuk dan hanya mengakses route platform",
+      "description": "## Background / Problem\n\nIdentity hanya memodelkan tenant_members dan token non-parent tanpa tenant ditolak gateway. Role sistem Creator/Teacher adalah template tenant, bukan principal platform. Tidak ada jalur autentikasi platform admin.\n\n## Goal\n\nPrincipal platform admin yang dibootstrap secara terkontrol dapat masuk dan memakai route platform, tanpa memperoleh akses tenant secara implisit.\n\n## Requirements\n\n* Sediakan assignment platform admi\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-25T18:26:20.470Z"
+    },
+    {
+      "id": "KEL-88",
+      "title": "Registrasi dan pengaturan tenant menolak input tidak valid dengan 400/409, bukan 500",
+      "description": "## Background / Problem\n\nPassword hanya divalidasi `min=6` pada register, register tenant, dan penerimaan undangan (`kelolakelas-identity-service/internal/domain/tenant.go:69`, `internal/delivery/http/handler/auth_handler.go:25`, `invitation_handler.go:35`); bcrypt menolak password di atas 72 byte sehingga `pkg/hash/hash.go` gagal dan respons menjadi 500. Nama depan/belakang, nama tenant, dan telepon tidak memiliki `max` walaupun kolomnya `varch\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-25T17:44:04.728Z"
+    },
+    {
+      "id": "KEL-82",
+      "title": "Tenant dapat melihat, mencabut, dan mengirim ulang undangan anggota tanpa token ganda",
+      "description": "## Background / Problem\n\nIdentity hanya memiliki `POST /invitations`, `GET /invitations/verify`, dan `POST /invitations/register` (`kelolakelas-identity-service/cmd/server/main.go:106-113`); gateway hanya mem-proxy ketiganya (`kelolakelas-api-gateway/internal/delivery/http/router.go:90-104`). Undangan tidak dapat dilihat atau dicabut. `CreateInvitation` hanya menolak email yang sudah menjadi anggota tenant (`internal/usecase/invitation_usecase.g\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-25T17:15:02.924Z"
+    },
+    {
+      "id": "KEL-85",
+      "title": "Pengunjung katalog melihat sisa kursi dan lokasi setiap jadwal kelas sebelum login",
+      "description": "## Background / Problem\n\nQuery katalog academic sudah menghitung `capacity`, `available_slots`, dan `is_available` per jadwal (`kelolakelas-academic-service/internal/repository/catalog_repository.go:89,103`, dengan test di `catalog_availability_test.go`), tetapi tidak menyertakan `location` walaupun kolom `class_schedules.location` ada (`migrations/00000000000000_init_schema.up.sql:39`). Di web, `scheduleLabels` hanya memakai hari dan jam (`kelo\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-25T13:52:46.186Z"
+    },
+    {
+      "id": "KEL-74",
+      "title": "Dashboard tenant menampilkan daftar dan jumlah anggota yang sebenarnya",
+      "description": "## Background / Problem\n\n`getTenantMembers` (`kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_queries/queries.ts:34-58`) memanggil `GET /api/v1/members`, lalu hanya menerima respons bila `Array.isArray(result.data)`. Handler identity `ListMembers` (`kelolakelas-identity-service/internal/delivery/http/handler/member_handler.go:115-120`) mengembalikan `data` berupa `MemberListResponse{items, pagination}` (`internal/domain/member.go:57-60\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-25T12:36:13.476Z"
+    },
+    {
+      "id": "KEL-95",
+      "title": "Platform admin dapat menyetujui atau menolak permintaan Creator dengan audit",
+      "description": "## Background / Problem\n\nPermintaan Creator harus diputuskan oleh platform admin; saat ini tidak ada approval state, tindakan lintas tenant, atau audit keputusan untuk pemberian role ini.\n\n## Goal\n\nHanya platform admin dapat memutuskan permintaan Creator pending dan keputusan yang disetujui memberi role ke target pada tenant yang tepat.\n\n## Requirements\n\n* Platform admin dapat melihat request pending lintas tenant beserta tenant, target, pemohon\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-10-12T14:07:58.787Z"
+    },
+    {
+      "id": "KEL-94",
+      "title": "Creator tenant dapat meminta penambahan Creator untuk tenant sendiri",
+      "description": "## Background / Problem\n\n<issue id=\"119d2a1f-cc6b-4eed-aafd-e42544cd4134\" href=\"https://linear.app/farid-zamani/issue/KEL-79/perubahan-role-dan-penghapusan-anggota-melindungi-owner-dan-mencegah\">KEL-79</issue> menunda kebijakan Creator. Saat ini undangan tenant dapat memilih Creator dan update role dapat menarget Creator, sehingga hak penuh dapat diberikan tanpa review. Arahan baru mensyaratkan permintaan oleh Creator tenant dan persetujuan plat\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-25T10:20:34.429Z"
+    },
+    {
+      "id": "KEL-47",
+      "title": "Rapikan metadata halaman publik, bahasa dokumen, dan branding web",
+      "description": "## Background / Problem\n\nRoot layout masih memakai metadata `Create Next App` dan `lang=\"en\"` (`app/layout.tsx:15-18,27`) padahal UI parent berbahasa Indonesia. `/kelas` dan `/kelas/[id]` tidak mengekspor metadata atau canonical sehingga mewarisi judul placeholder. Nama `Tutorin` masih ada di `package.json:2`, halaman login/register, `LoginForm.tsx:61`, `TenantSidebar.tsx:88,93`, dan `MobileNav.tsx:69,73`; README masih template create-next-app; \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-24T12:27:20.966Z"
+    },
+    {
+      "id": "KEL-77",
+      "title": "Halaman Members dan metrik dashboard tenant menampilkan anggota yang sebenarnya",
+      "description": "## Background / Problem\n\nIdentity `GET /members` mengembalikan `data: {items, pagination}` (`kelolakelas-identity-service/internal/delivery/http/handler/member_handler.go:120`, struct `MemberListResponse` di `internal/domain/member.go:57-60`). Query web `getTenantMembers` hanya menerima `Array.isArray(result.data)` dan selain itu mengembalikan `[]` (`kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_queries/queries.ts:51-55`). Inferensi \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "duplicate",
+      "labels": [
+        "web",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-24T12:20:45.772Z"
+    },
+    {
+      "id": "KEL-36",
+      "title": "Laporkan kegagalan pengiriman email undangan",
+      "description": "> **Contract update (2026-09-21, pre-implementation inspection):** Requirement 4 membutuhkan perubahan kode web. Bukti: `kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_actions/actions.ts` membuat pesan suksesnya sendiri (`Invitation successfully sent to ...`) dan mengabaikan `message` backend pada jalur sukses, serta `InviteMemberModal.tsx` menutup modal saat sukses. Karena itu `repositories` dan label repository diperluas dari `ident\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "Improvement",
+        "ai-ready",
+        "web"
+      ],
+      "updatedAt": "2026-09-24T12:20:41.142Z"
+    },
+    {
+      "id": "KEL-57",
+      "title": "Transaksi tenant hanya dapat dibaca anggota dengan permission billing:read",
+      "description": "## Background / Problem\n\n`GET /api/v1/billing/transactions` dan `/:id` hanya memakai `AuthMiddleware` (`cmd/server/main.go:96-100`). Untuk token non-parent, handler memakai `tenant_id` claim, sehingga setiap anggota aktif dapat membaca seluruh transaksi tenant (nominal, parent ID, student ID), termasuk role Teacher bawaan yang hanya memiliki permission schedule, attendance, student_note, dan report. Identity sudah men-seed `billing:read`. Academ\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-24T12:02:35.546Z"
+    },
+    {
+      "id": "KEL-7",
+      "title": "Terapkan permission pada administrasi tenant dan role",
+      "description": "## Background / Problem\n\nPermission `member:invite`, `tenant:update`, dan `role:create|update|delete` sudah di-seed. Namun invitation creation, tenant setting mutations, dan role CRUD hanya menggunakan tenant claim atau ownership rule. Member role update/delete sudah menunjukkan bahwa permission dapat diverifikasi pada use case.\n\n## Goal\n\nOperasi administrasi tenant hanya dapat dilakukan oleh member dengan permission yang sesuai.\n\n## Requirement\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-24T12:02:22.413Z"
+    },
+    {
+      "id": "KEL-20",
+      "title": "Evaluasi role dan permission hanya dalam tenant yang sama",
+      "description": "## Background / Problem\n\n`HasPermission` (`kelolakelas-identity-service/internal/repository/member_repository.go:78-82`) dan gRPC `CheckPermission` (`internal/delivery/grpc/permission_service.go:63-88`) memeriksa `role_id` secara global tanpa tenant, sehingga role tenant A memenuhi permission saat beroperasi pada tenant B. `CreateInvitation` (`internal/usecase/invitation_usecase.go:38-75`) tidak memvalidasi bahwa `role_id` undangan milik tenant \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-24T12:02:22.413Z"
+    },
+    {
+      "id": "KEL-37",
+      "title": "Terapkan timeout, batas body, dan error envelope pada proxy gateway",
+      "description": "## Background / Problem\n\nReverse proxy dibuat tanpa transport kustom, tanpa timeout header/response, tanpa `ErrorHandler`, dan server dijalankan dengan `r.Run` tanpa read/write/idle timeout (`internal/delivery/http/handler/proxy_handler.go`, `cmd/server/main.go:50`). Tidak ada batas ukuran body. Downstream yang mati menghasilkan 502 teks polos dari stdlib yang tidak mengikuti envelope `{status,message,data}`.\n\n## Goal\n\nGateway tetap responsif ke\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "api-gateway",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-24T07:13:11.876Z"
+    },
+    {
+      "id": "KEL-19",
+      "title": "Ambil konteks tenant academic hanya dari claim JWT dan cocokkan tenant pada path",
+      "description": "## Background / Problem\n\n`tenantIDFromContext` (`internal/delivery/http/handler/category_handler.go:143-152`), `list_handler.go:28-34`, dan `class_handler.go:42-44,88-90` memakai header `X-Tenant-ID` ketika claim tenant kosong. Middleware auth mengizinkan tenant kosong untuk parent (`internal/delivery/http/middleware/auth_middleware.go:50`), sehingga parent dapat membaca `GET /categories`, `GET /classes`, dan `GET /schedules` tenant mana pun ter\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-24T07:12:45.101Z"
+    },
+    {
+      "id": "KEL-16",
+      "title": "Ambil konteks tenant identity hanya dari claim JWT",
+      "description": "## Background / Problem\n\n`extractTenantID` (`internal/delivery/http/handler/role_handler.go:22-38`) memakai header `X-Tenant-ID` dari client ketika claim tenant bernilai nil. Login memberi `tenant_id` nil untuk user tanpa membership aktif, termasuk semua parent (`internal/usecase/auth_usecase.go:77-86`). Akibatnya parent terautentikasi dapat membaca `GET /members`, `GET /tutors`, `GET /roles`, `GET /tenant/settings`, dan `GET /tenant/settings/lo\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-24T07:12:45.101Z"
+    },
+    {
+      "id": "KEL-17",
+      "title": "Scope mutasi sesi dan jadwal ke tenant pemilik",
+      "description": "## Background / Problem\n\n`RescheduleSession`, `ChangeSchedulePermanent`, `ChangeTutorTemporary`, `ChangeTutorPermanent`, dan `GetSessionAttendees` (`internal/usecase/schedule_usecase.go:275,326,395,416,476`) tidak menerima tenant ID, dan handler-nya (`internal/delivery/http/handler/schedule_handler.go:151-168,210-227,269-286,328-345,386-398`) tidak menyelesaikan tenant. Mereka memuat sesi/jadwal lewat `GetByID` yang tidak di-scope, padahal `GetB\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-23T22:24:39.924Z"
+    },
+    {
+      "id": "KEL-48",
+      "title": "Lengkapi error boundary dan halaman not-found pada route publik dan dashboard",
+      "description": "## Background / Problem\n\nSatu-satunya `error.tsx` berada di `app/(dashboard)/dashboard/parent/students/error.tsx`; tidak ada `not-found.tsx` atau `global-error.tsx`. Kesalahan tak terduga pada `/kelas`, `/kelas/[id]`, `/dashboard/parent/enrollments`, dan seluruh route tenant menampilkan layar error bawaan Next.js tanpa aksi pemulihan, dan URL tidak dikenal tidak memiliki halaman 404 bermerek.\n\n## Goal\n\nSetiap segmen route memiliki halaman error \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-23T20:36:25.787Z"
+    },
+    {
+      "id": "KEL-42",
+      "title": "Batasi pemanggilan gRPC dan penulisan snapshot tenant pada setiap request katalog",
+      "description": "## Background / Problem\n\nSetiap request list atau detail katalog memanggil `GetTenantPublicInfo` untuk semua tenant hasil dan menyimpan ulang `tenant_location_snapshots` (`internal/usecase/catalog_usecase.go:17-37,49-76`, `internal/repository/catalog_repository.go:21-28`) tanpa TTL atau timeout gRPC (`pkg/grpcclient/tenant_client.go:42,50`). Visibility tenant nonaktif juga tidak konsisten: list memakai LEFT JOIN, detail memakai INNER JOIN dengan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-21T20:07:40.320Z"
+    },
+    {
+      "id": "KEL-41",
+      "title": "Bersihkan artefak build, dump data, dan contoh kredensial dari repository Go",
+      "description": "## Background / Problem\n\n`git ls-files` menunjukkan binary ter-commit: academic `main` dan `server`, identity `server`, gateway `server`, serta billing `dump.rdb`. Setiap `.gitignore` Go hanya berisi `.env`. `kelolakelas-billing-service/.env.example` memuat nilai `JWT_SECRET=supersecretjwtkey123!` dan `REDIS_PASSWORD=inipasswordredis` serta variabel Redis yang tidak dibaca config. Makefile academic dan billing memiliki target `seed` ke direktori\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "Refactor",
+        "billing",
+        "identity",
+        "academic",
+        "api-gateway",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-21T19:50:58.933Z"
+    },
+    {
+      "id": "KEL-34",
+      "title": "Hadirkan halaman pengaturan profil dan lokasi tenant",
+      "description": "## Background / Problem\n\n`app/(dashboard)/dashboard/tenant/settings/page.tsx:23-30` hanya berisi teks placeholder. Identity sudah menyediakan `GET/PATCH /api/v1/tenant/settings` (name, phone, address, about) dan `GET/PUT /api/v1/tenant/settings/location` (address, latitude/longitude opsional, google_place_id) dengan permission `tenant:update`. Lokasi memengaruhi pencarian katalog berbasis radius.\n\n## Goal\n\nTenant dapat melengkapi profil dan loka\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-21T08:45:50.918Z"
+    },
+    {
+      "id": "KEL-29",
+      "title": "Jadikan rekonsiliasi terminal_failed dapat ditemukan dan diulang",
+      "description": "## Background / Problem\n\nSetelah `PAYMENT_RECONCILIATION_MAX_ATTEMPTS` tercapai, baris menjadi `terminal_failed` dan tidak ada kode yang membacanya kembali; `RunOnce` menelan seluruh error repository (`internal/usecase/reconciliation_worker.go:56-70`) dan tidak ada satu pun log di handler, use case, atau worker billing. Satu-satunya jalur pemulihan adalah replay callback dari provider, dan satu-satunya visibilitas adalah field rekonsiliasi pada \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-21T08:35:58.862Z"
+    },
+    {
+      "id": "KEL-21",
+      "title": "Terapkan permission pada operasi student dan enrollment sisi tenant",
+      "description": "## Background\n\nRoute student (`cmd/server/main.go:118-122`) dan enrollment (`:132-136`) hanya memerlukan JWT: setiap pemegang token tenant yang valid bisa memanggilnya tanpa permission. Route katalog sudah dijaga `RequirePermission`, tetapi operasi student dan enrollment belum.\n\n## Goal\n\nOperasi student dan enrollment yang dijalankan atas nama tenant hanya dapat dilakukan oleh role dengan permission terkait, sementara jalur parent yang berbasis \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-21T05:42:03.428Z"
+    },
+    {
+      "id": "KEL-46",
+      "title": "Sediakan logout untuk parent dan tenant",
+      "description": "## Background / Problem\n\nPencarian `logout`, `sign out`, dan `signout` di `app/` dan `lib/` tidak menemukan apa pun. Cookie sesi berumur tujuh hari (`app/(auth)/login/_actions/actions.ts:72-90`) dan tidak ada menu akun di sidebar tenant, mobile nav, maupun halaman parent, sehingga pengguna perangkat bersama tidak dapat mengakhiri sesi.\n\n## Goal\n\nPengguna dapat mengakhiri sesi dari halaman terautentikasi mana pun dan kembali ke halaman publik.\n\n#\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-20T20:48:03.606Z"
+    },
+    {
+      "id": "KEL-35",
+      "title": "Sediakan halaman penerimaan undangan anggota tenant",
+      "description": "## Background / Problem\n\nEmail undangan identity menautkan ke `{APP_URL}/invitations/verify?token=...` (`kelolakelas-identity-service/pkg/email/resend.go:37-88`), tetapi web tidak memiliki route tersebut. Endpoint publik `GET /api/v1/invitations/verify` dan `POST /api/v1/invitations/register` sudah diproksikan gateway (`router.go:51-52`). Staf yang diundang dari halaman members tidak dapat menyelesaikan pendaftaran.\n\n## Goal\n\nAnggota yang diunda\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-20T19:07:46.258Z"
+    },
+    {
+      "id": "KEL-32",
+      "title": "Sediakan edit kelas di dashboard tenant",
+      "description": "## Background / Problem\n\nDaftar kelas tenant bersifat read-only selain pembuatan; tidak ada form edit karena endpoint update belum ada. Setelah endpoint update tersedia, tenant memerlukan UI untuk memperbaiki nama, deskripsi, harga, dan kategori.\n\n## Goal\n\nTenant dapat memperbarui informasi jual kelas dari dashboard dengan validasi yang sama seperti pembuatan.\n\n## Requirements\n\n* Form edit memakai field dan validasi yang sama dengan wizard pembu\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-20T18:27:14.199Z"
+    },
+    {
+      "id": "KEL-24",
+      "title": "Pulihkan transaksi yang tertahan di status creating saat pembuatan invoice gagal",
+      "description": "## Background / Problem\n\n`GenerateSubscriptionPayment` mengklaim transaksi ke status `creating` melalui `ClaimInvoice` (`internal/repository/transaction_repository.go:111-116`) lalu memanggil Duitku; jika `CreateInvoice` gagal, fungsi mengembalikan error tanpa memulihkan status (`internal/usecase/transaction_usecase.go:176-207`). `ClaimInvoice` hanya mencocokkan `pending` atau `failed`, sehingga setiap retry dengan idempotency key yang sama meng\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-20T17:40:12.417Z"
+    },
+    {
+      "id": "KEL-31",
+      "title": "Sediakan kontrol publikasi kelas di dashboard tenant",
+      "description": "## Background / Problem\n\nHalaman `app/(dashboard)/dashboard/tenant/classes` hanya menampilkan daftar kelas dan wizard pembuatan; pencarian kata `published` di direktori tersebut tidak menemukan kontrol apa pun. Endpoint `PATCH /api/v1/classes/:id/published` sudah tersedia di academic dan gateway dengan permission `class:update`. Tanpa kontrol ini tenant tidak dapat membuat kelasnya muncul di katalog publik dari web.\n\n## Goal\n\nTenant dapat memubl\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-20T15:43:47.748Z"
+    },
+    {
+      "id": "KEL-18",
+      "title": "Netralkan header konteks tenant dan internal dari client di gateway",
+      "description": "## Background / Problem\n\nProxy academic dan billing hanya menetapkan `X-Tenant-ID` ketika claim tenant JWT tidak kosong (`internal/delivery/http/handler/proxy_handler.go:66-74,88-95`), proxy identity tidak menyentuh header sama sekali (`:50-52`), dan tidak ada header client yang dihapus. Middleware JWT gateway tidak mewajibkan claim apa pun non-empty (`internal/delivery/http/middleware/auth_middleware.go:78-83`). Token parent membawa tenant koso\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "api-gateway",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-20T15:19:36.498Z"
+    },
+    {
+      "id": "KEL-27",
+      "title": "Sediakan pembatalan enrollment pending oleh parent",
+      "description": "## Background / Problem\n\nTidak ada jalur pembatalan enrollment di academic maupun billing; `enrollmentRepo.Delete` tidak dipakai handler mana pun dan status `cancelled` hanya ada di whitelist filter billing tanpa pernah ditulis. Parent yang berubah pikiran sebelum membayar tetap menahan kursi sampai invoice kedaluwarsa.\n\n## Goal\n\nParent dapat membatalkan enrollment miliknya yang masih pending sehingga kursi dilepaskan dan transaksi terkait ditan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "academic",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-20T15:18:52.675Z"
+    },
+    {
+      "id": "KEL-38",
+      "title": "Tambahkan request ID dan access log terstruktur di gateway",
+      "description": "## Background / Problem\n\nGateway hanya mencatat satu `slog.Info` per request berisi method dan path (`proxy_handler.go:47,63,85,108`) tanpa status, latensi, atau ID korelasi; `gin.Logger()` tidak terdaftar dan tidak ada penanganan `X-Request-ID` di repo mana pun. Kegagalan lintas service tidak dapat ditelusuri.\n\n## Goal\n\nSetiap request yang melewati gateway memiliki request ID yang diteruskan ke downstream dan dikembalikan ke klien, serta satu b\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "api-gateway",
+        "Improvement",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-20T13:51:54.824Z"
+    },
+    {
+      "id": "KEL-30",
+      "title": "Sediakan endpoint pembaruan kelas untuk tenant",
+      "description": "## Background / Problem\n\nRoute kelas hanya mencakup list, create, create-with-category, delete, dan toggle publikasi (`kelolakelas-academic-service/cmd/server/main.go:112-116`; gateway `router.go:87-91`). Tidak ada cara memperbarui nama, deskripsi, harga, tipe, atau kategori; tenant harus menghapus dan membuat ulang kelas, yang memutus enrollment dan jadwal yang sudah ada. Permission `class:update` sudah di-seed dan dipakai untuk publikasi.\n\n## \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "academic",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-20T13:33:54.794Z"
+    },
+    {
+      "id": "KEL-49",
+      "title": "Jadikan transport model ai orchestrator dapat dikonfigurasi penuh untuk provider apa pun",
+      "description": "## Background / Problem\n\n`agents.runner.kind` hanya menerima `codex-cli`, dan seluruh asumsi transport Codex tersebar di luar batas adapter: flag `codex exec`, nama effort, event JSONL, variabel environment, bentuk kredensial, sampai sandbox perintah milik Codex sendiri. *Identifier* model memang sudah bebas (`models.tiers.<tier>.model`), tetapi transport-nya tidak \u2014 setiap run selalu `codex exec`. Akibatnya provider lain tidak dapat dipakai tan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "Refactor"
+      ],
+      "updatedAt": "2026-09-20T09:44:49.413Z"
+    },
+    {
+      "id": "KEL-25",
+      "title": "Kedaluwarsakan transaksi yang tidak dibayar dan tangani result code callback secara eksplisit",
+      "description": "## Background / Problem\n\nInvoice Duitku dibuat dengan `ExpiryPeriod: 0` yang berarti 1440 menit (`pkg/duitku/client.go:61-63`), tetapi billing tidak menyimpan waktu kedaluwarsa dan tidak pernah menulis status `expired`; status itu hanya dibaca oleh subscription worker untuk renewal (`internal/usecase/subscription_worker.go:100-101`). Callback dengan result code selain `00`, `01`, `02` mengembalikan sukses tanpa perubahan atau log (`internal/usec\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "Feature",
+        "ai-ready"
+      ],
+      "updatedAt": "2026-09-19T21:41:40.082Z"
+    },
+    {
+      "id": "KEL-10",
+      "title": "Terapkan permission pada mutasi katalog kelas",
+      "description": "## Background / Problem\n\nPermission kategori, kelas, dan jadwal sudah didefinisikan di identity, tetapi academic hanya menerima JWT dan menerapkan tenant/resource scoping. Setiap member tenant yang memiliki token berpotensi mencapai mutasi katalog tanpa pemeriksaan permission granular.\n\n## Goal\n\nPerubahan kategori, kelas, publication state, dan jadwal hanya dapat dilakukan oleh role yang memiliki permission terkait.\n\n## Requirements\n\n* Mutasi ka\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "academic",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-16T11:44:03.379Z"
+    },
+    {
+      "id": "KEL-15",
+      "title": "Tampilkan status enrollment dan pembayaran kepada parent",
+      "description": "## Background / Problem\n\nAcademic dan billing menyediakan parent-scoped enrollment serta transaction queries, tetapi web tidak memiliki halaman konfirmasi atau riwayat. Setelah kembali dari provider, parent tidak dapat membedakan pending, paid, failed, atau paid yang masih menunggu aktivasi enrollment.\n\n## Goal\n\nParent dapat melihat status enrollment dan pembayaran secara akurat setelah checkout maupun dari riwayat akun.\n\n## Requirements\n\n* Tamp\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature"
+      ],
+      "updatedAt": "2026-09-15T05:07:01.644Z"
+    },
+    {
+      "id": "KEL-8",
+      "title": "Rekonsiliasi pembayaran paid dengan aktivasi enrollment secara durable",
+      "description": "## Background / Problem\n\nBilling meng-commit transaksi paid dan subscription sebelum memanggil academic untuk mengaktifkan enrollment. Jika academic gagal, callback mengembalikan error setelah pembayaran tersimpan. Replay callback mencoba aktivasi lagi, tetapi penyelesaian saat ini bergantung pada callback eksternal diulang.\n\n## Goal\n\nPembayaran valid akhirnya menghasilkan enrollment aktif tanpa memerlukan callback manual, dengan proses yang ide\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "academic",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-15T04:41:39.919Z"
+    },
+    {
+      "id": "KEL-14",
+      "title": "Bawa parent dari kelas ke checkout pembayaran",
+      "description": "## Background / Problem\n\nAcademic catalog enrollment sudah memvalidasi parent, student ownership, publication, enrollability, schedule capacity, dan `Idempotency-Key`, lalu mengembalikan transaction ID serta checkout URL. Capability tersebut belum dapat digunakan dari web.\n\n## Goal\n\nParent dapat memilih student dan schedule yang valid, membuat enrollment sekali, lalu melanjutkan ke checkout Duitku.\n\n## Requirements\n\n* Enrollment dimulai melalui \u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature"
+      ],
+      "updatedAt": "2026-09-15T04:33:32.655Z"
+    },
+    {
+      "id": "KEL-13",
+      "title": "Hadirkan pengelolaan profil student untuk parent",
+      "description": "## Background / Problem\n\nCatalog enrollment membutuhkan `student_id` yang dimiliki parent. API student sudah mendukung list, create, get, update, dan delete dengan parent ownership, tetapi web belum memiliki UI student.\n\n## Goal\n\nParent dapat menyiapkan dan memilih profil student yang dibutuhkan untuk enrollment kelas.\n\n## Requirements\n\n* Parent dapat melihat, membuat, memperbarui, dan menghapus student miliknya.\n* Form mengikuti field serta val\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature"
+      ],
+      "updatedAt": "2026-09-14T09:05:13.147Z"
+    },
+    {
+      "id": "KEL-12",
+      "title": "Selesaikan session entry dan navigasi parent",
+      "description": "## Background / Problem\n\nIdentity secara eksplisit tidak melakukan auto-login setelah parent registration. Web tetap memeriksa token opsional dan mengarahkan user ke `/dashboard/parent`, yang tidak ada. Login mengarahkan semua user ke `/dashboard`, yang juga tidak memiliki page langsung. Proxy hanya memeriksa keberadaan cookie.\n\n## Goal\n\nParent dan tenant memperoleh navigasi pasca-registrasi/login yang valid dan sesuai konteks akun.\n\n## Requirem\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-14T08:52:03.863Z"
+    },
+    {
+      "id": "KEL-11",
+      "title": "Hadirkan discovery dan detail kelas publik",
+      "description": "## Background / Problem\n\nGateway dan academic sudah menyediakan public catalog list/detail dengan filter search, kategori, tenant, tipe, harga, lokasi, radius, dan sort. Web hanya memiliki landing page sehingga calon pembeli belum dapat melihat kelas yang dipublikasikan.\n\n## Goal\n\nVisitor dapat menemukan dan memahami kelas yang tersedia sebelum membuat keputusan enrollment.\n\n## Requirements\n\n* Tampilkan daftar kelas publik dengan informasi tenan\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Feature"
+      ],
+      "updatedAt": "2026-09-14T04:14:58.643Z"
+    },
+    {
+      "id": "KEL-9",
+      "title": "Jadikan koneksi web ke gateway eksplisit dan dapat diuji",
+      "description": "## Background / Problem\n\nSemua server action dan query web memakai fallback `http://localhost:3000`, sementara gateway berjalan pada `:8000` dan tidak ditemukan Next API proxy. Konfigurasi ini dapat membuat request menuju web sendiri dan gagal secara tidak jelas. Web juga belum memiliki test script.\n\n## Goal\n\nSeluruh request backend web menggunakan konfigurasi gateway yang tunggal, eksplisit, tervalidasi, dan memiliki automated coverage dasar.\n\n\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "web",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-14T04:04:40.506Z"
+    },
+    {
+      "id": "KEL-6",
+      "title": "Batasi pembuatan invoice ke enrollment terverifikasi",
+      "description": "## Background / Problem\n\n`POST /api/v1/billing/transactions` dilindungi JWT, tetapi handler meneruskan `tenant_id`, `parent_id`, `student_id`, `enrollment_id`, dan nominal dari request langsung ke use case. Claim caller tidak digunakan untuk memverifikasi payload. Alur marketplace yang sah sudah memakai `/internal/billing/transactions` dari academic.\n\n## Goal\n\nUser tidak dapat membuat invoice arbitrer di luar enrollment yang telah diverifikasi o\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "billing",
+        "api-gateway",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-14T02:56:57.757Z"
+    },
+    {
+      "id": "KEL-5",
+      "title": "Wajibkan JWT secret eksplisit pada seluruh boundary terkait",
+      "description": "## Background / Problem\n\nIdentity, API gateway, dan academic memakai fallback `supersecretjwtkey123!` ketika `JWT_SECRET` kosong. Karena ketiganya mempercayai secret yang sama, runtime yang salah konfigurasi dapat menerima token yang dibuat menggunakan nilai fallback yang diketahui. Billing sudah menunjukkan pola yang diinginkan dengan menolak startup tanpa `JWT_SECRET`.\n\n## Goal\n\nSeluruh boundary JWT hanya dapat berjalan dengan secret yang diko\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "completed",
+      "labels": [
+        "identity",
+        "academic",
+        "api-gateway",
+        "Improvement"
+      ],
+      "updatedAt": "2026-09-13T20:42:45.796Z"
+    },
+    {
+      "id": "KEL-1",
+      "title": "Get familiar with Linear",
+      "description": "Welcome to Linear!\u00a0\n\nWatch an introductory video and access a list of resources below.\n\n<linear-embed node-type=\"video\">{\"uploadState\":\"finished\",\"uploadId\":\"upload-1768557254876-t6pc6wu\",\"src\":\"https://uploads.linear.app/fe63b3e2-bf87-46c0-8784-cd7d639287c8/a044fb03-9b84-470c-ab6f-8eae613e2529/98d7274d-de7f-4910-b3f3-f72e8e286a98\",\"title\":\"LinearH264Version_1.mp4\",\"size\":75734656,\"controls\":true,\"height\":2160,\"width\":3840,\"metadataId\":null,\"mim\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "unstarted",
+      "labels": [],
+      "updatedAt": "2026-09-07T04:59:52.512Z"
+    },
+    {
+      "id": "KEL-4",
+      "title": "Set up your teams",
+      "description": "This workspace is a container for your organization\u2019s work.\u00a0\n\n* [Learn more about Workspaces](<https://linear.app/docs/workspaces>)\n  How to configure settings and workflows\u00a0\n\nTeams are how you organize people and work in Linear.\n\n* [Learn about Teams](<https://linear.app/docs/teams>)\n  How to structure teams and configure workflows\n\nTeams are made of members with defined roles (Admin, Member, Guest).\n\n* [Learn more about Members](<https://linea\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "unstarted",
+      "labels": [],
+      "updatedAt": "2026-09-07T04:59:52.512Z"
+    },
+    {
+      "id": "KEL-2",
+      "title": "Connect your tools",
+      "description": "Integrations turn Linear into your source of truth around product development. Keep data in sync, and eliminate manual updates between tools.\n\n<linear-image>{\"type\":\"image\",\"attrs\":{\"src\":\"https://uploads.linear.app/fe63b3e2-bf87-46c0-8784-cd7d639287c8/c2eae035-37e2-4754-adcb-b8305431aa1f/c92d70c7-e6d0-4fa2-a0fd-78f6e780993a\",\"title\":\"connect-your-tools.png\",\"width\":2880,\"height\":1768,\"displayWidth\":534}}</linear-image>\n\n### **Key integrations**\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "unstarted",
+      "labels": [],
+      "updatedAt": "2026-09-07T04:59:52.512Z"
+    },
+    {
+      "id": "KEL-3",
+      "title": "Import your data",
+      "description": "Sync data between Linear and your other tools.\n\n<linear-image>{\"type\":\"image\",\"attrs\":{\"src\":\"https://uploads.linear.app/fe63b3e2-bf87-46c0-8784-cd7d639287c8/80d7e050-dd1f-4d4f-8257-b29c16087017/65c16454-30f3-4f4a-8f25-c2428d64ff57\",\"title\":\"import-your-data.png\",\"width\":2880,\"height\":1769,\"displayWidth\":560}}</linear-image>\n\nWhether you're exploring Linear, running a pilot, or ready for full migration, we\u2019ve got you covered.\u00a0\n\n### **Exploring L\u2026 (truncated, use `get_issue` for full description)",
+      "statusType": "unstarted",
+      "labels": [],
+      "updatedAt": "2026-09-07T04:59:52.512Z"
+    }
+  ],
+  "hasNextPage": false
+}

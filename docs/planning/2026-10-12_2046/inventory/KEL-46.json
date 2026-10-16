@@ -1,0 +1,92 @@
+{
+  "id": "KEL-46",
+  "uuid": "5e5d7d5e-0e49-498b-abeb-50d24c180e9e",
+  "title": "Sediakan logout untuk parent dan tenant",
+  "description": "## Background / Problem\n\nPencarian `logout`, `sign out`, dan `signout` di `app/` dan `lib/` tidak menemukan apa pun. Cookie sesi berumur tujuh hari (`app/(auth)/login/_actions/actions.ts:72-90`) dan tidak ada menu akun di sidebar tenant, mobile nav, maupun halaman parent, sehingga pengguna perangkat bersama tidak dapat mengakhiri sesi.\n\n## Goal\n\nPengguna dapat mengakhiri sesi dari halaman terautentikasi mana pun dan kembali ke halaman publik.\n\n## Requirements\n\n* Aksi logout menghapus cookie auth dan tenant lalu mengarahkan ke halaman login atau beranda.\n* Kontrol logout tersedia di navigasi tenant (sidebar dan mobile) dan di area parent.\n* Setelah logout, route protected mengarahkan ke login.\n* Login, registrasi, dan proxy yang ada tetap berfungsi.\n\n## Acceptance Criteria\n\n- [ ] Menekan logout menghapus sesi dan membuka /dashboard mengarahkan ke login\n- [ ] Logout tersedia untuk parent dan tenant pada layout desktop dan mobile\n- [ ] Logout saat cookie sudah tidak ada tidak menghasilkan error\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nTidak ada endpoint revocation di identity; token tetap valid sampai kedaluwarsa 24 jam dan keterbatasan ini didokumentasikan. Gunakan Server Action sesuai pola yang ada.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(auth)`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/TenantSidebar.tsx`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/MobileNav.tsx`\n\n## Edge Cases\n\n* Logout dari halaman publik saat sesi parent aktif.\n* Beberapa tab terbuka.\n* Nama cookie dikonfigurasi berbeda lewat env.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Token revocation backend.\n* Halaman profil akun.\n* Logout dari semua perangkat.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-logout\",\n  \"projectKey\": \"buyer-web-experience\",\n  \"title\": \"Sediakan logout untuk parent dan tenant\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"very-low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Pencarian `logout`, `sign out`, dan `signout` di `app/` dan `lib/` tidak menemukan apa pun. Cookie sesi berumur tujuh hari (`app/(auth)/login/_actions/actions.ts:72-90`) dan tidak ada menu akun di sidebar tenant, mobile nav, maupun halaman parent, sehingga pengguna perangkat bersama tidak dapat mengakhiri sesi.\",\n    \"goal\": \"Pengguna dapat mengakhiri sesi dari halaman terautentikasi mana pun dan kembali ke halaman publik.\",\n    \"requirements\": [\n      \"Aksi logout menghapus cookie auth dan tenant lalu mengarahkan ke halaman login atau beranda.\",\n      \"Kontrol logout tersedia di navigasi tenant (sidebar dan mobile) dan di area parent.\",\n      \"Setelah logout, route protected mengarahkan ke login.\",\n      \"Login, registrasi, dan proxy yang ada tetap berfungsi.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Menekan logout menghapus sesi dan membuka /dashboard mengarahkan ke login\",\n      \"Logout tersedia untuk parent dan tenant pada layout desktop dan mobile\",\n      \"Logout saat cookie sudah tidak ada tidak menghasilkan error\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Tidak ada endpoint revocation di identity; token tetap valid sampai kedaluwarsa 24 jam dan keterbatasan ini didokumentasikan. Gunakan Server Action sesuai pola yang ada.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(auth)\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/TenantSidebar.tsx\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/MobileNav.tsx\"\n    ],\n    \"edgeCases\": [\n      \"Logout dari halaman publik saat sesi parent aktif.\",\n      \"Beberapa tab terbuka.\",\n      \"Nama cookie dikonfigurasi berbeda lewat env.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Token revocation backend.\",\n      \"Halaman profil akun.\",\n      \"Logout dari semua perangkat.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-46/sediakan-logout-untuk-parent-dan-tenant",
+  "gitBranchName": "skinel123/kel-46-sediakan-logout-untuk-parent-dan-tenant",
+  "createdAt": "2026-09-16T11:52:39.842Z",
+  "updatedAt": "2026-09-20T20:48:03.606Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-20T20:43:58.388Z",
+  "startedAt": "2026-09-20T20:24:50.441Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "b5431512-c2d8-4993-a7c1-2f8d6a430db8",
+      "title": "docs(KEL-46): document the web logout flow and record ADR 0022",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/35"
+    },
+    {
+      "id": "0d5b41e2-6d7c-4fd7-91f8-f36960a861db",
+      "title": "feat(KEL-46): provide logout for parent and tenant",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/11"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:52:39.842Z",
+      "endedAt": "2026-09-20T20:24:50.453Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-20T20:24:50.453Z",
+      "endedAt": "2026-09-20T20:43:58.397Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-20T20:43:58.397Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pengalaman pembeli yang lengkap di web",
+  "projectId": "8a1ae159-de9c-462a-a5aa-43528ab4c1bb",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

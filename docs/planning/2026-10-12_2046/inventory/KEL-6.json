@@ -1,0 +1,107 @@
+{
+  "id": "KEL-6",
+  "uuid": "f9340d15-7ab5-4a47-b560-146e4fbd3b3b",
+  "title": "Batasi pembuatan invoice ke enrollment terverifikasi",
+  "description": "## Background / Problem\n\n`POST /api/v1/billing/transactions` dilindungi JWT, tetapi handler meneruskan `tenant_id`, `parent_id`, `student_id`, `enrollment_id`, dan nominal dari request langsung ke use case. Claim caller tidak digunakan untuk memverifikasi payload. Alur marketplace yang sah sudah memakai `/internal/billing/transactions` dari academic.\n\n## Goal\n\nUser tidak dapat membuat invoice arbitrer di luar enrollment yang telah diverifikasi oleh academic.\n\n## Requirements\n\n* Jalur user-facing tidak boleh menerima ID dan nominal finansial sebagai sumber kebenaran tanpa verifikasi enrollment.\n* Alur academic-to-billing yang memakai internal credential harus tetap berfungsi.\n* Listing dan detail transaksi parent/tenant harus tetap tersedia.\n* Idempotency transaksi berdasarkan enrollment harus tetap terjaga.\n\n## Acceptance Criteria\n\n- [ ] Authenticated user tidak dapat membuat invoice langsung menggunakan enrollment atau nominal arbitrer\n- [ ] Academic masih dapat menghasilkan invoice untuk enrollment sah melalui endpoint internal\n- [ ] GET transaction list/detail tetap scoped kepada parent atau tenant\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nBukti saat ini mendukung penghentian exposure POST user-facing karena enrollment normal memakai endpoint internal. Jika use case direct-payment tetap diperlukan, scope dan authoritative-data lookup harus disepakati terlebih dahulu.\n\nRelevant areas:\n\n* `kelolakelas-api-gateway/internal/delivery/http/router.go`\n* `kelolakelas-billing-service/cmd/server/main.go`\n* `kelolakelas-billing-service/internal/delivery/http/handler/transaction_handler.go`\n\n## Edge Cases\n\n* User mencoba memakai enrollment milik parent lain.\n* Request diulang untuk enrollment yang sudah memiliki transaksi.\n* Internal credential kosong atau salah.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Standalone payment di luar enrollment.\n* Voucher dan diskon baru.\n* Pergantian provider Duitku.",
+  "priority": {
+    "value": 1,
+    "name": "Urgent"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-6/batasi-pembuatan-invoice-ke-enrollment-terverifikasi",
+  "gitBranchName": "skinel123/kel-6-batasi-pembuatan-invoice-ke-enrollment-terverifikasi",
+  "createdAt": "2026-09-13T19:01:43.025Z",
+  "updatedAt": "2026-09-14T02:56:57.757Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-14T02:56:57.742Z",
+  "startedAt": "2026-09-14T02:54:48.815Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "api-gateway",
+    "Improvement"
+  ],
+  "attachments": [
+    {
+      "id": "a27e77c9-8740-425c-aab1-1ca10963ed92",
+      "title": "docs: document verified internal invoice creation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/2"
+    },
+    {
+      "id": "3cf6a789-1222-4cee-bbb4-afdcc358c748",
+      "title": "security: restrict invoice creation to internal flow",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/2"
+    },
+    {
+      "id": "dfd7ff2a-5e79-4179-b128-a374f2c15a7e",
+      "title": "security: restrict invoice creation to verified enrollments",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/3"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:01:43.025Z",
+      "endedAt": "2026-09-14T02:54:48.822Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-14T02:54:48.822Z",
+      "endedAt": "2026-09-14T02:56:57.750Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-14T02:56:57.750Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pembayaran kelas konsisten dan terpercaya",
+  "projectId": "7a8b0290-48d2-4226-ab3c-fa971eb42dc0",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-14",
+        "title": "Bawa parent dari kelas ke checkout pembayaran"
+      },
+      {
+        "id": "KEL-8",
+        "title": "Rekonsiliasi pembayaran paid dengan aktivasi enrollment secara durable"
+      }
+    ],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

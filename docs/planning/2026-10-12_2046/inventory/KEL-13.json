@@ -1,0 +1,101 @@
+{
+  "id": "KEL-13",
+  "uuid": "79076775-f370-474a-8e4b-cfe06e53032f",
+  "title": "Hadirkan pengelolaan profil student untuk parent",
+  "description": "## Background / Problem\n\nCatalog enrollment membutuhkan `student_id` yang dimiliki parent. API student sudah mendukung list, create, get, update, dan delete dengan parent ownership, tetapi web belum memiliki UI student.\n\n## Goal\n\nParent dapat menyiapkan dan memilih profil student yang dibutuhkan untuk enrollment kelas.\n\n## Requirements\n\n* Parent dapat melihat, membuat, memperbarui, dan menghapus student miliknya.\n* Form mengikuti field serta validasi API student.\n* Konflik penghapusan akibat enrollment aktif harus dijelaskan kepada user.\n* Student tenant lain atau parent lain tidak boleh terlihat atau dapat dimutasi.\n\n## Acceptance Criteria\n\n- [ ] Parent dapat membuat student lalu melihatnya pada daftar miliknya\n- [ ] Update dan delete mengikuti ownership serta active-enrollment guard\n- [ ] Empty, loading, validation, forbidden, conflict, dan API-error state ditampilkan\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nCatatan student memiliki aturan tambahan dan tidak diperlukan untuk pembelian pertama; jangan membuat UI note yang tidak dibutuhkan dalam issue ini.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)`\n* `kelolakelas-academic-service/internal/domain/student.go`\n* `kelolakelas-academic-service/internal/delivery/http/handler/student_handler.go`\n\n## Edge Cases\n\n* Parent belum memiliki student.\n* Student memiliki enrollment aktif saat delete.\n* Tanggal lahir atau optional field tidak valid.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Student notes.\n* Attendance dan report.\n* Bulk import student.",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-13/hadirkan-pengelolaan-profil-student-untuk-parent",
+  "gitBranchName": "skinel123/kel-13-hadirkan-pengelolaan-profil-student-untuk-parent",
+  "createdAt": "2026-09-13T19:03:52.040Z",
+  "updatedAt": "2026-09-14T09:05:13.147Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-14T09:05:13.114Z",
+  "startedAt": "2026-09-14T08:56:01.702Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature"
+  ],
+  "attachments": [
+    {
+      "id": "92ccc478-37db-4e47-860b-3a2efca8f6d8",
+      "title": "docs: document parent student management",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/7"
+    },
+    {
+      "id": "740dad3c-afe3-4fe6-8ee4-e6998ea8b1b7",
+      "title": "feat: add parent student profile management",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/5"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:03:52.040Z",
+      "endedAt": "2026-09-14T08:56:01.715Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-14T08:56:01.715Z",
+      "endedAt": "2026-09-14T09:05:13.129Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-14T09:05:13.129Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Perjalanan pembelian kelas untuk parent",
+  "projectId": "f80b0535-5536-4f54-8f09-7a93f01a9f24",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-14",
+        "title": "Bawa parent dari kelas ke checkout pembayaran"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-12",
+        "title": "Selesaikan session entry dan navigasi parent"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

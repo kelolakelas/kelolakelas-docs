@@ -1,0 +1,138 @@
+{
+  "id": "KEL-67",
+  "uuid": "3b262de8-f14e-4df2-aa8e-1674099c2eea",
+  "title": "Pengguna dapat memulai dan menyelesaikan reset password dari web",
+  "description": "## Background / Problem\n\nGrup route `(auth)` web hanya berisi `invitations`, `login`, `logout`, dan `register`, dan tidak ada halaman lupa password. `proxy.ts:8-11` hanya mengenal `protectedRoutes = [\"/dashboard\", \"/profile\"]` dan `publicRoutes = [\"/login\", \"/register\"]`. Setelah API reset tersedia (issue blocker), pengguna membutuhkan titik masuk dari halaman login dan halaman untuk menetapkan password baru dari tautan email.\n\n## Goal\n\nPengguna yang lupa password dapat meminta tautan dari halaman login dan menetapkan password baru dari tautan email, lalu kembali ke login.\n\n## Requirements\n\n* Halaman permintaan reset dengan satu field email yang selalu menampilkan konfirmasi generik setelah submit.\n* Halaman atur ulang password yang membaca token dari URL, meminta password baru beserta konfirmasinya, dan menampilkan hasil sukses atau token tidak valid/kedaluwarsa.\n* Tautan \"Lupa password?\" di halaman login.\n* Validasi zod di server mengikuti aturan panjang minimum backend.\n* Kedua halaman dapat diakses tanpa login, dan perilaku untuk pengguna yang sedang login konsisten dengan `publicRoutes`.\n* Form tetap berfungsi tanpa JavaScript klien, mengikuti pola `useFormStatus` yang sudah ada.\n* Setelah reset berhasil, cookie sesi di browser yang sama dihapus lewat `clearSessionCookies` (`lib/logout.ts`) karena sesi lama sudah dicabut backend.\n\n## Acceptance Criteria\n\n- [ ] Dari `/login`, pengguna dapat membuka halaman lupa password dan melihat konfirmasi generik setelah submit.\n- [ ] Tautan dengan token valid memungkinkan penetapan password baru dan mengarahkan ke `/login` dengan pesan sukses.\n- [ ] Token tidak valid atau kedaluwarsa menampilkan pesan yang jelas beserta tautan untuk meminta ulang.\n- [ ] Error 5xx gateway diganti pesan generik berbahasa Indonesia.\n- [ ] Label form, pesan error (`role=\"alert\"`), dan fokus dapat diakses keyboard.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nIkuti pola Server Action di `app/(auth)/login/_actions/actions.ts` dan `app/(auth)/invitations/verify`. Token hanya dikirim ke gateway dari server dan tidak dicatat di log. Halaman atur ulang password memakai metadata `noindex` karena URL-nya memuat token. Baca `node_modules/next/dist/docs/` sebelum menulis kode (aturan `AGENTS.md` web). Kontrak endpoint mengikuti hasil issue blocker; jangan menetapkan path sebelum blocker merge. Perbarui `kelolakelas-docs` (halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup/menyempit, serta evidence index) dalam PR docs terpisah setelah PR kode merge.\n\nComplexity: `medium`. Complexity rationale: Menambah dua halaman publik dan Server Action mengikuti pola login/undangan yang sudah ada. Risikonya ada pada routing proxy untuk pengguna yang sedang login dan pada penanganan token di URL.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(auth)`\n* `kelolakelas-web/app/(auth)/login/page.tsx`\n* `kelolakelas-web/proxy.ts`\n* `kelolakelas-web/lib/gateway.ts`\n\n## Edge Cases\n\n* Token hilang dari URL.\n* Pengguna mengirim form berulang (double submit).\n* Pengguna yang sedang login membuka tautan reset.\n\n## Testing / Validation\n\n- [ ] Test Server Action untuk sukses, token invalid, validasi password, dan 5xx.\n- [ ] Test `proxy.ts` untuk akses route baru saat login dan tanpa login.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Backend reset password (issue blocker).\n* Ganti password dari dashboard.\n* Perubahan desain halaman login.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-password-reset-pages\",\n  \"projectKey\": \"self-service-account-recovery\",\n  \"title\": \"Pengguna dapat memulai dan menyelesaikan reset password dari web\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"identity-password-reset-api\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Grup route `(auth)` web hanya berisi `invitations`, `login`, `logout`, dan `register`, dan tidak ada halaman lupa password. `proxy.ts:8-11` hanya mengenal `protectedRoutes = [\\\"/dashboard\\\", \\\"/profile\\\"]` dan `publicRoutes = [\\\"/login\\\", \\\"/register\\\"]`. Setelah API reset tersedia (issue blocker), pengguna membutuhkan titik masuk dari halaman login dan halaman untuk menetapkan password baru dari tautan email.\",\n    \"goal\": \"Pengguna yang lupa password dapat meminta tautan dari halaman login dan menetapkan password baru dari tautan email, lalu kembali ke login.\",\n    \"requirements\": [\n      \"Halaman permintaan reset dengan satu field email yang selalu menampilkan konfirmasi generik setelah submit.\",\n      \"Halaman atur ulang password yang membaca token dari URL, meminta password baru beserta konfirmasinya, dan menampilkan hasil sukses atau token tidak valid/kedaluwarsa.\",\n      \"Tautan \\\"Lupa password?\\\" di halaman login.\",\n      \"Validasi zod di server mengikuti aturan panjang minimum backend.\",\n      \"Kedua halaman dapat diakses tanpa login, dan perilaku untuk pengguna yang sedang login konsisten dengan `publicRoutes`.\",\n      \"Form tetap berfungsi tanpa JavaScript klien, mengikuti pola `useFormStatus` yang sudah ada.\",\n      \"Setelah reset berhasil, cookie sesi di browser yang sama dihapus lewat `clearSessionCookies` (`lib/logout.ts`) karena sesi lama sudah dicabut backend.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Dari `/login`, pengguna dapat membuka halaman lupa password dan melihat konfirmasi generik setelah submit.\",\n      \"Tautan dengan token valid memungkinkan penetapan password baru dan mengarahkan ke `/login` dengan pesan sukses.\",\n      \"Token tidak valid atau kedaluwarsa menampilkan pesan yang jelas beserta tautan untuk meminta ulang.\",\n      \"Error 5xx gateway diganti pesan generik berbahasa Indonesia.\",\n      \"Label form, pesan error (`role=\\\"alert\\\"`), dan fokus dapat diakses keyboard.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Ikuti pola Server Action di `app/(auth)/login/_actions/actions.ts` dan `app/(auth)/invitations/verify`. Token hanya dikirim ke gateway dari server dan tidak dicatat di log. Halaman atur ulang password memakai metadata `noindex` karena URL-nya memuat token. Baca `node_modules/next/dist/docs/` sebelum menulis kode (aturan `AGENTS.md` web). Kontrak endpoint mengikuti hasil issue blocker; jangan menetapkan path sebelum blocker merge. Perbarui `kelolakelas-docs` (halaman komponen terkait, `docs/08-known-gaps-and-risks.md` bila gap tertutup/menyempit, serta evidence index) dalam PR docs terpisah setelah PR kode merge.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(auth)\",\n      \"kelolakelas-web/app/(auth)/login/page.tsx\",\n      \"kelolakelas-web/proxy.ts\",\n      \"kelolakelas-web/lib/gateway.ts\"\n    ],\n    \"edgeCases\": [\n      \"Token hilang dari URL.\",\n      \"Pengguna mengirim form berulang (double submit).\",\n      \"Pengguna yang sedang login membuka tautan reset.\"\n    ],\n    \"testingValidation\": [\n      \"Test Server Action untuk sukses, token invalid, validasi password, dan 5xx.\",\n      \"Test `proxy.ts` untuk akses route baru saat login dan tanpa login.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Backend reset password (issue blocker).\",\n      \"Ganti password dari dashboard.\",\n      \"Perubahan desain halaman login.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-67/pengguna-dapat-memulai-dan-menyelesaikan-reset-password-dari-web",
+  "gitBranchName": "skinel123/kel-67-pengguna-dapat-memulai-dan-menyelesaikan-reset-password-dari",
+  "createdAt": "2026-09-24T07:11:05.026Z",
+  "updatedAt": "2026-09-26T09:03:57.559Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T09:02:40.423Z",
+  "startedAt": "2026-09-26T08:41:20.794Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "98b6196d-a264-4385-8799-3bd66c573559",
+      "title": "docs: record KEL-67 web password reset pages",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/75"
+    },
+    {
+      "id": "ba69fe1d-3a91-436e-b95a-90bedb5e2bb5",
+      "title": "KEL-67: Pengguna dapat memulai dan menyelesaikan reset password dari web",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/32"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T07:11:05.026Z",
+      "endedAt": "2026-09-26T08:41:20.819Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T08:41:20.819Z",
+      "endedAt": "2026-09-26T09:02:40.428Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T09:02:40.428Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Pemulihan akun mandiri",
+  "projectId": "3dbd5a50-8cfd-47f5-9e23-335b5600bcc3",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-66",
+        "title": "Pengguna dapat meminta dan mengonfirmasi reset password lewat token email sekali pakai"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-76",
+        "title": "Permission identity hanya berlaku bagi anggota tenant yang masih aktif dengan role saat ini"
+      },
+      {
+        "id": "KEL-98",
+        "title": "Platform admin dapat mengatur visibilitas katalog publik secara konsisten"
+      },
+      {
+        "id": "KEL-103",
+        "title": "Creator tenant dapat meminta dan platform admin dapat memutuskan Creator tambahan dari web"
+      },
+      {
+        "id": "KEL-79",
+        "title": "Anggota Teacher dapat dipindah role tanpa mengizinkan perubahan role sendiri"
+      },
+      {
+        "id": "KEL-65",
+        "title": "Panggilan server-side web ke gateway membawa IP klien asli"
+      },
+      {
+        "id": "KEL-64",
+        "title": "Respons 5xx academic tidak lagi membocorkan detail error internal tanpa mengubah pesan domain 4xx"
+      },
+      {
+        "id": "KEL-56",
+        "title": "Transaksi hanya ditandai lunas setelah status pembayaran dikonfirmasi ke Duitku"
+      },
+      {
+        "id": "KEL-51",
+        "title": "Perubahan jadwal dan tutor permanen menghasilkan jadwal pengganti yang valid dan mempertahankan peserta"
+      },
+      {
+        "id": "KEL-74",
+        "title": "Dashboard tenant menampilkan daftar dan jumlah anggota yang sebenarnya"
+      },
+      {
+        "id": "KEL-94",
+        "title": "Creator tenant dapat meminta penambahan Creator untuk tenant sendiri"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

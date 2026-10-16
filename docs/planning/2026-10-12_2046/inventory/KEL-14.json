@@ -1,0 +1,115 @@
+{
+  "id": "KEL-14",
+  "uuid": "e8abe3e0-994a-4e24-bd45-be1662e6d7ae",
+  "title": "Bawa parent dari kelas ke checkout pembayaran",
+  "description": "## Background / Problem\n\nAcademic catalog enrollment sudah memvalidasi parent, student ownership, publication, enrollability, schedule capacity, dan `Idempotency-Key`, lalu mengembalikan transaction ID serta checkout URL. Capability tersebut belum dapat digunakan dari web.\n\n## Goal\n\nParent dapat memilih student dan schedule yang valid, membuat enrollment sekali, lalu melanjutkan ke checkout Duitku.\n\n## Requirements\n\n* Enrollment dimulai melalui catalog enrollment endpoint, bukan direct billing transaction.\n* Parent memilih student miliknya serta schedule yang tersedia.\n* Setiap submission memiliki idempotency key yang stabil untuk retry yang sama.\n* Detail kelas publik dan student management yang sudah ada harus tetap terjaga.\n\n## Acceptance Criteria\n\n- [ ] Parent dapat memilih student/schedule dan menerima checkout URL untuk enrollment sah\n- [ ] Double-submit atau retry tidak membuat enrollment atau invoice ganda\n- [ ] Full capacity, unpublished/closed class, ownership failure, dan billing failure ditampilkan dengan tepat\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nGunakan `POST /api/v1/catalog/classes/:class_id/enrollments`. Jangan mengirim nominal dari browser langsung ke billing. Idempotency key harus mewakili satu intent enrollment dan tidak dibuat ulang pada retry identik.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(public)`\n* `kelolakelas-academic-service/internal/delivery/http/handler/enrollment_handler.go`\n* `kelolakelas-academic-service/internal/usecase/enrollment_usecase.go`\n\n## Edge Cases\n\n* Schedule penuh setelah halaman detail dimuat.\n* User menekan submit beberapa kali.\n* Enrollment tersimpan tetapi invoice provider sementara gagal.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Voucher.\n* Multi-class cart.\n* Pemilihan payment provider selain Duitku.",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-14/bawa-parent-dari-kelas-ke-checkout-pembayaran",
+  "gitBranchName": "skinel123/kel-14-bawa-parent-dari-kelas-ke-checkout-pembayaran",
+  "createdAt": "2026-09-13T19:04:10.531Z",
+  "updatedAt": "2026-09-15T04:33:32.655Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-15T04:33:32.633Z",
+  "startedAt": "2026-09-14T21:11:00.467Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature"
+  ],
+  "attachments": [
+    {
+      "id": "8b0fd934-78f6-4ac1-b494-0b51735d2aa8",
+      "title": "docs(KEL-14): document parent checkout flow",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/8"
+    },
+    {
+      "id": "18df78e0-8159-41b8-8bb8-48ba1f758112",
+      "title": "fix(KEL-14): enforce catalog enrollment schedule validation",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/3"
+    },
+    {
+      "id": "16107256-545d-4144-b3f9-6fcd792cf682",
+      "title": "feat(KEL-14): connect parent class detail to checkout",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/6"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-13T19:04:10.531Z",
+      "endedAt": "2026-09-14T21:11:00.493Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-14T21:11:00.493Z",
+      "endedAt": "2026-09-15T04:33:32.650Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-15T04:33:32.650Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Perjalanan pembelian kelas untuk parent",
+  "projectId": "f80b0535-5536-4f54-8f09-7a93f01a9f24",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-15",
+        "title": "Tampilkan status enrollment dan pembayaran kepada parent"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-11",
+        "title": "Hadirkan discovery dan detail kelas publik"
+      },
+      {
+        "id": "KEL-6",
+        "title": "Batasi pembuatan invoice ke enrollment terverifikasi"
+      },
+      {
+        "id": "KEL-13",
+        "title": "Hadirkan pengelolaan profil student untuk parent"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

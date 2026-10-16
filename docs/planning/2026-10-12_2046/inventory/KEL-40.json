@@ -1,0 +1,134 @@
+{
+  "id": "KEL-40",
+  "uuid": "50a37fce-66e3-47a1-af29-5cfde50b3cc9",
+  "title": "Sediakan readiness check dengan probe dependency di gateway dan ketiga service",
+  "description": "## Background / Problem\n\nSemua `GET /health` mengembalikan JSON statis tanpa memeriksa apa pun (`cmd/server/health.go` di tiap service; gateway `router.go:29-34`). Service dapat dinyatakan sehat ketika database, Redis, identity gRPC, atau downstream tidak tersedia. Tidak ada pemisahan liveness dan readiness.\n\n## Goal\n\nOrkestrator atau operator dapat membedakan proses hidup dari service yang siap melayani, berdasarkan status dependency yang sebenarnya.\n\n## Requirements\n\n* Endpoint readiness memeriksa dependency wajib: database untuk identity, academic, billing; identity gRPC untuk academic; ketiga downstream untuk gateway.\n* Dependency opsional (Redis identity, Redis gateway) dilaporkan sebagai degraded tanpa menggagalkan readiness.\n* Endpoint liveness tetap murah dan tidak memanggil dependency.\n* Probe memiliki timeout singkat dan tidak menulis data.\n\n## Acceptance Criteria\n\n- [ ] Readiness mengembalikan non-2xx dengan detail komponen ketika database tidak tersedia\n- [ ] Readiness gateway mencerminkan status health downstream\n- [ ] Liveness tetap 200 saat dependency mati\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nJangan mengekspos DSN atau detail koneksi pada respons. Endpoint readiness harus tetap di luar rate limiting dan JWT seperti health saat ini. Perbarui dokumentasi operasi dan ports.\n\nRelevant areas:\n\n* `kelolakelas-api-gateway/internal/delivery/http/router.go`\n* `kelolakelas-identity-service/cmd/server/health.go`\n* `kelolakelas-academic-service/cmd/server/health.go`\n* `kelolakelas-billing-service/cmd/server/health.go`\n\n## Edge Cases\n\n* Database lambat tetapi hidup.\n* Redis dikonfigurasi tetapi tidak dapat dijangkau.\n* Readiness dipanggil sangat sering.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Graceful shutdown identity/academic/gateway.\n* gRPC health service lengkap (status per-service, dipakai di semua service). Pengecualian (keputusan owner 2026-09-27): health server standar grpc-go minimal di identity, dengan status SERVING global, dipakai sebagai probe readiness academic; ini IN SCOPE.\n* Alerting.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"readiness-health-checks\",\n  \"projectKey\": \"platform-operability\",\n  \"title\": \"Sediakan readiness check dengan probe dependency di gateway dan ketiga service\",\n  \"type\": \"Improvement\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"api-gateway\",\n    \"identity\",\n    \"academic\",\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"api-gateway\",\n    \"identity\",\n    \"academic\",\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Semua `GET /health` mengembalikan JSON statis tanpa memeriksa apa pun (`cmd/server/health.go` di tiap service; gateway `router.go:29-34`). Service dapat dinyatakan sehat ketika database, Redis, identity gRPC, atau downstream tidak tersedia. Tidak ada pemisahan liveness dan readiness.\",\n    \"goal\": \"Orkestrator atau operator dapat membedakan proses hidup dari service yang siap melayani, berdasarkan status dependency yang sebenarnya.\",\n    \"requirements\": [\n      \"Endpoint readiness memeriksa dependency wajib: database untuk identity, academic, billing; identity gRPC untuk academic; ketiga downstream untuk gateway.\",\n      \"Dependency opsional (Redis identity, Redis gateway) dilaporkan sebagai degraded tanpa menggagalkan readiness.\",\n      \"Endpoint liveness tetap murah dan tidak memanggil dependency.\",\n      \"Probe memiliki timeout singkat dan tidak menulis data.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Readiness mengembalikan non-2xx dengan detail komponen ketika database tidak tersedia\",\n      \"Readiness gateway mencerminkan status health downstream\",\n      \"Liveness tetap 200 saat dependency mati\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Jangan mengekspos DSN atau detail koneksi pada respons. Endpoint readiness harus tetap di luar rate limiting dan JWT seperti health saat ini. Perbarui dokumentasi operasi dan ports.\",\n    \"relevantAreas\": [\n      \"kelolakelas-api-gateway/internal/delivery/http/router.go\",\n      \"kelolakelas-identity-service/cmd/server/health.go\",\n      \"kelolakelas-academic-service/cmd/server/health.go\",\n      \"kelolakelas-billing-service/cmd/server/health.go\"\n    ],\n    \"edgeCases\": [\n      \"Database lambat tetapi hidup.\",\n      \"Redis dikonfigurasi tetapi tidak dapat dijangkau.\",\n      \"Readiness dipanggil sangat sering.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Graceful shutdown identity/academic/gateway.\",\n      \"gRPC health service lengkap (status per-service, dipakai di semua service). Pengecualian (keputusan owner 2026-09-27): health server standar grpc-go minimal di identity, dengan status SERVING global, dipakai sebagai probe readiness academic; ini IN SCOPE.\",\n      \"Alerting.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-40/sediakan-readiness-check-dengan-probe-dependency-di-gateway-dan-ketiga",
+  "gitBranchName": "skinel123/kel-40-sediakan-readiness-check-dengan-probe-dependency-di-gateway",
+  "createdAt": "2026-09-16T11:50:55.488Z",
+  "updatedAt": "2026-09-26T23:42:07.727Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T23:18:11.986Z",
+  "startedAt": "2026-09-26T19:26:32.228Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "identity",
+    "academic",
+    "api-gateway",
+    "Improvement",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "31aa6008-b205-4eb7-844f-91fb5fe4d874",
+      "title": "docs: describe KEL-40 readiness probes and rollout",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/92"
+    },
+    {
+      "id": "f1121bc3-564e-4ec8-b70b-3c58bda55b57",
+      "title": "KEL-40: add dependency readiness probes",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/24"
+    },
+    {
+      "id": "a0c74f17-189a-457e-b57e-720b2001db27",
+      "title": "KEL-40: add dependency readiness probes",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/20"
+    },
+    {
+      "id": "245a2269-4fee-4e90-b70e-987f858a3cfc",
+      "title": "KEL-40: add dependency readiness probes",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/28"
+    },
+    {
+      "id": "c921fabf-8016-4b1f-ba29-5c5d7ebd93d8",
+      "title": "KEL-40: add dependency readiness probes",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/27"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:50:55.488Z",
+      "endedAt": "2026-09-26T19:26:32.240Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T19:26:32.240Z",
+      "endedAt": "2026-09-26T23:18:11.991Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T23:18:11.991Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Operabilitas, ketahanan, dan kebersihan repository",
+  "projectId": "38910b97-74c2-4dd1-855c-d4d460497327",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-58",
+        "title": "Tenant melihat ringkasan penjualan kelas di dashboard"
+      },
+      {
+        "id": "KEL-39",
+        "title": "Catat request dan event domain dengan request ID di identity, academic, dan billing"
+      },
+      {
+        "id": "KEL-28",
+        "title": "Kirim email konfirmasi pembayaran berhasil dan gagal kepada parent"
+      },
+      {
+        "id": "KEL-71",
+        "title": "Gateway berhenti secara graceful dan server HTTP billing memiliki timeout koneksi"
+      },
+      {
+        "id": "KEL-69",
+        "title": "Identity dan academic berhenti secara graceful dengan timeout koneksi HTTP yang terbatas"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

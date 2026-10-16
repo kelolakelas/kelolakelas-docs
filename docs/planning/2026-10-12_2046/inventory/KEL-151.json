@@ -1,0 +1,136 @@
+{
+  "id": "KEL-151",
+  "uuid": "1c8cbf56-bce7-4a1a-84e4-8e21f81f16ba",
+  "title": "Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment",
+  "description": "## Background / Problem\n\n`app/(dashboard)/dashboard/parent/enrollments/page.tsx:21` membangun `new Map(transactions.map(t => [t.enrollment_id, t]))` sehingga baris terakhir menang, padahal billing mengembalikan transaksi `created_at DESC`. Parent dengan renewal melihat transaksi tertua; halaman tenant sudah memilih `transactions[0]`.\n\n## Goal\n\nParent melihat status pembayaran terbaru dan tagihan perpanjangan yang masih harus dibayar untuk setiap enrollment.\n\n## Requirements\n\n* Pilih transaksi terbaru per enrollment secara eksplisit berdasarkan waktu, bukan urutan array.\n* Tandai transaksi renewal (order id `renewal-`) sebagai tagihan perpanjangan dengan periode dan batas waktu bila tersedia, serta aksi bayar melalui alur resume yang ada.\n* Status enrollment yang tidak dikenal web ditampilkan dengan label netral yang terbaca.\n\n## Acceptance Criteria\n\n- [ ] Enrollment dengan transaksi awal paid dan renewal pending menampilkan renewal pending beserta aksi bayar.\n- [ ] Urutan respons API yang berbeda tidak mengubah transaksi yang dipilih.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nGunakan helper yang ada di `lib/payment-status.ts` (deteksi renewal di baris 28) dan `resumePayment`. Samakan logika pemilihan dengan halaman tenant bila memungkinkan. Perbarui `kelolakelas-docs/docs/components/web.md`.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/page.tsx`\n* `kelolakelas-web/lib/payment-status.ts`\n\n## Edge Cases\n\n* Enrollment tanpa transaksi.\n* Dua transaksi dengan created_at sama.\n\n## Testing / Validation\n\n- [ ] Vitest untuk pemilihan transaksi terbaru dengan berbagai urutan dan renewal.\n- [ ] Test, lint, type check, dan production build lulus.\n\n## Out of Scope\n\n* Status tangguh dari backend (issue suspend).\n* Riwayat seluruh transaksi.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-parent-latest-payment-status\",\n  \"projectKey\": \"renewal-dunning-refund\",\n  \"title\": \"Parent melihat status transaksi terbaru dan tagihan perpanjangan pada setiap enrollment\",\n  \"type\": \"Improvement\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`app/(dashboard)/dashboard/parent/enrollments/page.tsx:21` membangun `new Map(transactions.map(t => [t.enrollment_id, t]))` sehingga baris terakhir menang, padahal billing mengembalikan transaksi `created_at DESC`. Parent dengan renewal melihat transaksi tertua; halaman tenant sudah memilih `transactions[0]`.\",\n    \"goal\": \"Parent melihat status pembayaran terbaru dan tagihan perpanjangan yang masih harus dibayar untuk setiap enrollment.\",\n    \"requirements\": [\n      \"Pilih transaksi terbaru per enrollment secara eksplisit berdasarkan waktu, bukan urutan array.\",\n      \"Tandai transaksi renewal (order id `renewal-`) sebagai tagihan perpanjangan dengan periode dan batas waktu bila tersedia, serta aksi bayar melalui alur resume yang ada.\",\n      \"Status enrollment yang tidak dikenal web ditampilkan dengan label netral yang terbaca.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Enrollment dengan transaksi awal paid dan renewal pending menampilkan renewal pending beserta aksi bayar.\",\n      \"Urutan respons API yang berbeda tidak mengubah transaksi yang dipilih.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Gunakan helper yang ada di `lib/payment-status.ts` (deteksi renewal di baris 28) dan `resumePayment`. Samakan logika pemilihan dengan halaman tenant bila memungkinkan. Perbarui `kelolakelas-docs/docs/components/web.md`.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/page.tsx\",\n      \"kelolakelas-web/lib/payment-status.ts\"\n    ],\n    \"edgeCases\": [\n      \"Enrollment tanpa transaksi.\",\n      \"Dua transaksi dengan created_at sama.\"\n    ],\n    \"testingValidation\": [\n      \"Vitest untuk pemilihan transaksi terbaru dengan berbagai urutan dan renewal.\",\n      \"Test, lint, type check, dan production build lulus.\"\n    ],\n    \"outOfScope\": [\n      \"Status tangguh dari backend (issue suspend).\",\n      \"Riwayat seluruh transaksi.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-151/parent-melihat-status-transaksi-terbaru-dan-tagihan-perpanjangan-pada",
+  "gitBranchName": "skinel123/kel-151-parent-melihat-status-transaksi-terbaru-dan-tagihan",
+  "createdAt": "2026-09-30T11:00:10.516Z",
+  "updatedAt": "2026-10-05T03:23:09.667Z",
+  "archivedAt": null,
+  "completedAt": "2026-10-01T21:57:15.240Z",
+  "startedAt": "2026-10-01T21:42:30.749Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "fe385bf4-6db2-4452-86a2-0baa7605611f",
+      "title": "KEL-151: document latest parent transaction and renewal bill",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/148"
+    },
+    {
+      "id": "3120a1a8-d2df-44f7-a5c6-1b559419dd9f",
+      "title": "KEL-151: show latest parent transaction and renewal invoice",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/65"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T11:00:10.516Z",
+      "endedAt": "2026-10-01T21:42:30.763Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-10-01T21:42:30.763Z",
+      "endedAt": "2026-10-01T21:57:15.245Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-10-01T21:57:15.245Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Penanganan tunggakan perpanjangan dan refund manual",
+  "projectId": "aaa30069-425f-4e0b-839b-765385f3d3ec",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-150",
+        "title": "Renewal yang tidak dibayar setelah masa tenggang menangguhkan enrollment dan pulih saat dibayar"
+      },
+      {
+        "id": "KEL-161",
+        "title": "Tenant dapat membuat, mengubah, dan menonaktifkan voucher"
+      },
+      {
+        "id": "KEL-142",
+        "title": "Tenant dapat melihat saldo dan mutasi ledger serta mengelola rekening pencairan"
+      },
+      {
+        "id": "KEL-146",
+        "title": "Platform admin memproses antrean penarikan tenant dari dashboard platform"
+      },
+      {
+        "id": "KEL-141",
+        "title": "Parent melihat jadwal, riwayat kehadiran, dan rapor anak dari dashboard"
+      },
+      {
+        "id": "KEL-145",
+        "title": "Tenant melihat saldo, mutasi, rekening, dan mengajukan penarikan dari halaman keuangan"
+      },
+      {
+        "id": "KEL-144",
+        "title": "Platform admin memproses penarikan tenant secara manual dengan jejak audit"
+      },
+      {
+        "id": "KEL-149",
+        "title": "Enrollment dapat ditangguhkan, dipulihkan, dan diakhiri melalui endpoint internal"
+      },
+      {
+        "id": "KEL-140",
+        "title": "Parent dapat membaca sesi, kehadiran, dan laporan milik anaknya sendiri"
+      },
+      {
+        "id": "KEL-152",
+        "title": "Tenant dapat mencatat refund manual untuk transaksi paid dan mengakhiri enrollment terkait"
+      },
+      {
+        "id": "KEL-143",
+        "title": "Tenant dapat mengajukan dan membatalkan penarikan dengan saldo yang ditahan secara atomik"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

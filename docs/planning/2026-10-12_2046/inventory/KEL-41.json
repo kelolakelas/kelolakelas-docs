@@ -1,0 +1,113 @@
+{
+  "id": "KEL-41",
+  "uuid": "e5fe70b3-4490-4e75-b42a-da709296ae92",
+  "title": "Bersihkan artefak build, dump data, dan contoh kredensial dari repository Go",
+  "description": "## Background / Problem\n\n`git ls-files` menunjukkan binary ter-commit: academic `main` dan `server`, identity `server`, gateway `server`, serta billing `dump.rdb`. Setiap `.gitignore` Go hanya berisi `.env`. `kelolakelas-billing-service/.env.example` memuat nilai `JWT_SECRET=supersecretjwtkey123!` dan `REDIS_PASSWORD=inipasswordredis` serta variabel Redis yang tidak dibaca config. Makefile academic dan billing memiliki target `seed` ke direktori `seeders/` yang tidak ada, dan migrasi academic `000001_student_notes_tenant_nullable` tidak memiliki file down.\n\n## Goal\n\nRepository hanya melacak sumber, konfigurasi contoh berisi placeholder, dan tooling Makefile serta migrasi konsisten.\n\n## Requirements\n\n* Hapus binary dan dump dari tracking dan tambahkan pola build output serta dump ke .gitignore di keempat repo.\n* Ganti nilai kredensial di .env.example billing dengan placeholder dan hapus variabel yang tidak dibaca.\n* Selaraskan target seed Makefile academic dan billing dengan keadaan repo dan tambahkan migrasi down yang hilang di academic.\n* Build, test, dan CI tetap lulus.\n\n## Acceptance Criteria\n\n- [ ] git ls-files di keempat repo tidak memuat binary atau file .rdb\n- [ ] .env.example billing tidak memuat nilai rahasia nyata dan hanya variabel yang dibaca config\n- [ ] make migrate-down pada academic berjalan untuk setiap migrasi up yang ada\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nJangan menulis ulang git history; binary lama tetap ada di riwayat dan itu di luar scope. Dokumentasikan di kelolakelas-docs bahwa secret contoh harus placeholder.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/.env.example`\n* `kelolakelas-academic-service/Makefile`\n* `kelolakelas-academic-service/migrations`\n* `kelolakelas-api-gateway/.gitignore`\n\n## Edge Cases\n\n* Developer lokal memiliki binary yang sama di working tree.\n* CI mengandalkan artefak yang ter-commit (tidak ditemukan bukti).\n* Migrasi down untuk perubahan nullable memerlukan data yang valid.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Penulisan ulang history.\n* Rotasi secret di environment nyata.\n* Penambahan linter atau govulncheck ke CI.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"repository-hygiene-artifacts-and-env-examples\",\n  \"projectKey\": \"platform-operability\",\n  \"title\": \"Bersihkan artefak build, dump data, dan contoh kredensial dari repository Go\",\n  \"type\": \"Refactor\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"S\",\n  \"complexity\": \"very-low\",\n  \"labels\": [\n    \"api-gateway\",\n    \"identity\",\n    \"academic\",\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"api-gateway\",\n    \"identity\",\n    \"academic\",\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"`git ls-files` menunjukkan binary ter-commit: academic `main` dan `server`, identity `server`, gateway `server`, serta billing `dump.rdb`. Setiap `.gitignore` Go hanya berisi `.env`. `kelolakelas-billing-service/.env.example` memuat nilai `JWT_SECRET=supersecretjwtkey123!` dan `REDIS_PASSWORD=inipasswordredis` serta variabel Redis yang tidak dibaca config. Makefile academic dan billing memiliki target `seed` ke direktori `seeders/` yang tidak ada, dan migrasi academic `000001_student_notes_tenant_nullable` tidak memiliki file down.\",\n    \"goal\": \"Repository hanya melacak sumber, konfigurasi contoh berisi placeholder, dan tooling Makefile serta migrasi konsisten.\",\n    \"requirements\": [\n      \"Hapus binary dan dump dari tracking dan tambahkan pola build output serta dump ke .gitignore di keempat repo.\",\n      \"Ganti nilai kredensial di .env.example billing dengan placeholder dan hapus variabel yang tidak dibaca.\",\n      \"Selaraskan target seed Makefile academic dan billing dengan keadaan repo dan tambahkan migrasi down yang hilang di academic.\",\n      \"Build, test, dan CI tetap lulus.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"git ls-files di keempat repo tidak memuat binary atau file .rdb\",\n      \".env.example billing tidak memuat nilai rahasia nyata dan hanya variabel yang dibaca config\",\n      \"make migrate-down pada academic berjalan untuk setiap migrasi up yang ada\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Jangan menulis ulang git history; binary lama tetap ada di riwayat dan itu di luar scope. Dokumentasikan di kelolakelas-docs bahwa secret contoh harus placeholder.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/.env.example\",\n      \"kelolakelas-academic-service/Makefile\",\n      \"kelolakelas-academic-service/migrations\",\n      \"kelolakelas-api-gateway/.gitignore\"\n    ],\n    \"edgeCases\": [\n      \"Developer lokal memiliki binary yang sama di working tree.\",\n      \"CI mengandalkan artefak yang ter-commit (tidak ditemukan bukti).\",\n      \"Migrasi down untuk perubahan nullable memerlukan data yang valid.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Penulisan ulang history.\",\n      \"Rotasi secret di environment nyata.\",\n      \"Penambahan linter atau govulncheck ke CI.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-41/bersihkan-artefak-build-dump-data-dan-contoh-kredensial-dari",
+  "gitBranchName": "skinel123/kel-41-bersihkan-artefak-build-dump-data-dan-contoh-kredensial-dari",
+  "createdAt": "2026-09-16T11:51:13.812Z",
+  "updatedAt": "2026-09-21T19:50:58.933Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-21T19:49:16.897Z",
+  "startedAt": "2026-09-21T19:24:17.284Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "Refactor",
+    "billing",
+    "identity",
+    "academic",
+    "api-gateway",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "b296332e-02e0-4df9-815e-b9b0f613b37e",
+      "title": "KEL-41: document artifact removal and placeholder-only env examples",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/44"
+    },
+    {
+      "id": "dfb00195-76b4-450e-8539-c3187f46380e",
+      "title": "KEL-41: placeholder-only env example, untrack dump.rdb, guard seed",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/9"
+    },
+    {
+      "id": "b269d8fa-5887-49b3-9092-766052a7a0a9",
+      "title": "KEL-41: untrack binaries, add missing down migration, guard seed target",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/12"
+    },
+    {
+      "id": "c60ff7a3-0c66-4ae0-bfe6-e91c91ebdebd",
+      "title": "KEL-41: untrack build output and ignore binary artifacts",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-identity-service/pull/8"
+    },
+    {
+      "id": "59b40e98-20c5-4881-849a-cac3a0950ee1",
+      "title": "KEL-41: untrack build output and ignore binary artifacts",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/9"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:51:13.812Z",
+      "endedAt": "2026-09-21T19:24:17.299Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-21T19:24:17.299Z",
+      "endedAt": "2026-09-21T19:49:16.903Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-21T19:49:16.903Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Operabilitas, ketahanan, dan kebersihan repository",
+  "projectId": "38910b97-74c2-4dd1-855c-d4d460497327",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

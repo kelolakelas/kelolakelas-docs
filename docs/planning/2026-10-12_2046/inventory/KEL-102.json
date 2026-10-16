@@ -1,0 +1,77 @@
+{
+  "id": "KEL-102",
+  "uuid": "2c326bba-3392-48a3-aff7-7effbf45461c",
+  "title": "Platform admin dapat merotasi secret layanan tanpa menampilkan nilainya kembali",
+  "description": "## Background / Problem\n\nJWT_SECRET, DATABASE_URL, kredensial internal, Redis, Resend, Maps, dan Duitku berasal dari environment. Tidak ada secret manager atau deployment topology yang terbukti di repo; memindahkan plaintext ke tabel aplikasi akan meningkatkan risiko kebocoran.\n\n## Goal\n\nAdmin dapat memulai dan memantau rotasi setiap secret aplikasi yang terinventaris melalui secret manager dan deployment tanpa pernah membaca kembali nilainya.\n\n## Requirements\n\n* Inventaris secret per layanan dan protokol rotasinya, termasuk secret bersama JWT/internal service serta secret provider tunggal.\n* Control plane menyimpan referensi dan status rotasi, bukan plaintext; input sekali pakai, redaksi log/API, otorisasi admin, dan audit wajib.\n* Rotasi memakai rollout terkoordinasi, validasi health dan callback/signature, serta rollback; secret lama ditarik setelah konsumen baru siap.\n* Jangan mengizinkan rotasi bila secret manager atau deployment integration tidak siap; tampilkan kegagalan jelas.\n\n## Acceptance Criteria\n\n- [ ] Admin dapat memulai rotasi di staging dan melihat status tanpa membaca plaintext secret.\n- [ ] Secret lama dan baru ditangani sesuai protokol tanpa memutus login, DB, pembayaran, atau service-to-service.\n- [ ] Kegagalan rollout dapat di-rollback dan status/applied version akurat.\n- [ ] Tenant/parent tidak dapat memulai atau melihat detail secret.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko utama outage lintas layanan, token tidak valid, database tak terhubung, dan pembayaran gagal. Deployment topology/secret manager Unknown; issue diblokir external dependency sampai ada integrasi staging. Perlu ADR per kelompok secret dan uji rotasi end-to-end; jangan mengklaim dukungan hot reload jika service hanya membaca env saat startup.\n\nRelevant areas:\n\n* `kelolakelas-web/.env.example`\n* `kelolakelas-api-gateway/internal/config/config.go`\n* `kelolakelas-identity-service/internal/config/config.go`\n* `kelolakelas-academic-service/internal/config/config.go`\n* `kelolakelas-billing-service/internal/config/config.go`\n\n## Edge Cases\n\n* JWT key dirotasi saat token lama masih berlaku.\n* Callback Duitku memakai key lama selama rollout.\n* Satu replika gagal setelah secret manager menyimpan versi baru.\n\n## Testing / Validation\n\n- [ ] Mitigasi risiko: rotasi dan rollback staging untuk JWT, DB, internal credential, dan Duitku dengan request nyata.\n- [ ] Scan respons/log untuk plaintext secret dan uji akses tenant/parent.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Menampilkan nilai secret yang sudah tersimpan.\n* Menyimpan secret di database aplikasi.\n* Konfigurasi AI orchestrator internal.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"platform-secret-rotation\",\n  \"projectKey\": \"platform-admin-control-plane\",\n  \"title\": \"Platform admin dapat merotasi secret layanan tanpa menampilkan nilainya kembali\",\n  \"type\": \"Feature\",\n  \"priority\": \"Urgent\",\n  \"estimate\": \"L\",\n  \"complexity\": \"critical\",\n  \"labels\": [\n    \"web\",\n    \"api-gateway\",\n    \"identity\",\n    \"academic\",\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\",\n    \"api-gateway\",\n    \"identity\",\n    \"academic\",\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"platform-config-control-plane\"\n  ],\n  \"externalDependencies\": [\n    {\n      \"key\": \"secret-manager-and-deployment\",\n      \"description\": \"Secret manager, topologi deployment, dan hak rotasi untuk seluruh aplikasi harus dipilih serta disambungkan.\",\n      \"verification\": \"Staging memiliki secret manager terhubung, rollout lima aplikasi, rollback, dan bukti akses scoped untuk control plane.\"\n    }\n  ],\n  \"body\": {\n    \"backgroundProblem\": \"JWT_SECRET, DATABASE_URL, kredensial internal, Redis, Resend, Maps, dan Duitku berasal dari environment. Tidak ada secret manager atau deployment topology yang terbukti di repo; memindahkan plaintext ke tabel aplikasi akan meningkatkan risiko kebocoran.\",\n    \"goal\": \"Admin dapat memulai dan memantau rotasi setiap secret aplikasi yang terinventaris melalui secret manager dan deployment tanpa pernah membaca kembali nilainya.\",\n    \"requirements\": [\n      \"Inventaris secret per layanan dan protokol rotasinya, termasuk secret bersama JWT/internal service serta secret provider tunggal.\",\n      \"Control plane menyimpan referensi dan status rotasi, bukan plaintext; input sekali pakai, redaksi log/API, otorisasi admin, dan audit wajib.\",\n      \"Rotasi memakai rollout terkoordinasi, validasi health dan callback/signature, serta rollback; secret lama ditarik setelah konsumen baru siap.\",\n      \"Jangan mengizinkan rotasi bila secret manager atau deployment integration tidak siap; tampilkan kegagalan jelas.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Admin dapat memulai rotasi di staging dan melihat status tanpa membaca plaintext secret.\",\n      \"Secret lama dan baru ditangani sesuai protokol tanpa memutus login, DB, pembayaran, atau service-to-service.\",\n      \"Kegagalan rollout dapat di-rollback dan status/applied version akurat.\",\n      \"Tenant/parent tidak dapat memulai atau melihat detail secret.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko utama outage lintas layanan, token tidak valid, database tak terhubung, dan pembayaran gagal. Deployment topology/secret manager Unknown; issue diblokir external dependency sampai ada integrasi staging. Perlu ADR per kelompok secret dan uji rotasi end-to-end; jangan mengklaim dukungan hot reload jika service hanya membaca env saat startup.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/.env.example\",\n      \"kelolakelas-api-gateway/internal/config/config.go\",\n      \"kelolakelas-identity-service/internal/config/config.go\",\n      \"kelolakelas-academic-service/internal/config/config.go\",\n      \"kelolakelas-billing-service/internal/config/config.go\"\n    ],\n    \"edgeCases\": [\n      \"JWT key dirotasi saat token lama masih berlaku.\",\n      \"Callback Duitku memakai key lama selama rollout.\",\n      \"Satu replika gagal setelah secret manager menyimpan versi baru.\"\n    ],\n    \"testingValidation\": [\n      \"Mitigasi risiko: rotasi dan rollback staging untuk JWT, DB, internal credential, dan Duitku dengan request nyata.\",\n      \"Scan respons/log untuk plaintext secret dan uji akses tenant/parent.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Menampilkan nilai secret yang sudah tersimpan.\",\n      \"Menyimpan secret di database aplikasi.\",\n      \"Konfigurasi AI orchestrator internal.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 1,
+    "name": "Urgent"
+  },
+  "estimate": {
+    "value": 3,
+    "name": "3 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-102/platform-admin-dapat-merotasi-secret-layanan-tanpa-menampilkan",
+  "gitBranchName": "skinel123/kel-102-platform-admin-dapat-merotasi-secret-layanan-tanpa",
+  "createdAt": "2026-09-24T13:35:33.983Z",
+  "updatedAt": "2026-09-29T14:59:28.827Z",
+  "archivedAt": null,
+  "completedAt": null,
+  "startedAt": null,
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Backlog",
+  "statusType": "backlog",
+  "labels": [
+    "billing",
+    "identity",
+    "academic",
+    "api-gateway",
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T13:35:33.983Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Kontrol platform terpusat oleh platform admin",
+  "projectId": "ec13327b-4cd2-4226-84c1-019b5e88a53e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-104",
+        "title": "Platform admin dapat meninjau, mengubah, dan memantau konfigurasi dari dashboard"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-96",
+        "title": "Platform admin memiliki katalog konfigurasi terpusat dengan audit dan status penerapan"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-132",
+        "title": "Academic menolak kapasitas jadwal private yang tidak sesuai satu student"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

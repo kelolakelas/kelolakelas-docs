@@ -1,0 +1,104 @@
+{
+  "id": "KEL-43",
+  "uuid": "b72bdf52-417f-4bca-a75e-8b9658afd833",
+  "title": "Perbaiki field last_name student dan segarkan kontrak Swagger academic",
+  "description": "## Background / Problem\n\nStruct `Student` menyerialisasi nama belakang dengan tag `last\u00e5_name` (`internal/domain/student.go:24`) dan web menormalkannya (`kelolakelas-web/lib/students.ts:29-30`, `lib/payment-status.ts:5`). Swagger academic terakhir dibuat 6 September sebelum perubahan permission 15 September: route alias body-param tidak terdokumentasi, anotasi security salah untuk `POST /tenants/{tenant_id}/enrollments` dan endpoint internal, dan tidak ada permission yang didokumentasikan. Tidak ada langkah regenerasi Swagger di CI atau Makefile.\n\n## Goal\n\nKontrak API academic yang dipublikasikan sesuai dengan kode, dan field nama belakang student memakai nama yang benar tanpa memutus web.\n\n## Requirements\n\n* Tag JSON menjadi last_name; web menerima kedua nama selama transisi lalu hanya last_name setelah academic dirilis.\n* Swagger diregenerasi dari anotasi terkini dengan security dan catatan permission yang benar.\n* Makefile academic memiliki target regenerasi Swagger.\n* Response student lainnya dan validasi web tidak berubah.\n\n## Acceptance Criteria\n\n- [ ] Respons student memakai last_name dan halaman student parent menampilkannya dengan benar\n- [ ] Swagger memuat seluruh route yang terdaftar di main.go dengan security yang benar\n- [ ] Dokumentasi API academic tidak lagi mencantumkan caveat typo\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nUrutan rilis: web toleran terhadap kedua field lebih dulu, lalu academic. Jangan menambahkan validasi drift Swagger ke CI di issue ini kecuali sederhana.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/domain/student.go`\n* `kelolakelas-academic-service/docs`\n* `kelolakelas-web/lib/students.ts`\n* `kelolakelas-web/lib/payment-status.ts`\n\n## Edge Cases\n\n* Klien lain yang bergantung pada nama field lama (tidak ditemukan).\n* Anotasi Swagger pada handler tanpa route.\n* Web memakai cache respons lama.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Penghapusan Swagger stale di kelolakelas-web/\\_docs.\n* Regenerasi Swagger identity dan billing.\n* Perubahan kontrak lain.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"academic-api-contract-cleanup\",\n  \"projectKey\": \"platform-operability\",\n  \"title\": \"Perbaiki field last_name student dan segarkan kontrak Swagger academic\",\n  \"type\": \"Refactor\",\n  \"priority\": \"Low\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"academic\",\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\",\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Struct `Student` menyerialisasi nama belakang dengan tag `last\u00e5_name` (`internal/domain/student.go:24`) dan web menormalkannya (`kelolakelas-web/lib/students.ts:29-30`, `lib/payment-status.ts:5`). Swagger academic terakhir dibuat 6 September sebelum perubahan permission 15 September: route alias body-param tidak terdokumentasi, anotasi security salah untuk `POST /tenants/{tenant_id}/enrollments` dan endpoint internal, dan tidak ada permission yang didokumentasikan. Tidak ada langkah regenerasi Swagger di CI atau Makefile.\",\n    \"goal\": \"Kontrak API academic yang dipublikasikan sesuai dengan kode, dan field nama belakang student memakai nama yang benar tanpa memutus web.\",\n    \"requirements\": [\n      \"Tag JSON menjadi last_name; web menerima kedua nama selama transisi lalu hanya last_name setelah academic dirilis.\",\n      \"Swagger diregenerasi dari anotasi terkini dengan security dan catatan permission yang benar.\",\n      \"Makefile academic memiliki target regenerasi Swagger.\",\n      \"Response student lainnya dan validasi web tidak berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Respons student memakai last_name dan halaman student parent menampilkannya dengan benar\",\n      \"Swagger memuat seluruh route yang terdaftar di main.go dengan security yang benar\",\n      \"Dokumentasi API academic tidak lagi mencantumkan caveat typo\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Urutan rilis: web toleran terhadap kedua field lebih dulu, lalu academic. Jangan menambahkan validasi drift Swagger ke CI di issue ini kecuali sederhana.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/domain/student.go\",\n      \"kelolakelas-academic-service/docs\",\n      \"kelolakelas-web/lib/students.ts\",\n      \"kelolakelas-web/lib/payment-status.ts\"\n    ],\n    \"edgeCases\": [\n      \"Klien lain yang bergantung pada nama field lama (tidak ditemukan).\",\n      \"Anotasi Swagger pada handler tanpa route.\",\n      \"Web memakai cache respons lama.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Penghapusan Swagger stale di kelolakelas-web/_docs.\",\n      \"Regenerasi Swagger identity dan billing.\",\n      \"Perubahan kontrak lain.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 4,
+    "name": "Low"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-43/perbaiki-field-last-name-student-dan-segarkan-kontrak-swagger-academic",
+  "gitBranchName": "skinel123/kel-43-perbaiki-field-last_name-student-dan-segarkan-kontrak",
+  "createdAt": "2026-09-16T11:51:50.359Z",
+  "updatedAt": "2026-09-27T09:08:40.183Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-27T09:05:30.189Z",
+  "startedAt": "2026-09-27T07:59:25.495Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "Refactor",
+    "academic",
+    "web",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "9cbe6703-12c7-4669-8d59-417469a0f2f7",
+      "title": "KEL-43: document student last_name and the academic Swagger contract",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/100"
+    },
+    {
+      "id": "fd9b5daf-12b6-45ef-8976-bafa37d34094",
+      "title": "KEL-43: read student last_name first, keep the legacy key as rollout fallback",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/43"
+    },
+    {
+      "id": "ce1b2b68-68ea-4be7-a58f-de2a6729c9d2",
+      "title": "KEL-43: serialise student last_name and refresh the academic Swagger contract",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/32"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:51:50.359Z",
+      "endedAt": "2026-09-27T07:59:25.504Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-27T07:59:25.504Z",
+      "endedAt": "2026-09-27T09:05:30.194Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-27T09:05:30.194Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Operabilitas, ketahanan, dan kebersihan repository",
+  "projectId": "38910b97-74c2-4dd1-855c-d4d460497327",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-31",
+        "title": "Sediakan kontrol publikasi kelas di dashboard tenant"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

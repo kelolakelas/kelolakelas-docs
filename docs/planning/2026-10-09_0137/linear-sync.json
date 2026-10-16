@@ -1,0 +1,50 @@
+{
+  "projects": {},
+  "issues": {
+    "cancel-pending-enrollment-409": {
+      "identifier": "KEL-168",
+      "id": "b7565cc5-f33c-4b6a-a877-a271c56b0ffd",
+      "url": "https://linear.app/farid-zamani/issue/KEL-168/pembatalan-enrollment-pending-oleh-parent-selalu-dijawab-409-padahal"
+    },
+    "utc-timestamps-billing-identity": {
+      "identifier": "KEL-169",
+      "id": "b7d5f254-20da-4256-891f-b2488d6f9ce0",
+      "url": "https://linear.app/farid-zamani/issue/KEL-169/batas-waktu-invoice-dan-undangan-tampil-bergeser-7-jam-karena"
+    },
+    "parent-session-tenant-dashboard-guard": {
+      "identifier": "KEL-170",
+      "id": "ac0bdb6d-2e87-4cf0-8b56-f6f9d7cf5a20",
+      "url": "https://linear.app/farid-zamani/issue/KEL-170/sesi-parent-dapat-membuka-halaman-dashboard-tenant-karena-proxy-tidak"
+    },
+    "auth-forms-preserve-input": {
+      "identifier": "KEL-172",
+      "id": "002ac970-6f60-4db9-ace5-842fa0e6f9bc",
+      "url": "https://linear.app/farid-zamani/issue/KEL-172/form-registrasi-dan-login-mengosongkan-semua-isian-saat-validasi-atau"
+    },
+    "invite-member-permission-display": {
+      "identifier": "KEL-173",
+      "id": "553e822a-f88c-4036-91e0-9b64eaf90440",
+      "url": "https://linear.app/farid-zamani/issue/KEL-173/form-undang-anggota-menampilkan-checkbox-permission-yang-semuanya"
+    },
+    "tenant-overview-real-data": {
+      "identifier": "KEL-171",
+      "id": "b0ab2f07-7988-4e13-9fb0-54dc7667c5bb",
+      "url": "https://linear.app/farid-zamani/issue/KEL-171/overview-tenant-menampilkan-nama-dan-status-sistem-hardcoded-bukan"
+    },
+    "tenant-location-success-message": {
+      "identifier": "KEL-174",
+      "id": "74e2e129-ea3c-4fe3-8ab4-e4efdbe27b5b",
+      "url": "https://linear.app/farid-zamani/issue/KEL-174/pesan-sukses-lokasi-tenant-berhasil-disimpan-tidak-pernah-tampil"
+    },
+    "student-dob-not-future": {
+      "identifier": "KEL-175",
+      "id": "57b44d61-dc68-4a7b-a35c-9cbe23749565",
+      "url": "https://linear.app/farid-zamani/issue/KEL-175/tanggal-lahir-student-di-masa-depan-diterima-tanpa-validasi"
+    },
+    "schedule-overlap-warning": {
+      "identifier": "KEL-176",
+      "id": "61bf04ff-4981-4f9c-9578-b76efe382f90",
+      "url": "https://linear.app/farid-zamani/issue/KEL-176/form-jadwal-kelas-memperingatkan-slot-yang-tumpang-tindih-pada-hari"
+    }
+  }
+}

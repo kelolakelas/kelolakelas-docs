@@ -1,0 +1,125 @@
+{
+  "id": "KEL-28",
+  "uuid": "157225b7-7ea2-4ace-83e9-e099205e7d8d",
+  "title": "Kirim email konfirmasi pembayaran berhasil dan gagal kepada parent",
+  "description": "## Background / Problem\n\nBilling hanya mengirim dua email dari subscription worker: tautan pembayaran dan pengingat (`internal/usecase/subscription_worker.go:238,254`). Tidak ada email saat pembayaran berhasil atau gagal, sehingga parent hanya tahu hasilnya dengan membuka halaman status. Klien Resend memakai `http.Client{}` tanpa timeout (`pkg/email/resend.go:97,109-119`). Alamat email berasal dari `sender_email` request internal yang tidak divalidasi dan disimpan pada subscription sebagai `billing_email` nullable.\n\n## Goal\n\nParent menerima tepat satu email untuk setiap pembayaran yang berhasil dan setiap pembayaran yang gagal, tanpa memengaruhi keberhasilan pemrosesan callback.\n\n## Requirements\n\n* Setelah callback paid di-commit, kirim email tanda terima berisi kelas, nominal, dan ID transaksi; setelah failed, kirim pemberitahuan dengan cara melanjutkan pembayaran.\n* Pengiriman idempotent terhadap replay callback dan retry worker.\n* Kegagalan pengiriman dicatat dan tidak menggagalkan callback; email dilewati bila alamat tidak tersedia.\n* Klien Resend memiliki timeout; email yang ada tetap terkirim seperti sekarang.\n\n## Acceptance Criteria\n\n- [ ] Callback paid menghasilkan satu email tanda terima meskipun callback diulang\n- [ ] Callback failed menghasilkan satu email pemberitahuan\n- [ ] Kegagalan Resend tidak mengubah status transaksi atau respons callback\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nAlamat email harus berasal dari data yang sudah disimpan billing; jangan memanggil identity. Penanda pengiriman perlu disimpan pada transaksi agar idempotent. Template mengikuti gaya HTML Bahasa Indonesia yang ada dengan escaping. Perbarui dokumentasi flow callback.\n\nRelevant areas:\n\n* `kelolakelas-billing-service/internal/usecase/transaction_usecase.go`\n* `kelolakelas-billing-service/pkg/email/resend.go`\n* `kelolakelas-billing-service/migrations`\n\n## Edge Cases\n\n* billing_email kosong pada subscription lama.\n* Resend timeout setelah email sebenarnya terkirim.\n* Transaksi sandbox.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Email kedaluwarsa dan pembatalan.\n* Notifikasi ke tenant.\n* Template i18n atau SMS.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"billing-payment-outcome-emails\",\n  \"projectKey\": \"enrollment-payment-lifecycle\",\n  \"title\": \"Kirim email konfirmasi pembayaran berhasil dan gagal kepada parent\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"M\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Billing hanya mengirim dua email dari subscription worker: tautan pembayaran dan pengingat (`internal/usecase/subscription_worker.go:238,254`). Tidak ada email saat pembayaran berhasil atau gagal, sehingga parent hanya tahu hasilnya dengan membuka halaman status. Klien Resend memakai `http.Client{}` tanpa timeout (`pkg/email/resend.go:97,109-119`). Alamat email berasal dari `sender_email` request internal yang tidak divalidasi dan disimpan pada subscription sebagai `billing_email` nullable.\",\n    \"goal\": \"Parent menerima tepat satu email untuk setiap pembayaran yang berhasil dan setiap pembayaran yang gagal, tanpa memengaruhi keberhasilan pemrosesan callback.\",\n    \"requirements\": [\n      \"Setelah callback paid di-commit, kirim email tanda terima berisi kelas, nominal, dan ID transaksi; setelah failed, kirim pemberitahuan dengan cara melanjutkan pembayaran.\",\n      \"Pengiriman idempotent terhadap replay callback dan retry worker.\",\n      \"Kegagalan pengiriman dicatat dan tidak menggagalkan callback; email dilewati bila alamat tidak tersedia.\",\n      \"Klien Resend memiliki timeout; email yang ada tetap terkirim seperti sekarang.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Callback paid menghasilkan satu email tanda terima meskipun callback diulang\",\n      \"Callback failed menghasilkan satu email pemberitahuan\",\n      \"Kegagalan Resend tidak mengubah status transaksi atau respons callback\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Alamat email harus berasal dari data yang sudah disimpan billing; jangan memanggil identity. Penanda pengiriman perlu disimpan pada transaksi agar idempotent. Template mengikuti gaya HTML Bahasa Indonesia yang ada dengan escaping. Perbarui dokumentasi flow callback.\",\n    \"relevantAreas\": [\n      \"kelolakelas-billing-service/internal/usecase/transaction_usecase.go\",\n      \"kelolakelas-billing-service/pkg/email/resend.go\",\n      \"kelolakelas-billing-service/migrations\"\n    ],\n    \"edgeCases\": [\n      \"billing_email kosong pada subscription lama.\",\n      \"Resend timeout setelah email sebenarnya terkirim.\",\n      \"Transaksi sandbox.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Email kedaluwarsa dan pembatalan.\",\n      \"Notifikasi ke tenant.\",\n      \"Template i18n atau SMS.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 2,
+    "name": "2 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-28/kirim-email-konfirmasi-pembayaran-berhasil-dan-gagal-kepada-parent",
+  "gitBranchName": "skinel123/kel-28-kirim-email-konfirmasi-pembayaran-berhasil-dan-gagal-kepada",
+  "createdAt": "2026-09-16T11:46:49.230Z",
+  "updatedAt": "2026-09-26T18:21:39.306Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-26T18:18:42.325Z",
+  "startedAt": "2026-09-26T17:43:17.695Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "billing",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "a862a567-1162-4219-8d7c-8862107c4b39",
+      "title": "docs: record KEL-28 payment outcome notifications",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/90"
+    },
+    {
+      "id": "a2c926f6-8748-4d3d-a02c-9b1423942145",
+      "title": "KEL-28: Kirim email hasil pembayaran kepada parent",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-billing-service/pull/18"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:46:49.230Z",
+      "endedAt": "2026-09-26T17:43:17.708Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-26T17:43:17.708Z",
+      "endedAt": "2026-09-26T18:18:42.330Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-26T18:18:42.330Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Siklus hidup enrollment dan pembayaran yang lengkap",
+  "projectId": "bebfbed6-762c-44ba-94c9-e6f7c20904d9",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [],
+    "relatedTo": [
+      {
+        "id": "KEL-58",
+        "title": "Tenant melihat ringkasan penjualan kelas di dashboard"
+      },
+      {
+        "id": "KEL-39",
+        "title": "Catat request dan event domain dengan request ID di identity, academic, dan billing"
+      },
+      {
+        "id": "KEL-40",
+        "title": "Sediakan readiness check dengan probe dependency di gateway dan ketiga service"
+      },
+      {
+        "id": "KEL-69",
+        "title": "Identity dan academic berhenti secara graceful dengan timeout koneksi HTTP yang terbatas"
+      },
+      {
+        "id": "KEL-23",
+        "title": "Lindungi login dari brute force dan enumerasi akun"
+      },
+      {
+        "id": "KEL-91",
+        "title": "CI web menjalankan lint seluruh repository dan melaporkan status pada merge queue dan main"
+      },
+      {
+        "id": "KEL-84",
+        "title": "Tenant melihat, mencabut, dan mengirim ulang undangan pending dari dashboard"
+      },
+      {
+        "id": "KEL-75",
+        "title": "Invoice checkout parent menyimpan email parent sehingga email tagihan dan pengingat dapat terkirim"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

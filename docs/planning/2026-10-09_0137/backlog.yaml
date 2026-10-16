@@ -1,0 +1,389 @@
+schemaVersion: kelolakelas.planning-backlog/v1
+projects: []
+issues:
+  - draftKey: cancel-pending-enrollment-409
+    projectKey: null
+    title: Pembatalan enrollment pending oleh parent selalu dijawab 409 padahal pembatalan berhasil
+    type: Improvement
+    priority: High
+    estimate: S
+    complexity: medium
+    labels: [academic, web, ai-ready]
+    repositories: [academic, web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "QA end-to-end (agent-browser, stack lokal, main 9 Okt 2026) menemukan bahwa `POST /api/v1/enrollments/{id}/cancel` untuk enrollment `pending` milik parent selalu dijawab `409 Enrollment can no longer be cancelled`, padahal enrollment sudah `dropped`, transaksi billing `cancelled`, dan kursi kembali tersedia. Reproduksi dua kali pada enrollment baru dengan hasil sama. Penyebab di academic `internal/usecase/enrollment_usecase.go` `CancelPendingEnrollment`: saat `txManager` ada, closure transaksi mengubah `enrollment.Status` menjadi `dropped`, lalu pengecekan `if enrollment.Status != \"pending\"` setelah transaksi membaca objek yang sudah diubah, sehingga jalur sukses selalu mengembalikan `ErrInvalidEnrollmentTransition`. `enrollment_cancel_test.go` (`newCancelTestUsecase`) membangun usecase tanpa txManager sehingga jalur produksi tidak teruji. Di web, `CancelEnrollmentButton.tsx` hanya menampilkan pesan error bila state `dialogOpen` bernilai true, tetapi state itu tidak pernah di-set true (tombol pemicu hanya memanggil `showModal()`), sehingga parent tidak melihat pesan apa pun saat pembatalan gagal dan baris tetap tampil \"Menunggu pembayaran\"."
+      goal: "Pembatalan enrollment `pending` yang berhasil dijawab 200 sesuai tabel hasil di ADR 0016, dan parent melihat hasil pembatalan (sukses atau pesan error) di halaman enrollments tanpa reload."
+      requirements:
+        - "Academic mengembalikan 200 berisi enrollment `dropped` ketika enrollment `pending` milik parent berhasil dibatalkan melalui jalur transaksi (txManager tersedia)."
+        - "Enrollment yang sudah `dropped` sebelum request tetap dijawab 409 setelah withdrawal tetap dicoba, sesuai tabel ADR 0016."
+        - "Enrollment `active`, `suspended`, dan `completed` tetap 409 sebelum ada pemanggilan billing; invoice yang sudah `paid`/`refunded` tetap 409 tanpa perubahan apa pun."
+        - "Web menampilkan pesan error pembatalan (role=alert) di dialog ketika action mengembalikan error, dan menampilkan status sukses lalu memperbarui baris setelah pembatalan berhasil."
+        - "Kontrak HTTP, urutan billing-lalu-academic, dan pesan error yang ada tidak berubah."
+      acceptanceCriteria:
+        - "Membatalkan enrollment `pending` dengan invoice belum dibayar menghasilkan 200, enrollment `dropped`, transaksi `cancelled`, dan kursi kembali tersedia."
+        - "Di `/dashboard/parent/enrollments`, setelah konfirmasi \"Ya, batalkan\" berhasil, status enrollment tidak lagi tampil sebagai menunggu pembayaran tanpa perlu reload manual."
+        - "Ketika pembatalan ditolak (mis. 409), pesan error terlihat di dialog."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Kebenaran urutan dan idempotensi dijelaskan di kelolakelas-docs ADR 0016 (`docs/adr/0016-cancel-pending-enrollment.md`); keputusan itu tidak berubah. `ReleaseEnrollment` di file yang sama memakai pola transaksi serupa tetapi menganggap `dropped` sebagai hasil idempoten sehingga tidak terdampak. Test usecase perlu fake TransactionManager agar jalur transaksi produksi teruji. Risiko utama: mengubah pengecekan status tanpa merusak penolakan 409 untuk enrollment yang sudah `dropped` sebelumnya. Perbarui kelolakelas-docs (`docs/components/academic-service.md` atau `web.md`) bila perilaku yang terdokumentasi berubah."
+      relevantAreas:
+        - "kelolakelas-academic-service/internal/usecase/enrollment_usecase.go"
+        - "kelolakelas-academic-service/internal/usecase/enrollment_cancel_test.go"
+        - "kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/_components/CancelEnrollmentButton.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/parent/enrollments/_actions/actions.ts"
+        - "kelolakelas-web/lib/enrollment-cancellation.ts"
+      edgeCases:
+        - "Dua request pembatalan bersamaan untuk enrollment yang sama: tepat satu 200, yang lain 409."
+        - "Callback release dari billing tiba sebelum transaksi academic: hasil akhir tetap `dropped` dan request pertama tidak salah dijawab."
+        - "Enrollment `pending` tanpa transaksi billing (invoice tidak pernah dibuat) tetap 200."
+        - "Sesi parent kedaluwarsa saat konfirmasi pembatalan."
+      testingValidation:
+        - "Unit test academic dengan fake TransactionManager untuk pending → 200, dropped → 409, active → 409, dan billing menolak → 409."
+        - "Vitest `CancelEnrollmentButton` untuk tampilan pesan error dan sukses."
+        - "Validasi risiko: reproduksi manual via gateway lokal bahwa pembatalan pending menghasilkan 200 dan pembatalan ulang 409."
+        - "Existing tests pass, `go test ./...` dan `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Perubahan alur pembatalan billing atau job release kursi."
+        - "Pembatalan enrollment `active` atau refund."
+  - draftKey: utc-timestamps-billing-identity
+    projectKey: null
+    title: Batas waktu invoice dan undangan tampil bergeser +7 jam karena timestamp lokal disimpan tanpa zona
+    type: Improvement
+    priority: High
+    estimate: M
+    complexity: high
+    labels: [billing, identity, ai-ready]
+    repositories: [billing, identity]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "QA end-to-end pada stack lokal (proses berjalan dengan zona host `Asia/Jakarta`) menemukan tenggat yang tampil 7 jam terlalu lambat. Checkout VA pada 9 Okt 2026 00:26 WIB menyimpan `transactions.invoice_expires_at` = `2026-10-23 00:26`, API mengembalikannya sebagai `2026-10-23T00:26:00Z`, dan web menampilkan \"23 Okt 2026, 07.26 WIB\". `created_at` pada baris yang sama (default DB `now()`) benar (`17:26Z`). Undangan anggota yang dibuat 00:31 WIB menampilkan \"Valid until 11 Oct 2026, 07:31 WIB\" padahal masa berlaku 48 jam. Penyebab: billing dan identity menulis `time.Now()` waktu lokal proses ke kolom `timestamp without time zone`, sementara koneksi memakai `TimeZone=UTC` (`pkg/database/db.go`), sehingga nilai dibaca kembali sebagai UTC. Perbandingan sisi server (mis. `transaction_usecase.go` `InvoiceExpiresAt.After(time.Now())`, query expiry `invoice_expires_at <= ?` di `transaction_repository.go`, `time.Now().After(invitation.ExpiresAt)` di identity) ikut bergantung pada zona proses. Proses dengan TZ=UTC tidak terdampak, jadi ini bug yang bergantung pada konfigurasi."
+      goal: "Timestamp yang ditulis aplikasi billing dan identity selalu bermakna UTC, terlepas dari zona waktu proses, sehingga tenggat invoice dan undangan yang dikembalikan API dan ditampilkan web benar."
+      requirements:
+        - "Billing menyimpan dan membandingkan `invoice_expires_at`, `expired_at`, `paid_at`, `updated_at`, dan timestamp lain yang ditulis aplikasi sebagai UTC, terlepas dari zona proses."
+        - "Identity menyimpan dan membandingkan `tenant_invitations.expires_at` dan timestamp lain yang ditulis aplikasi sebagai UTC, terlepas dari zona proses."
+        - "Respons API untuk transaksi dan undangan mengembalikan instant yang benar (mis. invoice dibuat 17:26Z dengan validitas 14 hari kedaluwarsa 14 hari setelah 17:26Z)."
+        - "Job expiry invoice, reminder, dan pengecekan kedaluwarsa undangan memakai instant yang konsisten dengan nilai tersimpan."
+        - "Kontrak JSON (nama field dan format RFC 3339) tidak berubah."
+      acceptanceCriteria:
+        - "Dengan proses billing dan identity dijalankan pada `TZ=Asia/Jakarta`, invoice baru menampilkan tenggat yang sama dengan waktu pembuatan ditambah masa berlaku di halaman instruksi pembayaran."
+        - "Dengan `TZ=Asia/Jakarta`, undangan baru menampilkan \"Valid until\" tepat 48 jam setelah dibuat."
+        - "Hasil di atas sama ketika proses dijalankan pada `TZ=UTC`."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Risiko utama: financial correctness, karena expiry invoice menentukan apakah pembayaran masih diterima atau transaksi ditandai `expired` (lihat ADR 0009 local invoice expiry). Perubahan cara penulisan timestamp tidak boleh membuat invoice yang masih berlaku dianggap kedaluwarsa atau sebaliknya. Pendekatan (normalisasi UTC saat menulis, konfigurasi `NowFunc` GORM, dan/atau migrasi kolom ke `timestamptz`) belum disepakati dan diserahkan ke implementasi, dengan syarat kompatibel ke belakang. Asumsi eksplisit: zona proses di deployment belum diverifikasi, sehingga backfill data lama tidak termasuk issue ini. Academic juga menulis `time.Now()` ke kolom `timestamp` tetapi tidak menunjukkan gejala yang teramati di QA, sehingga tidak termasuk. Perbarui kelolakelas-docs `docs/data/billing-schema.md`, `docs/data/identity-schema.md`, dan `docs/08-known-gaps-and-risks.md`."
+      relevantAreas:
+        - "kelolakelas-billing-service/internal/usecase/transaction_usecase.go"
+        - "kelolakelas-billing-service/internal/domain/transaction.go"
+        - "kelolakelas-billing-service/internal/repository/transaction_repository.go"
+        - "kelolakelas-billing-service/pkg/database/db.go"
+        - "kelolakelas-identity-service/internal/usecase/invitation_usecase.go"
+        - "kelolakelas-identity-service/pkg/database/db.go"
+      edgeCases:
+        - "Invoice yang dibuat sebelum perubahan dan masih pending saat deploy."
+        - "Callback pembayaran yang tiba tepat di sekitar tenggat invoice."
+        - "Undangan yang dibuat sebelum perubahan lalu diverifikasi sesudahnya."
+        - "Proses berjalan pada zona dengan offset negatif."
+      testingValidation:
+        - "Unit/integration test yang menjalankan pembuatan dan pengecekan expiry dengan `time.Local` atau `TZ` non-UTC (mis. `Asia/Jakarta`) dan memastikan nilai tersimpan serta respons API dalam UTC."
+        - "Validasi risiko: test bahwa invoice dengan tenggat di masa depan tidak ditandai `expired` oleh job expiry pada zona proses non-UTC."
+        - "Existing tests pass, `go test ./...` dan lint pass di billing dan identity, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Backfill atau koreksi data lama yang sudah tersimpan dalam waktu lokal."
+        - "Normalisasi timestamp di academic dan chat."
+        - "Perubahan tampilan zona waktu di web."
+  - draftKey: parent-session-tenant-dashboard-guard
+    projectKey: null
+    title: Sesi parent dapat membuka halaman dashboard tenant karena proxy tidak mengarahkan balik
+    type: Improvement
+    priority: Medium
+    estimate: S
+    complexity: low
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "QA menemukan bahwa parent yang login dapat membuka seluruh halaman `/dashboard/tenant/*` (mis. `/dashboard/tenant/members` menampilkan \"Tenant Member Management\" dan tombol Invite Member). `proxy.ts` hanya memiliki guard `isParentRoute && !is_parent` yang menjauhkan sesi tenant dari `/dashboard/parent/*`, tetapi tidak ada guard sebaliknya. Backend tetap menolak operasi sehingga tidak ada kebocoran data, tetapi parent melihat UI admin tenant yang kosong atau penuh error izin. `lib/auth-routing.ts` sudah menganggap `/dashboard/tenant` hanya untuk sesi non-parent yang punya tenant context saat memilih redirect setelah login."
+      goal: "Sesi yang tidak memiliki konteks tenant, termasuk semua sesi parent, tidak dapat membuka halaman di bawah `/dashboard/tenant` dan diarahkan ke entry point yang sesuai."
+      requirements:
+        - "Sesi parent (`is_parent: true`) yang membuka `/dashboard/tenant` atau turunannya di-redirect ke `PARENT_DESTINATION` (`/kelas`)."
+        - "Sesi terautentikasi non-parent tanpa tenant context yang valid (`hasTenantContext` false) di-redirect ke `UNKNOWN_DESTINATION` (`/`)."
+        - "Sesi tenant dengan tenant context tetap dapat membuka `/dashboard/tenant/*` seperti sebelumnya."
+        - "Perilaku yang ada untuk sesi tanpa login, cookie kedaluwarsa, `/dashboard/parent/*`, `/invitations/verify`, dan `/platform/*` tidak berubah."
+      acceptanceCriteria:
+        - "Parent yang membuka `/dashboard/tenant/members` berakhir di `/kelas`."
+        - "Owner tenant tetap dapat membuka `/dashboard/tenant` dan `/dashboard/tenant/members`."
+        - "Pengunjung tanpa sesi yang membuka `/dashboard/tenant` tetap diarahkan ke `/login?redirectTo=...`."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Guard di `proxy.ts` bersifat optimistik dan tidak memverifikasi tanda tangan JWT; backend tetap otoritas keamanan (kelolakelas-docs `docs/components/web.md`). Pakai ulang `PARENT_DESTINATION`, `UNKNOWN_DESTINATION`, dan `hasTenantContext` dari `lib/auth-routing.ts`. Perbarui kelolakelas-docs `docs/components/web.md` pada paragraf `proxy.ts`."
+      relevantAreas:
+        - "kelolakelas-web/proxy.ts"
+        - "kelolakelas-web/proxy.test.ts"
+        - "kelolakelas-web/lib/auth-routing.ts"
+      edgeCases:
+        - "Token dengan `tenant_id` nil UUID (`00000000-0000-0000-0000-000000000000`)."
+        - "Parent membuka `/dashboard/tenant` dengan query string."
+        - "Token platform admin tanpa tenant context."
+      testingValidation:
+        - "Test `proxy.test.ts` untuk parent → `/kelas`, sesi tanpa tenant context → `/`, dan sesi tenant tetap dilayani."
+        - "Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Perubahan otorisasi backend."
+        - "Guard berbasis permission per halaman tenant."
+  - draftKey: auth-forms-preserve-input
+    projectKey: null
+    title: Form registrasi dan login mengosongkan semua isian saat validasi atau login gagal
+    type: Improvement
+    priority: Medium
+    estimate: S
+    complexity: low
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "QA menemukan dua masalah pada form auth. (1) Registrasi organisasi (`/register` → Register Organization) dengan password terlalu pendek menampilkan pesan validasi, tetapi semua field (nama organisasi, telepon, alamat, nama, email) ikut kosong sehingga pengguna harus mengetik ulang semuanya. (2) Login dengan password salah mengosongkan field email, dan banner hijau \"Account created successfully. Sign in to continue.\" (dari `?registered=1`) tetap tampil bersama pesan error merah. Form memakai `useActionState` dengan `<form action>`; React me-reset form uncontrolled setelah action selesai, dan tidak ada input yang memakai `defaultValue` dari state (`TenantRegisterForm.tsx`, `ParentRegisterForm.tsx`, dan `LoginForm.tsx` memiliki 0 `defaultValue`). Action state juga tidak mengembalikan nilai input."
+      goal: "Pengguna tidak kehilangan isian non-rahasia ketika registrasi atau login gagal, dan halaman login tidak menampilkan pesan sukses dan gagal secara bersamaan."
+      requirements:
+        - "Setelah registrasi organisasi, registrasi parent, atau login gagal (validasi maupun penolakan backend), field non-rahasia (email, nama, nama organisasi, telepon, alamat) tetap berisi nilai yang dikirim."
+        - "Field password dikosongkan setelah kegagalan dan tidak pernah dikembalikan dari server."
+        - "Banner \"Account created successfully\" tidak tampil lagi setelah ada percobaan login yang menghasilkan pesan error."
+        - "Validasi, pesan error per field, dan redirect sukses yang ada tidak berubah."
+      acceptanceCriteria:
+        - "Mengirim registrasi organisasi dengan password terlalu pendek menampilkan error dan semua field non-password tetap terisi."
+        - "Mengirim registrasi parent dengan input tidak valid mempertahankan field non-password."
+        - "Login dengan password salah mempertahankan email dan hanya menampilkan pesan error."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Mekanisme (mengembalikan nilai non-rahasia dari action, controlled input, atau validasi klien) diserahkan ke implementasi dengan mengikuti pola form lain di repo. Nilai password tidak boleh masuk ke action state, log, atau markup. Perbarui kelolakelas-docs `docs/components/web.md` bila bagian auth menjelaskan perilaku form."
+      relevantAreas:
+        - "kelolakelas-web/app/(auth)/register/_components/TenantRegisterForm.tsx"
+        - "kelolakelas-web/app/(auth)/register/_components/ParentRegisterForm.tsx"
+        - "kelolakelas-web/app/(auth)/register/_actions/actions.ts"
+        - "kelolakelas-web/app/(auth)/login/_components/LoginForm.tsx"
+        - "kelolakelas-web/app/(auth)/login/_actions/actions.ts"
+      edgeCases:
+        - "Email yang sudah terdaftar (409) saat registrasi."
+        - "Gateway tidak dapat dihubungi saat login."
+        - "Login dari `/login?registered=1&redirectTo=...`."
+      testingValidation:
+        - "Vitest untuk ketiga form: nilai non-password tetap ada setelah state error dan password kosong."
+        - "Vitest bahwa banner registered tidak tampil bersama pesan error login."
+        - "Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Perubahan aturan validasi password atau API identity."
+        - "Form auth lain (forgot/reset password, registrasi undangan)."
+  - draftKey: invite-member-permission-display
+    projectKey: null
+    title: Form undang anggota menampilkan checkbox permission yang semuanya tercentang tetapi diabaikan
+    type: Improvement
+    priority: Medium
+    estimate: S
+    complexity: low
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "Di form Invite Member (`/dashboard/tenant/members`), seluruh checkbox \"Assigned Permissions\" (49 permission) sudah tercentang sebelum role dipilih, karena `activePermissions` jatuh ke semua permission tenant saat role kosong dan checkbox memakai `defaultChecked`. Server action membaca `permissionIds` tetapi hanya mengirim `{ email, role_id }` ke `POST /api/v1/invitations`, dan payload identity (`CreateInvitationPayload`) memang hanya menerima `role_id` dan `email`. Admin dapat mengira undangan memberi semua akses atau bahwa mencentang/menghapus centang berpengaruh, padahal undangan selalu memakai permission role terpilih."
+      goal: "Form undang anggota menampilkan permission secara jujur: hanya permission milik role terpilih, sebagai informasi read-only, tanpa kesan bahwa permission per undangan dapat diatur."
+      requirements:
+        - "Sebelum role dipilih, form tidak menampilkan daftar semua permission sebagai terpilih."
+        - "Setelah role dipilih, form menampilkan permission role tersebut sebagai informasi read-only (bukan checkbox yang dapat diubah)."
+        - "Server action dan schema tidak lagi menerima atau memvalidasi `permissionIds` yang diabaikan."
+        - "Payload ke `POST /api/v1/invitations` tetap `{ email, role_id }`, dan validasi email/role serta pesan error yang ada tidak berubah."
+      acceptanceCriteria:
+        - "Membuka form Invite Member tanpa memilih role tidak menampilkan permission yang tercentang."
+        - "Memilih role \"Teacher\" menampilkan permission role Teacher sebagai daftar read-only."
+        - "Mengirim undangan tetap berhasil dan undangan memakai role terpilih."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Permission per undangan tidak didukung identity (`internal/delivery/http/handler/invitation_handler.go` `CreateInvitationPayload`); menambah fitur itu adalah keputusan produk terpisah. Role yang permission-nya kosong perlu ditangani tanpa jatuh ke daftar semua permission. Perbarui kelolakelas-docs `docs/components/web.md` bila form undangan dijelaskan."
+      relevantAreas:
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_components/InviteMemberForm.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_actions/actions.ts"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/members/_schemas/schema.ts"
+      edgeCases:
+        - "Role tanpa permission."
+        - "Daftar role atau permission gagal dimuat."
+        - "Role diganti setelah dipilih."
+      testingValidation:
+        - "Vitest untuk form: tidak ada permission tercentang sebelum role dipilih, dan permission role tampil read-only setelah dipilih."
+        - "Test action bahwa payload hanya berisi email dan role."
+        - "Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Permission khusus per undangan atau per anggota."
+        - "Perubahan API identity."
+  - draftKey: tenant-overview-real-data
+    projectKey: null
+    title: Overview tenant menampilkan nama dan status sistem hardcoded, bukan data pengguna atau layanan nyata
+    type: Improvement
+    priority: Low
+    estimate: S
+    complexity: low
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "Overview tenant (`/dashboard/tenant`) menampilkan teks statis yang tidak berasal dari data: sapaan \"Welcome back, Tenant Admin\" untuk semua pengguna (`tenant/page.tsx`), subjudul sidebar \"Tenant Member\" yang statis (`TenantSidebar.tsx`), kartu \"System Status\" yang selalu \"Operational / Identity & Academic Services online\" tanpa health check (`OverviewMetrics.tsx`), panel \"Platform Architecture\" berisi copy internal developer (\"Next.js PPR Engine\"), dan tautan settings berlabel \"Organization details & API keys\" padahal tidak ada fitur API key. Owner \"Rina Owner\" dan Teacher \"Tono Guru\" melihat sapaan yang sama. Status \"Operational\" palsu dapat menyesatkan saat layanan benar-benar bermasalah."
+      goal: "Overview tenant hanya menampilkan informasi yang benar untuk pengguna yang login, tanpa status atau copy internal yang tidak berdasar."
+      requirements:
+        - "Sapaan overview tidak lagi menyebut role tetap \"Tenant Admin\"; gunakan data yang sudah tersedia untuk sesi (mis. nama role dari membership `GET /api/v1/members/me/membership`) atau sapaan netral."
+        - "Subjudul statis \"Tenant Member\" di footer sidebar dihapus atau diganti data nyata."
+        - "Kartu \"System Status\" statis dihapus dari overview."
+        - "Panel \"Platform Architecture\" dihapus dari UI tenant."
+        - "Label tautan settings tidak menyebut \"API keys\"."
+        - "Kartu metrik lain (members, roles, invitations, sales summary) tidak berubah."
+      acceptanceCriteria:
+        - "Owner dan Teacher tidak lagi melihat \"Welcome back, Tenant Admin\"."
+        - "Overview tidak menampilkan \"System Status\", \"Operational\", \"Platform Architecture\", atau \"API keys\"."
+        - "Sidebar tidak menampilkan subjudul statis \"Tenant Member\"."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Nama pengguna tidak tersedia di JWT maupun respons membership (`MyMembershipResponse` hanya berisi member_id, role_id, role_name, permissions), sehingga menampilkan nama orang tidak termasuk issue ini. Saat membership gagal dimuat, `roleName` bernilai null dan UI harus tetap wajar. Perbarui kelolakelas-docs `docs/components/web.md` bila overview dijelaskan."
+      relevantAreas:
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/page.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/OverviewMetrics.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/_components/TenantSidebar.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/_queries/membership.ts"
+      edgeCases:
+        - "Membership gagal dimuat (`roleName` null)."
+        - "Role custom dengan nama panjang."
+        - "Mode gelap."
+      testingValidation:
+        - "Vitest/render test overview dan sidebar untuk sapaan, ketiadaan kartu status dan panel arsitektur, dan fallback saat role null."
+        - "Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Menampilkan nama orang (membutuhkan perubahan identity)."
+        - "Status kesehatan layanan nyata di dashboard."
+  - draftKey: tenant-location-success-message
+    projectKey: null
+    title: Pesan sukses "Lokasi tenant berhasil disimpan" tidak pernah tampil setelah simpan lokasi
+    type: Improvement
+    priority: Low
+    estimate: S
+    complexity: very-low
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "Di `/dashboard/tenant/settings`, menekan \"Simpan lokasi\" berhasil (`PUT /api/v1/tenant/settings/location` → 200, data tampil setelah reload), tetapi pesan \"Lokasi tenant berhasil disimpan.\" tidak pernah tampil. Server action memanggil `revalidatePath` lalu mengembalikan status sukses, sementara `settings/page.tsx` memberi `TenantLocationForm` `key` yang memuat `location?.location_updated_at`. Setelah revalidate, nilai itu berubah, form di-remount, dan state `useActionState` berisi pesan sukses hilang."
+      goal: "Setelah lokasi tenant berhasil disimpan, pengguna melihat konfirmasi sukses dan form menampilkan nilai tersimpan terbaru."
+      requirements:
+        - "Pesan \"Lokasi tenant berhasil disimpan.\" tampil (role=status) setelah simpan lokasi berhasil."
+        - "Form menampilkan koordinat tersimpan terbaru setelah simpan."
+        - "Pesan error validasi dan error API yang ada tetap tampil seperti sebelumnya."
+        - "Form profil tenant di halaman yang sama tidak berubah."
+      acceptanceCriteria:
+        - "Menyimpan latitude/longitude yang valid menampilkan pesan sukses tanpa reload."
+        - "Reload setelah simpan menampilkan nilai yang sama."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Pertahankan kemampuan form menerima nilai baru dari server tanpa menghapus state action. Perbarui kelolakelas-docs `docs/components/web.md` bila perilaku settings dijelaskan."
+      relevantAreas:
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/page.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/_components/TenantLocationForm.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/_actions/settingsActions.ts"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/settings/_components/forms.test.tsx"
+      edgeCases:
+        - "Simpan lokasi pertama kali (sebelumnya belum ada lokasi)."
+        - "Simpan dua kali berturut-turut."
+        - "Pengguna read-only yang tidak boleh menyimpan."
+      testingValidation:
+        - "Vitest bahwa pesan sukses tampil setelah action sukses dan tetap ada ketika data lokasi berubah."
+        - "Existing tests pass, `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Perubahan API lokasi tenant."
+        - "Pemilihan lokasi lewat peta."
+  - draftKey: student-dob-not-future
+    projectKey: null
+    title: Tanggal lahir student di masa depan diterima tanpa validasi
+    type: Improvement
+    priority: Low
+    estimate: S
+    complexity: low
+    labels: [academic, web, ai-ready]
+    repositories: [academic, web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "Parent dapat menyimpan student dengan tanggal lahir di masa depan (QA: 2030-01-15 pada 9 Okt 2026), dan daftar student menampilkannya tanpa error. Web `lib/students.ts` (`studentFormSchema.date_of_birth`) hanya memvalidasi format tanggal, input `type=\"date\"` di `StudentForm.tsx` tidak memiliki `max`, dan academic `internal/usecase/student_usecase.go` (create dan update) hanya melakukan `time.Parse(\"2006-01-02\", ...)` tanpa pengecekan tanggal."
+      goal: "Tanggal lahir student yang lebih besar dari hari ini ditolak di web dan di academic."
+      requirements:
+        - "Academic menolak create dan update student dengan tanggal lahir setelah tanggal hari ini (kalender `Asia/Jakarta`) dengan 400 \"Invalid student payload\"."
+        - "Tanggal lahir hari ini dan tanggal lampau tetap diterima."
+        - "Form student web menampilkan pesan validasi per field untuk tanggal lahir di masa depan, dan input tanggal membatasi pilihan hingga hari ini."
+        - "Validasi format tanggal dan field lain yang ada tidak berubah."
+      acceptanceCriteria:
+        - "Menyimpan student dengan tanggal lahir besok gagal dengan pesan validasi di form."
+        - "`POST` dan `PUT` student ke academic dengan tanggal lahir di masa depan dijawab 400."
+        - "Menyimpan student dengan tanggal lahir hari ini berhasil."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Asumsi eksplisit: batas \"hari ini\" memakai kalender `Asia/Jakarta`, sesuai zona pengguna; batas usia minimum tidak termasuk. Handler academic memetakan error input lewat `isStudentInputError`, jadi error baru perlu ikut dipetakan ke 400. Data lama dengan tanggal di masa depan tidak dimigrasi. Perbarui kelolakelas-docs `docs/components/academic-service.md` dan `docs/components/web.md` pada bagian student."
+      relevantAreas:
+        - "kelolakelas-academic-service/internal/usecase/student_usecase.go"
+        - "kelolakelas-academic-service/internal/domain/student.go"
+        - "kelolakelas-academic-service/internal/delivery/http/handler/student_handler.go"
+        - "kelolakelas-web/lib/students.ts"
+        - "kelolakelas-web/app/(dashboard)/dashboard/parent/students/_components/StudentForm.tsx"
+      edgeCases:
+        - "Submit tepat sekitar tengah malam WIB."
+        - "Edit student lama yang sudah tersimpan dengan tanggal di masa depan."
+        - "Tanggal tidak valid seperti 2026-02-30 tetap ditolak sebagai format tidak valid."
+      testingValidation:
+        - "Unit test academic untuk tanggal besok (400), hari ini (sukses), dan tanggal lampau (sukses) pada create dan update."
+        - "Vitest `lib/students.test.ts` untuk tanggal di masa depan."
+        - "Existing tests pass, `go test ./...` dan `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Batas usia minimum atau maksimum student."
+        - "Koreksi data student yang sudah tersimpan."
+  - draftKey: schedule-overlap-warning
+    projectKey: null
+    title: Form jadwal kelas memperingatkan slot yang tumpang tindih pada hari yang sama sebelum disimpan
+    type: Improvement
+    priority: Low
+    estimate: S
+    complexity: low
+    labels: [web, ai-ready]
+    repositories: [web]
+    blockedByDraftKeys: []
+    externalDependencies: []
+    body:
+      backgroundProblem: "QA membuat kelas grup lewat wizard. Generator slot (Senin & Selasa, 08:00, 90 menit, jeda 15) menambahkan 4 slot ke slot manual awal Senin 09:00–10:30, sehingga kelas tersimpan dengan 5 jadwal dan Senin 08:00–09:30 tumpang tindih dengan Senin 09:00–10:30 tanpa peringatan. Menambahkan slot generator ke slot manual adalah perilaku yang disengaja dan diuji (`ScheduleForm.test.tsx`), dan pencegahan duplikat di form hanya mencegah slot dengan hari dan jam yang persis sama. Academic tidak memvalidasi overlap, dan hal itu sengaja dikeluarkan dari scope KEL-112. Akibatnya tenant dapat menyimpan jadwal bentrok tanpa menyadarinya."
+      goal: "Tenant mendapat peringatan yang jelas di form jadwal ketika dua slot pada hari yang sama saling tumpang tindih, sebelum menyimpan, tanpa mengubah aturan bisnis bahwa overlap boleh disimpan."
+      requirements:
+        - "Form jadwal (wizard kelas dan modal tambah jadwal) menandai setiap slot yang waktunya tumpang tindih dengan slot lain pada hari yang sama dan menampilkan pesan peringatan yang menyebut slot terkait."
+        - "Peringatan diperbarui saat slot diubah, dihapus, atau ditambah lewat generator."
+        - "Peringatan tidak memblokir penyimpanan; slot yang hanya bersentuhan (akhir satu = mulai berikutnya) tidak dianggap tumpang tindih."
+        - "Generator, pencegahan duplikat, dan payload `POST /api/v1/schedules` tidak berubah."
+      acceptanceCriteria:
+        - "Slot Senin 08:00–09:30 dan Senin 09:00–10:30 menampilkan peringatan tumpang tindih."
+        - "Slot Senin 08:00–09:30 dan Senin 09:30–11:00 tidak menampilkan peringatan."
+        - "Menghapus salah satu slot yang bentrok menghilangkan peringatan."
+        - "Existing functionality remains unaffected"
+        - "Error and validation scenarios are handled correctly"
+      technicalNotes: "Apakah overlap jadwal grup boleh disimpan (mis. ruang atau tutor berbeda) adalah keputusan produk yang belum diambil, sehingga issue ini hanya menambah peringatan non-blokir di web. Waktu adalah wall-clock `HH:MM` tanpa zona. Letakkan logika deteksi overlap sebagai fungsi murni di `_lib` di samping logika generator. Perbarui kelolakelas-docs `docs/components/web.md` pada bagian form jadwal."
+      relevantAreas:
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_components/ScheduleForm.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_components/AddScheduleModal.tsx"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts"
+        - "kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_components/ScheduleForm.test.tsx"
+      edgeCases:
+        - "Tiga slot atau lebih yang saling tumpang tindih."
+        - "Slot dengan jam belum lengkap diisi."
+        - "Slot yang bersentuhan tepat di batas waktu."
+      testingValidation:
+        - "Unit test fungsi deteksi overlap untuk overlap, bersentuhan, hari berbeda, dan jam belum lengkap."
+        - "Vitest form bahwa peringatan muncul dan hilang sesuai perubahan slot."
+        - "Existing tests pass (termasuk `ScheduleForm.test.tsx` dan `ClassCreationWizard.test.tsx`), `npm run lint` pass, type check/`next build` pass, dan acceptance criteria diverifikasi manual."
+      outOfScope:
+        - "Validasi atau penolakan overlap di academic."
+        - "Perubahan slot manual awal atau perilaku generator."
+        - "Pengurutan tampilan jadwal di katalog dan detail kelas."

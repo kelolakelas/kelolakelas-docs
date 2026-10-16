@@ -1,0 +1,97 @@
+{
+  "id": "KEL-32",
+  "uuid": "a75402da-30f9-4881-b010-91bc5d599b9d",
+  "title": "Sediakan edit kelas di dashboard tenant",
+  "description": "## Background / Problem\n\nDaftar kelas tenant bersifat read-only selain pembuatan; tidak ada form edit karena endpoint update belum ada. Setelah endpoint update tersedia, tenant memerlukan UI untuk memperbaiki nama, deskripsi, harga, dan kategori.\n\n## Goal\n\nTenant dapat memperbarui informasi jual kelas dari dashboard dengan validasi yang sama seperti pembuatan.\n\n## Requirements\n\n* Form edit memakai field dan validasi yang sama dengan wizard pembuatan untuk field yang dapat diubah.\n* Aksi memanggil endpoint update melalui Server Action dan me-revalidate daftar.\n* State loading, validasi, forbidden, not-found, dan error API ditampilkan.\n* Pembuatan dan publikasi kelas yang ada tetap berfungsi.\n\n## Acceptance Criteria\n\n- [ ] Tenant dapat mengubah nama, deskripsi, harga, dan kategori kelas dan melihat hasilnya di daftar\n- [ ] Input tidak valid ditolak dengan pesan per field\n- [ ] Member tanpa permission melihat pesan forbidden\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nIkuti pola Server Action tenant yang ada. Kontrak field mengikuti endpoint update yang dibuat pada issue backend.\n\nRelevant areas:\n\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/classes`\n* `kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts`\n\n## Edge Cases\n\n* Kelas dihapus oleh member lain saat form terbuka.\n* Kategori baru dibuat saat form terbuka.\n* Harga dengan pemisah ribuan.\n\n## Testing / Validation\n\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Edit jadwal.\n* Hapus kelas dari UI.\n* Upload gambar kelas.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"web-tenant-class-edit\",\n  \"projectKey\": \"tenant-selling-operations\",\n  \"title\": \"Sediakan edit kelas di dashboard tenant\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"S\",\n  \"complexity\": \"low\",\n  \"labels\": [\n    \"web\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"web\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"academic-class-update-endpoint\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Daftar kelas tenant bersifat read-only selain pembuatan; tidak ada form edit karena endpoint update belum ada. Setelah endpoint update tersedia, tenant memerlukan UI untuk memperbaiki nama, deskripsi, harga, dan kategori.\",\n    \"goal\": \"Tenant dapat memperbarui informasi jual kelas dari dashboard dengan validasi yang sama seperti pembuatan.\",\n    \"requirements\": [\n      \"Form edit memakai field dan validasi yang sama dengan wizard pembuatan untuk field yang dapat diubah.\",\n      \"Aksi memanggil endpoint update melalui Server Action dan me-revalidate daftar.\",\n      \"State loading, validasi, forbidden, not-found, dan error API ditampilkan.\",\n      \"Pembuatan dan publikasi kelas yang ada tetap berfungsi.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Tenant dapat mengubah nama, deskripsi, harga, dan kategori kelas dan melihat hasilnya di daftar\",\n      \"Input tidak valid ditolak dengan pesan per field\",\n      \"Member tanpa permission melihat pesan forbidden\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Ikuti pola Server Action tenant yang ada. Kontrak field mengikuti endpoint update yang dibuat pada issue backend.\",\n    \"relevantAreas\": [\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/classes\",\n      \"kelolakelas-web/app/(dashboard)/dashboard/tenant/classes/_lib/schema.ts\"\n    ],\n    \"edgeCases\": [\n      \"Kelas dihapus oleh member lain saat form terbuka.\",\n      \"Kategori baru dibuat saat form terbuka.\",\n      \"Harga dengan pemisah ribuan.\"\n    ],\n    \"testingValidation\": [\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Edit jadwal.\",\n      \"Hapus kelas dari UI.\",\n      \"Upload gambar kelas.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-32/sediakan-edit-kelas-di-dashboard-tenant",
+  "gitBranchName": "skinel123/kel-32-sediakan-edit-kelas-di-dashboard-tenant",
+  "createdAt": "2026-09-16T11:48:16.618Z",
+  "updatedAt": "2026-09-20T18:27:14.199Z",
+  "archivedAt": null,
+  "completedAt": "2026-09-20T18:25:30.230Z",
+  "startedAt": "2026-09-20T18:03:54.560Z",
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Done",
+  "statusType": "completed",
+  "labels": [
+    "web",
+    "Feature",
+    "ai-ready"
+  ],
+  "attachments": [
+    {
+      "id": "2f1b5253-297d-4b3e-8458-60330f70ce4b",
+      "title": "docs(KEL-32): record tenant class editing on the web dashboard",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/32"
+    },
+    {
+      "id": "abb2dcf0-bd73-4964-bef3-760a1010f4bb",
+      "title": "feat(KEL-32): edit a class from the tenant dashboard",
+      "subtitle": null,
+      "url": "https://github.com/kelolakelas/kelolakelas-web/pull/9"
+    }
+  ],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-16T11:48:16.618Z",
+      "endedAt": "2026-09-20T18:03:54.575Z"
+    },
+    {
+      "state": {
+        "id": "ce7bdc85-cdbe-413e-8dea-ac20f84417a0",
+        "name": "In Progress",
+        "type": "started"
+      },
+      "startedAt": "2026-09-20T18:03:54.575Z",
+      "endedAt": "2026-09-20T18:25:30.251Z"
+    },
+    {
+      "state": {
+        "id": "adda9246-1e2f-4247-bfcd-1763fc3769e1",
+        "name": "Done",
+        "type": "completed"
+      },
+      "startedAt": "2026-09-20T18:25:30.251Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "assignee": "Farid Zam",
+  "assigneeId": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Operasional tenant untuk menjual kelas",
+  "projectId": "0925b72f-fbab-4d82-b530-cac847cb5ec2",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-30",
+        "title": "Sediakan endpoint pembaruan kelas untuk tenant"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

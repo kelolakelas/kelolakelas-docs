@@ -1,0 +1,63 @@
+{
+  "id": "KEL-156",
+  "uuid": "4376092d-2e56-4128-8d59-95dcd1242f55",
+  "title": "Parent menerima pengingat sehari sebelum sesi anaknya",
+  "description": "## Background / Problem\n\nTidak ada pengingat sesi; session generation worker sudah membuat sesi hingga horizon satu bulan (`internal/usecase/session_generation_worker.go:14-18,61-99`).\n\n## Goal\n\nParent dengan enrollment aktif menerima satu pengingat untuk setiap sesi anaknya sekitar satu hari sebelumnya.\n\n## Requirements\n\n* Worker berkala menulis event pengingat ke outbox notifikasi untuk sesi terjadwal dalam jendela H-1 (Asia/Jakarta).\n* Satu pengingat per sesi per enrollment, idempoten terhadap eksekusi ulang.\n* Sesi dibatalkan atau enrollment tidak aktif tidak diingatkan.\n* Jendela dan pengaktifan worker dapat dikonfigurasi.\n\n## Acceptance Criteria\n\n- [ ] Sesi besok menghasilkan tepat satu pengingat per parent terdampak.\n- [ ] Menjalankan worker dua kali tidak menggandakan pengingat.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nGunakan outbox dan pengirim dari issue notifikasi. Sesi yang di-reschedule setelah pengingat terkirim mengikuti notifikasi reschedule. Perbarui `kelolakelas-docs` (04-configuration.md, components/academic-service.md).\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/usecase/session_generation_worker.go`\n* `kelolakelas-academic-service/cmd/server/main.go`\n\n## Edge Cases\n\n* Sesi dekat tengah malam WIB.\n* Sesi di-reschedule ke besok setelah worker berjalan.\n\n## Testing / Validation\n\n- [ ] Unit test dengan clock palsu untuk batas jendela.\n- [ ] Postgres integration test idempotensi.\n- [ ] go vet, go test -race, dan build lulus.\n\n## Out of Scope\n\n* Pengingat untuk pengajar.\n* Pengaturan waktu pengingat per parent.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"academic-session-reminder\",\n  \"projectKey\": \"parent-schedule-notifications\",\n  \"title\": \"Parent menerima pengingat sehari sebelum sesi anaknya\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"S\",\n  \"complexity\": \"medium\",\n  \"labels\": [\n    \"academic\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"academic-parent-notification-outbox\"\n  ],\n  \"externalDependencies\": [],\n  \"body\": {\n    \"backgroundProblem\": \"Tidak ada pengingat sesi; session generation worker sudah membuat sesi hingga horizon satu bulan (`internal/usecase/session_generation_worker.go:14-18,61-99`).\",\n    \"goal\": \"Parent dengan enrollment aktif menerima satu pengingat untuk setiap sesi anaknya sekitar satu hari sebelumnya.\",\n    \"requirements\": [\n      \"Worker berkala menulis event pengingat ke outbox notifikasi untuk sesi terjadwal dalam jendela H-1 (Asia/Jakarta).\",\n      \"Satu pengingat per sesi per enrollment, idempoten terhadap eksekusi ulang.\",\n      \"Sesi dibatalkan atau enrollment tidak aktif tidak diingatkan.\",\n      \"Jendela dan pengaktifan worker dapat dikonfigurasi.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Sesi besok menghasilkan tepat satu pengingat per parent terdampak.\",\n      \"Menjalankan worker dua kali tidak menggandakan pengingat.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Gunakan outbox dan pengirim dari issue notifikasi. Sesi yang di-reschedule setelah pengingat terkirim mengikuti notifikasi reschedule. Perbarui `kelolakelas-docs` (04-configuration.md, components/academic-service.md).\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/usecase/session_generation_worker.go\",\n      \"kelolakelas-academic-service/cmd/server/main.go\"\n    ],\n    \"edgeCases\": [\n      \"Sesi dekat tengah malam WIB.\",\n      \"Sesi di-reschedule ke besok setelah worker berjalan.\"\n    ],\n    \"testingValidation\": [\n      \"Unit test dengan clock palsu untuk batas jendela.\",\n      \"Postgres integration test idempotensi.\",\n      \"go vet, go test -race, dan build lulus.\"\n    ],\n    \"outOfScope\": [\n      \"Pengingat untuk pengajar.\",\n      \"Pengaturan waktu pengingat per parent.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 1,
+    "name": "1 Point"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-156/parent-menerima-pengingat-sehari-sebelum-sesi-anaknya",
+  "gitBranchName": "skinel123/kel-156-parent-menerima-pengingat-sehari-sebelum-sesi-anaknya",
+  "createdAt": "2026-09-30T11:02:18.267Z",
+  "updatedAt": "2026-09-30T11:07:54.554Z",
+  "archivedAt": null,
+  "completedAt": null,
+  "startedAt": null,
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Backlog",
+  "statusType": "backlog",
+  "labels": [
+    "academic",
+    "ai-ready"
+  ],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T11:02:18.267Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Notifikasi perubahan jadwal dan kehadiran ke parent",
+  "projectId": "4387984f-6485-429c-a03d-8c9c9ed498ec",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [],
+    "blockedBy": [
+      {
+        "id": "KEL-155",
+        "title": "Parent diberi tahu lewat email dan chat saat sesi di-reschedule, tutor diganti, atau anak tidak hadir"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "id": "KEL-101",
+  "uuid": "09187af0-77fd-43e4-b997-493512c4e28f",
+  "title": "Konfigurasi operasional identity, academic, dan billing dapat diterapkan dengan rollback",
+  "description": "## Background / Problem\n\nTTL katalog, timeout gRPC, geocoding, permission flag, interval/enable worker, expiry, serta provider URL non-secret dibaca saat startup dan tidak memiliki control plane.\n\n## Goal\n\nAdmin dapat mengelola semua setting operasional non-secret tiga service dari inventory dengan status applied dan rollback aman.\n\n## Requirements\n\n* Implementasikan jalur penerapan semua key non-secret identity/academic/billing dari inventory; tandai dynamic atau restart-required.\n* Validasi batas dan dependensi lintas setting, terutama permission flag, expiry, dan worker interval.\n* Tampilkan applied version per service/replika dan rollback saat health atau job processing gagal.\n* Jaga worker in-flight serta transaksi existing aman ketika setting berubah.\n\n## Acceptance Criteria\n\n- [ ] Seluruh key non-secret tiga service dalam inventory punya jalur update terdokumentasi.\n- [ ] Nilai invalid ditolak sebelum memengaruhi job atau catalog.\n- [ ] Partial rollout terlihat dan dapat di-rollback tanpa status applied palsu.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko utama job ganda/hilang, permission bypass, dan invoice expiry salah. Beberapa key mengubah state machine dan memerlukan rollout bertahap serta test pada staging; jangan mengasumsikan hot reload.\n\nRelevant areas:\n\n* `kelolakelas-identity-service/internal/config/config.go`\n* `kelolakelas-academic-service/internal/config/config.go`\n* `kelolakelas-billing-service/internal/config/config.go`\n* `kelolakelas-billing-service/internal/usecase/subscription_worker.go`\n\n## Edge Cases\n\n* Worker interval berubah saat job berjalan.\n* PERMISSION_REQUIRE_TENANT_ID berubah sebelum client siap.\n* Expiry baru diterapkan pada invoice pending lama.\n\n## Testing / Validation\n\n- [ ] Mitigasi risiko: test worker in-flight, compatibility permission flag, dan invoice lama dalam canary/rollback staging.\n- [ ] Relevant unit tests are added or updated\n- [ ] Relevant integration tests are added or updated\n- [ ] Existing tests pass\n- [ ] Lint passes\n- [ ] Type checking passes\n- [ ] Acceptance criteria are manually or automatically verified\n\n## Out of Scope\n\n* Secret dan credential provider.\n* Formula biaya platform.\n* AI orchestrator internal.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"platform-service-config\",\n  \"projectKey\": \"platform-admin-control-plane\",\n  \"title\": \"Konfigurasi operasional identity, academic, dan billing dapat diterapkan dengan rollback\",\n  \"type\": \"Feature\",\n  \"priority\": \"High\",\n  \"estimate\": \"L\",\n  \"complexity\": \"very-high\",\n  \"labels\": [\n    \"identity\",\n    \"academic\",\n    \"billing\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"identity\",\n    \"academic\",\n    \"billing\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"platform-config-control-plane\"\n  ],\n  \"externalDependencies\": [\n    {\n      \"key\": \"service-deployment-topology\",\n      \"description\": \"Topologi deployment identity, academic, billing dan mekanisme worker rollout harus diketahui.\",\n      \"verification\": \"Staging mendukung rollout serta rollback bertahap tiga service dan status applied per replika.\"\n    }\n  ],\n  \"body\": {\n    \"backgroundProblem\": \"TTL katalog, timeout gRPC, geocoding, permission flag, interval/enable worker, expiry, serta provider URL non-secret dibaca saat startup dan tidak memiliki control plane.\",\n    \"goal\": \"Admin dapat mengelola semua setting operasional non-secret tiga service dari inventory dengan status applied dan rollback aman.\",\n    \"requirements\": [\n      \"Implementasikan jalur penerapan semua key non-secret identity/academic/billing dari inventory; tandai dynamic atau restart-required.\",\n      \"Validasi batas dan dependensi lintas setting, terutama permission flag, expiry, dan worker interval.\",\n      \"Tampilkan applied version per service/replika dan rollback saat health atau job processing gagal.\",\n      \"Jaga worker in-flight serta transaksi existing aman ketika setting berubah.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Seluruh key non-secret tiga service dalam inventory punya jalur update terdokumentasi.\",\n      \"Nilai invalid ditolak sebelum memengaruhi job atau catalog.\",\n      \"Partial rollout terlihat dan dapat di-rollback tanpa status applied palsu.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko utama job ganda/hilang, permission bypass, dan invoice expiry salah. Beberapa key mengubah state machine dan memerlukan rollout bertahap serta test pada staging; jangan mengasumsikan hot reload.\",\n    \"relevantAreas\": [\n      \"kelolakelas-identity-service/internal/config/config.go\",\n      \"kelolakelas-academic-service/internal/config/config.go\",\n      \"kelolakelas-billing-service/internal/config/config.go\",\n      \"kelolakelas-billing-service/internal/usecase/subscription_worker.go\"\n    ],\n    \"edgeCases\": [\n      \"Worker interval berubah saat job berjalan.\",\n      \"PERMISSION_REQUIRE_TENANT_ID berubah sebelum client siap.\",\n      \"Expiry baru diterapkan pada invoice pending lama.\"\n    ],\n    \"testingValidation\": [\n      \"Mitigasi risiko: test worker in-flight, compatibility permission flag, dan invoice lama dalam canary/rollback staging.\",\n      \"Relevant unit tests are added or updated\",\n      \"Relevant integration tests are added or updated\",\n      \"Existing tests pass\",\n      \"Lint passes\",\n      \"Type checking passes\",\n      \"Acceptance criteria are manually or automatically verified\"\n    ],\n    \"outOfScope\": [\n      \"Secret dan credential provider.\",\n      \"Formula biaya platform.\",\n      \"AI orchestrator internal.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 2,
+    "name": "High"
+  },
+  "estimate": {
+    "value": 3,
+    "name": "3 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-101/konfigurasi-operasional-identity-academic-dan-billing-dapat-diterapkan",
+  "gitBranchName": "skinel123/kel-101-konfigurasi-operasional-identity-academic-dan-billing-dapat",
+  "createdAt": "2026-09-24T13:35:25.276Z",
+  "updatedAt": "2026-09-29T14:59:28.827Z",
+  "archivedAt": null,
+  "completedAt": null,
+  "startedAt": null,
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Backlog",
+  "statusType": "backlog",
+  "labels": [
+    "billing",
+    "identity",
+    "academic",
+    "ai-ready"
+  ],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-24T13:35:25.276Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Kontrol platform terpusat oleh platform admin",
+  "projectId": "ec13327b-4cd2-4226-84c1-019b5e88a53e",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-104",
+        "title": "Platform admin dapat meninjau, mengubah, dan memantau konfigurasi dari dashboard"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-96",
+        "title": "Platform admin memiliki katalog konfigurasi terpusat dengan audit dan status penerapan"
+      }
+    ],
+    "relatedTo": [
+      {
+        "id": "KEL-132",
+        "title": "Academic menolak kapasitas jadwal private yang tidak sesuai satu student"
+      }
+    ],
+    "duplicateOf": null
+  }
+}

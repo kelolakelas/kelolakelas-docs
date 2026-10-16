@@ -1,0 +1,151 @@
+{
+  "projects": {
+    "qa-platform-recovery": {
+      "identifier": "P-KEL-32",
+      "id": "fd3d84e8-5646-468b-8dd5-4677993dea63",
+      "url": "https://linear.app/farid-zamani/project/qa-pemulihan-alur-platform-admin-bd84089b6f6d",
+      "createdHere": true
+    },
+    "qa-teaching-recovery": {
+      "identifier": "P-KEL-33",
+      "id": "7f4ae5a9-1def-45c4-ba4b-b62e764824ac",
+      "url": "https://linear.app/farid-zamani/project/qa-sesi-dan-identitas-laporan-pengajaran-318723110647",
+      "createdHere": true
+    },
+    "qa-category-maintenance": {
+      "identifier": "P-KEL-34",
+      "id": "53a97201-1a7b-491d-95e1-cd1162522dcc",
+      "url": "https://linear.app/farid-zamani/project/qa-pemeliharaan-kategori-tenant-dd42232d0200",
+      "createdHere": true
+    }
+  },
+  "issues": [
+    {
+      "draftKey": "platform-totp-enrollment-version",
+      "identifier": "KEL-180",
+      "url": "https://linear.app/farid-zamani/issue/KEL-180/enrollment-totp-pertama-menerbitkan-sesi-dengan-factor-version-yang",
+      "priority": "Medium",
+      "ai_ready": true,
+      "labels": [
+        "identity",
+        "Improvement",
+        "ai-ready",
+        "Bug"
+      ]
+    },
+    {
+      "draftKey": "creator-decision-assignment-column",
+      "identifier": "KEL-181",
+      "url": "https://linear.app/farid-zamani/issue/KEL-181/approve-dan-reject-creator-memakai-primary-key-assignment-yang-benar",
+      "priority": "Medium",
+      "ai_ready": true,
+      "labels": [
+        "identity",
+        "Improvement",
+        "ai-ready",
+        "Bug"
+      ]
+    },
+    {
+      "draftKey": "platform-zero-tenant-scope",
+      "identifier": "KEL-182",
+      "url": "https://linear.app/farid-zamani/issue/KEL-182/guard-web-menerima-tenant-zero-uuid-pada-verified-platform-session",
+      "priority": "Medium",
+      "ai_ready": true,
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready",
+        "Bug"
+      ]
+    },
+    {
+      "draftKey": "session-calendar-timestamp-label",
+      "identifier": "KEL-183",
+      "url": "https://linear.app/farid-zamani/issue/KEL-183/tanggal-sesi-dari-timestamp-api-tampil-di-kartu-dan-dialog-teacher",
+      "priority": "Medium",
+      "ai_ready": true,
+      "labels": [
+        "web",
+        "Improvement",
+        "ai-ready",
+        "Bug"
+      ]
+    },
+    {
+      "draftKey": "report-list-enrollment-identities",
+      "identifier": "KEL-184",
+      "url": "https://linear.app/farid-zamani/issue/KEL-184/respons-report-menyertakan-identitas-student-dan-class-untuk-daftar",
+      "priority": "Medium",
+      "ai_ready": true,
+      "labels": [
+        "academic",
+        "Improvement",
+        "ai-ready",
+        "Bug"
+      ]
+    },
+    {
+      "draftKey": "tenant-read-permission-policy",
+      "identifier": "KEL-185",
+      "url": "https://linear.app/farid-zamani/issue/KEL-185/tetapkan-dan-selaraskan-permission-baca-administrasi-tenant",
+      "priority": "High",
+      "ai_ready": false,
+      "labels": [
+        "identity",
+        "web",
+        "Improvement",
+        "Bug"
+      ]
+    },
+    {
+      "draftKey": "private-teacher-assignment-policy",
+      "identifier": "KEL-186",
+      "url": "https://linear.app/farid-zamani/issue/KEL-186/tenant-dapat-menugaskan-teacher-pada-jadwal-private-hasil-approval",
+      "priority": "Medium",
+      "ai_ready": false,
+      "labels": [
+        "academic",
+        "web",
+        "Feature"
+      ]
+    },
+    {
+      "draftKey": "web-security-header-policy",
+      "identifier": "KEL-187",
+      "url": "https://linear.app/farid-zamani/issue/KEL-187/tetapkan-baseline-security-headers-dan-ownership-app-versus-edge",
+      "priority": "Low",
+      "ai_ready": false,
+      "labels": [
+        "web",
+        "Improvement"
+      ]
+    },
+    {
+      "draftKey": "category-update-api",
+      "identifier": "KEL-188",
+      "url": "https://linear.app/farid-zamani/issue/KEL-188/tenant-dapat-memperbarui-nama-dan-deskripsi-kategori-melalui-api",
+      "priority": "Medium",
+      "ai_ready": true,
+      "labels": [
+        "identity",
+        "academic",
+        "api-gateway",
+        "Feature",
+        "ai-ready"
+      ]
+    },
+    {
+      "draftKey": "category-maintenance-ui",
+      "identifier": "KEL-189",
+      "url": "https://linear.app/farid-zamani/issue/KEL-189/tenant-dapat-mengedit-dan-menghapus-kategori-dari-dashboard",
+      "priority": "Medium",
+      "ai_ready": true,
+      "labels": [
+        "web",
+        "Feature",
+        "ai-ready"
+      ]
+    }
+  ]
+}

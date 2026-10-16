@@ -1,0 +1,513 @@
+
+### internal/domain/voucher.go
+1|package domain
+2|
+3|import (
+4|	"errors"
+5|	"strings"
+6|	"time"
+7|
+8|	"github.com/google/uuid"
+9|	"gorm.io/gorm"
+10|)
+11|
+12|var (
+13|	// ErrVoucherNotFound answers 404: the voucher does not exist or belongs
+14|	// to another tenant. One value for both so a caller cannot probe which
+15|	// tenants own which vouchers.
+16|	ErrVoucherNotFound = errors.New("voucher not found")
+17|	// ErrVoucherInvalid answers 400 for malformed payloads and rule
+18|	// violations (bad code, discount value, date range, or usage cap).
+19|	ErrVoucherInvalid = errors.New("invalid voucher request")
+20|	// ErrVoucherDuplicate answers 409: another live voucher of the same
+21|	// tenant already uses the code (compared case-insensitively).
+22|	ErrVoucherDuplicate = errors.New("voucher code already exists")
+23|	// ErrVoucherInUse answers 409: the voucher already discounted a
+24|	// transaction, so it can only be deactivated, never deleted.
+25|	ErrVoucherInUse = errors.New("voucher has been used and can only be deactivated")
+26|)
+27|
+28|// Voucher discount types. `percentage` takes DiscountValue as 1-100;
+29|// `fixed_amount` takes DiscountValue as a positive IDR nominal.
+30|const (
+31|	VoucherDiscountPercentage  = "percentage"
+32|	VoucherDiscountFixedAmount = "fixed_amount"
+33|)
+34|
+35|type Voucher struct {
+36|	ID                   uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+37|	TenantID             uuid.UUID      `gorm:"type:uuid;not null;index" json:"tenant_id"` // Cross-service
+38|	Code                 string         `gorm:"type:varchar(255);not null" json:"code"`
+39|	DiscountType         string         `gorm:"type:varchar(255);not null" json:"discount_type"`
+40|	DiscountValue        float64        `gorm:"type:numeric(15,2);not null" json:"discount_value"`
+41|	MaxDiscountAmount    *int64         `gorm:"type:bigint" json:"max_discount_amount,omitempty"`
+42|	MinTransactionAmount int64          `gorm:"type:bigint;not null;default:0" json:"min_transaction_amount"`
+43|	MaxUses              *int           `gorm:"type:integer" json:"max_uses,omitempty"`
+44|	CurrentUses          int            `gorm:"type:integer;not null;default:0" json:"current_uses"`
+45|	ValidFrom            *time.Time     `gorm:"type:timestamp" json:"valid_from,omitempty"`
+46|	ValidUntil           *time.Time     `gorm:"type:timestamp" json:"valid_until,omitempty"`
+47|	IsActive             bool           `gorm:"type:boolean;not null;default:true;index" json:"is_active"`
+48|	CreatedAt            time.Time      `gorm:"type:timestamp;not null;default:now()" json:"created_at"`
+49|	UpdatedAt            time.Time      `gorm:"type:timestamp;not null;default:now()" json:"updated_at"`
+50|	DeletedAt            gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+51|}
+52|
+53|// NormalizeVoucherCode canonicalizes a voucher code for storage and
+54|// comparison. Codes are unique case-insensitively per tenant (KEL-161), and
+55|// the database constraint is an exact match, so new code writes store the
+56|// canonical form: trimmed and uppercased. Existing mixed-case rows remain
+57|// valid; the write path checks for them under a tenant-scoped transaction lock.
+58|func NormalizeVoucherCode(code string) string {
+59|	return strings.ToUpper(strings.TrimSpace(code))
+60|}
+61|
+62|// ValidateVoucherFields checks the shared create/update semantics: a
+63|// percentage is 1-100, a nominal is positive, the date range is ordered, and
+64|// the usage cap never drops below what was already consumed.
+65|func ValidateVoucherFields(code, discountType string, discountValue float64, minTransactionAmount int64, maxDiscountAmount *int64, maxUses *int, currentUses int, validFrom, validUntil *time.Time) error {
+66|	if strings.TrimSpace(code) == "" || len([]rune(code)) > 255 {
+67|		return ErrVoucherInvalid
+68|	}
+69|	switch discountType {
+70|	case VoucherDiscountPercentage:
+71|		if discountValue < 1 || discountValue > 100 {
+72|			return ErrVoucherInvalid
+73|		}
+74|	case VoucherDiscountFixedAmount:
+75|		if discountValue <= 0 {
+76|			return ErrVoucherInvalid
+77|		}
+78|	default:
+79|		return ErrVoucherInvalid
+80|	}
+81|	if minTransactionAmount < 0 {
+82|		return ErrVoucherInvalid
+83|	}
+84|	if maxDiscountAmount != nil && *maxDiscountAmount <= 0 {
+85|		return ErrVoucherInvalid
+86|	}
+87|	if currentUses < 0 {
+88|		return ErrVoucherInvalid
+89|	}
+90|	if maxUses != nil && (*maxUses <= 0 || *maxUses < currentUses) {
+91|		return ErrVoucherInvalid
+92|	}
+93|	if validFrom != nil && validUntil != nil && validUntil.Before(*validFrom) {
+94|		return ErrVoucherInvalid
+95|	}
+96|	return nil
+97|}
+98|
+99|// CreateVoucherRequest is the tenant write payload (KEL-161). IsActive is a
+100|// pointer so omission means active; checkout redemption (out of scope) only
+101|// ever honours active, in-window vouchers.
+102|type CreateVoucherRequest struct {
+103|	Code                 string     `json:"code" binding:"required,max=255"`
+104|	DiscountType         string     `json:"discount_type" binding:"required"`
+105|	DiscountValue        float64    `json:"discount_value" binding:"required"`
+106|	MaxDiscountAmount    *int64     `json:"max_discount_amount,omitempty"`
+107|	MinTransactionAmount int64      `json:"min_transaction_amount"`
+108|	MaxUses              *int       `json:"max_uses,omitempty"`
+109|	ValidFrom            *time.Time `json:"valid_from,omitempty"`
+110|	ValidUntil           *time.Time `json:"valid_until,omitempty"`
+111|	IsActive             *bool      `json:"is_active,omitempty"`
+112|}
+113|
+114|// UpdateVoucherRequest patches one voucher. Nil fields are left unchanged;
+115|// reactivation of an expired voucher is allowed, so no validity check runs
+116|// on the IsActive toggle.
+117|type UpdateVoucherRequest struct {
+118|	Code                 *string    `json:"code,omitempty" binding:"omitempty,max=255"`
+119|	DiscountType         *string    `json:"discount_type,omitempty"`
+120|	DiscountValue        *float64   `json:"discount_value,omitempty"`
+121|	MaxDiscountAmount    *int64     `json:"max_discount_amount,omitempty"`
+122|	MinTransactionAmount *int64     `json:"min_transaction_amount,omitempty"`
+123|	MaxUses              *int       `json:"max_uses,omitempty"`
+124|	ValidFrom            *time.Time `json:"valid_from,omitempty"`
+125|	ValidUntil           *time.Time `json:"valid_until,omitempty"`
+126|	IsActive             *bool      `json:"is_active,omitempty"`
+127|}
+128|
+129|// VoucherResponse is what a tenant member reads (KEL-161), including the
+130|// usage count the list screen shows next to every row.
+131|type VoucherResponse struct {
+132|	ID                   uuid.UUID  `json:"id"`
+133|	Code                 string     `json:"code"`
+134|	DiscountType         string     `json:"discount_type"`
+135|	DiscountValue        float64    `json:"discount_value"`
+136|	MaxDiscountAmount    *int64     `json:"max_discount_amount,omitempty"`
+137|	MinTransactionAmount int64      `json:"min_transaction_amount"`
+138|	MaxUses              *int       `json:"max_uses,omitempty"`
+139|	CurrentUses          int        `json:"current_uses"`
+140|	ValidFrom            *time.Time `json:"valid_from,omitempty"`
+141|	ValidUntil           *time.Time `json:"valid_until,omitempty"`
+142|	IsActive             bool       `json:"is_active"`
+143|	CreatedAt            time.Time  `json:"created_at"`
+144|	UpdatedAt            time.Time  `json:"updated_at"`
+145|}
+146|
+147|func ToVoucherResponse(voucher *Voucher) *VoucherResponse {
+148|	return &VoucherResponse{
+149|		ID:                   voucher.ID,
+150|		Code:                 voucher.Code,
+151|		DiscountType:         voucher.DiscountType,
+152|		DiscountValue:        voucher.DiscountValue,
+153|		MaxDiscountAmount:    voucher.MaxDiscountAmount,
+154|		MinTransactionAmount: voucher.MinTransactionAmount,
+155|		MaxUses:              voucher.MaxUses,
+156|		CurrentUses:          voucher.CurrentUses,
+157|		ValidFrom:            voucher.ValidFrom,
+158|		ValidUntil:           voucher.ValidUntil,
+159|		IsActive:             voucher.IsActive,
+160|		CreatedAt:            voucher.CreatedAt,
+161|		UpdatedAt:            voucher.UpdatedAt,
+162|	}
+163|}
+164|
+165|// VoucherQuery carries the list pagination the handler parses.
+166|type VoucherQuery struct {
+167|	Page     int
+168|	PageSize int
+169|}
+170|
+171|// VoucherListResponse mirrors LedgerListResponse pagination.
+172|type VoucherListResponse struct {
+173|	Items      []VoucherResponse `json:"items"`
+174|	Pagination struct {
+175|		Page       int   `json:"page"`
+176|		PageSize   int   `json:"page_size"`
+177|		TotalItems int64 `json:"total_items"`
+178|		TotalPages int   `json:"total_pages"`
+179|	} `json:"pagination"`
+180|}
+
+### internal/usecase/voucher_usecase.go
+1|package usecase
+2|
+3|import (
+4|	"context"
+5|	"errors"
+6|	"math"
+7|	"time"
+8|
+9|	"github.com/google/uuid"
+10|	"gorm.io/gorm"
+11|
+12|	"github.com/kelolakelas/kelolakelas-billing-service/internal/domain"
+13|	"github.com/kelolakelas/kelolakelas-billing-service/internal/repository"
+14|)
+15|
+16|type voucherUsecase struct {
+17|	vouchers  repository.VoucherRepository
+18|	txManager repository.BillingTransactionManager
+19|}
+20|
+21|// NewVoucherUsecase serves the tenant voucher management (KEL-161). A nil
+22|// txManager runs writes without a transaction; production always wires the
+23|// real manager.
+24|func NewVoucherUsecase(vouchers repository.VoucherRepository, txManager repository.BillingTransactionManager) VoucherUsecase {
+25|	return &voucherUsecase{vouchers: vouchers, txManager: txManager}
+26|}
+27|
+28|func (u *voucherUsecase) List(ctx context.Context, tenantID uuid.UUID, query domain.VoucherQuery) (*domain.VoucherListResponse, error) {
+29|	page, pageSize := query.Page, query.PageSize
+30|	if page < 1 {
+31|		page = 1
+32|	}
+33|	if pageSize < 1 || pageSize > 100 {
+34|		pageSize = 20
+35|	}
+36|	rows, total, err := u.vouchers.ListByTenant(ctx, tenantID, page, pageSize)
+37|	if err != nil {
+38|		return nil, err
+39|	}
+40|	items := make([]domain.VoucherResponse, 0, len(rows))
+41|	for i := range rows {
+42|		items = append(items, *domain.ToVoucherResponse(&rows[i]))
+43|	}
+44|	out := &domain.VoucherListResponse{Items: items}
+45|	out.Pagination.Page = page
+46|	out.Pagination.PageSize = pageSize
+47|	out.Pagination.TotalItems = total
+48|	out.Pagination.TotalPages = int(math.Ceil(float64(total) / float64(pageSize)))
+49|	return out, nil
+50|}
+51|
+52|func (u *voucherUsecase) Get(ctx context.Context, tenantID, id uuid.UUID) (*domain.VoucherResponse, error) {
+53|	if id == uuid.Nil {
+54|		return nil, domain.ErrVoucherInvalid
+55|	}
+56|	voucher, err := u.vouchers.GetByIDScoped(ctx, tenantID, id)
+57|	if err != nil {
+58|		if errors.Is(err, gorm.ErrRecordNotFound) {
+59|			return nil, domain.ErrVoucherNotFound
+60|		}
+61|		return nil, err
+62|	}
+63|	return domain.ToVoucherResponse(voucher), nil
+64|}
+65|
+66|func (u *voucherUsecase) Create(ctx context.Context, tenantID uuid.UUID, req *domain.CreateVoucherRequest) (*domain.VoucherResponse, error) {
+67|	if req == nil {
+68|		return nil, domain.ErrVoucherInvalid
+69|	}
+70|	code := domain.NormalizeVoucherCode(req.Code)
+71|	if err := domain.ValidateVoucherFields(code, req.DiscountType, req.DiscountValue, req.MinTransactionAmount, req.MaxDiscountAmount, req.MaxUses, 0, req.ValidFrom, req.ValidUntil); err != nil {
+72|		return nil, err
+73|	}
+74|	if req.MinTransactionAmount < 0 {
+75|		return nil, domain.ErrVoucherInvalid
+76|	}
+77|	isActive := true
+78|	if req.IsActive != nil {
+79|		isActive = *req.IsActive
+80|	}
+81|	voucher := &domain.Voucher{
+82|		ID:                   uuid.New(),
+83|		TenantID:             tenantID,
+84|		Code:                 code,
+85|		DiscountType:         req.DiscountType,
+86|		DiscountValue:        req.DiscountValue,
+87|		MaxDiscountAmount:    req.MaxDiscountAmount,
+88|		MinTransactionAmount: req.MinTransactionAmount,
+89|		MaxUses:              req.MaxUses,
+90|		IsActive:             isActive,
+91|		ValidFrom:            utcTimestamp(req.ValidFrom),
+92|		ValidUntil:           utcTimestamp(req.ValidUntil),
+93|	}
+94|	create := func(ctx context.Context) error {
+95|		if err := u.vouchers.LockTenantCodes(ctx, tenantID); err != nil {
+96|			return err
+97|		}
+98|		// Existing rows may predate canonical storage. Check under the tenant
+99|		// lock so concurrent code writes cannot both miss a legacy variant.
+100|		if err := u.requireCodeFree(ctx, tenantID, uuid.Nil, code); err != nil {
+101|			return err
+102|		}
+103|		return u.vouchers.Create(ctx, voucher)
+104|	}
+105|	if u.txManager != nil {
+106|		if err := u.txManager.WithTransaction(ctx, create); err != nil {
+107|			return nil, mapVoucherWriteError(err)
+108|		}
+109|	} else if err := create(ctx); err != nil {
+110|		return nil, mapVoucherWriteError(err)
+111|	}
+112|	return domain.ToVoucherResponse(voucher), nil
+113|}
+114|
+115|func utcTimestamp(value *time.Time) *time.Time {
+116|	if value == nil {
+117|		return nil
+118|	}
+119|	utc := value.UTC()
+120|	return &utc
+121|}
+122|
+123|func (u *voucherUsecase) Update(ctx context.Context, tenantID, id uuid.UUID, req *domain.UpdateVoucherRequest) (*domain.VoucherResponse, error) {
+124|	if id == uuid.Nil || req == nil {
+125|		return nil, domain.ErrVoucherInvalid
+126|	}
+127|	if req.Code == nil && req.DiscountType == nil && req.DiscountValue == nil && req.MaxDiscountAmount == nil &&
+128|		req.MinTransactionAmount == nil && req.MaxUses == nil && req.ValidFrom == nil && req.ValidUntil == nil && req.IsActive == nil {
+129|		return nil, domain.ErrVoucherInvalid
+130|	}
+131|	var voucher *domain.Voucher
+132|	update := func(ctx context.Context) error {
+133|		// Acquire the tenant code lock before the row lock, in the same order
+134|		// as other code writes, to avoid deadlocks during concurrent renames.
+135|		if req.Code != nil {
+136|			if err := u.vouchers.LockTenantCodes(ctx, tenantID); err != nil {
+137|				return err
+138|			}
+139|		}
+140|		var err error
+141|		voucher, err = u.lockedVoucher(ctx, tenantID, id)
+142|		if err != nil {
+143|			return err
+144|		}
+145|		code := voucher.Code
+146|		if req.Code != nil {
+147|			code = domain.NormalizeVoucherCode(*req.Code)
+148|		}
+149|		discountType := voucher.DiscountType
+150|		if req.DiscountType != nil {
+151|			discountType = *req.DiscountType
+152|		}
+153|		discountValue := voucher.DiscountValue
+154|		if req.DiscountValue != nil {
+155|			discountValue = *req.DiscountValue
+156|		}
+157|		maxDiscount := voucher.MaxDiscountAmount
+158|		if req.MaxDiscountAmount != nil {
+159|			maxDiscount = req.MaxDiscountAmount
+160|		}
+161|		minAmount := voucher.MinTransactionAmount
+162|		if req.MinTransactionAmount != nil {
+163|			minAmount = *req.MinTransactionAmount
+164|		}
+165|		maxUses := voucher.MaxUses
+166|		if req.MaxUses != nil {
+167|			maxUses = req.MaxUses
+168|		}
+169|		validFrom := voucher.ValidFrom
+170|		if req.ValidFrom != nil {
+171|			validFrom = utcTimestamp(req.ValidFrom)
+172|		}
+173|		validUntil := voucher.ValidUntil
+174|		if req.ValidUntil != nil {
+175|			validUntil = utcTimestamp(req.ValidUntil)
+176|		}
+177|		// The usage cap is validated against the locked current_uses, so a
+178|		// concurrent checkout redemption (KEL-29) that consumed the last use
+179|		// cannot slip under a lowered cap between the read and the write.
+180|		if err := domain.ValidateVoucherFields(code, discountType, discountValue, minAmount, maxDiscount, maxUses, voucher.CurrentUses, validFrom, validUntil); err != nil {
+181|			return err
+182|		}
+183|		if req.Code != nil {
+184|			if err := u.requireCodeFree(ctx, tenantID, id, code); err != nil {
+185|				return err
+186|			}
+187|			voucher.Code = code
+188|		}
+189|		voucher.DiscountType = discountType
+190|		voucher.DiscountValue = discountValue
+191|		voucher.MaxDiscountAmount = maxDiscount
+192|		voucher.MinTransactionAmount = minAmount
+193|		voucher.MaxUses = maxUses
+194|		voucher.ValidFrom = validFrom
+195|		voucher.ValidUntil = validUntil
+196|		if req.IsActive != nil {
+197|			voucher.IsActive = *req.IsActive
+198|		}
+199|		voucher.UpdatedAt = time.Now().UTC()
+200|		return u.vouchers.Update(ctx, voucher)
+201|	}
+202|	if u.txManager != nil {
+203|		if err := u.txManager.WithTransaction(ctx, update); err != nil {
+204|			return nil, mapVoucherWriteError(err)
+205|		}
+206|	} else if err := update(ctx); err != nil {
+207|		return nil, mapVoucherWriteError(err)
+208|	}
+209|	return domain.ToVoucherResponse(voucher), nil
+210|}
+211|
+212|// Delete removes a voucher that never discounted a transaction. A voucher
+213|// with CurrentUses > 0 answers ErrVoucherInUse: history must survive, so it
+214|// can only be deactivated through Update, never deleted.
+215|func (u *voucherUsecase) Delete(ctx context.Context, tenantID, id uuid.UUID) error {
+216|	if id == uuid.Nil {
+217|		return domain.ErrVoucherInvalid
+218|	}
+219|	var inUse bool
+220|	remove := func(ctx context.Context) error {
+221|		voucher, err := u.lockedVoucher(ctx, tenantID, id)
+222|		if err != nil {
+223|			return err
+224|		}
+225|		if voucher.CurrentUses > 0 {
+226|			inUse = true
+227|			return domain.ErrVoucherInUse
+228|		}
+229|		deleted, err := u.vouchers.SoftDelete(ctx, tenantID, id)
+230|		if err != nil {
+231|			return err
+232|		}
+233|		if !deleted {
+234|			return domain.ErrVoucherNotFound
+235|		}
+236|		return nil
+237|	}
+238|	if u.txManager != nil {
+239|		if err := u.txManager.WithTransaction(ctx, remove); err != nil {
+240|			if errors.Is(err, domain.ErrVoucherInUse) {
+241|				return domain.ErrVoucherInUse
+242|			}
+243|			return mapVoucherWriteError(err)
+244|		}
+245|		return nil
+246|	}
+247|	if err := remove(ctx); err != nil {
+248|		if errors.Is(err, domain.ErrVoucherInUse) {
+249|			return domain.ErrVoucherInUse
+250|		}
+251|		return mapVoucherWriteError(err)
+252|	}
+253|	if inUse {
+254|		return domain.ErrVoucherInUse
+255|	}
+256|	return nil
+257|}
+258|
+259|// lockedVoucher reads the row under a write lock when the repository offers
+260|// it, so concurrent updates and future checkout reservations serialize on
+261|// the row. A foreign or missing id is ErrVoucherNotFound either way.
+262|func (u *voucherUsecase) lockedVoucher(ctx context.Context, tenantID, id uuid.UUID) (*domain.Voucher, error) {
+263|	if locking, ok := u.vouchers.(interface {
+264|		GetByIDScopedForUpdate(ctx context.Context, tenantID, id uuid.UUID) (*domain.Voucher, error)
+265|	}); ok {
+266|		voucher, err := locking.GetByIDScopedForUpdate(ctx, tenantID, id)
+267|		if err != nil {
+268|			if errors.Is(err, gorm.ErrRecordNotFound) {
+269|				return nil, domain.ErrVoucherNotFound
+270|			}
+271|			return nil, err
+272|		}
+273|		return voucher, nil
+274|	}
+275|	voucher, err := u.vouchers.GetByIDScoped(ctx, tenantID, id)
+276|	if err != nil {
+277|		if errors.Is(err, gorm.ErrRecordNotFound) {
+278|			return nil, domain.ErrVoucherNotFound
+279|		}
+280|		return nil, err
+281|	}
+282|	return voucher, nil
+283|}
+284|
+285|// requireCodeFree checks for any other live voucher with a case-insensitive
+286|// match. It runs under the tenant code lock for both create and rename.
+287|func (u *voucherUsecase) requireCodeFree(ctx context.Context, tenantID, self uuid.UUID, code string) error {
+288|	exists, err := u.vouchers.HasCodeOtherThan(ctx, tenantID, self, code)
+289|	if err != nil {
+290|		return err
+291|	}
+292|	if exists {
+293|		return domain.ErrVoucherDuplicate
+294|	}
+295|	return nil
+296|}
+297|
+298|// mapVoucherWriteError translates storage rejections: the unique backstop
+299|// firing on a concurrent create with the same code is a duplicate, whatever
+300|// case the two writers used.
+301|func mapVoucherWriteError(err error) error {
+302|	if err == nil {
+303|		return nil
+304|	}
+305|	if errors.Is(err, domain.ErrVoucherNotFound) || errors.Is(err, domain.ErrVoucherInvalid) ||
+306|		errors.Is(err, domain.ErrVoucherDuplicate) || errors.Is(err, domain.ErrVoucherInUse) {
+307|		return err
+308|	}
+309|	if errors.Is(err, gorm.ErrRecordNotFound) {
+310|		return domain.ErrVoucherNotFound
+311|	}
+312|	msg := err.Error()
+313|	if containsConstraint(msg, "uq_vouchers_tenant_code") || containsConstraint(msg, "duplicate key value violates unique constraint") {
+314|		return domain.ErrVoucherDuplicate
+315|	}
+316|	return err
+317|}
+318|
+319|func containsConstraint(msg, sub string) bool {
+320|	if len(msg) < len(sub) {
+321|		return false
+322|	}
+323|	for i := 0; i+len(sub) <= len(msg); i++ {
+324|		if msg[i:i+len(sub)] == sub {
+325|			return true
+326|		}
+327|	}
+328|	return false
+329|}

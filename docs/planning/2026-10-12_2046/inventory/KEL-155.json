@@ -1,0 +1,72 @@
+{
+  "id": "KEL-155",
+  "uuid": "01959aea-883e-44b3-b94a-2508c3f574f2",
+  "title": "Parent diberi tahu lewat email dan chat saat sesi di-reschedule, tutor diganti, atau anak tidak hadir",
+  "description": "## Background / Problem\n\nAcademic tidak memiliki email client, outbox, maupun event (`internal/usecase` tanpa notifikasi); reschedule dan tutor pengganti (`internal/usecase/schedule_usecase.go:338-348,473-506`) serta absensi tidak memberi tahu siapa pun. Email parent dari JWT diteruskan ke billing saat checkout tetapi tidak disimpan di enrollment (`internal/domain/enrollment.go:95`).\n\n## Goal\n\nSetiap reschedule, tutor pengganti, dan absensi alfa yang memengaruhi enrollment aktif menghasilkan notifikasi email dan chat yang andal ke parent terkait.\n\n## Requirements\n\n* Simpan email parent terverifikasi pada enrollment baru dari JWT saat checkout; enrollment lama tanpa email hanya menerima chat.\n* Tulis event notifikasi ke outbox dalam transaksi database yang sama dengan perubahan sesi atau absensi.\n* Worker mengirim outbox ke endpoint internal chat dan email Resend dengan retry, backoff, dan idempotency key per event, parent, dan channel.\n* Isi pesan memuat nama kelas, nama depan siswa, waktu lama dan baru (Asia/Jakarta), tanpa data sensitif lain.\n* Kegagalan pengiriman tidak membatalkan perubahan jadwal dan tercatat untuk diamati.\n\n## Acceptance Criteria\n\n- [ ] Reschedule sesi group mengirim satu notifikasi per parent terdampak per channel.\n- [ ] Absensi alfa mengirim notifikasi ke parent siswa tersebut saja.\n- [ ] Restart worker di tengah pengiriman tidak menggandakan pesan chat dan memakai idempotency key yang sama untuk email.\n- [ ] Existing functionality remains unaffected\n- [ ] Error and validation scenarios are handled correctly\n\n## Technical Notes\n\nRisiko high: salah kirim ke parent lain dan pesan ganda setelah crash. Pengiriman ke provider bersifat at-least-once. Worker in-process tanpa leader election, jadi klaim baris outbox dengan `FOR UPDATE SKIP LOCKED` seperti session generation worker. Konfigurasi baru (Resend, URL chat, kredensial internal) wajib didokumentasikan tanpa nilai rahasia. Perbarui `kelolakelas-docs` (components/academic-service.md, 04-configuration.md, reference/environment-variables.md, data/academic-schema.md) dan ADR outbox notifikasi.\n\nRelevant areas:\n\n* `kelolakelas-academic-service/internal/usecase/schedule_usecase.go`\n* `kelolakelas-academic-service/internal/usecase/attendance_usecase.go`\n* `kelolakelas-academic-service/internal/usecase/enrollment_usecase.go`\n* `kelolakelas-academic-service/internal/usecase/session_generation_worker.go`\n* `kelolakelas-academic-service/cmd/server/main.go`\n* `kelolakelas-academic-service/migrations`\n\n## Edge Cases\n\n* Parent memiliki dua anak di sesi yang sama.\n* Absensi diubah dari alfa ke hadir setelah notifikasi dikirim.\n* Chat service tidak tersedia dalam waktu lama.\n\n## Testing / Validation\n\n- [ ] Postgres integration test penulisan outbox atomik dan klaim worker ganda sebagai mitigasi risiko pesan ganda.\n- [ ] Unit test pemilihan penerima untuk sesi group dan private sebagai mitigasi risiko salah kirim.\n- [ ] Test dengan fake chat dan fake email untuk retry dan idempotensi.\n- [ ] go vet, go test -race, dan build lulus.\n\n## Out of Scope\n\n* Pengingat sesi H-1.\n* WhatsApp dan preferensi notifikasi.\n\n## AI Orchestrator Contract\n\n```json\n{\n  \"draftKey\": \"academic-parent-notification-outbox\",\n  \"projectKey\": \"parent-schedule-notifications\",\n  \"title\": \"Parent diberi tahu lewat email dan chat saat sesi di-reschedule, tutor diganti, atau anak tidak hadir\",\n  \"type\": \"Feature\",\n  \"priority\": \"Medium\",\n  \"estimate\": \"L\",\n  \"complexity\": \"high\",\n  \"labels\": [\n    \"academic\",\n    \"ai-ready\"\n  ],\n  \"repositories\": [\n    \"academic\"\n  ],\n  \"blockedByDraftKeys\": [\n    \"chat-system-notification-channel\",\n    \"attendance-by-session\"\n  ],\n  \"externalDependencies\": [\n    {\n      \"key\": \"resend-sender-domain\",\n      \"description\": \"Academic membutuhkan API key dan sender domain Resend yang terverifikasi untuk mengirim email.\",\n      \"verification\": \"Email uji dari academic ke alamat sandbox terkirim dengan status delivered di dashboard Resend.\"\n    }\n  ],\n  \"body\": {\n    \"backgroundProblem\": \"Academic tidak memiliki email client, outbox, maupun event (`internal/usecase` tanpa notifikasi); reschedule dan tutor pengganti (`internal/usecase/schedule_usecase.go:338-348,473-506`) serta absensi tidak memberi tahu siapa pun. Email parent dari JWT diteruskan ke billing saat checkout tetapi tidak disimpan di enrollment (`internal/domain/enrollment.go:95`).\",\n    \"goal\": \"Setiap reschedule, tutor pengganti, dan absensi alfa yang memengaruhi enrollment aktif menghasilkan notifikasi email dan chat yang andal ke parent terkait.\",\n    \"requirements\": [\n      \"Simpan email parent terverifikasi pada enrollment baru dari JWT saat checkout; enrollment lama tanpa email hanya menerima chat.\",\n      \"Tulis event notifikasi ke outbox dalam transaksi database yang sama dengan perubahan sesi atau absensi.\",\n      \"Worker mengirim outbox ke endpoint internal chat dan email Resend dengan retry, backoff, dan idempotency key per event, parent, dan channel.\",\n      \"Isi pesan memuat nama kelas, nama depan siswa, waktu lama dan baru (Asia/Jakarta), tanpa data sensitif lain.\",\n      \"Kegagalan pengiriman tidak membatalkan perubahan jadwal dan tercatat untuk diamati.\"\n    ],\n    \"acceptanceCriteria\": [\n      \"Reschedule sesi group mengirim satu notifikasi per parent terdampak per channel.\",\n      \"Absensi alfa mengirim notifikasi ke parent siswa tersebut saja.\",\n      \"Restart worker di tengah pengiriman tidak menggandakan pesan chat dan memakai idempotency key yang sama untuk email.\",\n      \"Existing functionality remains unaffected\",\n      \"Error and validation scenarios are handled correctly\"\n    ],\n    \"technicalNotes\": \"Risiko high: salah kirim ke parent lain dan pesan ganda setelah crash. Pengiriman ke provider bersifat at-least-once. Worker in-process tanpa leader election, jadi klaim baris outbox dengan `FOR UPDATE SKIP LOCKED` seperti session generation worker. Konfigurasi baru (Resend, URL chat, kredensial internal) wajib didokumentasikan tanpa nilai rahasia. Perbarui `kelolakelas-docs` (components/academic-service.md, 04-configuration.md, reference/environment-variables.md, data/academic-schema.md) dan ADR outbox notifikasi.\",\n    \"relevantAreas\": [\n      \"kelolakelas-academic-service/internal/usecase/schedule_usecase.go\",\n      \"kelolakelas-academic-service/internal/usecase/attendance_usecase.go\",\n      \"kelolakelas-academic-service/internal/usecase/enrollment_usecase.go\",\n      \"kelolakelas-academic-service/internal/usecase/session_generation_worker.go\",\n      \"kelolakelas-academic-service/cmd/server/main.go\",\n      \"kelolakelas-academic-service/migrations\"\n    ],\n    \"edgeCases\": [\n      \"Parent memiliki dua anak di sesi yang sama.\",\n      \"Absensi diubah dari alfa ke hadir setelah notifikasi dikirim.\",\n      \"Chat service tidak tersedia dalam waktu lama.\"\n    ],\n    \"testingValidation\": [\n      \"Postgres integration test penulisan outbox atomik dan klaim worker ganda sebagai mitigasi risiko pesan ganda.\",\n      \"Unit test pemilihan penerima untuk sesi group dan private sebagai mitigasi risiko salah kirim.\",\n      \"Test dengan fake chat dan fake email untuk retry dan idempotensi.\",\n      \"go vet, go test -race, dan build lulus.\"\n    ],\n    \"outOfScope\": [\n      \"Pengingat sesi H-1.\",\n      \"WhatsApp dan preferensi notifikasi.\"\n    ]\n  }\n}\n```",
+  "priority": {
+    "value": 3,
+    "name": "Medium"
+  },
+  "estimate": {
+    "value": 3,
+    "name": "3 Points"
+  },
+  "url": "https://linear.app/farid-zamani/issue/KEL-155/parent-diberi-tahu-lewat-email-dan-chat-saat-sesi-di-reschedule-tutor",
+  "gitBranchName": "skinel123/kel-155-parent-diberi-tahu-lewat-email-dan-chat-saat-sesi-di",
+  "createdAt": "2026-09-30T11:01:58.413Z",
+  "updatedAt": "2026-09-30T11:07:51.272Z",
+  "archivedAt": null,
+  "completedAt": null,
+  "startedAt": null,
+  "canceledAt": null,
+  "dueDate": null,
+  "slaStartedAt": null,
+  "slaMediumRiskAt": null,
+  "slaHighRiskAt": null,
+  "slaBreachesAt": null,
+  "status": "Backlog",
+  "statusType": "backlog",
+  "labels": [
+    "academic",
+    "ai-ready"
+  ],
+  "attachments": [],
+  "documents": [],
+  "stateHistory": [
+    {
+      "state": {
+        "id": "285d081f-56c6-4cca-a4cb-07f2dd70302e",
+        "name": "Backlog",
+        "type": "backlog"
+      },
+      "startedAt": "2026-09-30T11:01:58.413Z",
+      "endedAt": null
+    }
+  ],
+  "createdBy": "Farid Zam",
+  "createdById": "0c67063d-dd4a-4142-8929-d2285a9dbacf",
+  "project": "Notifikasi perubahan jadwal dan kehadiran ke parent",
+  "projectId": "4387984f-6485-429c-a03d-8c9c9ed498ec",
+  "team": "KelolaKelas",
+  "teamId": "fa7e083f-279c-4075-b103-76c4ed0a9255",
+  "relations": {
+    "blocks": [
+      {
+        "id": "KEL-156",
+        "title": "Parent menerima pengingat sehari sebelum sesi anaknya"
+      }
+    ],
+    "blockedBy": [
+      {
+        "id": "KEL-134",
+        "title": "Absensi dapat dicatat per sesi, termasuk sesi reschedule dan secara massal"
+      },
+      {
+        "id": "KEL-154",
+        "title": "Chat service menerima pesan notifikasi sistem dari service internal"
+      }
+    ],
+    "relatedTo": [],
+    "duplicateOf": null
+  }
+}

@@ -1,0 +1,70 @@
+{
+ "generated_at": "2026-10-12T14:12:39+00:00",
+ "counts": {
+  "issues": 189,
+  "ai_ready": 164,
+  "backlog_ai_ready": 13,
+  "eligible": 0,
+  "excluded": 13
+ },
+ "contracts_valid": 163,
+ "full_graph": "OK",
+ "vuln_blocked_repos": {},
+ "vuln_remediation": null,
+ "winner": null,
+ "ranking": [],
+ "excluded": [
+  {
+   "issue": "KEL-184",
+   "reason": "diubah < 15 menit lalu (aktivitas lain)"
+  },
+  {
+   "issue": "KEL-183",
+   "reason": "diubah < 15 menit lalu (aktivitas lain)"
+  },
+  {
+   "issue": "KEL-182",
+   "reason": "diubah < 15 menit lalu (aktivitas lain)"
+  },
+  {
+   "issue": "KEL-181",
+   "reason": "diubah < 15 menit lalu (aktivitas lain)"
+  },
+  {
+   "issue": "KEL-180",
+   "reason": "diubah < 15 menit lalu (aktivitas lain)"
+  },
+  {
+   "issue": "KEL-189",
+   "reason": "diubah < 15 menit lalu (aktivitas lain)"
+  },
+  {
+   "issue": "KEL-188",
+   "reason": "diubah < 15 menit lalu (aktivitas lain)"
+  },
+  {
+   "issue": "KEL-156",
+   "reason": "blocked: KEL-155 masih Backlog"
+  },
+  {
+   "issue": "KEL-155",
+   "reason": "externalDependencies ['resend-sender-domain'] butuh verifikasi manual"
+  },
+  {
+   "issue": "KEL-100",
+   "reason": "externalDependencies ['edge-deployment-topology'] butuh verifikasi manual"
+  },
+  {
+   "issue": "KEL-102",
+   "reason": "externalDependencies ['secret-manager-and-deployment'] butuh verifikasi manual"
+  },
+  {
+   "issue": "KEL-104",
+   "reason": "blocked: KEL-100 masih Backlog"
+  },
+  {
+   "issue": "KEL-101",
+   "reason": "externalDependencies ['service-deployment-topology'] butuh verifikasi manual"
+  }
+ ]
+}
