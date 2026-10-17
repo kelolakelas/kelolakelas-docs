@@ -14,3 +14,7 @@ Source: web `app/(dashboard)/dashboard/tenant/classes/_components/ScheduleForm.t
 - Existing Edit Class loaded its persisted Wednesday 14:00–15:30 slot, capacity 10 and Teacher One. Mobile edit retained that schedule, had no horizontal overflow, and Tab remained usable. Browser error list was empty. Temporary screenshots: `/private/tmp/kel209-empty-mobile.png`, `/private/tmp/kel209-existing-mobile.png`.
 
 Identity authentication, permission and membership were test doubles in the acceptance fixture. PostgreSQL data was synthetic and schema-isolated. Existing editor tests additionally verify preload/reopen and mutations; live production identity, payments and email are not claimed.
+
+## Delivery
+
+Web [PR #118](https://github.com/kelolakelas/kelolakelas-web/pull/118) merged to main on 2026-10-18 (Asia/Jakarta), squash `d8edeba65e3922fd998e3d564303d94e74f4190c`; required [gate](https://github.com/kelolakelas/kelolakelas-web/actions/runs/39059150116) and preview deployment succeeded. Commit reachability from fetched `origin/main` was verified. The acceptance fixture exited successfully and dropped its temporary schema; browser and local web server were stopped.
