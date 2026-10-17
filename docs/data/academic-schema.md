@@ -39,4 +39,4 @@ erDiagram
 
 ## Class creation retry records (KEL-196)
 
-**Implemented:** `class_creation_requests` uses composite primary key `(tenant_id, request_key)`, SHA-256 `payload_hash`, JSONB `response` and `created_at`. Migration `00001790900000` creates the table. A successful aggregate and its response commit together; a failed transaction leaves no key. There is no cleanup/expiry policy in this change. Evidence: academic `internal/repository/class_creation_store.go` and migration.
+**Implemented:** `class_creation_requests` uses composite primary key `(tenant_id, request_key)`, SHA-256 `payload_hash`, JSONB `response` and `created_at`. Migration `00001790900001` creates the table, with a unique version after the private payment-method migration; KEL-204 fixes the former duplicate `1790900000`. Existing retry rows survive migration reapplication and application down-versioning ([ADR 0070](../adr/0070-unique-class-creation-migration-version.md)). A successful aggregate and its response commit together; a failed transaction leaves no key. There is no cleanup/expiry policy in this change. Evidence: academic `internal/repository/class_creation_store.go` and migration.
