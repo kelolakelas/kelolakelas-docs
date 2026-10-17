@@ -288,6 +288,8 @@ Only `createClassConfiguration` sends a mutation, to the KEL-196 aggregate endpo
 
 An unknown outcome (network loss, malformed success, 5xx or key conflict) freezes the submitted draft and offers Retry Same Request with identical payload/key. Once an outcome is unknown, a later permission rejection cannot unlock the draft: it does not prove that the earlier request failed to commit. Close remains available after a response, with guidance to check the class list. Draft/retry state is intentionally not persisted across navigation or sessions. See [ADR 0068](../adr/0068-local-class-draft-and-retry.md).
 
+**Implemented (KEL-205):** final-save errors now give distinct safe guidance for invalid fields, expired sessions, access/permission refusal, conflicting retry keys, throttling, unavailable services, timeouts, interrupted connections and incomplete success responses. Known inactive-teacher/category errors map to correction instructions; arbitrary server messages are never rendered. A bounded `X-Request-ID` reference from the gateway is included when available. The final-step alert sits below the form, outside its disabled fieldset, and receives focus after pending completes. Inputs remain mounted; uncertain results retain the exact original payload/key, including after a later permission rejection. This adds no backend contract or persistent draft storage.
+
 Evidence: web `classes/_components/{ClassCreationWizard,CategoryForm,ClassForm,ScheduleForm}.tsx`, `classes/_lib/class-creation.ts`, `classes/_actions/classActions.ts` under `app/(dashboard)/dashboard/tenant`; tests `ClassCreationWizard.flow.test.tsx`, `ClassCreationWizard.integration.test.tsx` and `_actions/class-creation.test.ts`.
 
 ## Class deletion (KEL-199)
