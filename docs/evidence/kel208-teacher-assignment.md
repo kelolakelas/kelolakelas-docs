@@ -16,3 +16,7 @@ Evidence: web `app/(dashboard)/dashboard/tenant/classes/_components/{ClassCreati
 ## Limits
 
 This verifies synthetic authentication and actual academic persistence, not live identity login. Ineligible/stale members remain rejected by academic's existing membership gate. Existing private scheduling and session tutor history are outside scope. No architecture decision or migration is required.
+
+## Delivery
+
+Web [PR #117](https://github.com/kelolakelas/kelolakelas-web/pull/117) merged to main on 2026-10-18 (Asia/Jakarta), squash `afafb2da79d0b03bf1161c96b151fbd14f3448dc`; required [gate](https://github.com/kelolakelas/kelolakelas-web/actions/runs/39058360070) and preview deployment succeeded. Commit reachability from fetched `origin/main` was verified.
