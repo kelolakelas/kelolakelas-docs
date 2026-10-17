@@ -1,5 +1,7 @@
 # Evidence index
 
+**KEL-209 empty group timetable:** [evidence](../evidence/kel209-empty-group-timetable.md); initial/add/remove/generate/invalid/pending/type-switch tests, four executed PostgreSQL wizard integration tests, production browser save/read-back and existing editor preload. Source `d632b47`; 1743 tests passed with four unrelated opt-in skips; lint/types/build passed.
+
 **KEL-208 schedule-driven group teachers:** [evidence](../evidence/kel208-teacher-assignment.md); web wizard/schedule components, aggregate schema, flow/action tests, four actual PostgreSQL acceptance cases and production browser save/read-back A/B. Source `d1612cf`; 1740 tests passed, four unrelated opt-in tests skipped; lint/types/build/audit passed.
 
 **KEL-204 class setup migration repair:** [runtime evidence](../evidence/kel204/verification.md), [ADR 0070](../adr/0070-unique-class-creation-migration-version.md). Real migration-source duplicate detection, upgrade from deployed payment-method version with/without retry table, replay and down/up history preservation; browser failure→migration→same-request success plus actual web/gateway/academic/PostgreSQL seam regression.
