@@ -12,4 +12,6 @@ Alternatives: coordinating independent writes and compensating deletes cannot gu
 
 Identity checks describe membership at validation time; no distributed transaction locks identity membership until the academic commit. Existing session generation horizons and advisory overlap behavior remain. Apply the additive retry-table migration before rollout; rolling back application code can retain that table.
 
-Evidence: academic class_creation_usecase.go, class_creation_store.go, class_handler.go, class_creation_postgres_test.go and migration 00001790900000; API and flow pages in this repository.
+Evidence: academic class_creation_usecase.go, class_creation_store.go, class_handler.go, class_creation_postgres_test.go and migration 00001790900001; API and flow pages in this repository.
+
+KEL-204 corrects the duplicate numeric migration version to `1790900001` and preserves retry history during downgrade; see [ADR 0070](0070-unique-class-creation-migration-version.md).
