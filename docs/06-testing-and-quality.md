@@ -40,3 +40,8 @@ When `gate` fails on the new step (on your own PR, or on every PR because an adv
 4. **Outage, not a finding:** re-run the job (see fail-closed above).
 
 Evidence: `kelolakelas-web/.github/workflows/ci.yml` (web PR [#35](https://github.com/kelolakelas/kelolakelas-web/pull/35), squash `c2577ad1400ea900da87569c5a7a31aa4de98b9b`); `.github/workflows/ci.yml` in gateway PR [#22](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/22) (`a01bb4abb4152662ec3efa5f52b0dc7f29559524`), identity PR [#25](https://github.com/kelolakelas/kelolakelas-identity-service/pull/25) (`fffd2c39644afbd167171b0fbdbd13a66eb1bb65`), academic PR [#24](https://github.com/kelolakelas/kelolakelas-academic-service/pull/24) (`32536621559d1585b0b50c79747800d947280068`), billing PR [#17](https://github.com/kelolakelas/kelolakelas-billing-service/pull/17) (`bf4bdaadab649962e174a670a0f73b741fa06f24`).
+
+
+## Class deletion lifecycle regression (KEL-206)
+
+Academic `TestClassDeletionPostgres` runs with `KEL196_TEST_DSN`, already supplied by required GitHub CI. It owns a disposable schema without a `public` table fallback. Run `go test -race -count=1 ./internal/usecase -run '^TestClassDeletionPostgres$'` with an approved test DSN; it covers soft-delete persistence, list pagination/search, future/history policy, conflict/foreign rejection, transactional rollback and concurrent deletion. The opt-in `TestClassDeletionAcceptanceStack` additionally needs `KEL206_STACK_CONFIG` (temporary synthetic config path) and `KEL196_GATEWAY_BINARY` (gateway built from current main), and waits for `POST /test/shutdown`. Identity verdicts are synthetic. See [observed validation](evidence/kel206/verification.md).
