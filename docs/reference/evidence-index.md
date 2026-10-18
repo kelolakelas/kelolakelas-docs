@@ -247,3 +247,5 @@ Generated service Swagger (`docs/swagger.json`) was consulted as contract corrob
 - **KEL-205:** Class setup actionable failures and preserved retry: web classes `_lib/class-creation-errors.ts`, `_actions/classActions.ts`, `_components/ClassCreationWizard.tsx`; `_actions/class-creation.test.ts` and `ClassCreationWizard.flow.test.tsx` cover status guidance, safe references, focus, draft retention and original-request retries. See [verification](../evidence/kel205/verification.md).
 
 - **KEL-206:** academic `102685b`, class deletion PostgreSQL lifecycle regression and isolated browser fixture; baseline web `1ca7ecb`, academic `e07e4a9`, gateway `622e61d`. Existing production cascade/filter/revalidation passed actual browser→API→DB acceptance; no production change or reproduced original cause claimed. [Verification, screenshots and limitations](../evidence/kel206/verification.md).
+
+- **KEL-210:** web `6fc7ff5`, [PR #119](https://github.com/kelolakelas/kelolakelas-web/pull/119); [schedule control evidence and eligibility audit](../evidence/kel210-schedule-controls.md), [ADR 0071](../adr/0071-schedule-wall-clock-input.md).
