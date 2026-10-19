@@ -40,3 +40,10 @@ erDiagram
 ## Class creation retry records (KEL-196)
 
 **Implemented:** `class_creation_requests` uses composite primary key `(tenant_id, request_key)`, SHA-256 `payload_hash`, JSONB `response` and `created_at`. Migration `00001790900001` creates the table, with a unique version after the private payment-method migration; KEL-204 fixes the former duplicate `1790900000`. Existing retry rows survive migration reapplication and application down-versioning ([ADR 0070](../adr/0070-unique-class-creation-migration-version.md)). A successful aggregate and its response commit together; a failed transaction leaves no key. There is no cleanup/expiry policy in this change. Evidence: academic `internal/repository/class_creation_store.go` and migration.
+
+
+## Parent notification persistence (KEL-155)
+
+**Implemented:** nullable `enrollments.parent_email` stores the verified-token email on new public enrollment or private-request approval only; it is hidden from API JSON and legacy rows remain null. `parent_notification_outbox` contains `id`, `event_id`, `tenant_id`, `parent_id`, `channel`, recipient/sender email snapshots, plain-text body, `status`, attempts, due/first-attempt/sent/created timestamps, lease token and redacted error code. `(event_id,parent_id,channel)` is unique. Status progresses pending → sending → sent (provider accepted), or pending/failed on uncertainty. Sent does not mean delivered. The sender address freezes when first configured on a claim. Neither addresses nor message content are emitted in worker logs.
+
+Migration `1790900002` adds the table, recipient/cohort functions and session/attendance triggers; the idempotent current-schema initializer also includes the nullable email column for bootstrap fixtures. Apply the actual migration on existing deployments. A down migration refuses to discard any outbox history. Session/cohort selection, sibling grouping, absence transitions and delivery claims are tested with PostgreSQL, including rollback and concurrent claims. [ADR 0072](../adr/0072-parent-session-notification-outbox.md).

@@ -64,8 +64,8 @@ Safe examples deliberately contain placeholders only — this includes every rep
 | `PASSWORD_RESET_TTL_MINUTES` | identity | optional; 60, positive integer bounded to a Go duration; invalid value stops config loading | lifetime of single-use reset tokens, `60` | no | identity `.env.example`, `internal/config/config.go`, `internal/config/password_reset_test.go` |
 | `LOGIN_FAILURE_THRESHOLD` | identity | optional; 5; non-positive or non-integer stops config loading | consecutive failed ordinary login attempts before account lockout | no | identity `internal/config/config.go`, `internal/repository/login_attempts.go` (KEL-23) |
 | `LOGIN_LOCKOUT_MINUTES` | identity | optional; 15; non-positive, non-integer or Go-duration overflow stops config loading | ordinary account lockout duration in minutes; migration 000010 required | no | identity `internal/config/config.go`, `internal/repository/login_attempts.go` (KEL-23) |
-| `RESEND_API_KEY` | identity/billing | optional at loader; needed to deliver email | Resend credential, `<redacted>` | yes | identity/billing config/email packages |
-| `RESEND_FROM_EMAIL` | identity/billing | optional at loader | sender, `noreply@example.test` | no | identity/billing config/email packages |
+| `RESEND_API_KEY` | identity/billing/academic | optional at loader; needed to deliver email | Resend credential, `<redacted>` | yes | identity/billing config/email packages |
+| `RESEND_FROM_EMAIL` | identity/billing/academic | optional at loader | sender, `noreply@example.test` | no | identity/billing config/email packages |
 | `GOOGLE_MAPS_API_KEY` | identity | optional | Maps API key, `<redacted>` | yes | identity config/maps client |
 | `GOOGLE_MAPS_GEOCODING_ENABLED` / `GOOGLE_MAPS_TIMEOUT_SECONDS` | identity | optional; false/5 | opt-in geocode and HTTP timeout | no | identity config/maps client |
 | `PERMISSION_REQUIRE_TENANT_ID` | identity | optional; false | makes `tenant_id` mandatory on the internal `CheckPermission` request. Deploy identity with the default `false` first, then academic, then set `true` and restart so the tenant-scoped decision is guaranteed for every caller (see [ADR 0002](../adr/0002-academic-permission-enforcement.md)) | no | identity config, `internal/delivery/grpc/permission_service.go`, `cmd/server/main.go` |
@@ -98,3 +98,15 @@ Safe examples deliberately contain placeholders only — this includes every rep
 | `PLATFORM_FEE_POLICY` | identity control-plane metadata, billing policy consumer | version-0 `configuration_heads` baseline seeded by migration 000013 (means 0 bps + Rp0); not an environment override | typed `platform_fee_policy` in `billing/platform` (0–2000 bps, Rp0–Rp50000); effective value is the acknowledged applied version, read by billing from identity over gRPC, not `os.Getenv` (KEL-99, [ADR 0044](../adr/0044-platform-fee-policy-applied-snapshot.md)) | no | identity `migrations/000013_platform_fee_policy.up.sql`, `internal/repository/platform_fee_policy.go`, `internal/usecase/configuration_catalog.go`; billing `pkg/identity/fee_policy_client.go` |
 
 Do not place a JWT secret in committed environment files. Generate and distribute it through the deployment secret manager; every JWT boundary must receive the identical nonblank value.
+
+
+### Academic parent notification worker (KEL-155)
+
+| Variable | Default | Meaning | Evidence |
+|---|---|---|---|
+| `PARENT_NOTIFICATION_WORKER_ENABLED` | `true` | Dispatch switch; capture continues when disabled | academic `internal/config/config.go`, `cmd/server/main.go` |
+| `PARENT_NOTIFICATION_INTERVAL_SECONDS` | `15` | Poll interval, 1–3600 seconds | academic config |
+| `RESEND_API_KEY` | empty | Secret required for email dispatch; never logged | academic config, `pkg/notification/client.go` |
+| `RESEND_FROM_EMAIL` | empty | Valid sender address; snapshotted on first configured claim | academic config and notification repository |
+
+Chat dispatch uses existing `CHAT_SERVICE_URL` and `INTERNAL_SERVICE_CREDENTIAL`. Academic has a fixed 10-second notification HTTP timeout; `RESEND_HTTP_TIMEOUT_SECONDS` remains billing-only.
