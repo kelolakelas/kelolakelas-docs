@@ -110,3 +110,15 @@ Do not place a JWT secret in committed environment files. Generate and distribut
 | `RESEND_FROM_EMAIL` | empty | Valid sender address; snapshotted on first configured claim | academic config and notification repository |
 
 Chat dispatch uses existing `CHAT_SERVICE_URL` and `INTERNAL_SERVICE_CREDENTIAL`. Academic has a fixed 10-second notification HTTP timeout; `RESEND_HTTP_TIMEOUT_SECONDS` remains billing-only.
+
+
+### Academic session reminder capture (KEL-156)
+
+| Variable | Default | Meaning | Evidence |
+|---|---|---|---|
+| `SESSION_REMINDER_WORKER_ENABLED` | `true` | Run reminder capture on startup and timer | academic `cmd/server/main.go`, config |
+| `SESSION_REMINDER_INTERVAL_SECONDS` | `900` | Poll interval, 1–3600 seconds | academic `internal/config/config.go` |
+| `SESSION_REMINDER_DAYS_AHEAD` | `1` | WIB calendar-day offset, 1–30 | config, `internal/usecase/session_reminder_worker.go` |
+| `SESSION_REMINDER_WINDOW_DAYS` | `1` | Window width, 1–7 calendar days | config, reminder worker |
+
+Capture and dispatch have separate switches. Reminder delivery reuses the KEL-155 settings, credentials, HTTP bounds and idempotency behavior. Migration `1790900003` is required by both reminder capture and dispatch liveness checks.

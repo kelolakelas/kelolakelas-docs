@@ -1,10 +1,10 @@
 # ADR 0072: Transactional parent session notification outbox
 
-Status: Implemented technically (KEL-155, 2026-10-19); live Resend acceptance pending owner verification.
+Status: Implemented (KEL-155, 2026-10-19); manual Resend acceptance reported passed by the owner. No independent provider-dashboard evidence is claimed.
 
 ## Context and decision
 
-Session mutations already use repository transactions, while attendance has independent create/update and a bulk upsert transaction. Instrumenting every usecase would require changing those transaction boundaries and could leave a write path without an event. Use PostgreSQL AFTER triggers in migration `1790900002` to enqueue immutable parent/channel snapshots in the same transaction for a linked reschedule replacement, scheduled-session tutor change, or transition into absent. Unchanged absent bulk replays do not enqueue again. A later present correction does not retract an already emitted absence; a subsequent absent transition is a new event. No reminder/H-1 events are created.
+Session mutations already use repository transactions, while attendance has independent create/update and a bulk upsert transaction. Instrumenting every usecase would require changing those transaction boundaries and could leave a write path without an event. Use PostgreSQL AFTER triggers in migration `1790900002` to enqueue immutable parent/channel snapshots in the same transaction for a linked reschedule replacement, scheduled-session tutor change, or transition into absent. Unchanged absent bulk replays do not enqueue again. A later present correction does not retract an already emitted absence; a subsequent absent transition is a new event. KEL-155 itself creates no reminder/H-1 events; KEL-156 adds that producer in [ADR 0073](0073-wib-session-reminders.md).
 
 Recipient selection joins class/tenant, active non-deleted enrollment and owned non-deleted student; private sessions use their enrollment, group sessions their schedule resolved recursively through same-class origin links. Siblings are grouped per parent and event. Only first names, class name and WIB wall-clock dates/times enter the plain-text body. Unlinked historic group replacements fail closed for notifications: no guessed cohort or backfill. New enrollments capture only the verified JWT email, including the existing private-request snapshot; legacy missing-email rows get chat only. No provider lookup or parent-supplied email field is added.
 
