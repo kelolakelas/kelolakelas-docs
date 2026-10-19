@@ -1,0 +1,21 @@
+# ADR 0072: Transactional parent session notification outbox
+
+Status: Implemented technically (KEL-155, 2026-10-19); live Resend acceptance pending owner verification.
+
+## Context and decision
+
+Session mutations already use repository transactions, while attendance has independent create/update and a bulk upsert transaction. Instrumenting every usecase would require changing those transaction boundaries and could leave a write path without an event. Use PostgreSQL AFTER triggers in migration `1790900002` to enqueue immutable parent/channel snapshots in the same transaction for a linked reschedule replacement, scheduled-session tutor change, or transition into absent. Unchanged absent bulk replays do not enqueue again. A later present correction does not retract an already emitted absence; a subsequent absent transition is a new event. No reminder/H-1 events are created.
+
+Recipient selection joins class/tenant, active non-deleted enrollment and owned non-deleted student; private sessions use their enrollment, group sessions their schedule resolved recursively through same-class origin links. Siblings are grouped per parent and event. Only first names, class name and WIB wall-clock dates/times enter the plain-text body. Unlinked historic group replacements fail closed for notifications: no guessed cohort or backfill. New enrollments capture only the verified JWT email, including the existing private-request snapshot; legacy missing-email rows get chat only. No provider lookup or parent-supplied email field is added.
+
+## Delivery and alternatives
+
+A poll worker shares claims using one `UPDATE ... RETURNING` over a `FOR UPDATE SKIP LOCKED` candidate. It claims immediately before sending, releases DB locks before HTTP, and uses 60-second leases and token-fenced completions. External requests time out at 10 seconds and refuse redirects. One UUID-backed row key is reused after uncertainty; recipient, message and first configured sender are frozen. Channel retries are independent. Sending inline was rejected because provider outages must not roll back schedule changes; in-memory background goroutines were rejected because crashes lose events. Application-level outbox writes remain an alternative, but require all attendance paths to adopt a common transaction manager first.
+
+Delivery is at-least-once, with chat's persistent deduplication and Resend's 24-hour idempotency window ([provider documentation](https://resend.com/docs/dashboard/emails/idempotency-keys)). Stop email retries after 23 hours from the first attempt, or 12 failed attempts, and require operator reconciliation. This trades automatic eventual delivery after a long outage for avoiding blind resend after deduplication expires. A `sent` stamp records provider acknowledgement only, never actual delivery. Keys and payload snapshots must not be changed during manual recovery.
+
+## Consequences and verification
+
+The migration must precede binary rollout. Capture remains active when dispatch is paused, so operators can configure providers before enabling sends. Outbox write failures roll back the mutation; post-commit delivery failures do not. Trigger-based capture also covers direct database mutations: operators must account for notifications during data repairs. No API/authz contract changes; existing HTTP permissions and tenant guards remain in place. Worker logs contain IDs, channel and safe state codes only. History and address retention require normal restricted database access; no public listing/retry API is added. Down migration refuses to discard delivery history.
+
+PostgreSQL tests cover atomic rollback, active/private/group recipient boundaries, sibling deduplication, recursive reschedule, bulk replay, email persistence/privacy, concurrent claims, lease expiry and stale completion fencing. Worker/HTTP tests cover retry after restart, bounded retries, cancellation, malformed responses, redirect refusal, stable keys and channel credential separation. An HTTP handler → real usecase → PostgreSQL trigger → worker → provider-double acceptance test also verifies a foreign-tenant 404 and unchanged retry payloads/keys after provider acceptance with a failed reply and worker restart. Real Resend sender/domain and delivered status are explicitly delegated to the owner and are not inferred from doubles.

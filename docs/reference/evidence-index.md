@@ -1,5 +1,7 @@
 # Evidence index
 
+**KEL-155 technical implementation (academic `bb8a619efc93bf37b42c8cbca16d7073d45560e2`):** academic migration `1790900002`, `internal/repository/parent_notification_{repository,postgres_test}.go`, `internal/usecase/parent_notification_worker{,_test}.go`, `pkg/notification/client{,_test}.go`, config and server wiring. PostgreSQL tests prove transactional capture and claim concurrency; HTTP doubles cover channel contracts/retries. Final local checks: 1,065 test/subtest passes, 32 existing optional skips, including real KEL-155 PostgreSQL and HTTP/provider-double acceptance; format, module verification, vet, build and vulnerability scan passed (no reachable vulnerabilities). Live Resend delivery remains pending owner verification. [ADR 0072](../adr/0072-parent-session-notification-outbox.md).
+
 **KEL-209 empty group timetable:** [evidence](../evidence/kel209-empty-group-timetable.md); initial/add/remove/generate/invalid/pending/type-switch tests, four executed PostgreSQL wizard integration tests, production browser save/read-back and existing editor preload. Source `d632b47`; 1743 tests passed with four unrelated opt-in skips; lint/types/build passed.
 
 **KEL-208 schedule-driven group teachers:** [evidence](../evidence/kel208-teacher-assignment.md); web wizard/schedule components, aggregate schema, flow/action tests, four actual PostgreSQL acceptance cases and production browser save/read-back A/B. Source `d1612cf`; 1740 tests passed, four unrelated opt-in tests skipped; lint/types/build/audit passed.

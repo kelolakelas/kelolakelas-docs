@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**KEL-155 (2026-10-19):** academic parent session/absence notification outbox implemented technically at `bb8a619efc93bf37b42c8cbca16d7073d45560e2`; durable capture, independent chat/email retry and tests are documented in [ADR 0072](docs/adr/0072-parent-session-notification-outbox.md). Real Resend delivery is pending manual owner verification; no live delivery claim or shared-database migration is made.
+
 This is an evidence-based onboarding and operations guide for the implementation found on 2026-09-21 (Asia/Jakarta). It describes code as it exists; it is not a design proposal or deployment runbook.
 
 ## Scope and snapshot
