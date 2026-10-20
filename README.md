@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**KEL-212 (2026-10-20):** identity `34866f27332cad656bbb4ff8f7a14c3f4a926a0c` rejects deleted Creator membership targets as stale (409), preserving the pending request without a grant. See [ADR 0029](docs/adr/0029-platform-admin-creator-decision.md).
+
 **KEL-155 (2026-10-19):** academic parent session/absence notification outbox implemented technically at `bb8a619efc93bf37b42c8cbca16d7073d45560e2`; durable capture, independent chat/email retry and tests are documented in [ADR 0072](docs/adr/0072-parent-session-notification-outbox.md). The owner reported manual Resend verification passed on 2026-10-19; PRs academic #60 and docs #217 are merged, and KEL-155 is Done. This is owner-reported acceptance, not independent provider-dashboard evidence.
 
 **KEL-156 (2026-10-19, academic `6ce86606cab0ecf00e9d5351c75633bb5820691c`):** scheduled parent reminders select tomorrow by WIB calendar date, persist session/enrollment coverage and reuse the notification dispatcher. See [ADR 0073](docs/adr/0073-wib-session-reminders.md).

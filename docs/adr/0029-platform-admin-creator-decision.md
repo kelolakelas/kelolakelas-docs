@@ -21,3 +21,7 @@ Apply identity migration `000005_creator_decisions` before serving the routes; i
 ## Evidence
 
 Identity PR [#12](https://github.com/kelolakelas/kelolakelas-identity-service/pull/12), merge `b54610ff348996ea38d5f2bd82ac8d3da9bed71a`: `internal/repository/creator_decision_repository.go`, `internal/usecase/creator_decision_usecase.go`, `internal/delivery/http/handler/creator_decision_handler.go`, `internal/repository/user_repository.go`, `migrations/000005_creator_decisions.{up,down}.sql`, and matching tests. Gateway PR [#14](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/14), merge `832cbd6acc629f5470452edd91e6dddf60eeec45`: `internal/delivery/http/router.go` and `creator_decision_route_test.go`. Both PR and post-merge `gate` checks passed; a live PostgreSQL integration test was not run.
+
+## KEL-212 correction (2026-10-20)
+
+**Implemented (KEL-212):** Creator approval locks and reads membership with `Unscoped()` while retaining tenant/user scoping. Soft-deleted rows still occupy the unique membership key; they now reach the existing stale check and return HTTP 409 instead of attempting a duplicate insert (500). Inactive/deleted memberships remain unchanged, the request stays pending, and no grant, invitation or audit is written. No schema or route changed. Regression evidence: `TestCreatorDecisionApproveStaleMembership`, `TestApproveStaleCreatorRequestReturnsConflict`, and the deleted/inactive membership scenarios in `TestKEL181CreatorDecisionPostgres` (real migrations on disposable PostgreSQL 16).
