@@ -39,3 +39,9 @@ KEL-135 closed three authorization gaps in the session/report area that the earl
 ## Evidence
 
 Academic: `cmd/server/routes.go`, `internal/delivery/http/handler/{session,schedule,report}_handler.go`, `internal/usecase/{schedule,report}_usecase.go`, `pkg/grpcclient/membership_client.go`; tests `internal/delivery/http/handler/session_mine_filter_test.go`, `internal/usecase/substitute_tutor_membership_test.go`, `internal/usecase/report_permission_test.go`, `pkg/grpcclient/membership_client_test.go`, `cmd/server/attendance_report_routes_test.go`, `cmd/server/swagger_contract_test.go`. Identity: `internal/delivery/grpc/membership_service.go`, `internal/repository/membership_active.go`, tests `internal/delivery/grpc/membership_service_active_test.go`.
+
+## Web picker prerequisite (KEL-214, 2026-10-20)
+
+**Implemented (KEL-214):** the web session screen offers the substitute-tutor picker only when the confirmed membership carries both `schedule:update` and `member:read`. The current picker joins tutor user IDs to member IDs through the protected members endpoint; Teachers without member reads now see an Indonesian permission explanation instead of opening a permanently unusable dialog. Reschedule still needs only `schedule:update`, attendance is unchanged, and cancelled sessions hide both mutations. This is UI gating only: backend assignment permissions and active same-tenant membership checks remain unchanged. Transient tutor/member fetch failures for an otherwise permitted member retain the existing empty-list dialog state.
+
+Evidence: web sessions `page.tsx`, `_lib/schema.ts::canSelectSubstituteTutor`, `_components/SessionCard.tsx` and adjacent regression tests. The chosen web-only fix follows the QA issue recommendation; an assignable-tutor endpoint usable without member reads remains outside this change.
