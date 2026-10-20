@@ -17,9 +17,9 @@ with the summary.
 Billing owns the list basis and the export; the gateway only forwards the export route.
 
 - List: optional `date_by` query parameter (`internal/domain/transaction.go`,
-  `IsTransactionDateByValue`). Empty or `created_at` keeps the historical `created_at`
-  comparison byte-identical; `paid_at` filters the half-open UTC interval
-  `[date_from, date_to + 1 day)` so the `to` date is inclusive for every payment on that
+  `IsTransactionDateByValue`). Empty or `created_at` selects creation time; `paid_at` selects payment time.
+  Since KEL-213, both bases filter the half-open UTC interval
+  `[date_from, date_to + 1 day)` so the `to` date includes every instant on that
   UTC day, exactly like `SummarizePaid`. An unknown basis is 400 `Invalid date basis`, an
   unknown status 400, so a caller can never silently receive rows for a basis it did not ask
   for. List and export share `applyTransactionFilters`
@@ -81,3 +81,13 @@ equals `SummarizePaid`), `cmd/server/routes_test.go`. Gateway
 `89ae62ed084d5b1053bb6f0b833dcf80b9733932`: `internal/delivery/http/router.go`,
 `router_test.go` (`TestTransactionExportRouteForwardsFiltersToBilling`). PR and post-merge
 `gate` checks passed in both repositories.
+
+## KEL-213 correction (2026-10-20)
+
+The web transaction screen previously forced `paid_at` for every status, hiding unpaid rows with a NULL payment date. It now derives the basis from status: `paid` uses `paid_at` to preserve sales-summary reconciliation; pending, cancelled, failed, expired, refunded and creating use `created_at`. The shared builder supplies the same basis/range/search/status for list and CSV. UI guidance and active-filter text identify the basis; default paid/last-30-UTC-days behavior is preserved.
+
+Billing's creation-date upper bound previously used `created_at <= date_to` (midnight), excluding the remainder of the final day. `applyTransactionFilters` now uses `< date_to + 1 day` for both empty/default and explicit `created_at` selectors. This deliberately corrects the earlier byte-identical comparison guarantee: existing API callers may receive additional rows on the final day. No migration, permission or summary calculation changes are needed. Deploy billing before web for complete same-day results.
+
+Evidence: billing `transaction_date_range_test.go::TestCreatedDateRangeIncludesFinalDay` (CI sqlmock), `transaction_export_integration_test.go::TestNonPaidCreationDateRangePostgres` (six non-paid statuses, both creation selectors, midnight/midday/last-microsecond boundaries, next-day exclusion, tenant isolation, soft-delete and paged export parity); web transactions library/query/page/export regression tests. Disposable PostgreSQL 16 validates the real migration chain; no deployment database was changed.
+
+The web transaction view lives in `_components/TransactionsView.tsx`; `page.tsx` exports only route-supported values, allowing both Next production bundlers to validate the route. Local validation used the supported webpack builder because this environment denied Turbopack its internal worker port; GitHub CI uses the standard Turbopack build.

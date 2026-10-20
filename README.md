@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**KEL-213 (2026-10-20):** web `cbca5622d5a8ee830c0dedce0c00ab7f599e9523` lists/exports non-paid transactions by creation date while retaining payment-date reconciliation for paid. Billing `b6d822cf2874ddecc9762bf468d3f9291ee99423` includes the entire final UTC day for creation-date filters. See [ADR 0058](docs/adr/0058-tenant-transaction-paid-date-filter-and-csv-export.md).
+
 **KEL-212 (2026-10-20):** identity `34866f27332cad656bbb4ff8f7a14c3f4a926a0c` rejects deleted Creator membership targets as stale (409), preserving the pending request without a grant. See [ADR 0029](docs/adr/0029-platform-admin-creator-decision.md).
 
 **KEL-155 (2026-10-19):** academic parent session/absence notification outbox implemented technically at `bb8a619efc93bf37b42c8cbca16d7073d45560e2`; durable capture, independent chat/email retry and tests are documented in [ADR 0072](docs/adr/0072-parent-session-notification-outbox.md). The owner reported manual Resend verification passed on 2026-10-19; PRs academic #60 and docs #217 are merged, and KEL-155 is Done. This is owner-reported acceptance, not independent provider-dashboard evidence.
