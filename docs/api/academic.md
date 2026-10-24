@@ -284,3 +284,8 @@ Schedule-request `data` contains exactly `id`, `tenant_id`, `parent_id`, `class_
 ## Tenant class category identity (KEL-190)
 
 **Implemented:** `GET /api/v1/classes` optionally embeds `category: { id, name }` on each item when the referenced category exists, is not soft-deleted, and belongs to the caller tenant. `category_id` is unchanged. Missing/deleted categories omit the embedded object; the class remains in the list. The existing tenant class predicate, pagination, class-name server search, publication, price, and enrollment status are unchanged. Category preload remains one batched query per page and now repeats the tenant predicate. A preload failure follows the existing 500 list error path. Evidence: academic `internal/domain/class.go::ClassCategorySummary`, `internal/usecase/class_usecase.go::ListClasses`, `internal/repository/class_repository.go::ListByTenant`, category-list usecase/repository regressions, and regenerated Swagger. No migration or permission change.
+
+
+## Private approval replay clarification (KEL-215)
+
+**Observed, unchanged API:** an invoice failure can occur after approval, enrollment, schedules and sessions commit. Read the current request rather than interpreting a non-2xx approval response as proof of rollback. Tenant approval may replay the same approved request without recommended slots using `POST /api/v1/schedule-requests/:id/approve`; academic and billing retain its purchase identity. The web recovery action now exposes that existing capability after reload. Parent-accepted recommendations keep their separate acceptance path. See [sandbox and persistence evidence](../evidence/2026-10-24-kel-215.md).

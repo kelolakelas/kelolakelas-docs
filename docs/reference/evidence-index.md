@@ -261,3 +261,9 @@ Generated service Swagger (`docs/swagger.json`) was consulted as contract corrob
 - **KEL-213 non-paid transaction date basis and inclusive creation-date end:** Web `cbca5622d5a8ee830c0dedce0c00ab7f599e9523`; billing `b6d822cf2874ddecc9762bf468d3f9291ee99423`: `applyTransactionFilters`, `TestCreatedDateRangeIncludesFinalDay`, `TestNonPaidCreationDateRangePostgres`; web tenant transactions shared builder, filter labels and query/page/export tests; [ADR 0058](../adr/0058-tenant-transaction-paid-date-filter-and-csv-export.md).
 
 - **KEL-214:** web `d6d60e9a682d9ad85b924ed30aeb98172cc2e9a2`, sessions `page.tsx`, `_lib/schema.ts::canSelectSubstituteTutor`, `_components/SessionCard.tsx`; permission matrix and rendered-card regressions cover Teacher, dual permissions, unreadable membership, attendance/reschedule retention and cancelled sessions. [ADR 0051](../adr/0051-substitute-tutor-active-membership-gate.md).
+
+
+## Private approval payment recovery (KEL-215)
+
+- Web `ab8f28e`: tenant schedule-request action, approved-row recovery dialog and regressions; Next.js/eslint-config-next 16.4.3 and Zod 4.6.6 restore the existing audit gate.
+- [Observed local acceptance](../evidence/2026-10-24-kel-215.md): unavailable billing after approval commit, browser recovery into real Duitku sandbox, identical concurrent replay, PostgreSQL counts, parent invoice rendering and cross-role/tenant denials.
