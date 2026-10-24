@@ -267,3 +267,7 @@ Generated service Swagger (`docs/swagger.json`) was consulted as contract corrob
 
 - Web `ab8f28e`: tenant schedule-request action, approved-row recovery dialog and regressions; Next.js/eslint-config-next 16.4.3 and Zod 4.6.6 restore the existing audit gate.
 - [Observed local acceptance](../evidence/2026-10-24-kel-215.md): unavailable billing after approval commit, browser recovery into real Duitku sandbox, identical concurrent replay, PostgreSQL counts, parent invoice rendering and cross-role/tenant denials.
+
+## Public proposed schedule controls (KEL-220)
+
+Web `a53790c`: shared slot control tokens, public weekday chevron, feedback association and pending state; [audit, test and browser evidence](../evidence/kel220-public-schedule-controls.md).
