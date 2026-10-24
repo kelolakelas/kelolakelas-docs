@@ -275,3 +275,8 @@ Web `a53790c`: shared slot control tokens, public weekday chevron, feedback asso
 ## Navigation chat unread count (KEL-217)
 
 Web viewer-scoped unread aggregation, shared responsive badge and polling/read reconciliation: [verification and fresh second-task audit](../evidence/kel217-chat-navigation-unread.md), [ADR0076](../adr/0076-navigation-chat-unread-reconciliation.md).
+
+
+## Pending request navigation count (KEL-218)
+
+Web authenticated pending-only capped count, shared sidebar/mobile reconciliation and real parent/cancel/reject/approve acceptance: [evidence](../evidence/kel218-pending-navigation.md).
