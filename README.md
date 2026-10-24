@@ -16,6 +16,8 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 **KEL-220:** web `a53790c` reuses schedule control geometry with the public palette and keeps native weekday/time payloads; [validation and screenshots](docs/evidence/kel220-public-schedule-controls.md).
 
+**KEL-217:** web `8f427b5` shares an authoritative unread message badge across parent/tenant navigation with paginated reconciliation; [ADR0076](docs/adr/0076-navigation-chat-unread-reconciliation.md) and [validation/screenshots](docs/evidence/kel217-chat-navigation-unread.md).
+
 ## Scope and snapshot
 
 | Repository | Branch | HEAD | State at inspection |
