@@ -43,3 +43,7 @@ Web source revision `8f427b5`. Browser inspection confirmed all three parent Cha
 - [Parent desktop](kel217/parent-desktop-unread-final.png), [parent mobile](kel217/parent-mobile-unread-final.png)
 - [Tenant desktop](kel217/tenant-desktop-unread-final.png), [tenant mobile drawer](kel217/tenant-mobile-unread-final.png)
 - [Parent after confirmed read in another tab](kel217/parent-mobile-read.png)
+
+## CI regression follow-up
+
+The first web PR run40112914521 caught two existing enrollment-cancellation tests querying an unscoped single `status` role after the accessible badge introduced another status. Their assertions now target the enrollment history region, preserving the original success-after-refresh acceptance. The complete final local suite was rerun:1,800 passed/8 opt-in skips; types/lint/whitespace passed. Runtime/build behavior and captures are unchanged. Delivery waits for a successful new required PR gate.
