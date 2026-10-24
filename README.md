@@ -18,6 +18,8 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 **KEL-217:** web `8f427b5` shares an authoritative unread message badge across parent/tenant navigation with paginated reconciliation; [ADR0076](docs/adr/0076-navigation-chat-unread-reconciliation.md) and [validation/screenshots](docs/evidence/kel217-chat-navigation-unread.md).
 
+**KEL-218:** tenant navigation shows an authenticated pending-request badge with a 99+ cap and visible-page reconciliation; [acceptance evidence](docs/evidence/kel218-pending-navigation.md).
+
 ## Scope and snapshot
 
 | Repository | Branch | HEAD | State at inspection |
