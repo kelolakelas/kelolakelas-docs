@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**KEL-216 (2026-10-25):** web `2caf257` preserves same-tab checkout identity, routes new group QRIS to owner-approved SP, retains NQ retries and keeps incomplete payment answers retryable. Academic `b4ea35c` adds bounded timeout/drain changes under [ADR0075](docs/adr/0075-checkout-timeout-budget.md). Real SP QR/reload/replay and no-duplicate persistence passed; existing NQ methods remain unchanged. See [ADR0074](docs/adr/0074-checkout-recovery-after-reload.md) and [acceptance evidence](docs/evidence/2026-10-24-kel-216.md).
+
 **KEL-215 (2026-10-24):** web `ab8f28e` exposes safe invoice recovery on approved private requests and keeps incomplete payment answers retryable. Local billing sandbox access was verified after credential configuration and restart; no secret is stored in Git. See [acceptance evidence](docs/evidence/2026-10-24-kel-215.md).
 
 **KEL-214 (2026-10-20):** web `d6d60e9a682d9ad85b924ed30aeb98172cc2e9a2` requires confirmed schedule-update and member-read permissions for the current substitute-tutor picker. Teacher rescheduling and attendance remain available; unavailable picker access has an explicit explanation. See [ADR 0051](docs/adr/0051-substitute-tutor-active-membership-gate.md).

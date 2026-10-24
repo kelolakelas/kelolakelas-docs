@@ -90,3 +90,7 @@ Evidence: `internal/usecase/transaction_expiry_worker.go`,
 ## Tenant voucher validity inputs (KEL-201)
 
 **Implemented:** the voucher form uses browser-local date/time controls with seconds. Choosing a new validity date sets the initial time to `00:00:00` (`valid_from`) or `23:59:59` (`valid_until`). Existing and deliberately changed times survive date changes; an untouched edit preserves the stored instant and fractional seconds. The browser sends ISO timestamps before the existing server action normalizes and forwards them, avoiding reinterpretation in the server timezone. Range validation and voucher eligibility rules are unchanged. See [web evidence](../components/web.md#voucher-local-day-defaults-and-second-precision-kel-201).
+
+## Browser retry identity (KEL-216)
+
+**Implemented in web, unchanged backend contract:** the latest submitted group checkout draft survives same-tab reload per parent/class, so a pending enrollment whose invoice failed can replay the original `Idempotency-Key`. Restored identifiers/options are untrusted UI data; academic/billing still own scope, price, capacity and invoice deduplication. Full schedules do not block submitting an otherwise identical restored attempt, because that attempt may already reserve its seat. Missing payment instructions remains a retryable UI result. See [ADR 0074](../adr/0074-checkout-recovery-after-reload.md). This does not provide cross-device or cleared-tab recovery, switch an active invoice channel, or alter expired-invoice regeneration.
