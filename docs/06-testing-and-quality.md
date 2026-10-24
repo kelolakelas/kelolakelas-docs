@@ -50,3 +50,8 @@ Academic `TestClassDeletionPostgres` runs with `KEL196_TEST_DSN`, already suppli
 ## KEL-215 web verification (24 October 2026)
 
 **Observed:** web `ab8f28e` passes 1,777 Vitest tests (8 unrelated integration tests skipped), TypeScript and ESLint. `npm audit --omit=dev --audit-level=high` reports zero vulnerabilities after Next.js/eslint-config-next 16.4.3 and Zod 4.6.6 replace versions rejected by the required CI audit. Local default Turbopack build hit a socket-permission restriction; `npm run build -- --webpack` passes. GitHub must independently run its default build and required `gate` before merge. See [sandbox/persistence acceptance](evidence/2026-10-24-kel-215.md); no real-money settlement was performed.
+
+
+## KEL-216 web verification (24 October 2026)
+
+**Observed:** web `864c8ab` passes 1,784 Vitest tests (8 unrelated integration tests skipped), TypeScript, ESLint, whitespace, production webpack build and production dependency audit (zero vulnerabilities). Existing academic checkout and billing invoice/provider regressions pass with the race detector. [Real-stack acceptance](evidence/2026-10-24-kel-216.md) covers the reported group class URL, unavailable billing followed by reload and same-key VA recovery, concurrent replay and PostgreSQL counts. Browser tab closure/cleared storage and cross-device recovery are outside the draft contract; backend checks remain authoritative.

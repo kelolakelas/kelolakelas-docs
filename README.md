@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**KEL-216 (2026-10-24, pending delivery):** web `864c8ab` preserves the group checkout UUID and selections across same-tab reload, keeps incomplete payment answers retryable, and disables duplicate submit while pending. Academic `b4ea35c` adds bounded timeout/drain changes under [ADR 0075](docs/adr/0075-checkout-timeout-budget.md). NQ sandbox HTTP 500 still blocks acceptance; these linked changes are not merged/Done. See [ADR 0074](docs/adr/0074-checkout-recovery-after-reload.md) and [acceptance evidence](docs/evidence/2026-10-24-kel-216.md).
+
 **KEL-215 (2026-10-24):** web `ab8f28e` exposes safe invoice recovery on approved private requests and keeps incomplete payment answers retryable. Local billing sandbox access was verified after credential configuration and restart; no secret is stored in Git. See [acceptance evidence](docs/evidence/2026-10-24-kel-215.md).
 
 **KEL-214 (2026-10-20):** web `d6d60e9a682d9ad85b924ed30aeb98172cc2e9a2` requires confirmed schedule-update and member-read permissions for the current substitute-tutor picker. Teacher rescheduling and attendance remain available; unavailable picker access has an explicit explanation. See [ADR 0051](docs/adr/0051-substitute-tutor-active-membership-gate.md).

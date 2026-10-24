@@ -268,6 +268,16 @@ Generated service Swagger (`docs/swagger.json`) was consulted as contract corrob
 - Web `ab8f28e`: tenant schedule-request action, approved-row recovery dialog and regressions; Next.js/eslint-config-next 16.4.3 and Zod 4.6.6 restore the existing audit gate.
 - [Observed local acceptance](../evidence/2026-10-24-kel-215.md): unavailable billing after approval commit, browser recovery into real Duitku sandbox, identical concurrent replay, PostgreSQL counts, parent invoice rendering and cross-role/tenant denials.
 
+
+## Group checkout reload recovery (KEL-216)
+
+- Web `864c8ab`: `lib/checkout-attempt.ts`, public class `page.tsx`, enrollment panel/action and regressions; [ADR 0074](../adr/0074-checkout-recovery-after-reload.md).
+- [Reported URL and real sandbox/persistence evidence](../evidence/2026-10-24-kel-216.md): original-key recovery after billing outage, identical reload payload, concurrent replay and one student/class reservation/invoice. Full web suite: 1,784 passed / 8 unrelated integration skips; lint, TypeScript, production webpack build and production audit passed.
+
+
+- **KEL-216 timeout expansion (pending delivery):** academic `b4ea35c`, `pkg/billing/client.go`, config write/drain validation, real delayed-response/caller-cancel regression, `.env.example`, patched Go directives; full local Go gate and required academic PR #62 gate pass. [ADR 0075](../adr/0075-checkout-timeout-budget.md). Fresh NQ sandbox order returns provider HTTP 500 in 16.74 seconds inside the new budget; all linked PRs remain unmerged pending acceptance.
+
+
 ## Public proposed schedule controls (KEL-220)
 
 Web `a53790c`: shared slot control tokens, public weekday chevron, feedback association and pending state; [audit, test and browser evidence](../evidence/kel220-public-schedule-controls.md).
