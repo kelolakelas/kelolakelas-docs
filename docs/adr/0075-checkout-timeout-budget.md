@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted by the owner for KEL-216; implemented on the academic issue branch, pending merge and complete QRIS acceptance. This partially supersedes the academic timeout/drain values in [ADR 0040](0040-bounded-graceful-lifecycle-identity-academic.md). Invoice policy is unchanged.
+Accepted by the owner for KEL-216; implemented and validated with owner-approved SP new-group QRIS acceptance (web124/academic62/docs223). This partially supersedes the academic timeout/drain values in [ADR 0040](0040-bounded-graceful-lifecycle-identity-academic.md). Invoice policy is unchanged.
 
 ## Context
 
@@ -20,4 +20,4 @@ Real sandbox QRIS requests were accepted as pending upstream but academic cancel
 
 A delayed HTTP regression crosses the former ten-second boundary; a separate regression proves shorter caller cancellation remains effective. Configuration tests reject write/drain at or below the billing client bound. Formatter, module verification, vet, race tests, build and govulncheck pass; the final scan finds zero reachable vulnerabilities.
 
-Local service readiness and the profile were verified. QRIS replay still reached provider timeout at 30 seconds; an independent fresh order received provider HTTP 500 before that bound. Additional signed controls with a non-empty customer name and with the documented 60-minute QRIS expiry limit also received HTTP 500 in about 16 seconds. Therefore KEL-216 remains blocked on successful NQ sandbox acceptance and its linked PRs must not be counted as delivered merely because CI is green. No public API, migration, invoice regeneration policy, claim duration or settlement behavior changed. See [evidence](../evidence/2026-10-24-kel-216.md).
+Local service readiness and the profile were verified. QRIS replay still reached provider timeout at 30 seconds; an independent fresh order received provider HTTP 500 before that bound. Additional signed controls with a non-empty customer name and with the documented 60-minute QRIS expiry limit also received HTTP 500 in about 16 seconds. This was the initial NQ-specific blocker. The owner subsequently approved SP for new group QRIS while retaining existing NQ methods/identities; real SP checkout, rendered QR, reload/replay and persistence acceptance passed. Nobu itself remains unavailable and is not claimed repaired. Delivery still requires all linked PRs to merge with required CI passing. No public API, migration, invoice regeneration policy, claim duration or settlement behavior changed. See [evidence](../evidence/2026-10-24-kel-216.md).

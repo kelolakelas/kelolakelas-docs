@@ -275,7 +275,7 @@ Generated service Swagger (`docs/swagger.json`) was consulted as contract corrob
 - [Reported URL and real sandbox/persistence evidence](../evidence/2026-10-24-kel-216.md): original-key recovery after billing outage, identical reload payload, concurrent replay and one student/class reservation/invoice. Full web suite: 1,784 passed / 8 unrelated integration skips; lint, TypeScript, production webpack build and production audit passed.
 
 
-- **KEL-216 timeout expansion (pending delivery):** academic `b4ea35c`, `pkg/billing/client.go`, config write/drain validation, real delayed-response/caller-cancel regression, `.env.example`, patched Go directives; full local Go gate and required academic PR #62 gate pass. [ADR 0075](../adr/0075-checkout-timeout-budget.md). Fresh NQ sandbox order returns provider HTTP 500 in 16.74 seconds inside the new budget; all linked PRs remain unmerged pending acceptance.
+- **KEL-216 timeout expansion and final SP acceptance:** academic `b4ea35c`, `pkg/billing/client.go`, config write/drain validation, real delayed-response/caller-cancel regression, `.env.example`, patched Go directives; full local Go gate and required academic PR #62 gate pass. [ADR 0075](../adr/0075-checkout-timeout-budget.md). NQ upstream generation failure is isolated; owner-approved SP new-group routing passed real rendered-QR, reload, parallel replay and PostgreSQL acceptance. Existing NQ snapshots remain NQ. Web routing revision `2caf257`; final local web1856PASS/8unrelated skips. Delivery is tracked in web124/academic62/docs223.
 
 
 ## Public proposed schedule controls (KEL-220)

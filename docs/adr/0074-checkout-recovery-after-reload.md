@@ -22,3 +22,8 @@ Group checkout reserves an enrollment before requesting an invoice. A transient 
 The latest attempt can be restored in the same tab and account after reload. Account/class scoping prevents accidental adoption of another account's draft; backend authorization remains the security boundary. Browser storage is readable by application JavaScript and is deliberately limited to these non-credential identifiers/options.
 
 Regression tests cover remount with a new server UUID, preserved payload, a now-full reserved schedule, account separation, corrupt data, blocked storage, pending-submit state and incomplete payment responses. See [KEL-216 evidence](../evidence/2026-10-24-kel-216.md) for real browser/provider/persistence validation and its limits.
+
+
+## Owner decision — new group QRIS, 25 October 2026
+
+NQ is listed active by Duitku but returns `Failed to generate QR String Nobu`; SP succeeds under equivalent and application-shaped sandbox requests. The owner approved SP for QRIS on new group purchases while preserving all existing NQ invoices. The group picker now follows that choice, without changing private request options or the backend's persisted-method authority. Restored/error-echo NQ intent for the same student retains its method/key. Selecting another student creates a distinct SP intent/key, with return to the original draft supported. No automatic channel fallback rewrites a persisted purchase. Real QRIS rendering, reload, concurrent replay and PostgreSQL no-duplicate/legacy-method checks passed; see the final section of the evidence. Existing NQ availability and upstream QR lifetime remain provider constraints, not claims of this change.
