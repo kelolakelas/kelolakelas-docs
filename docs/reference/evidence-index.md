@@ -276,3 +276,22 @@ Generated service Swagger (`docs/swagger.json`) was consulted as contract corrob
 
 
 - **KEL-216 timeout expansion (pending delivery):** academic `b4ea35c`, `pkg/billing/client.go`, config write/drain validation, real delayed-response/caller-cancel regression, `.env.example`, patched Go directives; full local Go gate and required academic PR #62 gate pass. [ADR 0075](../adr/0075-checkout-timeout-budget.md). Fresh NQ sandbox order returns provider HTTP 500 in 16.74 seconds inside the new budget; all linked PRs remain unmerged pending acceptance.
+
+
+## Public proposed schedule controls (KEL-220)
+
+Web `a53790c`: shared slot control tokens, public weekday chevron, feedback association and pending state; [audit, test and browser evidence](../evidence/kel220-public-schedule-controls.md).
+
+## Navigation chat unread count (KEL-217)
+
+Web viewer-scoped unread aggregation, shared responsive badge and polling/read reconciliation: [verification and fresh second-task audit](../evidence/kel217-chat-navigation-unread.md), [ADR0076](../adr/0076-navigation-chat-unread-reconciliation.md).
+
+
+## Pending request navigation count (KEL-218)
+
+Web authenticated pending-only capped count, shared sidebar/mobile reconciliation and real parent/cancel/reject/approve acceptance: [evidence](../evidence/kel218-pending-navigation.md).
+
+
+## Shared date fields (KEL-219)
+
+Nine source inputs migrated to segmented calendar entry; local regression, timezone and real API/browser evidence: [inventory and screenshots](../evidence/kel219-shared-date-input.md), [ADR0077](../adr/0077-shared-calendar-date-input.md).

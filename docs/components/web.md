@@ -350,3 +350,32 @@ Delivery: [web PR #111](https://github.com/kelolakelas/kelolakelas-web/pull/111)
 ## Group checkout recovery after reload (KEL-216)
 
 **Implemented:** the public group enrollment panel stores its latest submitted UUID and selection fields in tab session storage, scoped to parent/class. Reload restores that attempt before retry; a matching prior attempt may retry a now-full reserved schedule, with the backend still enforcing ownership/capacity. Corrupt drafts are ignored and denied storage warns against reload until confirmation. The action's pending state disables repeated submit. Missing enrollment identity or missing VA/QRIS instructions remains retryable instead of claiming complete checkout. Card retains the existing hosted redirect; VA/QRIS remain in-page. See [ADR 0074](../adr/0074-checkout-recovery-after-reload.md) and [acceptance evidence](../evidence/2026-10-24-kel-216.md).
+
+
+## Public proposed slot styles (KEL-220)
+
+**Implemented:** `lib/schedule-field-styles.ts` provides schedule geometry/interaction tokens and separate tenant/public palette exports. Existing tenant imports re-export the same tokens from their previous module. Public `ScheduleRequestForm` uses `publicScheduleControlClass`, `publicScheduleDayControlClass` and `scheduleDayControlStyle` for weekday/native time; future public slot forms should reuse these exports. Normal/focus/error/disabled states share geometry; public remains light while tenant retains its dark palette. Slot errors describe the controls and pending disables the slot fieldset. Payload, weekday numbering and native time are preserved. See [acceptance and screenshots](../evidence/kel220-public-schedule-controls.md).
+
+## Chat unread navigation badge (KEL-217)
+
+**Implemented:** parent desktop/mobile navigation plus student/enrollment secondary Chat links, and permission-gated tenant sidebar/mobile drawer share `ChatUnreadProvider`. The count is unread messages across all backend-visible conversations, paged in100-row batches until exhaustion or the display cap100. Backend excludes own messages and includes visible system messages. Zero hides the badge;1–99 are exact,100+ displays99+, and unavailable/loading shows an accessible ellipsis. No browser unread count is persisted.
+
+The provider reconciles every10seconds while visible, on route/focus/visibility/online, and on inbox read-success/socket invalidation (including cross-tab BroadcastChannel hints). It never increments locally, deduplicates paged conversation IDs, discards old-scope/unmount replies and treats partial errors as unknown. The auth/tenant cookie pair defines an opaque scope; authorization stays with the backend. Tenant polling is disabled when the existing Chat nav permission is absent. Hidden tabs reconcile on return. Offset pages can reorder concurrently, so this is eventually reconciled, not a transactional aggregate. See [ADR0076](../adr/0076-navigation-chat-unread-reconciliation.md) and [real-stack/test evidence](../evidence/kel217-chat-navigation-unread.md).
+
+
+## Pending schedule-request navigation badge (KEL-218)
+
+**Implemented:** tenant sidebar and mobile drawer share `PendingScheduleRequestProvider`. Only the existing `enrollment:read` navigation item receives a badge. The server action verifies the opaque auth/tenant scope, reads current membership, and requests `GET /api/v1/schedule-requests?status=pending` without the page's filters or class/student label fan-out. Backend tenant/JWT/permission checks remain authoritative; malformed, duplicate, non-pending or cross-tenant rows produce unknown, never a confirmed zero.
+
+The existing 100-row cap supports exact display 1–99 and `99+` for 100 or more; zero hides the badge. This is a capped indicator, not an uncapped total. Loading/read errors render an accessible unavailable indicator while navigation stays usable. The provider polls every ten seconds while visible, refreshes on navigation, focus, visibility and online, and reconciles immediately after successful approve/reject without closing the payment-link dialog. Parent creation/cancellation and other tabs reconcile by polling. Failures never decrement a local counter; approved requests with missing invoices are excluded by the pending filter. Scope/permission changes remount the provider and discard old responses; logout unmounts it. No persisted browser count or API change.
+
+Evidence: web `lib/schedule-request-count-{actions,events}.ts`, `components/PendingScheduleRequestProvider.tsx`, tenant layout/sidebar/mobile and decision dialogs, adjacent tests; [acceptance and screenshots](../evidence/kel218-pending-navigation.md).
+
+
+## Shared calendar date entry (KEL-219)
+
+**Implemented:** `components/DateInput.tsx` supplies day/month/year numeric segments with automatic valid day→month→year advancement, correction/backspace, ISO/DD/MM/YYYY paste and explicit clear. A shared calendar has direct year/month controls, arrow/Home/End navigation, Escape/selection focus return, viewport positioning and dark-mode styling. Partial/impossible dates and min/max violations have associated errors and native form validity; empty optional values remain empty. Canonical named fields retain YYYY-MM-DD and server validation remains authoritative.
+
+Migrated: student create/edit DOB; report and transaction from/to filters; reschedule date; initial teacher assignment; class schedule effective date; voucher valid-from and valid-until date halves. Controlled updates, changed edit defaults and form resets preserve coherent values. Existing DOB max-today, filter range validation, schedule bounds and voucher instant serializer/default day boundaries/seconds/fraction are retained. No active native date/datetime-local source input remains in app/components after the inventory search.
+
+Evidence: `lib/calendar-date.ts`, DateInput and adjacent tests, seven migrated components and their action/schema regressions; [ADR0077](../adr/0077-shared-calendar-date-input.md), [migration and browser evidence](../evidence/kel219-shared-date-input.md). Browser evidence is Chrome desktop/mobile viewport in UTC/WIB; Safari/Firefox/physical mobile and real screen-reader behavior are unverified.

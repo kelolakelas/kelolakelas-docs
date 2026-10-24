@@ -16,6 +16,14 @@
 
 This is an evidence-based onboarding and operations guide for the implementation found on 2026-09-21 (Asia/Jakarta). It describes code as it exists; it is not a design proposal or deployment runbook.
 
+**KEL-220:** web `a53790c` reuses schedule control geometry with the public palette and keeps native weekday/time payloads; [validation and screenshots](docs/evidence/kel220-public-schedule-controls.md).
+
+**KEL-217:** web `8f427b5` shares an authoritative unread message badge across parent/tenant navigation with paginated reconciliation; [ADR0076](docs/adr/0076-navigation-chat-unread-reconciliation.md) and [validation/screenshots](docs/evidence/kel217-chat-navigation-unread.md).
+
+**KEL-218:** tenant navigation shows an authenticated pending-request badge with a 99+ cap and visible-page reconciliation; [acceptance evidence](docs/evidence/kel218-pending-navigation.md).
+
+**KEL-219:** web `e2f55a0` shared date entry provides day→month→year auto-advance and direct calendar year selection across DOB, filters, schedule and voucher forms; [ADR0077](docs/adr/0077-shared-calendar-date-input.md) and [acceptance](docs/evidence/kel219-shared-date-input.md).
+
 ## Scope and snapshot
 
 | Repository | Branch | HEAD | State at inspection |
