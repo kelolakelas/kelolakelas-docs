@@ -280,3 +280,8 @@ Web viewer-scoped unread aggregation, shared responsive badge and polling/read r
 ## Pending request navigation count (KEL-218)
 
 Web authenticated pending-only capped count, shared sidebar/mobile reconciliation and real parent/cancel/reject/approve acceptance: [evidence](../evidence/kel218-pending-navigation.md).
+
+
+## Shared date fields (KEL-219)
+
+Nine source inputs migrated to segmented calendar entry; local regression, timezone and real API/browser evidence: [inventory and screenshots](../evidence/kel219-shared-date-input.md), [ADR0077](../adr/0077-shared-calendar-date-input.md).
