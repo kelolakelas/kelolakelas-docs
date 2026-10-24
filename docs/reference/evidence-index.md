@@ -271,3 +271,7 @@ Generated service Swagger (`docs/swagger.json`) was consulted as contract corrob
 ## Public proposed schedule controls (KEL-220)
 
 Web `a53790c`: shared slot control tokens, public weekday chevron, feedback association and pending state; [audit, test and browser evidence](../evidence/kel220-public-schedule-controls.md).
+
+## Navigation chat unread count (KEL-217)
+
+Web viewer-scoped unread aggregation, shared responsive badge and polling/read reconciliation: [verification and fresh second-task audit](../evidence/kel217-chat-navigation-unread.md), [ADR0076](../adr/0076-navigation-chat-unread-reconciliation.md).
