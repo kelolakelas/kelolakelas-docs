@@ -45,3 +45,8 @@ Evidence: `kelolakelas-web/.github/workflows/ci.yml` (web PR [#35](https://githu
 ## Class deletion lifecycle regression (KEL-206)
 
 Academic `TestClassDeletionPostgres` runs with `KEL196_TEST_DSN`, already supplied by required GitHub CI. It owns a disposable schema without a `public` table fallback. Run `go test -race -count=1 ./internal/usecase -run '^TestClassDeletionPostgres$'` with an approved test DSN; it covers soft-delete persistence, list pagination/search, future/history policy, conflict/foreign rejection, transactional rollback and concurrent deletion. The opt-in `TestClassDeletionAcceptanceStack` additionally needs `KEL206_STACK_CONFIG` (temporary synthetic config path) and `KEL196_GATEWAY_BINARY` (gateway built from current main), and waits for `POST /test/shutdown`. Identity verdicts are synthetic. See [observed validation](evidence/kel206/verification.md).
+
+
+## KEL-215 web verification (24 October 2026)
+
+**Observed:** web `89a81c5` passes 1,777 Vitest tests (8 unrelated integration tests skipped), TypeScript and ESLint. `npm audit --omit=dev --audit-level=high` reports zero vulnerabilities after Next.js/eslint-config-next 16.4.3 and Zod 4.6.6 replace versions rejected by the required CI audit. Local default Turbopack build hit a socket-permission restriction; `npm run build -- --webpack` passes. GitHub must independently run its default build and required `gate` before merge. See [sandbox/persistence acceptance](evidence/2026-10-24-kel-215.md); no real-money settlement was performed.

@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**KEL-215 (2026-10-24):** web `89a81c5` exposes safe invoice recovery on approved private requests and keeps incomplete payment answers retryable. Local billing sandbox access was verified after credential configuration and restart; no secret is stored in Git. See [acceptance evidence](docs/evidence/2026-10-24-kel-215.md).
+
 **KEL-214 (2026-10-20):** web `d6d60e9a682d9ad85b924ed30aeb98172cc2e9a2` requires confirmed schedule-update and member-read permissions for the current substitute-tutor picker. Teacher rescheduling and attendance remain available; unavailable picker access has an explicit explanation. See [ADR 0051](docs/adr/0051-substitute-tutor-active-membership-gate.md).
 
 **KEL-213 (2026-10-20):** web `cbca5622d5a8ee830c0dedce0c00ab7f599e9523` lists/exports non-paid transactions by creation date while retaining payment-date reconciliation for paid. Billing `b6d822cf2874ddecc9762bf468d3f9291ee99423` includes the entire final UTC day for creation-date filters. See [ADR 0058](docs/adr/0058-tenant-transaction-paid-date-filter-and-csv-export.md).
