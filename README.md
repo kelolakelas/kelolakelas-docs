@@ -20,6 +20,8 @@ This is an evidence-based onboarding and operations guide for the implementation
 
 **KEL-218:** tenant navigation shows an authenticated pending-request badge with a 99+ cap and visible-page reconciliation; [acceptance evidence](docs/evidence/kel218-pending-navigation.md).
 
+**KEL-219:** web `e2f55a0` shared date entry provides day→month→year auto-advance and direct calendar year selection across DOB, filters, schedule and voucher forms; [ADR0077](docs/adr/0077-shared-calendar-date-input.md) and [acceptance](docs/evidence/kel219-shared-date-input.md).
+
 ## Scope and snapshot
 
 | Repository | Branch | HEAD | State at inspection |
