@@ -14,6 +14,8 @@
 
 This is an evidence-based onboarding and operations guide for the implementation found on 2026-09-21 (Asia/Jakarta). It describes code as it exists; it is not a design proposal or deployment runbook.
 
+**KEL-220:** web `a53790c` reuses schedule control geometry with the public palette and keeps native weekday/time payloads; [validation and screenshots](docs/evidence/kel220-public-schedule-controls.md).
+
 ## Scope and snapshot
 
 | Repository | Branch | HEAD | State at inspection |
