@@ -1,0 +1,148 @@
+{
+  "runId": "2026-10-24_0821",
+  "status": "complete",
+  "authorization": "Explicit user request to create Linear issues for all six local testing findings on 24 October 2026.",
+  "projectsCreated": [],
+  "projectsReused": [
+    "P-KEL-22",
+    "P-KEL-23",
+    "P-KEL-24",
+    "P-KEL-9"
+  ],
+  "descriptionVerification": "Submitted exact local Markdown; fetched rich-text output verified after normalization of bullet markers, links and native issue mentions.",
+  "issues": [
+    {
+      "draftKey": "restore-private-approval",
+      "id": "KEL-215",
+      "uuid": "a38a3856-39bd-4778-8133-86a98cff0269",
+      "url": "https://linear.app/farid-zamani/issue/KEL-215/investigasi-dan-pulihkan-approval-schedule-request-yang-selalu-gagal",
+      "project": "P-KEL-22",
+      "priority": 2,
+      "estimate": 2,
+      "complexity": "high",
+      "labels": [
+        "Bug",
+        "web",
+        "academic",
+        "billing"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-108",
+        "KEL-110",
+        "KEL-133"
+      ],
+      "descriptionSource": "issues/01-restore-private-approval.md",
+      "verified": true
+    },
+    {
+      "draftKey": "restore-parent-checkout",
+      "id": "KEL-216",
+      "uuid": "1ffc0923-024c-48c4-8280-7d2efd83ec81",
+      "url": "https://linear.app/farid-zamani/issue/KEL-216/investigasi-dan-pulihkan-lanjut-ke-pembayaran-pada-detail-kelas-parent",
+      "project": "P-KEL-24",
+      "priority": 2,
+      "estimate": 2,
+      "complexity": "high",
+      "labels": [
+        "Bug",
+        "web",
+        "academic",
+        "billing"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-14",
+        "KEL-194",
+        "KEL-106"
+      ],
+      "descriptionSource": "issues/02-restore-parent-checkout.md",
+      "verified": true
+    },
+    {
+      "draftKey": "chat-unread-navigation-badge",
+      "id": "KEL-217",
+      "uuid": "2763d1d4-3bae-441c-9274-ccb39cc0e6a3",
+      "url": "https://linear.app/farid-zamani/issue/KEL-217/tampilkan-badge-jumlah-pesan-belum-dibaca-pada-tombol-chat",
+      "project": "P-KEL-23",
+      "priority": 3,
+      "estimate": 2,
+      "complexity": "medium",
+      "labels": [
+        "Improvement",
+        "web"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-123",
+        "KEL-202"
+      ],
+      "descriptionSource": "issues/03-chat-unread-navigation-badge.md",
+      "verified": true
+    },
+    {
+      "draftKey": "pending-schedule-request-navigation-badge",
+      "id": "KEL-218",
+      "uuid": "0ddb0075-be1d-4574-bb9c-426335dc0978",
+      "url": "https://linear.app/farid-zamani/issue/KEL-218/tampilkan-badge-request-pending-pada-navigasi-schedule-requests-admin",
+      "project": "P-KEL-22",
+      "priority": 3,
+      "estimate": 2,
+      "complexity": "medium",
+      "labels": [
+        "Improvement",
+        "web"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-110"
+      ],
+      "descriptionSource": "issues/04-pending-schedule-request-navigation-badge.md",
+      "verified": true
+    },
+    {
+      "draftKey": "shared-date-input-ux",
+      "id": "KEL-219",
+      "uuid": "0272d009-cc29-4c17-a31f-be816ce1d0e9",
+      "url": "https://linear.app/farid-zamani/issue/KEL-219/standarkan-semua-field-tanggal-dengan-auto-advance-dan-pilihan-tahun",
+      "project": "P-KEL-9",
+      "priority": 3,
+      "estimate": 3,
+      "complexity": "medium",
+      "labels": [
+        "Improvement",
+        "web"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-175",
+        "KEL-201",
+        "KEL-210"
+      ],
+      "descriptionSource": "issues/05-shared-date-input-ux.md",
+      "verified": true
+    },
+    {
+      "draftKey": "private-slot-control-styles",
+      "id": "KEL-220",
+      "uuid": "72695532-b488-4f01-8fa5-5b1069102fc6",
+      "url": "https://linear.app/farid-zamani/issue/KEL-220/standarkan-style-input-hari-dan-kontrol-slot-jadwal-yang-diajukan",
+      "project": "P-KEL-22",
+      "priority": 3,
+      "estimate": 1,
+      "complexity": "low",
+      "labels": [
+        "Improvement",
+        "web"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-109",
+        "KEL-200",
+        "KEL-210"
+      ],
+      "descriptionSource": "issues/06-private-slot-control-styles.md",
+      "verified": true
+    }
+  ]
+}
