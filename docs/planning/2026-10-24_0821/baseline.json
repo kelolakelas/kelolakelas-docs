@@ -1,0 +1,84 @@
+{
+  "schema": "kelolakelas.planning-run/v1",
+  "runId": "2026-10-24_0821",
+  "createdAt": "2026-10-24T01:21:51.531Z",
+  "previousRun": {
+    "runId": "2026-10-16_1513",
+    "path": "kelolakelas-docs/docs/planning/2026-10-16_1513",
+    "createdAt": "2026-10-16T08:13:01.889Z",
+    "repositories": {
+      "kelolakelas-web": {
+        "branch": "main",
+        "head": "2c4bfe214bba758fee919c8be92b1358bf7afd4c",
+        "dirty": false
+      },
+      "kelolakelas-api-gateway": {
+        "branch": "main",
+        "head": "622e61d835e815a40f3e8778a599f908c9273f11",
+        "dirty": false
+      },
+      "kelolakelas-identity-service": {
+        "branch": "main",
+        "head": "b03a6140eb03fc5cf2738b19e39c39b35c2cc47f",
+        "dirty": false
+      },
+      "kelolakelas-academic-service": {
+        "branch": "main",
+        "head": "c1ea23e81e54fe8088b98f0a624a7bea2665f078",
+        "dirty": false
+      },
+      "kelolakelas-billing-service": {
+        "branch": "main",
+        "head": "2b2344c7d7a7cf553a0e9e66b77fc270c7a130e0",
+        "dirty": false
+      },
+      "kelolakelas-chat-service": {
+        "branch": "main",
+        "head": "4a3f9d6b6bdf12ec21cfdb390127ee24e025c807",
+        "dirty": false
+      },
+      "kelolakelas-docs": {
+        "branch": "main",
+        "head": "844f34b16dfad96bf685f46b7d4b449867215fbb",
+        "dirty": false
+      }
+    }
+  },
+  "repositories": {
+    "kelolakelas-web": {
+      "branch": "main",
+      "head": "0b9a020d5a3c9cf0cf2577733576cce730f0aa11",
+      "dirty": false
+    },
+    "kelolakelas-api-gateway": {
+      "branch": "main",
+      "head": "622e61d835e815a40f3e8778a599f908c9273f11",
+      "dirty": false
+    },
+    "kelolakelas-identity-service": {
+      "branch": "main",
+      "head": "48b082f62d8cdd2f6285e91da3a1e1b010aec019",
+      "dirty": false
+    },
+    "kelolakelas-academic-service": {
+      "branch": "main",
+      "head": "4269a57d21163a98231ff6b1b061b4037a907ef8",
+      "dirty": false
+    },
+    "kelolakelas-billing-service": {
+      "branch": "main",
+      "head": "7fd099d44f62743ef1455307de8a5191f0811f59",
+      "dirty": false
+    },
+    "kelolakelas-chat-service": {
+      "branch": "main",
+      "head": "4a3f9d6b6bdf12ec21cfdb390127ee24e025c807",
+      "dirty": false
+    },
+    "kelolakelas-docs": {
+      "branch": "main",
+      "head": "abed15afd0d63f4e45bbd6cbc0f1b8853c423c23",
+      "dirty": false
+    }
+  }
+}
