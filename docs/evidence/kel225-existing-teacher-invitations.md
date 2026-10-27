@@ -26,3 +26,7 @@ Chrome production web → actual gateway router/session check → actual identit
 - [Tenant switch mobile](kel225/switch-mobile.png)
 
 The screenshots contain only synthetic fixture identities. General email verification, arbitrary existing-role grants, parent conversion and auto-reactivation remain out of scope. The known Duitku sandbox issue affects other payment work and is not a dependency of this invitation flow.
+
+## Delivery evidence
+
+**Observed:** required PR gates succeeded for identity50, gateway46, web131 and initial docs232. Identity merged `7808fe515e51f2228e004bf969472f8fc92e8258` at12:18:25UTC; gateway merged `57945fd87ab05e52ea70364580ad1302e3cda626` at12:18:32UTC; web merged `4ee41ddc59253b153893303d3fe0a5ce5b0db2f9` at12:18:39UTC. A fresh fetch and merge-base ancestry checks prove all three on origin/main. The docs gate must pass again for this snapshot update before docs232 merges; the issue remains open until coordinated delivery completes. Owned browser listeners and the disposable browser database were cleaned up; user services were not stopped.
