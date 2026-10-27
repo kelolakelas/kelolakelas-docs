@@ -9,6 +9,7 @@ All public business rows below are **Implemented** gateway registrations. Gatewa
 | POST | `/api/v1/tenants/register` | Identity → same | public | `RegisterTenantRequest` → token/user/tenant; 400/409 | gateway:59; identity main:105 |
 | GET | `/api/v1/invitations/verify` | Identity → same | public | query `token` → invitation; 400/404 | gateway:60; identity main:106 |
 | POST | `/api/v1/invitations/register` | Identity → same | public | invited-user payload → user; 400/404/409 | gateway:61; identity main:107 |
+| POST | `/api/v1/invitations/accept` | Identity → same | signed ordinary session; live account/Teacher/tenant locks and email match | `{token}` → `{tenant_id,member_id,role_id}`; 400 expired/invalid,401 session,403 account/persona/role,404 missing,409 used/revoked/inactive,500 unavailable | KEL-225 identity `existing_invitation.go`, gateway `router.go` |
 | GET | `/api/v1/catalog/classes` | Academic → same | public | catalog filters → catalog list; 400 | gateway:63; academic main:105 |
 | GET | `/api/v1/catalog/classes/:id` | Academic → same | public | UUID path → catalog class with `rating_average` and `rating_count`; 400/404 | gateway `router.go`; academic `routes.go` (KEL-159) |
 | GET | `/api/v1/catalog/classes/:id/reviews` | Academic → same | public; catalog visibility policy | UUID and bounded `page`/`page_size` → PII-free review list; 400/404/503 | gateway `router.go`; academic `routes.go` (KEL-159) |

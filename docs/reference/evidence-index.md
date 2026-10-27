@@ -1,5 +1,7 @@
 # Evidence index
 
+**KEL-225:** [existing Teacher invitation evidence](../evidence/kel225-existing-teacher-invitations.md), [ADR0081](../adr/0081-existing-teacher-invitation-acceptance.md). Actual PostgreSQL transaction/concurrency/rollback/ownership coverage, gateway session/header contracts, web error/login-return tests and production Chrome desktop/mobile A→B→A acceptance; unrelated downstream data and email delivery explicitly identified as doubles.
+
 **KEL-223:** [before/after reproduction and acceptance](../evidence/kel223-chat-inbox-recovery.md),
 [ADR0079](../adr/0079-chat-inbox-pagination-and-live-revalidation.md). Real PostgreSQL
 105-room list/detail/persistence matrix, unavailable versus denied, parent/isolation
