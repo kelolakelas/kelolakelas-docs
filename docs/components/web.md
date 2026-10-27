@@ -411,3 +411,8 @@ retry rather than successful empty. Confirmed denial clears selection/cache and
 reply. Initial list failure has a reload control. WS frames trigger fresh REST
 reads rather than adding potentially stale-authority payloads to state. Existing
 parent notifications and send/read/unread behavior remain. [ADR0079](../adr/0079-chat-inbox-pagination-and-live-revalidation.md).
+
+
+## Scoped editor configuration and shared teachers (KEL-227)
+
+**Implemented:** `readClassConfiguration` reads one protected class detail, every page of that class's schedules and all category pages. It validates saved DTO scope/identity, pagination totals/page/size, completeness and duplicate IDs; failure never becomes an empty success. Existing no-store/category completeness and unpublished editing remain. `ScheduleTeachersProvider` shares one all-pages member loader among all forms of an open editor, coalesces retries and refreshes after class save; standalone forms remain independent. Provider lifetime ends on close/class change, without cross-user/tenant/global caching. Drafts survive read failures; mutation guards and live membership checks remain authoritative. Reload generation fences late responses. The ordinary list's initial first100 behavior is outside this targeted change. [ADR0083](../adr/0083-scoped-class-editor-reads.md), [actual benchmark and acceptance](../evidence/kel227-class-editor-performance.md).

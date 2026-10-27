@@ -151,3 +151,6 @@ The parent route is also rejected by the web proxy for a valid non-parent sessio
 ## Durable private request chat (KEL-226)
 
 **Implemented:** parent request commit→parent-authored created event/outbox→worker→same request conversation. Admin approve/reject commit→captured deciding member event/outbox→same room→parent. Recommendation acceptance is parent-authored. Approval delivery resolves request-derived enrollment key, reads the scoped initial billing invoice, then refreshes that projection after the chat room lock. Missing/unavailable invoice retries; paid/terminal/elapsed payment omits a payable URL. Failed delivery never replays enrollment or invoice creation. Historical stored links remain historical: billing settlement and chat insertion do not form a distributed transaction. See [ADR0082](../adr/0082-durable-private-request-chat-events.md) and [acceptance evidence](../evidence/kel226-private-request-chat.md).
+
+
+**Implemented (KEL-227):** saved editor opens/reloads through protected class detail + scoped paginated schedules + full categories, with an editor-local shared teacher loader. Saving retains existing writes/effective-date/version semantics and re-reads authoritative data; failed reload preserves drafts and blocks dependent mutations. See [ADR0083](../adr/0083-scoped-class-editor-reads.md).

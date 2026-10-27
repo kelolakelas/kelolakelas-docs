@@ -304,3 +304,8 @@ All following routes require `X-Internal-Service-Credential`, are not gateway-pr
 | POST | `/internal/private-request-chat/deliveries/:id/requeue` | Reset one failed delivery; never repeats purchase/decision. Invalid400, absent/nonfailed404 |
 
 Diagnostics expose IDs/kind/status/attempts/available_at and bounded last_error codes; no JWT, checkout URL, parent email or message text. Projection503 codes include invoice_missing, invoice_or_decision_not_ready and event_dependency_unavailable. Source: academic `internal/delivery/http/handler/private_chat.go`, `internal/usecase/private_chat.go`, generated Swagger and `cmd/server/routes.go`.
+
+
+## Scoped saved-class configuration (KEL-227)
+
+**Implemented:** GET `/api/v1/classes/:id` requires class:read and returns the existing class DTO including unpublished state/category/teacher IDs. GET `/api/v1/classes/:id/schedules?page=1&page_size=100` requires both class:read and schedule:read; returns existing items/pagination for all nondeleted current/future/history versions of that owned class, with stable date/day/start/UUID ordering. No enrollment/parent/payment preload. Parent denied403; no JWT401; invalid ID/pagination400; missing/foreign/deleted class404 including empty pages; dependency outage503. Both are no-store and use live permission checks. Existing collections remain compatible. Sources: academic `class_configuration_read.go` in repository/usecase/handler, production routes and generated Swagger; [ADR0083](../adr/0083-scoped-class-editor-reads.md).

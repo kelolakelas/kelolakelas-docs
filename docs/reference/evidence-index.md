@@ -319,3 +319,10 @@ Nine source inputs migrated to segmented calendar entry; local regression, timez
 Academic transactional human actor/event/outbox, scoped billing read and chat deduplicated same-room delivery: [ADR0082](../adr/0082-durable-private-request-chat-events.md), [runtime/PostgreSQL/browser evidence](../evidence/kel226-private-request-chat.md).
 
 KEL-226 verified main revisions: academic `09fd70a` (PR63), chat `2de8ce6` (PR8), billing `d8a89fb` (PR41); required PR gates passed and fresh fetch ancestry verified.
+
+
+## Selected class editor performance (KEL-227)
+
+[ADR0083](../adr/0083-scoped-class-editor-reads.md) records narrow tenant reads, pagination and editor-local teacher lifecycle. [Evidence](../evidence/kel227-class-editor-performance.md) records fresh task1 selection/dependencies, actual-stack distributions, query-count/authorization regressions and screenshots.
+
+KEL-227 verified main revisions: academic `c75c1c7` (PR64), gateway `d70421e` (PR47), web `6aefe74` (PR133), all required gates passed and fresh-fetch main ancestry verified.
