@@ -8,6 +8,8 @@ The KEL-8/KEL-29/KEL-215 foundations and KEL-8 → KEL-6 chain have merged imple
 
 **Not delivered:** the correction is on [billing draft PR #40](https://github.com/kelolakelas/kelolakelas-billing-service/pull/40), proposal revision `1b7b99fd348637d23b92cc9183f7db0f018349d3`. External settlement acceptance remains blocked, so the issue stays In Progress and PRs must remain draft. No second issue has started.
 
+**Observed CI:** the required billing [PR gate](https://github.com/kelolakelas/kelolakelas-billing-service/actions/runs/40496939163) succeeds, including the PostgreSQL-backed race suite and vulnerability check. Documentation is tracked in [draft PR #231](https://github.com/kelolakelas/kelolakelas-docs/pull/231); its initial [gate](https://github.com/kelolakelas/kelolakelas-docs/actions/runs/40497232081) also succeeds. CI success does not replace the blocked external acceptance. The three disposable databases and the candidate billing server on port 18082 were removed/stopped after verification; existing application services and the pending live sandbox fixture remain available.
+
 ## Reproduced failure and proposed owner fix
 
 **Observed:** `TestGeneratedInitialPurchaseStillOwesActivation` fails on the baseline for both group and private invoices: `paid=paid enqueues=0 activation calls=0 reconciled=false`. Unlike older hand-built callback fixtures, it calls `GenerateSubscriptionPayment`, which persists subscription and period metadata on the initial invoice.
