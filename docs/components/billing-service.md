@@ -1,5 +1,12 @@
 # Billing service (`kelolakelas-billing-service`)
 
+**Observed (KEL-221):** initial invoices include subscription/period metadata and
+are incorrectly excluded from activation reconciliation on the current main
+baseline. A proposed identity-based correction and PostgreSQL regression pass;
+external settlement acceptance and merge remain pending. See
+[diagnosis](../evidence/kel221-initial-payment-activation.md) and
+[ADR 0080](../adr/0080-initial-invoice-reconciliation-identity.md).
+
 **Implemented (KEL-213):** creation-date list/export ranges now include the whole final UTC calendar day (`created_at < date_to + 1 day`), matching paid-date semantics. Empty/default and explicit created-at selectors share this correction. See [ADR 0058](../adr/0058-tenant-transaction-paid-date-filter-and-csv-export.md) for compatibility and regression evidence.
 
 **Implemented (KEL-152):** Tenant full manual refunds are permission-gated, atomically audited and idempotent; refund cancels subscription/open unpaid renewals without wallet writes. A durable refund worker handles enrollment by status through existing Academic end/release calls and stale activation/renewal guards. Completed enrollments remain untouched. Evidence: `internal/repository/refund_repository.go`, `subscription_refund_guard.go`, `internal/usecase/refund_worker.go`, [billing PR #35](https://github.com/kelolakelas/kelolakelas-billing-service/pull/35), squash `db5cc401acffc04ecf681a857b91a6eeec5e626c`; [ADR 0060](../adr/0060-manual-refund-per-status-enrollment.md).

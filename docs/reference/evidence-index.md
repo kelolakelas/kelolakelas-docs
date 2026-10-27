@@ -1,5 +1,11 @@
 # Evidence index
 
+**KEL-221 proposal:** [initial invoice diagnosis and acceptance limits](../evidence/kel221-initial-payment-activation.md),
+[ADR 0080](../adr/0080-initial-invoice-reconciliation-identity.md). Billing branch
+`1b7b99fd348637d23b92cc9183f7db0f018349d3` fixes the reproduced renewal misclassification;
+real PostgreSQL retry/re-drive/concurrency regressions pass. External Duitku sandbox
+settlement is blocked; this revision is not yet the main baseline.
+
 **KEL-223:** [before/after reproduction and acceptance](../evidence/kel223-chat-inbox-recovery.md),
 [ADR0079](../adr/0079-chat-inbox-pagination-and-live-revalidation.md). Real PostgreSQL
 105-room list/detail/persistence matrix, unavailable versus denied, parent/isolation

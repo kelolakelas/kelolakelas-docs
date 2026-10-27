@@ -1,5 +1,16 @@
 # Operations
 
+## KEL-221 initial invoice diagnosis (proposal not rolled out)
+
+When payment is paid but Academic enrollment remains pending, correlate the
+request, enrollment, transaction and activation job before remediation. Main
+currently misclassifies initial invoices with subscription/period metadata as
+renewals. The proposed fix has no automatic historical backfill. After verified
+rollout, a paid initial invoice without a job needs individually verified
+provider callback replay; a terminal job uses the existing internal re-drive
+endpoint. Do not reissue payment or bulk-update enrollment status. External
+sandbox acceptance remains blocked; see [evidence](evidence/kel221-initial-payment-activation.md).
+
 **Implemented health endpoints:** gateway `GET /health`, identity `GET /health`, academic `GET /health`, and billing `GET /health` return `{"status":"healthy","service":...}` without dependency probes. `GET /ready` returns JSON `status`, `service`, and `components`: required failures return 503 (`database` in each stateful service, `identity_grpc` in academic, `identity`/`academic`/`billing` in gateway); Redis failures in identity/gateway report `degraded` with HTTP 200 if required dependencies are healthy. Since KEL-122 chat is an optional gateway probe: it is skipped when `CHAT_SERVICE_URL` is empty and checked at `/health` when set. Probes share a one-second request deadline and do not write. Route registration and handlers: gateway `internal/delivery/http/{router,readiness}.go`; services `cmd/server/{main,readiness,health}.go` (KEL-40).
 
 Deploy identity before academic, then the other services before gateway. A gateway pointed at an older service without `/ready` reports 503 until it is upgraded. Configure orchestration liveness against `/health` and readiness against `/ready`; do not use the readiness endpoint as liveness. No database migration is required. The readiness payload reports component status only, not connection details. Identity, billing, and gateway install JSON `slog` as default; academic uses slog for startup and request/event logging. Gin recovery is registered in every Go HTTP server. No Prometheus/metrics endpoint, distributed tracing, backup/restore procedure, or alert configuration was found.

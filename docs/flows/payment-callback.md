@@ -1,5 +1,11 @@
 # Duitku payment callback
 
+**Known initial-purchase gap (KEL-221):** the current main renewal discriminator
+also matches generated initial invoices, skipping activation intent/dispatch.
+The durable path described below exists, but those invoices do not reach it.
+The proposed correction is tested with isolated PostgreSQL; external sandbox
+settlement and merge are pending. See [diagnosis and limits](../evidence/kel221-initial-payment-activation.md).
+
 ```mermaid
 sequenceDiagram
   participant D as Duitku
