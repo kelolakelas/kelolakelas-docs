@@ -66,3 +66,16 @@ Initial harness assertions did not wait for React/layout completion and resized 
 - [Recovered mobile](kel227/recovered-mobile.png)
 
 Coordinated PR/merge evidence follows provider verification. Deployment order: Academic + gateway before web; no migration. Existing class-list first100 behavior remains outside this selected-editor task. Separate paged reads do not create an atomic distributed snapshot; changed totals/duplicates cause a visible retry, and mutations retain existing live authorization/domain checks.
+
+
+## Verified source delivery
+
+**Observed:** all four initial PR required gates passed before coordinated implementation merges: [academic64 gate](https://github.com/kelolakelas/kelolakelas-academic-service/actions/runs/40569971119), [gateway47 gate](https://github.com/kelolakelas/kelolakelas-api-gateway/actions/runs/40569978718), [web133 gate](https://github.com/kelolakelas/kelolakelas-web/actions/runs/40569985370), [docs235 corrected gate](https://github.com/kelolakelas/kelolakelas-docs/actions/runs/40570152575). Web preview succeeded. Docs' first gate rejected exported CSV CRLF; normalization to LF preserved every parsed value and corrected CI passed. No bypass, CI weakening or data alteration.
+
+| PR | Merge SHA | merged_at UTC | Fresh fetched origin/main |
+|---|---|---|---|
+| [academic64](https://github.com/kelolakelas/kelolakelas-academic-service/pull/64) | `c75c1c75d893a56a0ee16846605805fdc49d70fd` | 2026-10-27T19:35:17Z | reachable |
+| [gateway47](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/47) | `d70421e3ba3c8f40d4df5599f72dd885a7059a6b` | 2026-10-27T19:35:26Z | reachable |
+| [web133](https://github.com/kelolakelas/kelolakelas-web/pull/133) | `6aefe7430591ba6f01918f6a1701800747b71dcc` | 2026-10-27T19:35:33Z | reachable |
+
+Original source commits were academic d4af75e, gateway293500b and webd5a4e02. Main protection required successful strict/up-to-date gate and PRs, with zero approving reviews required. Squash merges matched exact head SHAs. Coordinated documentation is tracked by [docs235](https://github.com/kelolakelas/kelolakelas-docs/pull/235); its live gate/merge state supplies final delivery proof. Both owned browser databases, fixture listeners and outage helper were removed; unrelated user services and billing KEL-221 branch were preserved. No task2 started before all task1 delivery gates.
