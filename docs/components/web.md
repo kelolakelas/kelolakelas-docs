@@ -397,3 +397,15 @@ router/data caches and sockets. Old document actions carry `X-Tenant-UI-Scope`;
 the Next proxy rejects replacement-cookie mismatch before execution, then the
 client discards the obsolete response and reloads. Parent/platform surfaces do
 not gain tenant controls. See [ADR 0078](../adr/0078-own-membership-tenant-session-switch.md).
+
+## Chat older-room and unavailable-state recovery (KEL-223)
+
+The shared ChatInbox requests explicit older pages, deduplicates and refreshes its
+requested window. It reserves paging intent before awaits so reconnect/poll cannot
+collapse it to page1. Every read path revalidates the active/direct-linked room;
+generation and scope keys drop late responses. Outage hides server data pending
+revalidation, keeps local failed sends with their original retry keys, and shows
+retry rather than successful empty. Confirmed denial clears selection/cache and
+reply. Initial list failure has a reload control. WS frames trigger fresh REST
+reads rather than adding potentially stale-authority payloads to state. Existing
+parent notifications and send/read/unread behavior remain. [ADR0079](../adr/0079-chat-inbox-pagination-and-live-revalidation.md).

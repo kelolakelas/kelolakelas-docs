@@ -1,5 +1,10 @@
 # KelolaKelas current-state documentation
 
+**KEL-223:** chat inbox pages older conversations and revalidates active rooms on
+poll/reconnect. Permission outages are 503; membership and queued WS frame checks
+prevent revoked access. [ADR0079](docs/adr/0079-chat-inbox-pagination-and-live-revalidation.md),
+[reproduction/evidence](docs/evidence/kel223-chat-inbox-recovery.md).
+
 **KEL-224:** own active membership choices and tenant session switching are
 implemented in identity, gateway and web. The browser replaces the full tenant
 document across tabs and rejects actions bound to an obsolete cookie scope.

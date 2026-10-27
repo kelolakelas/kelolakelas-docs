@@ -1,5 +1,10 @@
 # Evidence index
 
+**KEL-223:** [before/after reproduction and acceptance](../evidence/kel223-chat-inbox-recovery.md),
+[ADR0079](../adr/0079-chat-inbox-pagination-and-live-revalidation.md). Real PostgreSQL
+105-room list/detail/persistence matrix, unavailable versus denied, parent/isolation
+and retry; live WS queued-frame revocation; client paging/poll/race/recovery tests.
+
 **KEL-224:** [tenant switch evidence](../evidence/kel224-tenant-session-switch.md),
 [ADR 0078](../adr/0078-own-membership-tenant-session-switch.md). Actual PostgreSQL
 membership/JWT issuance and concurrent revoke coverage; gateway session/header
