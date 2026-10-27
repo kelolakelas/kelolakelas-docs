@@ -76,3 +76,8 @@ scope until expiry or existing revocation; switching is not global logout.
 ## Private chat human attribution (KEL-226)
 
 **Implemented:** Academic captures JWT-verified parent/member identity alongside an already-authorized transition; missing/mismatched actor rolls back. Internal chat accepts only identifiers, fetches persisted proof, validates frozen room scope and rechecks after locking. No service mints/stores a user JWT. Billing's read contract requires internal credential and exact transaction/enrollment/tenant/parent/student/private-initial scope. Existing gateway header stripping prevents public credential forwarding. Diagnostics and worker logs omit checkout URLs/emails/message text. Existing live chat read/WS membership checks remain applicable. [ADR0082](adr/0082-durable-private-request-chat-events.md).
+
+
+## Scoped class editor reads (KEL-227)
+
+**Implemented:** new class detail requires class:read; class schedules additionally require schedule:read. Parent tokens are denied before a store call. Existing live identity and gateway session checks remain, and SQL includes tenant ownership/deletion predicates. Foreign IDs are404, outages503, no-store. No enrollment/payment/parent preload is added. Teacher choices are shared only within one open editor; choices do not authorize a mutation. [ADR0083](adr/0083-scoped-class-editor-reads.md).
