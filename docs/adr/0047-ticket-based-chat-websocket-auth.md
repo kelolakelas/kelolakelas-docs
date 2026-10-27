@@ -1,6 +1,6 @@
 # ADR 0047: Ticket-based chat WebSocket authentication
 
-Status: Accepted (KEL-121, 2026-09-28)
+Status: Accepted (KEL-121, 2026-09-28); connect-only revocation behavior tightened by [ADR0079](0079-chat-inbox-pagination-and-live-revalidation.md) (KEL-223).
 
 ## Context
 

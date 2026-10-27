@@ -64,3 +64,19 @@ before issuance. Go identity/gateway minimum toolchain is 1.26.10 for the existi
 vulnerability gate (GO-2026-6809). Identity PR CI provisions disposable PostgreSQL
 for `KEL224_TEST_DATABASE_URL`; use only a disposable database for that real
 migration/integration suite. [ADR 0078](adr/0078-own-membership-tenant-session-switch.md).
+
+## KEL-223 chat rollout and recovery
+
+Deploy chat before web; no migration, new public API or gateway change. Identity's
+existing CheckActiveMembership RPC must be reachable on IDENTITY_GRPC_HOST; its
+failures use the existing IDENTITY_PERMISSION_TIMEOUT_MS bound and surface503.
+The chat gate enables real PostgreSQL acceptance via KEL223_TEST_DATABASE_URL
+(disposable database only, unique temporary test schema). Go minimum1.26.10
+satisfies the existing vulnerability gate.
+
+An unavailable inbox is not evidence of deleted data or revoked permission. Retry
+after dependency recovery; direct GET and persisted/list IDs distinguish page
+movement from missing rows. Revoked membership returns403 list/404 detail and a
+queued WS frame is refused before delivery. Do not restore cached rooms to bypass
+that result. Existing failed-send keys can be retried after authorized recovery.
+See [evidence](evidence/kel223-chat-inbox-recovery.md) and [ADR0079](adr/0079-chat-inbox-pagination-and-live-revalidation.md).

@@ -1,5 +1,13 @@
 # Evidence index
 
+**KEL-223:** [before/after reproduction and acceptance](../evidence/kel223-chat-inbox-recovery.md),
+[ADR0079](../adr/0079-chat-inbox-pagination-and-live-revalidation.md). Real PostgreSQL
+105-room list/detail/persistence matrix, unavailable versus denied, parent/isolation
+and retry; live WS queued-frame revocation; client paging/poll/race/recovery tests.
+Merged chat `cfc39eae70ce5507b151d2bb31de22bd04502e8f` (PR7), web
+`3a7b53e909282950cd6a877024bfa20cefc2a885` (PR130); required PR gates passed
+and both revisions were proved reachable from fresh origin/main.
+
 **KEL-224:** [tenant switch evidence](../evidence/kel224-tenant-session-switch.md),
 [ADR 0078](../adr/0078-own-membership-tenant-session-switch.md). Actual PostgreSQL
 membership/JWT issuance and concurrent revoke coverage; gateway session/header
