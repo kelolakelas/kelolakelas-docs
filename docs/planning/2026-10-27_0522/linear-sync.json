@@ -1,0 +1,360 @@
+{
+  "runId": "2026-10-27_0522",
+  "status": "verified",
+  "approval": "Pengguna menyetujui seluruh delapan draft melalui pesan 'setujui'.",
+  "updatedAt": "2026-10-26T22:36:33.479Z",
+  "projects": {
+    "P-KEL-23": {
+      "identifier": "P-KEL-23",
+      "id": "6fd7df4e-3f90-4efc-b835-f60581a2ce78",
+      "url": "https://linear.app/farid-zamani/project/chat-realtime-antara-tenant-pengajar-dan-parent-f963bcc87b57",
+      "reused": true
+    },
+    "P-KEL-22": {
+      "identifier": "P-KEL-22",
+      "id": "66af01b4-f443-465d-9f4e-af651d2854db",
+      "url": "https://linear.app/farid-zamani/project/pembelian-kelas-private-dengan-jadwal-yang-disepakati-dcafb274e95b",
+      "reused": true
+    },
+    "P-KEL-17": {
+      "identifier": "P-KEL-17",
+      "id": "24479f4a-98ab-4255-a1e8-954da9ba6360",
+      "url": "https://linear.app/farid-zamani/project/administrasi-anggota-tenant-yang-andal-dan-aman-c08607fa8356",
+      "reused": true
+    },
+    "P-KEL-7": {
+      "identifier": "P-KEL-7",
+      "id": "0925b72f-fbab-4d82-b530-cac847cb5ec2",
+      "url": "https://linear.app/farid-zamani/project/operasional-tenant-untuk-menjual-kelas-d4a117aa5e06",
+      "reused": true
+    }
+  },
+  "issues": {
+    "restore-private-paid-activation": {
+      "identifier": "KEL-221",
+      "id": "05827d8b-58e9-4b43-be78-a1c5ab596bd2",
+      "url": "https://linear.app/farid-zamani/issue/KEL-221/investigasi-dan-pulihkan-aktivasi-enrollment-private-setelah",
+      "title": "Investigasi dan pulihkan aktivasi enrollment private setelah pembayaran diterima",
+      "project": "P-KEL-22",
+      "state": "Backlog",
+      "priority": 2,
+      "estimate": 2,
+      "complexity": "high",
+      "labels": [
+        "Bug",
+        "web",
+        "academic",
+        "billing"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-8",
+        "KEL-29",
+        "KEL-215"
+      ],
+      "verified": true,
+      "verificationChecks": {
+        "title": true,
+        "description": true,
+        "priority": true,
+        "estimate": true,
+        "status": true,
+        "project": true,
+        "labels": true,
+        "team": true,
+        "blockedBy": true,
+        "blocks": true,
+        "relatedTo": true
+      },
+      "actualRelatedTo": [
+        "KEL-29",
+        "KEL-8",
+        "KEL-215"
+      ]
+    },
+    "private-enrollment-schedule-summary": {
+      "identifier": "KEL-222",
+      "id": "79fd07a8-5e9b-4b38-b84f-e9df2d895194",
+      "url": "https://linear.app/farid-zamani/issue/KEL-222/tampilkan-seluruh-jadwal-private-yang-disetujui-pada-enrollment-and",
+      "title": "Tampilkan seluruh jadwal private yang disetujui pada Enrollment & Pembayaran",
+      "project": "P-KEL-22",
+      "state": "Backlog",
+      "priority": 2,
+      "estimate": 2,
+      "complexity": "medium",
+      "labels": [
+        "academic",
+        "web",
+        "Improvement"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-70",
+        "KEL-33"
+      ],
+      "verified": true,
+      "verificationChecks": {
+        "title": true,
+        "description": true,
+        "priority": true,
+        "estimate": true,
+        "status": true,
+        "project": true,
+        "labels": true,
+        "team": true,
+        "blockedBy": true,
+        "blocks": true,
+        "relatedTo": true
+      },
+      "actualRelatedTo": [
+        "KEL-33",
+        "KEL-70"
+      ]
+    },
+    "restore-admin-chat-conversations": {
+      "identifier": "KEL-223",
+      "id": "31e68696-2bb7-4ae4-bfc1-0c4d9f49018b",
+      "url": "https://linear.app/farid-zamani/issue/KEL-223/investigasi-dan-pulihkan-chat-room-yang-menghilang-dari-inbox-admin",
+      "title": "Investigasi dan pulihkan chat room yang menghilang dari inbox admin",
+      "project": "P-KEL-23",
+      "state": "Backlog",
+      "priority": 2,
+      "estimate": 2,
+      "complexity": "medium",
+      "labels": [
+        "Bug",
+        "chat",
+        "web"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-123",
+        "KEL-202",
+        "KEL-217"
+      ],
+      "verified": true,
+      "verificationChecks": {
+        "title": true,
+        "description": true,
+        "priority": true,
+        "estimate": true,
+        "status": true,
+        "project": true,
+        "labels": true,
+        "team": true,
+        "blockedBy": true,
+        "blocks": true,
+        "relatedTo": true
+      },
+      "actualRelatedTo": [
+        "KEL-217",
+        "KEL-202",
+        "KEL-123"
+      ]
+    },
+    "tenant-membership-selection": {
+      "identifier": "KEL-224",
+      "id": "18afa08d-43ce-4697-8143-9b2e20928772",
+      "url": "https://linear.app/farid-zamani/issue/KEL-224/teacher-memilih-dan-berpindah-tenant-aktif-dari-membership-miliknya",
+      "title": "Teacher memilih dan berpindah tenant aktif dari membership miliknya",
+      "project": "P-KEL-17",
+      "state": "Backlog",
+      "priority": 2,
+      "estimate": 3,
+      "complexity": "high",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "web",
+        "Feature"
+      ],
+      "blockedBy": [],
+      "relatedTo": [],
+      "verified": true,
+      "verificationChecks": {
+        "title": true,
+        "description": true,
+        "priority": true,
+        "estimate": true,
+        "status": true,
+        "project": true,
+        "labels": true,
+        "team": true,
+        "blockedBy": true,
+        "blocks": true,
+        "relatedTo": true
+      },
+      "actualRelatedTo": []
+    },
+    "existing-teacher-invitations": {
+      "identifier": "KEL-225",
+      "id": "ec7e1907-eba2-45ef-adc5-2ef189d95cc0",
+      "url": "https://linear.app/farid-zamani/issue/KEL-225/izinkan-akun-teacher-yang-sudah-terdaftar-menerima-undangan-tenant",
+      "title": "Izinkan akun Teacher yang sudah terdaftar menerima undangan tenant lain",
+      "project": "P-KEL-17",
+      "state": "Backlog",
+      "priority": 2,
+      "estimate": 2,
+      "complexity": "high",
+      "labels": [
+        "identity",
+        "api-gateway",
+        "web",
+        "Feature"
+      ],
+      "blockedBy": [
+        "KEL-224"
+      ],
+      "relatedTo": [
+        "KEL-35"
+      ],
+      "verified": true,
+      "verificationChecks": {
+        "title": true,
+        "description": true,
+        "priority": true,
+        "estimate": true,
+        "status": true,
+        "project": true,
+        "labels": true,
+        "team": true,
+        "blockedBy": true,
+        "blocks": true,
+        "relatedTo": true
+      },
+      "actualRelatedTo": [
+        "KEL-35"
+      ]
+    },
+    "automatic-private-request-chat": {
+      "identifier": "KEL-226",
+      "id": "9124372a-8f1a-4cf3-ab0b-f565c7c53961",
+      "url": "https://linear.app/farid-zamani/issue/KEL-226/kirim-chat-otomatis-parent-dan-admin-untuk-lifecycle-request-jadwal",
+      "title": "Kirim chat otomatis parent dan admin untuk lifecycle request jadwal private",
+      "project": "P-KEL-22",
+      "state": "Backlog",
+      "priority": 2,
+      "estimate": 3,
+      "complexity": "high",
+      "labels": [
+        "academic",
+        "chat",
+        "Feature"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-124",
+        "KEL-129"
+      ],
+      "verified": true,
+      "verificationChecks": {
+        "title": true,
+        "description": true,
+        "priority": true,
+        "estimate": true,
+        "status": true,
+        "project": true,
+        "labels": true,
+        "team": true,
+        "blockedBy": true,
+        "blocks": true,
+        "relatedTo": true
+      },
+      "actualRelatedTo": [
+        "KEL-124",
+        "KEL-129",
+        "KEL-128"
+      ],
+      "automaticAdditionalRelations": [
+        "KEL-128"
+      ]
+    },
+    "class-editor-load-performance": {
+      "identifier": "KEL-227",
+      "id": "a8ec1c3e-e10a-4d07-91da-e4f082e5155d",
+      "url": "https://linear.app/farid-zamani/issue/KEL-227/ukur-dan-optimalkan-load-serta-reload-editor-kelas",
+      "title": "Ukur dan optimalkan load serta reload editor kelas",
+      "project": "P-KEL-7",
+      "state": "Backlog",
+      "priority": 3,
+      "estimate": 2,
+      "complexity": "medium",
+      "labels": [
+        "web",
+        "academic",
+        "api-gateway",
+        "Improvement"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-198",
+        "KEL-211"
+      ],
+      "verified": true,
+      "verificationChecks": {
+        "title": true,
+        "description": true,
+        "priority": true,
+        "estimate": true,
+        "status": true,
+        "project": true,
+        "labels": true,
+        "team": true,
+        "blockedBy": true,
+        "blocks": true,
+        "relatedTo": true
+      },
+      "actualRelatedTo": [
+        "KEL-211",
+        "KEL-198"
+      ]
+    },
+    "cross-role-ux-audit": {
+      "identifier": "KEL-228",
+      "id": "46cda10a-100c-431d-970f-f4fe918cb420",
+      "url": "https://linear.app/farid-zamani/issue/KEL-228/audit-uiux-seluruh-halaman-dan-perbaiki-temuan-web-prioritas",
+      "title": "Audit UI/UX seluruh halaman dan perbaiki temuan web prioritas",
+      "project": null,
+      "state": "Backlog",
+      "priority": 3,
+      "estimate": 3,
+      "complexity": "medium",
+      "labels": [
+        "web",
+        "Improvement"
+      ],
+      "blockedBy": [],
+      "relatedTo": [
+        "KEL-202",
+        "KEL-210",
+        "KEL-219",
+        "KEL-220"
+      ],
+      "verified": true,
+      "verificationChecks": {
+        "title": true,
+        "description": true,
+        "priority": true,
+        "estimate": true,
+        "status": true,
+        "project": true,
+        "labels": true,
+        "team": true,
+        "blockedBy": true,
+        "blocks": true,
+        "relatedTo": true
+      },
+      "actualRelatedTo": [
+        "KEL-210",
+        "KEL-219",
+        "KEL-220",
+        "KEL-202"
+      ]
+    }
+  },
+  "verification": {
+    "description": "Equivalent to approved source after Linear normalization of bullet markers, blank lines, blockquote wrapping and inline issue mentions.",
+    "metadata": "Title, project, priority, estimate, labels, team and Backlog state verified by get_issue.",
+    "relations": "One native blockedBy relation, inverse blocks, and all requested relatedTo verified; Linear automatically relates mentioned KEL-128 on KEL-226."
+  }
+}
