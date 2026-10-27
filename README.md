@@ -1,5 +1,11 @@
 # KelolaKelas current-state documentation
 
+**KEL-224:** own active membership choices and tenant session switching are
+implemented in identity, gateway and web. The browser replaces the full tenant
+document across tabs and rejects actions bound to an obsolete cookie scope.
+See [ADR 0078](docs/adr/0078-own-membership-tenant-session-switch.md) and
+[acceptance evidence](docs/evidence/kel224-tenant-session-switch.md).
+
 **KEL-216 (2026-10-25):** web `2caf257` preserves same-tab checkout identity, routes new group QRIS to owner-approved SP, retains NQ retries and keeps incomplete payment answers retryable. Academic `b4ea35c` adds bounded timeout/drain changes under [ADR0075](docs/adr/0075-checkout-timeout-budget.md). Real SP QR/reload/replay and no-duplicate persistence passed; existing NQ methods remain unchanged. See [ADR0074](docs/adr/0074-checkout-recovery-after-reload.md) and [acceptance evidence](docs/evidence/2026-10-24-kel-216.md).
 
 **KEL-215 (2026-10-24):** web `ab8f28e` exposes safe invoice recovery on approved private requests and keeps incomplete payment answers retryable. Local billing sandbox access was verified after credential configuration and restart; no secret is stored in Git. See [acceptance evidence](docs/evidence/2026-10-24-kel-215.md).

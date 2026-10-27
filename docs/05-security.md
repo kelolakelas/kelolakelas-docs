@@ -56,3 +56,16 @@ flowchart LR
 ```
 
 Important limitations and remediation proposals are separated in [known gaps and risks](08-known-gaps-and-risks.md). Academic catalog, student, and enrollment tenant-side authorization is implemented. Since KEL-22/KEL-135/KEL-140 the attendance, report, and session routes are permission-checked for tenant members and ownership-scoped (reads) or denied (mutations) for parents; the parent-only enrollment routes remain decided by tenant scoping and ownership rather than by a permission.
+
+## Tenant session selection (KEL-224)
+
+**Implemented:** both own-membership discovery and tenant selection verify signed
+JWT expiry and the committed reset boundary. Selection rejects parent, platform
+and pending-factor principals and checks the live account plus active, owned
+membership, tenant and role under PostgreSQL shared row locks. Membership IDs and
+roles come from storage; browser context headers remain untrusted. A UI scope hash
+is only a cache/action boundary; an old scope gets 409 before a Next Server Action
+can act through another tab's replacement cookies. HttpOnly cookies retain the
+existing JWT trust boundary. Previous copied JWTs retain their original tenant
+scope until expiry or existing revocation; switching is not global logout.
+[ADR 0078](adr/0078-own-membership-tenant-session-switch.md).

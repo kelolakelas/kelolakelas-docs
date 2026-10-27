@@ -80,3 +80,14 @@ The gRPC service implements `ValidateTenantStatus`, `GetTenantPublicInfo`, and t
 Evidence: PR #31, squash `6dd2c7a163668526fe06ed14256c7cc74cfa0cb6`; [ADR 0041](../adr/0041-case-insensitive-account-email.md).
 
 **Implemented (KEL-136):** `GET /api/v1/members/me/membership` answers "who am I in this tenant" for the tenant dashboard navigation. The handler (`MemberHandler.GetMyMembership`, registered at `cmd/server/main.go:182` in the protected group) resolves the tenant from the JWT claim only — a tenantless token (parents, platform admins, users without an active membership) is rejected 403 before any lookup — then `usecase.FetchMyMembership` reads the verified `Caller` from the request context and fails closed with `ErrMembershipInactive` (403) when there is no caller, no `role_id` claim, or no matching active membership row. `repository.FindActiveMembership` (`internal/repository/membership_read.go`) scopes the lookup exactly like a KEL-76 permission check: active, non-deleted `tenant_members` row in the claim tenant, pinned to the token's role and to the caller's `member_id` (or `user_id` for legacy tokens without the claim), joined to the role (tenant or system role) and its permission names, sorted. The 200 answer is `{member_id, role_id, role_name, permissions}` (`domain.MyMembershipResponse`); repository errors are 500 without SQL detail. A caller moved to another role cannot read the new role's permissions with an old token, because the lookup is scoped by the token's role claim. Evidence: `cmd/server/main.go`, `internal/delivery/http/handler/role_handler.go` (`GetMyMembership` + Swagger annotation), `internal/domain/{member,rbac}.go` (`ErrMembershipInactive`, `MyMembershipResponse`), `internal/repository/membership_read.go`, `internal/usecase/member_usecase.go` (`FetchMyMembership`); tests `internal/delivery/http/handler/{membership_read_handler_test,tenant_context_regression_test}.go`, `internal/repository/membership_read_test.go`, `internal/usecase/{member_usecase_test,membership_read_test}.go`; [identity PR #36](https://github.com/kelolakelas/kelolakelas-identity-service/pull/36), squash `ae1ad06871c179b7d6b68e0f4462d6a824546960`.
+
+## Tenant sessions (KEL-224)
+
+**Implemented:** `TenantSessions` and `tenantSessionRepository` expose own active
+membership choices and issue a tenant JWT from the live membership rather than
+caller-provided role/member fields. Selection holds PostgreSQL shared locks over
+the user, membership, tenant and role through issuance. Both routes enforce token
+expiry, reset boundary and persona restrictions. Ordinary login now fails closed
+on membership read errors and ignores memberships for parent principals; its
+member query also excludes inactive/deleted tenants and foreign-owned roles.
+[API contract](../api/identity.md#own-tenant-sessions-kel-224).

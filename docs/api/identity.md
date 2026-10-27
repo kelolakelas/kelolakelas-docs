@@ -1,5 +1,25 @@
 # Identity API
 
+## Own tenant sessions (KEL-224)
+
+**Implemented:** `GET /api/v1/auth/memberships` returns `data` as an array of
+`{tenant_id, tenant_name, member_id, role_id, role_name}` for the authenticated
+account's own active memberships in active, non-deleted tenants. Roles must be
+system-owned or belong to the membership tenant. It needs no member-directory
+permission and never lists other accounts.
+
+`POST /api/v1/auth/tenant` accepts `{ "tenant_id": "<uuid>" }`, locks/rechecks the
+user, membership, tenant and role, and returns `data.token` and `data.membership`
+with the same choice shape. Arbitrary role/member fields do not grant authority.
+Invalid UUID: 400; invalid/expired/reset-revoked session: 401; non-owned,
+inactive/deleted/unavailable membership or parent/platform principal: 403;
+infrastructure failure: 503. Both endpoints check the signed JWT and committed
+session boundary; successful responses are `Cache-Control: no-store`.
+
+Gateway proxies both routes behind its existing signature/session checker and
+continues deriving downstream tenant headers exclusively from the JWT. See
+[ADR 0078](../adr/0078-own-membership-tenant-session-switch.md).
+
 **Implemented (KEL-185):** `GET /api/v1/members` and member detail require `member:read`; `GET /api/v1/roles` requires `role:read`; tenant settings and location GET require `tenant:read`. Each checks live active membership with the verified token role and tenant-scoped permission lookup; denial returns 403 with null data, lookup errors return sanitized 500. Own-membership bootstrap remains available to active members without `member:read`; tutor teaching lookup and public tenant profile are unchanged. The older table described only tenant context and mutation gates, which is no longer sufficient for these protected reads. Evidence: identity PR #46, squash `8f38948f28de639e3f8638986fba40fff02a6525`; `internal/usecase/{member_usecase,role_usecase,tenant_usecase}.go` and matching HTTP handlers.
 
 **Implemented (KEL-158):** Public `GET /api/v1/tenants/:id/public` returns `{status: "success", data: {id, name, address?, latitude?, longitude?}}` only for active, nondeleted tenants while the applied public catalog policy is open (ADR 0036). Address prefers `address_formatted`, falling back to `address`. Optional fields are omitted when nil. Phone, status, payment account, timestamps, place metadata and untyped `about` are never serialized; no public `about` subset is established. Malformed/nil UUID, missing/inactive/deleted tenant or closed policy returns 404 with null data; unreadable policy returns 503, and store failure returns a sanitized 500. This public allowlist read is not a tenant-scoped authenticated settings route. Evidence: identity `cmd/server/main.go`, `internal/delivery/http/handler/public_tenant_handler{,_test}.go`; [PR #40](https://github.com/kelolakelas/kelolakelas-identity-service/pull/40), squash `f98790fc140fc62bff80b7f4d506b261efee9691`. Eight handler subtests and full race/vet/build gate passed; PR and post-merge `gate` passed. No migration or new configuration.

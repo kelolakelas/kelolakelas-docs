@@ -51,3 +51,16 @@ Turning off capture leaves already-queued deliveries intact; turn off `PARENT_NO
 ## KEL-216 timeout rollout (pending acceptance)
 
 The academic issue branch changes its billing wait from 10 to 40 seconds and rejects write/shutdown bounds at or below that duration; its default drain becomes 45 seconds. Coordinate the explicit provider/gateway profile and deployment termination grace as described in [ADR 0075](adr/0075-checkout-timeout-budget.md) before rollout. Default gateway and billing settings are not silently changed by the academic PR. Preserve all pending invoice/claim rows during retries or rollback. The local NQ sandbox returned provider HTTP 500 under the longer budget; no production rollout or successful QRIS acceptance is claimed. KEL-216 remains In Progress, with linked PRs unmerged.
+
+## KEL-224 tenant switch deployment
+
+Deploy additive identity own-membership/session endpoints, then gateway routes,
+then web. No data migration, account merge or membership creation is required.
+Rollback web first. Switch failure leaves existing cookies intact; an uncertain
+response or abandoned switching tab can use the explicit session revalidation
+button, which waits for an available browser switch lock before reading cookies.
+The UI uses Web Locks and local storage; unavailable browser support is reported
+before issuance. Go identity/gateway minimum toolchain is 1.26.10 for the existing
+vulnerability gate (GO-2026-6809). Identity PR CI provisions disposable PostgreSQL
+for `KEL224_TEST_DATABASE_URL`; use only a disposable database for that real
+migration/integration suite. [ADR 0078](adr/0078-own-membership-tenant-session-switch.md).
