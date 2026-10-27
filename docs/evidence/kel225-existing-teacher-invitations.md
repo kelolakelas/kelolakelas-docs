@@ -1,0 +1,28 @@
+# KEL-225 existing Teacher invitation evidence
+
+**Observed, 27 October 2026 (Asia/Jakarta):** fresh discovery retrieved all 223 Linear issues, full descriptions/native relations/attachments and all comments for the 10 unfinished issues. KEL-221 was excluded because it has active draft implementation/docs PRs. KEL-222's required post-payment real-flow validation was unavailable: the official Duitku VA simulator again returned HTTP 403. KEL-100/101/102 lacked verified staging rollout/secret integration; KEL-104 depends on unfinished issues. Eligible candidates were KEL-225, KEL-226, KEL-227 and KEL-228, all opening zero newly eligible backlog descendants. KEL-225 ranked first: High priority, estimate 2; KEL-226 is High/3, KEL-227 Medium/2, KEL-228 Medium/3. No issue was executed in parallel.
+
+KEL-225's only blocker was KEL-224, provider status Done. Runtime GitHub reads confirmed every PR merged to main with merged_at: identity [#49](https://github.com/kelolakelas/kelolakelas-identity-service/pull/49), `926c968fe5dacefe9ce1b72b3845460035ebad17`; gateway [#45](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/45), `7cbe9c7363258124052cf16e62cc18ca3fd7be1a`; web [#129](https://github.com/kelolakelas/kelolakelas-web/pull/129), `b4d9ecf5b7103d40f5ceaee63e01cec7108d94b4`; docs [#229](https://github.com/kelolakelas/kelolakelas-docs/pull/229), `178f42addcea5f78280398b16fd9d3c1fbd7e8c6`. Fresh fetch plus merge-base --is-ancestor proved all four reachable from origin/main. There was no open KEL-225 PR, delegate or ownership comment before selection. User changes to web AGENTS.md and untracked planning drafts were preserved.
+
+## Implementation and checks
+
+Source revisions: identity `d770399` ([PR50](https://github.com/kelolakelas/kelolakelas-identity-service/pull/50)), gateway `607b4a4` ([PR46](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/46)), web `8ee6b63` ([PR131](https://github.com/kelolakelas/kelolakelas-web/pull/131)). [ADR0081](../adr/0081-existing-teacher-invitation-acceptance.md) records the account binding, role policy, locking, replay marker and deployment order.
+
+**Observed:** Go 1.26.10 formatter, `go mod verify`, `go vet ./...`, `go test -race -count=1 ./...`, `go build ./...` and `govulncheck@v1.8.0 ./...` passed in identity and gateway. No reachable/imported-package vulnerabilities were found; one uncalled module advisory was informational. Host Go1.27.2 initially failed the standard-library advisory scan, so final verification used the patched version required by go.mod/CI without changing repository toolchain metadata.
+
+**Observed:** disposable PostgreSQL databases ran the actual identity migrations and KEL-224/KEL-225 acceptance suites. Coverage includes first-use concurrency, two tokens/one target, successful replay, normalized email and wrong account, anonymous/parent refusal, expiry/revoke/resend, absent active Teacher membership, reset revocation, inactive/deleted collision, foreign/Creator role refusal, existing target role preservation and rollback after membership insertion. A/B session issuance reads the resulting rows. Counts/password/wallet/old membership checks prove the existing identity is reused. The first environment attempt lost its network connection during migration; a clean disposable retry succeeded. An initial test timestamp used local time for a UTC timestamp column; the fixture was corrected to UTC and rerun. CI enables KEL225_TEST_DATABASE_URL in the required gate.
+
+**Observed:** web full suite: 172 files, 1,885 tests passed, 8 unrelated opt-in skips; ESLint, TypeScript, production build and `npm audit --omit=dev --audit-level=high` passed. The final dashboard invalidation also passed targeted 11 action/routing tests, lint/types/build. Action tests cover cookie-only authority, ignored forged fields, missing/expired session return path, mismatch, conflicts, malformed responses, connection failures and cache/cookie reset. Gateway router tests cover absent/revoked/unavailable sessions and forged context stripping.
+
+## Browser and data boundaries
+
+Chrome production web → actual gateway router/session check → actual identity handlers/usecases/repositories → a newly created PostgreSQL database. Identity's gRPC listener was not started because the user's service already owns its port. Email delivery was a local capture sink; no email was sent externally. Unrelated academic/billing/chat dashboard data were doubles; they do not decide invitation acceptance, membership or JWT claims. No production or existing development database was migrated.
+
+**Observed:** a Creator in B invited the existing Teacher from A. Opening the link unauthenticated preserved the exact invitation through login. A different account was refused (403); changing accounts returned to the same link. Keyboard Enter accepted successfully. The dashboard then selected B and returned to A; signed JWT claims matched the database membership. Replay returned 200, and the Teacher could not invite another member (403). New-user invitation registration still completed through the normal form and redirected to `/login?registered=1`. No browser page errors occurred. Desktop 1440×1000 and mobile390×844 were checked, with no horizontal overflow.
+
+- [Wrong-account refusal](kel225/wrong-account.png)
+- [Accepted desktop](kel225/accepted-desktop.png)
+- [Accepted mobile](kel225/accepted-mobile.png)
+- [Tenant switch mobile](kel225/switch-mobile.png)
+
+The screenshots contain only synthetic fixture identities. General email verification, arbitrary existing-role grants, parent conversion and auto-reactivation remain out of scope. The known Duitku sandbox issue affects other payment work and is not a dependency of this invitation flow.

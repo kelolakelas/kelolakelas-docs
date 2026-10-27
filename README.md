@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**Implemented (KEL-225):** existing active system Teachers can accept another tenant's system Teacher invitation with their authenticated account, without another user/password/wallet or changes to old memberships. The page displays authoritative tenant/role and preserves the invitation through login/account mismatch. [ADR0081](docs/adr/0081-existing-teacher-invitation-acceptance.md), [acceptance evidence](docs/evidence/kel225-existing-teacher-invitations.md).
+
 **KEL-223:** chat inbox pages older conversations and revalidates active rooms on
 poll/reconnect. Permission outages are 503; membership and queued WS frame checks
 prevent revoked access. [ADR0079](docs/adr/0079-chat-inbox-pagination-and-live-revalidation.md),

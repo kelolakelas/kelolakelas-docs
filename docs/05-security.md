@@ -1,5 +1,7 @@
 # Security and trust boundaries
 
+**Implemented (KEL-225):** authenticated existing Teacher invitation acceptance adds `POST /api/v1/invitations/accept` and nullable `tenant_invitations.accepted_member_id` (migration000017). The signed session is bound to the normalized stored email under lock; only active system Teacher accounts and the system Teacher target role are allowed. Existing active target roles are preserved; inactive/deleted collisions, wrong accounts, parents, expired/revoked/unmarked used tokens and arbitrary role grants fail closed. Successful replay returns the same active membership. Verification adds authoritative tenant/role names and existing-account mode; web login retains the invitation and directs the user to KEL-224 tenant selection after success. Apply migration→identity→gateway→web; roll back consumers first and retain replay markers. [ADR0081](adr/0081-existing-teacher-invitation-acceptance.md) and [evidence](evidence/kel225-existing-teacher-invitations.md).
+
 ## Implemented controls
 
 **Implemented (KEL-187):** the web app owns baseline response headers through `next.config.ts::headers()` and `lib/security-headers.ts`: nosniff, restricted cross-origin referrer, frame denial and report-only CSP. These do not replace backend authorization. Edge configuration is unknown and must preserve rather than duplicate/override app headers. See [ADR 0066](adr/0066-app-owned-security-headers.md) for local/production boundaries, inventory and direct 200/404 verification; web squash `afe2dcb636039b8faffd23834ed7c8d7b994ced0`.
