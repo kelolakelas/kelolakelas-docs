@@ -26,3 +26,8 @@ Apply migration `1790900003_session_reminders` after `1790900002` and before the
 | `SESSION_REMINDER_WINDOW_DAYS` | `1` | 1–7 calendar days, exclusive upper date bound |
 
 The default window is tomorrow's whole WIB date. Changing the window does not reset coverage or resend an existing parent/session reminder. The separate `PARENT_NOTIFICATION_WORKER_ENABLED` switch controls delivery; disable both switches when pausing capture and dispatch. Existing chat credential and Resend settings are reused. Downtime that skips a date window is not backfilled after that window has passed; reschedules/new active enrollments inside the current window are reconsidered every poll. No preference is stored per parent.
+
+
+## Private request chat worker (KEL-226)
+
+**Implemented:** Academic `PRIVATE_REQUEST_CHAT_WORKER_ENABLED` defaults true; `PRIVATE_REQUEST_CHAT_INTERVAL_SECONDS` defaults5, accepts1..3600. Existing CHAT_SERVICE_URL, BILLING_SERVICE_URL and matching INTERNAL_SERVICE_CREDENTIAL must reach the new credential-only contracts. Disabling dispatch retains transactional event capture and owed messages. No background user JWT is configured or stored. Deploy billing read contract and chat migration/protocol first, then Academic migration/producer/worker. Source: academic config/private_chat_test.go and cmd/server/main.go; [ADR0082](adr/0082-durable-private-request-chat-events.md).

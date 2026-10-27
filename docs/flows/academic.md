@@ -146,3 +146,8 @@ sequenceDiagram
 ```
 
 The parent route is also rejected by the web proxy for a valid non-parent session. The academic service remains the authorization authority; the web decodes only the session `user_id` claim to populate the create request required by the current API, while the service verifies that claim against the authenticated request.
+
+
+## Durable private request chat (KEL-226)
+
+**Implemented:** parent request commit→parent-authored created event/outbox→worker→same request conversation. Admin approve/reject commit→captured deciding member event/outbox→same room→parent. Recommendation acceptance is parent-authored. Approval delivery resolves request-derived enrollment key, reads the scoped initial billing invoice, then refreshes that projection after the chat room lock. Missing/unavailable invoice retries; paid/terminal/elapsed payment omits a payable URL. Failed delivery never replays enrollment or invoice creation. Historical stored links remain historical: billing settlement and chat insertion do not form a distributed transaction. See [ADR0082](../adr/0082-durable-private-request-chat-events.md) and [acceptance evidence](../evidence/kel226-private-request-chat.md).

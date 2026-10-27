@@ -62,3 +62,10 @@ permission denial:authorized subset/404 detail; upstream membership/permission
 error or malformed reply:503, without a partial successful list. Parent ownership
 does not depend on tenant permission RPC. No schema or new public route. See
 [ADR0079](../adr/0079-chat-inbox-pagination-and-live-revalidation.md).
+
+
+## Automatic private lifecycle messages (KEL-226)
+
+**Implemented:** credential-only POST `/internal/private-request-events` accepts exactly event_id, request_id, tenant_id, parent_id UUIDs. Unknown fields (including sender/body) are rejected400; missing/wrong credential401. Chat resolves the persisted Academic proof and validates exact event/request/tenant/parent, version and kind/actor shape; scope denial404, dependencies unavailable503. Successful data is the existing message shape (parent/member actor), status201 for insertion and200 for idempotent replay.
+
+The same schedule_request room freezes its parent; source_event_id uniquely identifies one logical event globally. Delivery refreshes proof/invoice after the room lock and checks wall-clock expiry at insertion. Pending active invoices include authoritative URL/deadline; paid/terminal/elapsed invoices omit a payable link. Public Send refuses the reserved `private-event:` client key namespace. Typed lifecycle text may be8192 code points; ordinary public user text remains2000. New rows use existing unread/read and single-instance WS fan-out; replay neither rebroadcasts nor advances last_message_at. Manual system payment-link and notification contracts are unchanged. Sources: chat `internal/chat/private_lifecycle.go`, `internal/postgres/private_lifecycle.go`, `internal/delivery/http/private_lifecycle.go`; [ADR0082](../adr/0082-durable-private-request-chat-events.md).
