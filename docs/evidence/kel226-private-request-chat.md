@@ -41,7 +41,7 @@ KEL-226 has no native blockedBy. Explicit foundations124/128/129 and ancestors (
 | KEL-128 | [PR](https://github.com/kelolakelas/kelolakelas-academic-service/pull/39) | `08aa007b488914281be917ccd00eeda1f22d0637` | 2026-09-29T12:25:50Z | yes |
 | KEL-128 | [PR](https://github.com/kelolakelas/kelolakelas-billing-service/pull/27) | `750d5fad8d059fd791b5cb10393c3b97beaa930b` | 2026-09-29T12:24:54Z | yes |
 
-Source revisions: academic `1b572d86519c90b71e0b2808f309537a56b70cc5` ([PR63](https://github.com/kelolakelas/kelolakelas-academic-service/pull/63)), chat `1cab16408cfa9941d3843bdbd2f6c1c75a3cbec8` ([PR8](https://github.com/kelolakelas/kelolakelas-chat-service/pull/8)), billing `464479c` ([PR41](https://github.com/kelolakelas/kelolakelas-billing-service/pull/41)). Delivery remains open until all coordinated implementation/docs PRs pass required gate and merge into main.
+Source revisions: academic `1b572d86519c90b71e0b2808f309537a56b70cc5` ([PR63](https://github.com/kelolakelas/kelolakelas-academic-service/pull/63)), chat `1cab16408cfa9941d3843bdbd2f6c1c75a3cbec8` ([PR8](https://github.com/kelolakelas/kelolakelas-chat-service/pull/8)), billing `464479c` ([PR41](https://github.com/kelolakelas/kelolakelas-billing-service/pull/41)). Implementation PRs have merged after required gate success; coordinated docs233 remains open until its final snapshot gate passes and merge ancestry is verified.
 
 ## Scope and implementation
 
@@ -71,3 +71,16 @@ Chat was stopped before a third parent request; its committed outbox remained pe
 ## Delivery and limitations
 
 Deployment order is billing read contract + chat migration/protocol → Academic migration/capture/worker. Dispatch can pause without discarding intent; diagnostics list100 rows/page and failed-only requeue does not repeat business transitions. Billing and chat do not share a distributed transaction: settlement may follow the last scoped read; links in existing messages remain historical. No actor/event backfill, automatic invoice regeneration, new email channel or distributed WS fan-out. Production migration/deployment has not been performed by this local acceptance.
+
+
+## Verified implementation delivery
+
+**Observed, 28 October2026 (Asia/Jakarta):** required PR gates succeeded: billing [40532756283](https://github.com/kelolakelas/kelolakelas-billing-service/actions/runs/40532756283), chat [40532766978](https://github.com/kelolakelas/kelolakelas-chat-service/actions/runs/40532766978), academic [40532780609](https://github.com/kelolakelas/kelolakelas-academic-service/actions/runs/40532780609). Fresh main protection requires PRs, successful gate and strict up-to-date state; zero approvals are required. Squash merges used matching head SHAs and no bypass.
+
+| PR | Main merge SHA | merged_at UTC | Fresh fetch ancestry |
+|---|---|---|---|
+| [billing41](https://github.com/kelolakelas/kelolakelas-billing-service/pull/41) | `d8a89fb7f8c6fbaf327e029bfb7073a8d32dff66` | 2026-10-27T17:56:40Z | reachable |
+| [chat8](https://github.com/kelolakelas/kelolakelas-chat-service/pull/8) | `2de8ce6e20f79cb7362c8a886a875070ab09d96f` | 2026-10-27T17:56:48Z | reachable |
+| [academic63](https://github.com/kelolakelas/kelolakelas-academic-service/pull/63) | `09fd70aea0cdedfb1f1e8b73677e2e8cbc7e29ca` | 2026-10-27T17:56:54Z | reachable |
+
+Initial docs233 gate40555173492 passed; its snapshot update requires a new successful gate before merge. All four synthetic browser databases and owned listeners were removed, as was the temporary identity fixture source. User services, web AGENTS.md, untracked planning and original billing KEL-221 branch were preserved.

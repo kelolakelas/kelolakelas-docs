@@ -300,7 +300,7 @@ All following routes require `X-Internal-Service-Credential`, are not gateway-pr
 | Method | Route | Result |
 |---|---|---|
 | GET | `/internal/private-request-chat/events/:id` | Scoped persisted event plus current invoice-aware message projection; invalid400, absent subject404, unavailable/not-ready503 |
-| GET | `/internal/private-request-chat/deliveries` | Up to100 diagnostics per `page` (default1, max100000). Optional `status=pending|sending|failed|sent|superseded`; default pending/sending/failed. Invalid query400 |
+| GET | `/internal/private-request-chat/deliveries` | Up to100 diagnostics per `page` (default1, max100000). Optional `status` accepts pending, sending, failed, sent or superseded; default pending/sending/failed. Invalid query400 |
 | POST | `/internal/private-request-chat/deliveries/:id/requeue` | Reset one failed delivery; never repeats purchase/decision. Invalid400, absent/nonfailed404 |
 
 Diagnostics expose IDs/kind/status/attempts/available_at and bounded last_error codes; no JWT, checkout URL, parent email or message text. Projection503 codes include invoice_missing, invoice_or_decision_not_ready and event_dependency_unavailable. Source: academic `internal/delivery/http/handler/private_chat.go`, `internal/usecase/private_chat.go`, generated Swagger and `cmd/server/routes.go`.

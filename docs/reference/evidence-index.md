@@ -317,3 +317,5 @@ Nine source inputs migrated to segmented calendar entry; local regression, timez
 ## Private request lifecycle chat (KEL-226)
 
 Academic transactional human actor/event/outbox, scoped billing read and chat deduplicated same-room delivery: [ADR0082](../adr/0082-durable-private-request-chat-events.md), [runtime/PostgreSQL/browser evidence](../evidence/kel226-private-request-chat.md).
+
+KEL-226 verified main revisions: academic `09fd70a` (PR63), chat `2de8ce6` (PR8), billing `d8a89fb` (PR41); required PR gates passed and fresh fetch ancestry verified.
