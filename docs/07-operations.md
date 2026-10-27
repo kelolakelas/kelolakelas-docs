@@ -82,3 +82,10 @@ movement from missing rows. Revoked membership returns403 list/404 detail and a
 queued WS frame is refused before delivery. Do not restore cached rooms to bypass
 that result. Existing failed-send keys can be retried after authorized recovery.
 See [evidence](evidence/kel223-chat-inbox-recovery.md) and [ADR0079](adr/0079-chat-inbox-pagination-and-live-revalidation.md).
+
+
+## Private request lifecycle chat recovery (KEL-226)
+
+**Implemented:** deploy scoped billing reader and chat000004 before Academic00001790900004 and producer. Required matching internal credentials/service URLs are existing settings. Pause Academic dispatch with PRIVATE_REQUEST_CHAT_WORKER_ENABLED=false while retaining capture. On recovery the worker starts with a scan and polls every configured interval; claims expire after90s, completion uses token fencing. Retry backoff starts5s, caps2560s, and fails after12 attempts. Earlier failed events hold later same-request events.
+
+Use credential-protected Academic GET `/internal/private-request-chat/deliveries?status=failed&page=1` (100 rows/page); inspect event/request IDs, attempts and bounded error codes. Repair connectivity/invoice scope/state, then POST `/internal/private-request-chat/deliveries/<event-id>/requeue` to reset only a failed delivery. Do not repeat the business request/approval to recover chat. Missing invoice stays owed; paid/expired invoice recovers with a truthful decision and no payable URL. Worker emits event_id/attempt/status/code only. For rollback pause/remove Academic producer first; retain event/outbox/source-event markers. Chat down migration refuses if bodies exceed2000; never truncate history. No event backfill invents historical actors. [ADR0082](adr/0082-durable-private-request-chat-events.md).

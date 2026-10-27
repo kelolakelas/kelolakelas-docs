@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**Implemented (KEL-226):** private schedule submissions and admin decisions capture durable human-attributed chat intent, retry into the same request room and recheck authoritative invoice payability/deadline. [ADR0082](docs/adr/0082-durable-private-request-chat-events.md), [acceptance evidence](docs/evidence/kel226-private-request-chat.md).
+
 **Implemented (KEL-225):** existing active system Teachers can accept another tenant's system Teacher invitation with their authenticated account, without another user/password/wallet or changes to old memberships. The page displays authoritative tenant/role and preserves the invitation through login/account mismatch. [ADR0081](docs/adr/0081-existing-teacher-invitation-acceptance.md), [acceptance evidence](docs/evidence/kel225-existing-teacher-invitations.md).
 
 **KEL-223:** chat inbox pages older conversations and revalidates active rooms on

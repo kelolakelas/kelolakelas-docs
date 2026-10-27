@@ -127,3 +127,6 @@ Capture and dispatch have separate switches. Reminder delivery reuses the KEL-15
 ## KEL-216 coordinated checkout profile (pending delivery)
 
 Academic issue revision `b4ea35c` uses a bounded 40-second billing client and validates both write and shutdown durations above it (default write 60, drain 45). The owner-approved local profile sets existing billing `DUITKU_HTTP_TIMEOUT_SECONDS=30`, gateway `PROXY_UPSTREAM_TIMEOUT_SECONDS=50` and gateway drain 55; write timeouts remain 60. Gateway/billing source defaults are unchanged and these overrides must be applied explicitly in a coordinated rollout. Provider 30 / academic 40 / gateway 50 / write 60 leave margin for responses and cleanup. Termination grace must exceed the configured drains; backend production deployment is not claimed. NQ sandbox HTTP 500 still blocks acceptance. [ADR 0075](../adr/0075-checkout-timeout-budget.md).
+
+
+**Implemented (KEL-226, Academic):** PRIVATE_REQUEST_CHAT_WORKER_ENABLED=true (capture remains enabled when false), PRIVATE_REQUEST_CHAT_INTERVAL_SECONDS=5 (1..3600); uses existing CHAT_SERVICE_URL, BILLING_SERVICE_URL and INTERNAL_SERVICE_CREDENTIAL. [Configuration](../04-configuration.md#private-request-chat-worker-kel-226).

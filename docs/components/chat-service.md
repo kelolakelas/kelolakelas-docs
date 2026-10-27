@@ -26,3 +26,6 @@ live resource check before every queued frame leaves the connection pump; revoke
 or unavailable access closes without sending the payload. Real PostgreSQL and WS
 regressions plus gRPC deadline/malformed-reply tests cover these seams. Minimum Go
 is1.26.10 for the existing vulnerability gate. [ADR0079](../adr/0079-chat-inbox-pagination-and-live-revalidation.md).
+
+
+**Implemented (KEL-226):** typed credential-only lifecycle delivery, post-lock proof refresh and source-event deduplication. See [ADR0082](../adr/0082-durable-private-request-chat-events.md) and [acceptance evidence](../evidence/kel226-private-request-chat.md).

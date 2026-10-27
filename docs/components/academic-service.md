@@ -141,3 +141,6 @@ Coverage follows same-class replacement ancestors: a reschedule after a reminder
 ## Checkout timeout budget (KEL-216, pending delivery)
 
 Issue revision `b4ea35c` bounds the billing client at 40 seconds and requires HTTP write/shutdown durations above it; default shutdown is 45 seconds, while write remains 60. Caller cancellation still shortens the wait. This supports the coordinated provider30/gateway50 profile without equal nested deadlines. Go minimum/toolchain patches are 1.26.10/1.27.3 for the required vulnerability gate. No route, schema, price or invoice policy changes. See [ADR 0075](../adr/0075-checkout-timeout-budget.md) and [actual acceptance limits](../evidence/2026-10-24-kel-216.md); NQ sandbox HTTP 500 currently blocks completion.
+
+
+**Implemented (KEL-226):** transactional private-request capture, versioned event/outbox and invoice-aware retry worker. See [ADR0082](../adr/0082-durable-private-request-chat-events.md) and [acceptance evidence](../evidence/kel226-private-request-chat.md).
