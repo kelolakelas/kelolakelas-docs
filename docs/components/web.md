@@ -379,3 +379,21 @@ Evidence: web `lib/schedule-request-count-{actions,events}.ts`, `components/Pend
 Migrated: student create/edit DOB; report and transaction from/to filters; reschedule date; initial teacher assignment; class schedule effective date; voucher valid-from and valid-until date halves. Controlled updates, changed edit defaults and form resets preserve coherent values. Existing DOB max-today, filter range validation, schedule bounds and voucher instant serializer/default day boundaries/seconds/fraction are retained. No active native date/datetime-local source input remains in app/components after the inventory search.
 
 Evidence: `lib/calendar-date.ts`, DateInput and adjacent tests, seven migrated components and their action/schema regressions; [ADR0077](../adr/0077-shared-calendar-date-input.md), [migration and browser evidence](../evidence/kel219-shared-date-input.md). Browser evidence is Chrome desktop/mobile viewport in UTC/WIB; Safari/Firefox/physical mobile and real screen-reader behavior are unverified.
+
+## Own membership tenant switch (KEL-224)
+
+**Implemented:** the tenant layout reads `/api/v1/auth/memberships` alongside its
+navigation and badge scope. `TenantSwitcher` displays the active tenant/role, hides
+the select for one membership, distinguishes unavailable from an empty list, and
+confirms unsaved work loss before switching. Its Server Action refuses an obsolete
+UI scope, obtains a newly signed tenant session and writes both HttpOnly cookies
+only on a matching success. Backend/network failure has a retry/recovery message.
+
+`TenantContextBoundary` unmounts all children, badges and chat on switch start.
+A Web Lock serializes browser switches; local storage/events synchronize tabs;
+focus/pageshow and a 10-second opaque cookie-scope GET reconcile missed changes.
+Every completed switch loads `/dashboard/tenant` as a fresh document, resetting
+router/data caches and sockets. Old document actions carry `X-Tenant-UI-Scope`;
+the Next proxy rejects replacement-cookie mismatch before execution, then the
+client discards the obsolete response and reloads. Parent/platform surfaces do
+not gain tenant controls. See [ADR 0078](../adr/0078-own-membership-tenant-session-switch.md).

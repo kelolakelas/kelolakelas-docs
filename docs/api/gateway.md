@@ -57,3 +57,10 @@ The `413` is produced before the request is forwarded when the client declares a
 ## Request correlation header
 
 **Implemented:** every gateway response carries `X-Request-ID`, on all routes including `/health`, the Swagger shell, proxied calls, 404s, CORS rejections, and rate-limit rejections. A caller that supplies an inbound `X-Request-ID` keeps it when it is at most 64 characters and uses only `a-z`, `A-Z`, `0-9`, `-`, `_`, `.`; every other value is replaced with a generated identifier. The same value is sent to the downstream service, so a response header and a downstream log can be tied to one request. The header is a correlation value, not an authenticated identity, and nothing authorizes on it. Evidence: `internal/delivery/http/middleware/request_id_middleware.go`; see [ADR 0015](../adr/0015-gateway-request-correlation-and-access-log.md).
+
+**Implemented (KEL-224):** protected `GET /api/v1/auth/memberships` and
+`POST /api/v1/auth/tenant` proxy to identity through the existing JWT/session
+checker. A selection target in the JSON body must pass identity's live ownership
+check; downstream context headers continue naming the verified JWT tenant.
+The gateway never replaces that context with a body/header-selected tenant.
+[Identity contract](identity.md#own-tenant-sessions-kel-224).
