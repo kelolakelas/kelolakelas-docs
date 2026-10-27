@@ -89,3 +89,20 @@ part of this issue's acceptance.
 - `kelolakelas-identity-service`: `e4ea3a5ada874dfcda5294d25837cb6748b6dfcf` (KEL-224 implementation commit).
 - `kelolakelas-api-gateway`: `cf499e20742e6e11dfa9c8c71f72fa0b482ebef8` (KEL-224 implementation commit).
 - `kelolakelas-web`: `9159ec2edc3e8aced32e1faa550fc8e49a14fedb` (KEL-224 implementation commit).
+
+## GitHub delivery evidence
+
+All implementation PRs targeted main, passed required gate on the exact tested
+head, and merged by squash. After a fresh fetch, git merge-base --is-ancestor
+proved each resulting commit reachable from origin/main:
+
+| Repository | PR | Squash commit | GitHub merged_at (UTC) | Required PR gate |
+|---|---|---|---|---|
+| Identity | [49](https://github.com/kelolakelas/kelolakelas-identity-service/pull/49) | `926c968fe5dacefe9ce1b72b3845460035ebad17` | 2026-10-27 06:14:46 | [success](https://github.com/kelolakelas/kelolakelas-identity-service/actions/runs/40459541895) |
+| Gateway | [45](https://github.com/kelolakelas/kelolakelas-api-gateway/pull/45) | `7cbe9c7363258124052cf16e62cc18ca3fd7be1a` | 2026-10-27 06:14:55 | [success](https://github.com/kelolakelas/kelolakelas-api-gateway/actions/runs/40459544461) |
+| Web | [129](https://github.com/kelolakelas/kelolakelas-web/pull/129) | `b4d9ecf5b7103d40f5ceaee63e01cec7108d94b4` | 2026-10-27 06:15:03 | [success](https://github.com/kelolakelas/kelolakelas-web/actions/runs/40459543569) |
+
+Documentation is delivered in [PR229](https://github.com/kelolakelas/kelolakelas-docs/pull/229).
+Linear completion waits for this documentation PR to merge and for available
+post-merge CI/deployment verification; the issue is not complete on local tests
+or implementation PR merges alone.
