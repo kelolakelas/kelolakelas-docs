@@ -106,3 +106,30 @@ identity boundaries described above; it is not a production-provider test.
 - [Unavailable state, desktop](kel223/outage-desktop.png)
 - [Revoked access, desktop](kel223/revoked-desktop.png)
 - [Parent older room, mobile](kel223/parent-mobile.png)
+
+
+## Delivery evidence
+
+| Repository | Merged PR | Squash commit on main | GitHub merged_at | Required PR gate |
+|---|---|---|---|---|
+| Chat | [#7](https://github.com/kelolakelas/kelolakelas-chat-service/pull/7) | `cfc39eae70ce5507b151d2bb31de22bd04502e8f` | 2026-10-27T07:10:33Z | [successful](https://github.com/kelolakelas/kelolakelas-chat-service/actions/runs/40465304259) |
+| Web | [#130](https://github.com/kelolakelas/kelolakelas-web/pull/130) | `3a7b53e909282950cd6a877024bfa20cefc2a885` | 2026-10-27T07:11:05Z | [successful](https://github.com/kelolakelas/kelolakelas-web/actions/runs/40465334557) |
+
+Each merge state, merged_at and commit came from GitHub; after a new `git fetch
+origin`, `git merge-base --is-ancestor <commit> origin/main` returned0 in each
+repository. Protected main required a current successful gate, PR merge and no
+force pushes; required approval count was0. Squash merge used the exact tested
+head without admin bypass. Documentation delivery is [PR230](https://github.com/kelolakelas/kelolakelas-docs/pull/230).
+
+
+Post-merge chat [main CI](https://github.com/kelolakelas/kelolakelas-chat-service/actions/runs/40465535656)
+passed. Web merged-commit [Vercel deployment](https://vercel.com/faridzams-projects/kelolakelas/4rdWGMoANmDKV9w1guLd86HBr2No)
+reported success. All fixture listeners were stopped; the user's port3000 dev
+server and pre-existing edits/planning files were preserved.
+
+
+Post-merge web [main CI](https://github.com/kelolakelas/kelolakelas-web/actions/runs/40465588277)
+passed including tests, types, lint, audit and production build. Chat's main gate
+also executed the PostgreSQL acceptance enabled in its workflow. Documentation's
+own main merge and Linear Done are verified after this PR merges; they are not
+inferred from source-PR completion.
