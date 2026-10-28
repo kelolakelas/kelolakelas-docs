@@ -1,0 +1,9 @@
+{
+  "drawerFocusWrap": true,
+  "escapeReturnFocus": true,
+  "drawerDesktopClose": true,
+  "editorDraftAcrossBreakpoint": true,
+  "closeReturnsVisibleMobileTrigger": true,
+  "narrow320NoOverflow": true,
+  "pageErrors": []
+}

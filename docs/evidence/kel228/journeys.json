@@ -1,0 +1,10 @@
+[
+  {
+    "name": "staff report room→parent inbox→reply",
+    "result": "success"
+  },
+  {
+    "name": "admin→platform owner request/reject",
+    "result": "success"
+  }
+]

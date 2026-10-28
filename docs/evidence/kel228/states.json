@@ -1,0 +1,26 @@
+[
+  {
+    "name": "login empty validation",
+    "data": "Validation failed. Please correct the errors in the form."
+  },
+  {
+    "name": "guest protected redirect",
+    "data": "login retains redirectTo"
+  },
+  {
+    "name": "reset validation",
+    "data": "Atur ulang password\n\nPeriksa kembali password Anda.\n\nPassword baru\nKonfirmasi password baru\n\nKonfirmasi password tidak cocok.\n\nSimpan password baru"
+  },
+  {
+    "name": "report link keyboard→existing inbox",
+    "data": "success"
+  },
+  {
+    "name": "chat outage",
+    "data": "Layanan chat sedang tidak tersedia. Coba lagi nanti."
+  },
+  {
+    "name": "chat retry→existing room",
+    "data": "success"
+  }
+]

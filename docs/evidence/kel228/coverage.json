@@ -1,0 +1,1942 @@
+[
+  {
+    "persona": "public",
+    "route": "/",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/",
+    "screenshot": "public-1440-.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Semua kelasmu, satu kendali.",
+      "Lebih sedikit tab. Lebih banyak kendali.",
+      "Kami sedang membangun ini bersama pengguna awal."
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nFitur\nAkses awal\n🚧 SAAT INI DALAM PENGEMBANGAN / BETA\n\nRUANG KERJA PENDIDIKAN YANG LEBIH TERTATA\n\nSemua kelasmu, satu kendali.\n\nKelolaKelas menyatukan tenant, anggota, peran, kelas, dan jadwal agar tim pendidikan bisa fokus pada hal yang paling penting: proses belajar.\n\nJelajahi kelas\nDaftar untuk akses awal\nLihat kemampuan utama\n\nRINGKASAN HARI INI\n\nRuang kerja aktif\n\nKelas aktif\n\n24\n\nAnggota\n\n186\n\nJadwal berikutnya\n09.00 WIB\n\nDIRANCANG UNTUK TIM YANG BERGERAK\n\nLebih sedikit tab. Lebih banyak kendali.\nTenant & anggota\n\nAtur organisasi dan seluruh anggotanya dari satu ruang kerja yang jelas.\n\nPeran & izin granular\n\nTentukan siapa dapat melihat, mengelola, dan mengubah bagian tertentu.\n\nKelas & jadwal seamless\n\nBuat kelas, susun jadwal, dan jaga ritme operasional tetap terkoordinasi.\n\nCATATAN PENGEMBANGAN\nKami sedang membangun ini bersama pengguna awal.\n\nKelolaKelas masih dalam tahap \"Work in Progress\". Beberapa fitur dan alur dapat berubah selama beta. Masukanmu akan membantu menentukan apa yang kami bangun berikutnya.\n\nGabung pengguna awal\n\n© 2026 KelolaKelas. Dibangun untuk pengelolaan yang lebih tenang.\n\nBeta terbuka terbatas",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/kelas",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/kelas",
+    "screenshot": "public-1440-kelas.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Temukan kelas yang pas.",
+      "KEL228 Group Lessons",
+      "KEL228 Private Lessons"
+    ],
+    "alerts": [],
+    "text": "← KelolaKelas\n\nKATALOG PUBLIK\n\nTemukan kelas yang pas.\nKelola profil student →\nStatus enrollment →\nCari nama kelas\nTipe kelas\nSemua tipe\nGrup\nPrivat\nHarga minimum\nHarga maksimum\nUrutkan kelas\nTerbaru\nNama A–Z\nHarga terendah\nHarga tertinggi\nTerapkan\n\n2 kelas tersedia\n\nKEL228 fixture\n\nGroup\nKEL228 Group Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nSabtu, 10:00–11:00\n\nRp 100.000\nLihat kelas\n\nKEL228 fixture\n\nPrivate\nKEL228 Private Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nJadwal akan dikonfirmasi penyelenggara.\n\nRp 100.000\nLihat kelas",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/kelas/a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/kelas/a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3",
+    "screenshot": "public-1440-kelas-a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "KEL228 Group Lessons",
+      "Jadwal",
+      "Rating dan ulasan",
+      "Siap mendaftar?"
+    ],
+    "alerts": [],
+    "text": "← Semua kelas\n\nKEL228 fixture · group\n\nKEL228 Group Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nRp 100.000\n\nJadwal\nSabtu, 10:00–11:00 · 4 slot tersisa\n\nKelas ini menerima pendaftaran.\n\nRating dan ulasan\n\nBelum ada ulasan untuk kelas ini.\n\nSiap mendaftar?\n\nMasuk sebagai parent untuk memilih student dan melanjutkan ke checkout.\n\nMasuk untuk mendaftar",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/tenant/4f83ff30-6022-44b7-b2c6-9e4cb7c298c3",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/tenant/4f83ff30-6022-44b7-b2c6-9e4cb7c298c3",
+    "screenshot": "public-1440-tenant-4f83ff30-6022-44b7-b2c6-9e4cb7c298c3.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "KEL228 Fixture School",
+      "Kelas yang dipublikasikan",
+      "KEL228 Group Lessons",
+      "KEL228 Private Lessons"
+    ],
+    "alerts": [],
+    "text": "← Semua kelas\nKEL228 Fixture School\n\nSynthetic fixture street\n\nKelas yang dipublikasikan\n\nKEL228 fixture\n\nGroup\nKEL228 Group Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nSabtu, 10:00–11:00\n\nRp 100.000\nLihat kelas\n\nKEL228 fixture\n\nPrivate\nKEL228 Private Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nJadwal akan dikonfirmasi penyelenggara.\n\nRp 100.000\nLihat kelas",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/register",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/register",
+    "screenshot": "public-1440-register.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Register as Parent"
+    ],
+    "alerts": [],
+    "text": "Parent Registration\nOrganization Registration\nRegister as Parent\n\nCreate an account to manage your students and courses\n\nFirst Name *\nLast Name *\nEmail Address *\nPassword *\nPhone Number (Optional)\nRegister as Parent",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/login",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/login",
+    "screenshot": "public-1440-login.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Welcome Back"
+    ],
+    "alerts": [],
+    "text": "Welcome Back\n\nSign in to your KelolaKelas account\n\nEmail Address\nPassword\nLupa password?\nSign in\nPlatform admin sign in",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/forgot-password",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/forgot-password",
+    "screenshot": "public-1440-forgot-password.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Lupa password?"
+    ],
+    "alerts": [],
+    "text": "Lupa password?\nAlamat email\nKirim tautan reset\nKembali ke login",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/reset-password?token=invalid-fixture",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/reset-password?token=invalid-fixture",
+    "screenshot": "public-1440-reset-password.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Atur ulang password"
+    ],
+    "alerts": [],
+    "text": "Atur ulang password\nPassword baru\nKonfirmasi password baru\nSimpan password baru",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/invitations/verify?token=invalid-fixture",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/invitations/verify?token=invalid-fixture",
+    "screenshot": "public-1440-invitations-verify.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Invitation not found"
+    ],
+    "alerts": [],
+    "text": "Invitation not found\n\nThis invitation could not be found. It may belong to an account that has been removed. Ask the tenant administrator to send a new invitation.\n\nGo to sign in\nBack to KelolaKelas",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/platform/login",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/platform/login",
+    "screenshot": "public-1440-platform-login.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Platform admin sign in"
+    ],
+    "alerts": [
+      ""
+    ],
+    "text": "Platform admin sign in\n\nEmail \nPassword \nContinue",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/platform/challenge",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/platform/challenge",
+    "screenshot": "public-1440-platform-challenge.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Platform second factor"
+    ],
+    "alerts": [
+      ""
+    ],
+    "text": "Platform second factor\n\nUse the code from your authenticator. New enrollment requires an operator to authorize it first.\n\nVerify existing factor\nEnroll after operator authorization\nSign in again",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/",
+    "screenshot": "public-390-.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Semua kelasmu, satu kendali.",
+      "Lebih sedikit tab. Lebih banyak kendali.",
+      "Kami sedang membangun ini bersama pengguna awal."
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nAkses awal\n🚧 SAAT INI DALAM PENGEMBANGAN / BETA\n\nRUANG KERJA PENDIDIKAN YANG LEBIH TERTATA\n\nSemua kelasmu, satu kendali.\n\nKelolaKelas menyatukan tenant, anggota, peran, kelas, dan jadwal agar tim pendidikan bisa fokus pada hal yang paling penting: proses belajar.\n\nJelajahi kelas\nDaftar untuk akses awal\nLihat kemampuan utama\n\nRINGKASAN HARI INI\n\nRuang kerja aktif\n\nKelas aktif\n\n24\n\nAnggota\n\n186\n\nJadwal berikutnya\n09.00 WIB\n\nDIRANCANG UNTUK TIM YANG BERGERAK\n\nLebih sedikit tab. Lebih banyak kendali.\nTenant & anggota\n\nAtur organisasi dan seluruh anggotanya dari satu ruang kerja yang jelas.\n\nPeran & izin granular\n\nTentukan siapa dapat melihat, mengelola, dan mengubah bagian tertentu.\n\nKelas & jadwal seamless\n\nBuat kelas, susun jadwal, dan jaga ritme operasional tetap terkoordinasi.\n\nCATATAN PENGEMBANGAN\nKami sedang membangun ini bersama pengguna awal.\n\nKelolaKelas masih dalam tahap \"Work in Progress\". Beberapa fitur dan alur dapat berubah selama beta. Masukanmu akan membantu menentukan apa yang kami bangun berikutnya.\n\nGabung pengguna awal\n\n© 2026 KelolaKelas. Dibangun untuk pengelolaan yang lebih tenang.\n\nBeta terbuka terbatas",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/kelas",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/kelas",
+    "screenshot": "public-390-kelas.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Temukan kelas yang pas.",
+      "KEL228 Group Lessons",
+      "KEL228 Private Lessons"
+    ],
+    "alerts": [],
+    "text": "← KelolaKelas\n\nKATALOG PUBLIK\n\nTemukan kelas yang pas.\nKelola profil student →\nStatus enrollment →\nCari nama kelas\nTipe kelas\nSemua tipe\nGrup\nPrivat\nHarga minimum\nHarga maksimum\nUrutkan kelas\nTerbaru\nNama A–Z\nHarga terendah\nHarga tertinggi\nTerapkan\n\n2 kelas tersedia\n\nKEL228 fixture\n\nGroup\nKEL228 Group Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nSabtu, 10:00–11:00\n\nRp 100.000\nLihat kelas\n\nKEL228 fixture\n\nPrivate\nKEL228 Private Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nJadwal akan dikonfirmasi penyelenggara.\n\nRp 100.000\nLihat kelas",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/kelas/a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/kelas/a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3",
+    "screenshot": "public-390-kelas-a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "KEL228 Group Lessons",
+      "Jadwal",
+      "Rating dan ulasan",
+      "Siap mendaftar?"
+    ],
+    "alerts": [],
+    "text": "← Semua kelas\n\nKEL228 fixture · group\n\nKEL228 Group Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nRp 100.000\n\nJadwal\nSabtu, 10:00–11:00 · 4 slot tersisa\n\nKelas ini menerima pendaftaran.\n\nRating dan ulasan\n\nBelum ada ulasan untuk kelas ini.\n\nSiap mendaftar?\n\nMasuk sebagai parent untuk memilih student dan melanjutkan ke checkout.\n\nMasuk untuk mendaftar",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/tenant/4f83ff30-6022-44b7-b2c6-9e4cb7c298c3",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/tenant/4f83ff30-6022-44b7-b2c6-9e4cb7c298c3",
+    "screenshot": "public-390-tenant-4f83ff30-6022-44b7-b2c6-9e4cb7c298c3.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "KEL228 Fixture School",
+      "Kelas yang dipublikasikan",
+      "KEL228 Group Lessons",
+      "KEL228 Private Lessons"
+    ],
+    "alerts": [],
+    "text": "← Semua kelas\nKEL228 Fixture School\n\nSynthetic fixture street\n\nKelas yang dipublikasikan\n\nKEL228 fixture\n\nGroup\nKEL228 Group Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nSabtu, 10:00–11:00\n\nRp 100.000\nLihat kelas\n\nKEL228 fixture\n\nPrivate\nKEL228 Private Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nJadwal akan dikonfirmasi penyelenggara.\n\nRp 100.000\nLihat kelas",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/register",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/register",
+    "screenshot": "public-390-register.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Register as Parent"
+    ],
+    "alerts": [],
+    "text": "Parent Registration\nOrganization Registration\nRegister as Parent\n\nCreate an account to manage your students and courses\n\nFirst Name *\nLast Name *\nEmail Address *\nPassword *\nPhone Number (Optional)\nRegister as Parent",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/login",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/login",
+    "screenshot": "public-390-login.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Welcome Back"
+    ],
+    "alerts": [],
+    "text": "Welcome Back\n\nSign in to your KelolaKelas account\n\nEmail Address\nPassword\nLupa password?\nSign in\nPlatform admin sign in",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/forgot-password",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/forgot-password",
+    "screenshot": "public-390-forgot-password.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Lupa password?"
+    ],
+    "alerts": [],
+    "text": "Lupa password?\nAlamat email\nKirim tautan reset\nKembali ke login",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/reset-password?token=invalid-fixture",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/reset-password?token=invalid-fixture",
+    "screenshot": "public-390-reset-password.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Atur ulang password"
+    ],
+    "alerts": [],
+    "text": "Atur ulang password\nPassword baru\nKonfirmasi password baru\nSimpan password baru",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/invitations/verify?token=invalid-fixture",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/invitations/verify?token=invalid-fixture",
+    "screenshot": "public-390-invitations-verify.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Invitation not found"
+    ],
+    "alerts": [],
+    "text": "Invitation not found\n\nThis invitation could not be found. It may belong to an account that has been removed. Ask the tenant administrator to send a new invitation.\n\nGo to sign in\nBack to KelolaKelas",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/platform/login",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/platform/login",
+    "screenshot": "public-390-platform-login.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Platform admin sign in"
+    ],
+    "alerts": [
+      ""
+    ],
+    "text": "Platform admin sign in\n\nEmail \nPassword \nContinue",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "public",
+    "route": "/platform/challenge",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/platform/challenge",
+    "screenshot": "public-390-platform-challenge.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Platform second factor"
+    ],
+    "alerts": [
+      ""
+    ],
+    "text": "Platform second factor\n\nUse the code from your authenticator. New enrollment requires an operator to authorize it first.\n\nVerify existing factor\nEnroll after operator authorization\nSign in again",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/students",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/students",
+    "screenshot": "parent-1440-dashboard-parent-students.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Student saya",
+      "Fixture Child 4",
+      "Hapus profil student ini?",
+      "Fixture Child 3",
+      "Hapus profil student ini?",
+      "Fixture Child 2",
+      "Hapus profil student ini?",
+      "Fixture Child 1",
+      "Hapus profil student ini?"
+    ],
+    "alerts": [],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n← Kembali ke katalogChat\n\nPROFIL PARENT\n\nStudent saya\n\nSimpan profil student yang akan digunakan saat mendaftar kelas. Data ini hanya menampilkan student milik akun parent Anda.\n\n+ Tambah student\nKeluar\nFixture Child 4\n\nNama panggilan belum diisi\n\nStudent\nTanggal lahir\nBelum diisi\nJenis kelamin\nBelum diisi\nEdit profil\nHapus\nFixture Child 3\n\nNama panggilan belum diisi\n\nStudent\nTanggal lahir\nBelum diisi\nJenis kelamin\nBelum diisi\nEdit profil\nHapus\nFixture Child 2\n\nNama panggilan belum diisi\n\nStudent\nTanggal lahir\nBelum diisi\nJenis kelamin\nBelum diisi\nEdit profil\nHapus\nFixture Child 1\n\nNama panggilan belum diisi\n\nStudent\nTanggal lahir\nBelum diisi\nJenis kelamin\nBelum diisi\nEdit profil\nHapus",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/chat",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/chat",
+    "screenshot": "parent-1440-dashboard-parent-chat.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Chat",
+      "Percakapan",
+      "Pilih percakapan"
+    ],
+    "alerts": [],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n← Student saya\nChat\nPercakapan\n\nBelum ada percakapan. Percakapan baru akan tampil di sini.\n\nPilih percakapan\n\nTerhubung\n\nMuat ulang\nPilih percakapan untuk membaca pesan.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/progress",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/progress",
+    "screenshot": "parent-1440-dashboard-parent-progress.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Jadwal & progres anak",
+      "Sesi mendatang",
+      "Riwayat kehadiran",
+      "Laporan"
+    ],
+    "alerts": [],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n\nPROFIL PARENT\n\nJadwal & progres anak\n\nSesi dua minggu ke depan, riwayat kehadiran, dan laporan perkembangan anak.\n\nAnak\nFixture Child 4\nFixture Child 3\nFixture Child 2\nFixture Child 1\nSesi mendatang\n\nDua minggu ke depan.\n\nBelum ada sesi mendatang untuk anak ini.\n\nRiwayat kehadiran\n\nBelum ada riwayat kehadiran untuk anak ini.\n\nLaporan\n\nBelum ada laporan untuk anak ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/progress/reports/0f53ef81-659a-46a8-9757-56b71b21102b",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/progress/reports/0f53ef81-659a-46a8-9757-56b71b21102b",
+    "screenshot": "parent-1440-dashboard-parent-progress-reports-0f53ef81-659a-46a8-9757-56b71b21102b.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "KEL228 fixture progress",
+      "Catatan evaluasi"
+    ],
+    "alerts": [],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n← Kembali ke progres\n\nLAPORAN ANAK\n\nKEL228 fixture progress\n\n28 Okt 2026\n\nNilai: 85\n\nCatatan evaluasi\n\nSynthetic progress notes\n\nDiskusikan laporan ini via chat\n\nChat dibuka di inbox pada percakapan laporan ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/enrollments",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/enrollments",
+    "screenshot": "parent-1440-dashboard-parent-enrollments.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Status enrollment",
+      "KEL228 Group Lessons"
+    ],
+    "alerts": [],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n← Kembali ke katalog\nChat\nKeluar\n\nPROFIL PARENT\n\nStatus enrollment\n\nMuat ulang halaman ini setelah kembali dari provider pembayaran. Status di bawah selalu berasal dari backend, bukan dari redirect provider.\n\nKEL228 Group Lessons\n\nFixture Child 1 · Enrollment active\n\nJadwal: Sabtu, 10:00–11:00\n\nMenunggu transaksi\n\nEnrollment belum memiliki transaksi pembayaran yang dapat ditampilkan.\n\nRating Anda\n★\n★\n★\n★\n★\nBelum ada rating\nKomentar (opsional)\n\n0/2000 karakter\n\nSimpan ulasan",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/enrollments/return?merchantOrderId=INVALID-FIXTURE",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/enrollments/return?merchantOrderId=INVALID-FIXTURE",
+    "screenshot": "parent-1440-dashboard-parent-enrollments-return.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Status pembayaran",
+      "Pembayaran tidak ditemukan."
+    ],
+    "alerts": [
+      "Pembayaran tidak ditemukan.Pembayaran ini tidak ditemukan pada akun Anda. Buka riwayat enrollment untuk melihat semua pembayaran.Lihat riwayat enrollment"
+    ],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n← Riwayat enrollment\n\nPEMBAYARAN\n\nStatus pembayaran\n\nStatus di bawah selalu berasal dari server KelolaKelas setelah konfirmasi dari provider, bukan dari halaman pembayaran yang baru Anda tinggalkan.\n\nPembayaran tidak ditemukan.\n\nPembayaran ini tidak ditemukan pada akun Anda. Buka riwayat enrollment untuk melihat semua pembayaran.\n\nLihat riwayat enrollment",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/kelas/9501eabe-8868-4336-aaae-f771b45b921e",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/kelas/9501eabe-8868-4336-aaae-f771b45b921e",
+    "screenshot": "parent-1440-kelas-9501eabe-8868-4336-aaae-f771b45b921e.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "KEL228 Private Lessons",
+      "Jadwal",
+      "Rating dan ulasan",
+      "Ajukan jadwal les private",
+      "Permintaan jadwal Anda",
+      "Tambah student",
+      "Tambahkan student"
+    ],
+    "alerts": [],
+    "text": "← Semua kelas\n\nKEL228 fixture · private\n\nKEL228 Private Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nRp 100.000\n\nJadwal\n\nJadwal belum tersedia secara lengkap. Hubungi penyelenggara untuk konfirmasi.\n\nKelas ini menerima pendaftaran.\n\nRating dan ulasan\n\nBelum ada ulasan untuk kelas ini.\n\nPERMINTAAN JADWAL PRIVATE\n\nAjukan jadwal les private\n\nUsulkan slot mingguan; penyelenggara meninjau permintaan Anda sebelum enrollment dibuat. Kelas private tidak melalui checkout dari halaman ini.\n\nTambah student\nStudent\nPilih student\nFixture Child 4\nFixture Child 3\nFixture Child 2\nFixture Child 1\nPeriode pembayaran\nBulanan\nPer tiga bulan\nTahunan\nMetode pembayaran\nKartu kredit/debit\nVirtual Account\nQRIS\n\nInvoice dibuat setelah persetujuan dengan metode ini. Metode invoice aktif tidak dapat diganti.\n\nSlot jadwal yang diajukan\nHari\nSenin\nSelasa\nRabu\nKamis\nJumat\nSabtu\nMinggu\nJam mulai\nJam selesai\nTambah slot\n\nJam selesai harus setelah jam mulai pada setiap slot.\n\nCatatan untuk penyelenggara (opsional)\nKirim permintaan jadwal\nPermintaan jadwal Anda\n\nBelum ada permintaan jadwal untuk kelas ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/kelas/a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/kelas/a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3",
+    "screenshot": "parent-1440-kelas-a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "KEL228 Group Lessons",
+      "Jadwal",
+      "Rating dan ulasan",
+      "Pilih student dan jadwal",
+      "Tambah student",
+      "Tambahkan student"
+    ],
+    "alerts": [],
+    "text": "← Semua kelas\n\nKEL228 fixture · group\n\nKEL228 Group Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nRp 100.000\n\nJadwal\nSabtu, 10:00–11:00 · 4 slot tersisa\n\nKelas ini menerima pendaftaran.\n\nRating dan ulasan\n\nBelum ada ulasan untuk kelas ini.\n\nENROLLMENT PARENT\n\nPilih student dan jadwal\n\nHarga dan status pembayaran ditentukan oleh backend setelah enrollment tervalidasi.\n\nStudent\nPilih student\nFixture Child 4\nFixture Child 3\nFixture Child 2\nFixture Child 1\nTambah student\nJadwal\nPilih jadwal\nSabtu, 10:00–11:00 · 4 slot\nPeriode pembayaran\nBulanan\nPer tiga bulan\nTahunan\nMetode pembayaran\nKartu kredit/debit\nDiarahkan ke halaman pembayaran aman Duitku.\nVirtual Account\nNomor VA tampil di halaman ini, tanpa pindah halaman.\nQRIS\nKode QR tampil di halaman ini, tanpa pindah halaman.\nKode voucher (opsional)Periksa voucher\n\nPreview bukan jaminan kuota. Total akhir ditentukan server saat checkout; perubahan voucher tidak mengubah invoice sebelumnya.\n\nJika provider belum merespons, kirim ulang form ini untuk melanjutkan intent yang sama.\n\nLanjut ke pembayaran",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/students",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/students",
+    "screenshot": "parent-390-dashboard-parent-students.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Student saya",
+      "Fixture Child 4",
+      "Hapus profil student ini?",
+      "Fixture Child 3",
+      "Hapus profil student ini?",
+      "Fixture Child 2",
+      "Hapus profil student ini?",
+      "Fixture Child 1",
+      "Hapus profil student ini?"
+    ],
+    "alerts": [],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n← Kembali ke katalogChat\n\nPROFIL PARENT\n\nStudent saya\n\nSimpan profil student yang akan digunakan saat mendaftar kelas. Data ini hanya menampilkan student milik akun parent Anda.\n\n+ Tambah student\nKeluar\nFixture Child 4\n\nNama panggilan belum diisi\n\nStudent\nTanggal lahir\nBelum diisi\nJenis kelamin\nBelum diisi\nEdit profil\nHapus\nFixture Child 3\n\nNama panggilan belum diisi\n\nStudent\nTanggal lahir\nBelum diisi\nJenis kelamin\nBelum diisi\nEdit profil\nHapus\nFixture Child 2\n\nNama panggilan belum diisi\n\nStudent\nTanggal lahir\nBelum diisi\nJenis kelamin\nBelum diisi\nEdit profil\nHapus\nFixture Child 1\n\nNama panggilan belum diisi\n\nStudent\nTanggal lahir\nBelum diisi\nJenis kelamin\nBelum diisi\nEdit profil\nHapus",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/chat",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/chat",
+    "screenshot": "parent-390-dashboard-parent-chat.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Chat",
+      "Percakapan",
+      "Pilih percakapan"
+    ],
+    "alerts": [],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n← Student saya\nChat\nPercakapan\n\nBelum ada percakapan. Percakapan baru akan tampil di sini.\n\nPilih percakapan\n\nTerhubung\n\nMuat ulang\nPilih percakapan untuk membaca pesan.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/progress",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/progress",
+    "screenshot": "parent-390-dashboard-parent-progress.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Jadwal & progres anak",
+      "Sesi mendatang",
+      "Riwayat kehadiran",
+      "Laporan"
+    ],
+    "alerts": [],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n\nPROFIL PARENT\n\nJadwal & progres anak\n\nSesi dua minggu ke depan, riwayat kehadiran, dan laporan perkembangan anak.\n\nAnak\nFixture Child 4\nFixture Child 3\nFixture Child 2\nFixture Child 1\nSesi mendatang\n\nDua minggu ke depan.\n\nBelum ada sesi mendatang untuk anak ini.\n\nRiwayat kehadiran\n\nBelum ada riwayat kehadiran untuk anak ini.\n\nLaporan\n\nBelum ada laporan untuk anak ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/progress/reports/0f53ef81-659a-46a8-9757-56b71b21102b",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/progress/reports/0f53ef81-659a-46a8-9757-56b71b21102b",
+    "screenshot": "parent-390-dashboard-parent-progress-reports-0f53ef81-659a-46a8-9757-56b71b21102b.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "KEL228 fixture progress",
+      "Catatan evaluasi"
+    ],
+    "alerts": [],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n← Kembali ke progres\n\nLAPORAN ANAK\n\nKEL228 fixture progress\n\n28 Okt 2026\n\nNilai: 85\n\nCatatan evaluasi\n\nSynthetic progress notes\n\nDiskusikan laporan ini via chat\n\nChat dibuka di inbox pada percakapan laporan ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/enrollments",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/enrollments",
+    "screenshot": "parent-390-dashboard-parent-enrollments.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Status enrollment",
+      "KEL228 Group Lessons"
+    ],
+    "alerts": [],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n← Kembali ke katalog\nChat\nKeluar\n\nPROFIL PARENT\n\nStatus enrollment\n\nMuat ulang halaman ini setelah kembali dari provider pembayaran. Status di bawah selalu berasal dari backend, bukan dari redirect provider.\n\nKEL228 Group Lessons\n\nFixture Child 1 · Enrollment active\n\nJadwal: Sabtu, 10:00–11:00\n\nMenunggu transaksi\n\nEnrollment belum memiliki transaksi pembayaran yang dapat ditampilkan.\n\nRating Anda\n★\n★\n★\n★\n★\nBelum ada rating\nKomentar (opsional)\n\n0/2000 karakter\n\nSimpan ulasan",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/dashboard/parent/enrollments/return?merchantOrderId=INVALID-FIXTURE",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/parent/enrollments/return?merchantOrderId=INVALID-FIXTURE",
+    "screenshot": "parent-390-dashboard-parent-enrollments-return.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Status pembayaran",
+      "Pembayaran tidak ditemukan."
+    ],
+    "alerts": [
+      "Pembayaran tidak ditemukan.Pembayaran ini tidak ditemukan pada akun Anda. Buka riwayat enrollment untuk melihat semua pembayaran.Lihat riwayat enrollment"
+    ],
+    "text": "KelolaKelas Parent\nKelas saya\nAnak\nJadwal & Progres\nChat\n← Riwayat enrollment\n\nPEMBAYARAN\n\nStatus pembayaran\n\nStatus di bawah selalu berasal dari server KelolaKelas setelah konfirmasi dari provider, bukan dari halaman pembayaran yang baru Anda tinggalkan.\n\nPembayaran tidak ditemukan.\n\nPembayaran ini tidak ditemukan pada akun Anda. Buka riwayat enrollment untuk melihat semua pembayaran.\n\nLihat riwayat enrollment",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/kelas/9501eabe-8868-4336-aaae-f771b45b921e",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/kelas/9501eabe-8868-4336-aaae-f771b45b921e",
+    "screenshot": "parent-390-kelas-9501eabe-8868-4336-aaae-f771b45b921e.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "KEL228 Private Lessons",
+      "Jadwal",
+      "Rating dan ulasan",
+      "Ajukan jadwal les private",
+      "Permintaan jadwal Anda",
+      "Tambah student",
+      "Tambahkan student"
+    ],
+    "alerts": [],
+    "text": "← Semua kelas\n\nKEL228 fixture · private\n\nKEL228 Private Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nRp 100.000\n\nJadwal\n\nJadwal belum tersedia secara lengkap. Hubungi penyelenggara untuk konfirmasi.\n\nKelas ini menerima pendaftaran.\n\nRating dan ulasan\n\nBelum ada ulasan untuk kelas ini.\n\nPERMINTAAN JADWAL PRIVATE\n\nAjukan jadwal les private\n\nUsulkan slot mingguan; penyelenggara meninjau permintaan Anda sebelum enrollment dibuat. Kelas private tidak melalui checkout dari halaman ini.\n\nTambah student\nStudent\nPilih student\nFixture Child 4\nFixture Child 3\nFixture Child 2\nFixture Child 1\nPeriode pembayaran\nBulanan\nPer tiga bulan\nTahunan\nMetode pembayaran\nKartu kredit/debit\nVirtual Account\nQRIS\n\nInvoice dibuat setelah persetujuan dengan metode ini. Metode invoice aktif tidak dapat diganti.\n\nSlot jadwal yang diajukan\nHari\nSenin\nSelasa\nRabu\nKamis\nJumat\nSabtu\nMinggu\nJam mulai\nJam selesai\nTambah slot\n\nJam selesai harus setelah jam mulai pada setiap slot.\n\nCatatan untuk penyelenggara (opsional)\nKirim permintaan jadwal\nPermintaan jadwal Anda\n\nBelum ada permintaan jadwal untuk kelas ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "parent",
+    "route": "/kelas/a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/kelas/a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3",
+    "screenshot": "parent-390-kelas-a1910ce0-ac17-4f2e-9cb0-2e1e029cb4e3.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "KEL228 Group Lessons",
+      "Jadwal",
+      "Rating dan ulasan",
+      "Pilih student dan jadwal",
+      "Tambah student",
+      "Tambahkan student"
+    ],
+    "alerts": [],
+    "text": "← Semua kelas\n\nKEL228 fixture · group\n\nKEL228 Group Lessons\n\nKEL228 Fixture School\n\nSynthetic fixture street\n\nRp 100.000\n\nJadwal\nSabtu, 10:00–11:00 · 4 slot tersisa\n\nKelas ini menerima pendaftaran.\n\nRating dan ulasan\n\nBelum ada ulasan untuk kelas ini.\n\nENROLLMENT PARENT\n\nPilih student dan jadwal\n\nHarga dan status pembayaran ditentukan oleh backend setelah enrollment tervalidasi.\n\nStudent\nPilih student\nFixture Child 4\nFixture Child 3\nFixture Child 2\nFixture Child 1\nTambah student\nJadwal\nPilih jadwal\nSabtu, 10:00–11:00 · 4 slot\nPeriode pembayaran\nBulanan\nPer tiga bulan\nTahunan\nMetode pembayaran\nKartu kredit/debit\nDiarahkan ke halaman pembayaran aman Duitku.\nVirtual Account\nNomor VA tampil di halaman ini, tanpa pindah halaman.\nQRIS\nKode QR tampil di halaman ini, tanpa pindah halaman.\nKode voucher (opsional)Periksa voucher\n\nPreview bukan jaminan kuota. Total akhir ditentukan server saat checkout; perubahan voucher tidak mengubah invoice sebelumnya.\n\nJika provider belum merespons, kirim ulang form ini untuk melanjutkan intent yang sama.\n\nLanjut ke pembayaran",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant",
+    "screenshot": "admin-1440-dashboard-tenant.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Welcome back, Creator",
+      "Penjualan Kelas",
+      "Organization Management"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nWelcome back, Creator\n\nHere is what is happening across your organization today.\n\nInvite Member\nTOTAL MEMBERS\n3\n\nActive team members in tenant\n\nManage total members\nACTIVE ROLES\n2\n\nConfigured tenant roles\n\nManage active roles\nPENDING INVITES\n0\n\nInvitations awaiting response\n\nManage pending invites\nPENJUALAN KELAS\n29 Sep 2026 – 28 Okt 2026 (UTC)\n\nBelum ada penjualan.\n\nTidak ada transaksi paid pada periode ini.\n\nOrganization Management\n\nQuickly navigate to common administrative workflows for your tenant organization.\n\nMember Directory\nView & invite team members\nTenant Settings\nOrganization profile & location",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/classes",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/classes",
+    "screenshot": "admin-1440-dashboard-tenant-classes.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Class & Academic Management",
+      "Delete “KEL228 Group Lessons”?",
+      "Delete “KEL228 Private Lessons”?",
+      "Delete “KEL228 Group Lessons”?",
+      "Delete “KEL228 Private Lessons”?"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nClass & Academic Management\n\nConfigure subject categories, class pricing, student capacities, and recurring weekly timetables.\n\nCreate New Class\nClasses (2/2 published)\nCategories (1)\nSchedules (1)\nCLASS NAME\tCATEGORY\tTYPE\tPUBLICATION\tPRICE\tCAPACITY\tACTIONS\nKEL228 Group Lessons\tKEL228 fixture\tGROUP\t\nPUBLISHED\nOpen for enrollment\n\tRp 100.000\tPer schedule\t\nUnpublish\nVisible in /kelas and open for enrollment.\nEdit\nKEL228 Group Lessons\nDelete\n\nKEL228 Private Lessons\tKEL228 fixture\tPRIVATE\t\nPUBLISHED\nOpen for enrollment\n\tRp 100.000\tPer schedule\t\nUnpublish\nVisible in /kelas and open for enrollment.\nEdit\nKEL228 Private Lessons\nDelete",
+    "unlabelled": [
+      ""
+    ],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/members",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/members",
+    "screenshot": "admin-1440-dashboard-tenant-members.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Tenant Member Management",
+      "Owner Account Request",
+      "Remove admin2 Fixture from the organization?",
+      "Remove Teacher Fixture from the organization?",
+      "Remove admin2 Fixture from the organization?",
+      "Remove Teacher Fixture from the organization?",
+      "Pending Invitations"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nTenant Member Management\n\nView active team members, configure role permissions, and issue email invitations.\n\nInvite Member\nOwner Account Request\nRequest an owner account\nTarget email\nReason\nSubmit Owner Account Request\nStatus\n\nNo requests yet.\n\nMEMBER\tROLE\tPERMISSIONS\tSTATUS\tACTIONS\n\nadmin Fixture\nadmin@kel228.example.test\n\tCreator\t\ntenant:read\ntenant:update\nmember:invite\nmember:read\nmember:update\nmember:delete\nrole:create\nrole:read\nrole:update\nrole:delete\ncategory:create\ncategory:read\ncategory:update\ncategory:delete\nclass:create\nclass:read\nclass:update\nclass:delete\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nstudent:create\nstudent:read\nstudent:update\nstudent:delete\nenrollment:create\nenrollment:read\nenrollment:update\nenrollment:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\nbilling:read\nbilling:withdraw\nbilling:refund\nchat:manage\nvoucher:create\nvoucher:read\nvoucher:update\nvoucher:delete\n\tActive\t\nEdit Role\n\n\nadmin2 Fixture\nadmin2@kel228.example.test\n\tCreator\t\ntenant:read\ntenant:update\nmember:invite\nmember:read\nmember:update\nmember:delete\nrole:create\nrole:read\nrole:update\nrole:delete\ncategory:create\ncategory:read\ncategory:update\ncategory:delete\nclass:create\nclass:read\nclass:update\nclass:delete\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nstudent:create\nstudent:read\nstudent:update\nstudent:delete\nenrollment:create\nenrollment:read\nenrollment:update\nenrollment:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\nbilling:read\nbilling:withdraw\nbilling:refund\nchat:manage\nvoucher:create\nvoucher:read\nvoucher:update\nvoucher:delete\n\tActive\t\nEdit Role\nRemove\nadmin2 Fixture from the organization\n\n\nTeacher Fixture\nteacher@kel228.example.test\n\tTeacher\t\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\n\tActive\t\nEdit Role\nRemove\nTeacher Fixture from the organization\nPending Invitations\n\nNo pending invitations\n\nInvitations you send appear here until they are accepted, revoked or replaced.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/finance",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/finance",
+    "screenshot": "admin-1440-dashboard-tenant-finance.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Keuangan",
+      "Saldo",
+      "Mutasi",
+      "Rekening pencairan",
+      "Penarikan"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nKeuangan\n\nSaldo, mutasi, rekening, dan pengajuan penarikan tenant.\n\nSaldo\n\nTersedia: Rp 0\n\nTertahan: Rp 0\n\nMutasi\n\nBelum ada mutasi.\n\nHalaman 1 dari 1\nRekening pencairan\n\nBelum ada rekening.\n\nTambah rekening\nKode bank\nNomor rekening\nNama pemilik\nSimpan rekening\nPenarikan\n\nTambahkan rekening utama sebelum mengajukan penarikan.\n\nBelum ada pengajuan.\n\nHalaman 1 dari 1",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/sessions",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/sessions",
+    "screenshot": "admin-1440-dashboard-tenant-sessions.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Sesi Saya",
+      "Tidak ada sesi pada rentang ini."
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nSesi Saya\n\nLihat sesi Anda hari ini dan minggu ini, termasuk sesi reschedule, lalu catat kehadiran seluruh siswa dari halaman ini.\n\nRENTANG SESI\nHari ini\nMinggu ini\nKELAS\nSemua kelas\nKEL228 Group Lessons\nKEL228 Private Lessons\nTerapkan\nTidak ada sesi pada rentang ini.\n\nBelum ada sesi yang dijadwalkan untuk Anda pada rentang ini, termasuk sesi reschedule.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/reports",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/reports",
+    "screenshot": "admin-1440-dashboard-tenant-reports.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Laporan Evaluasi",
+      "Buat laporan evaluasi",
+      "KEL228 fixture progress",
+      "Ubah laporan evaluasi",
+      "Hapus laporan ini?"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nLaporan Evaluasi\n\nTulis laporan evaluasi untuk siswa yang Anda ajar, lalu kelola dari halaman ini.\n\nBuat laporan\nCARI LAPORAN\nSISWA\nSemua siswa\nFixture Child 1 · KEL228 Group Lessons\nDARI TANGGAL\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nSAMPAI TANGGAL\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTerapkan\n\n1 laporan\n\nKEL228 fixture progress\n\nFixture Child 1 · KEL228 Group Lessons · 28 Oktober 2026\n\nNILAI: 85\n\nSynthetic progress notes\n\nUbah\nHapus",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/enrollments",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/enrollments",
+    "screenshot": "admin-1440-dashboard-tenant-enrollments.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Enrollment & Pembayaran"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nEnrollment & Pembayaran\n\nPantau student yang terdaftar pada kelas tenant Anda, lengkap dengan status enrollment dan status pembayarannya.\n\nSTATUS ENROLLMENT\nSemua status\nMenunggu aktivasi\nAktif\nDitangguhkan\nSelesai\nDibatalkan\nTerapkan\n\n1 enrollment\n\nDaftar enrollment tenant beserta status enrollment dan status pembayaran\nSTUDENT\tKELAS\tJADWAL\tSTATUS ENROLLMENT\tSTATUS PEMBAYARAN\tNOMINAL\nFixture Child 1\nDibuat 28 Okt 2026\n\tKEL228 Group Lessons\nmonthly\n\tSabtu, 10:00–11:00\tAKTIF\tMenunggu transaksi\nEnrollment belum memiliki transaksi pembayaran yang dapat ditampilkan.\n\tNominal belum tersedia",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/schedule-requests",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/schedule-requests",
+    "screenshot": "admin-1440-dashboard-tenant-schedule-requests.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Permintaan Jadwal Private"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nPermintaan Jadwal Private\n\nTinjau permintaan jadwal private dari parent. Setujui untuk menerbitkan tautan pembayaran, atau tolak dengan alasan yang dapat dikosongkan.\n\nSTATUS PERMINTAAN\nMenunggu peninjauan\nDisetujui\nDitolak\nRekomendasi ditolak\nDibatalkan\nTerapkan\n\n0 permintaan · filter status pending\n\nTidak ada permintaan jadwal pada status ini\n\nUbah filter status untuk melihat permintaan jadwal lain.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/transactions",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/transactions",
+    "screenshot": "admin-1440-dashboard-tenant-transactions.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Transaksi",
+      "Tidak ada transaksi pada rentang ini."
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nTransaksi\n\nFilter transaksi berdasarkan status, tanggal (UTC), dan order ID, lalu unduh CSV untuk filter yang aktif.\n\nSTATUS\npending\npaid\nfailed\nexpired\ncancelled\nrefunded\ncreating\nCARI ORDER ID\nDARI TANGGAL (UTC)\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nSAMPAI TANGGAL (UTC)\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTerapkan\n\nStatus paid memakai tanggal bayar; status lain memakai tanggal buat. Kedua tanggal termasuk dalam rentang (UTC).\n\nTidak ada transaksi pada rentang ini.\n\nUbah status, pencarian order ID, atau rentang tanggal untuk melihat transaksi yang lain.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/vouchers",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/vouchers",
+    "screenshot": "admin-1440-dashboard-tenant-vouchers.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Vouchers",
+      "Create voucher",
+      "Your vouchers (0)"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nVouchers\n\nCreate, edit, and deactivate tenant vouchers. Parents can apply eligible vouchers at initial group-class checkout. Discounts do not apply to renewals or private classes.\n\nCreate voucher\nCode *\n\nUnique per tenant, case-insensitive.\n\nDiscount type *\nPercentage (%)\nFixed amount (Rp)\nDiscount value *\nMinimum transaction (Rp)\nMaximum discount (Rp)\nMaximum uses\nValid from\nDate\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTime\n\nYour local time, including seconds. New dates start at 00:00:00.\n\nValid until\nDate\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTime\n\nYour local time, including seconds. New dates end at 23:59:59.\n\nCreate voucher\nYour vouchers (0)\n\nNo vouchers yet. Create one to offer a discount.\n\nPage 1 of 1",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/roles",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/roles",
+    "screenshot": "admin-1440-dashboard-tenant-roles.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Roles & Permission Management",
+      "Create Custom Role",
+      "Configured Tenant Roles (2)"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nRoles & Permission Management\n\nDefine fine-grained custom roles and access policies for your organization team members.\n\nCreate Custom Role\nRole Profile Details\n\nSpecify a descriptive identifier and clear description for the custom role.\n\nRole Name *\nDescription\nAssign Permissions\n0 of 49 selected\n\nSelect the specific module capabilities to grant to users with this role.\n\nSelect All\nClear All\nTEAM & MEMBERS\n0/4\n\nManage organization team members, user accounts, and invitations.\n\nSelect Module\nmember:delete\nMenghapus anggota tim dari bimbel\nmember:invite\nMengundang anggota tim atau pengajar baru\nmember:read\nMelihat daftar anggota tim/pengajar bimbel\nmember:update\nMengubah peran atau status anggota tim\nCLASSES & SUBJECTS\n0/8\n\nConfigure academic subjects, course categories, and class offerings.\n\nSelect Module\ncategory:create\nMembuat kategori mata pelajaran baru\ncategory:delete\nMenghapus kategori mata pelajaran\ncategory:read\nMelihat daftar dan detail kategori\ncategory:update\nMengubah informasi kategori mata pelajaran\nclass:create\nMembuat kelas baru\nclass:delete\nMenghapus kelas\nclass:read\nMelihat daftar dan detail kelas\nclass:update\nMengubah informasi kelas\nSCHEDULES & SESSIONS\n0/4\n\nOversee class timetables, session rosters, and tutor assignments.\n\nSelect Module\nschedule:create\nMembuat jadwal pelajaran kelas\nschedule:delete\nMenghapus jadwal pelajaran kelas\nschedule:read\nMelihat jadwal pelajaran kelas\nschedule:update\nMengubah jadwal pelajaran kelas\nROLES & ACCESS CONTROL\n0/4\n\nDefine custom role permissions and access policies.\n\nSelect Module\nrole:create\nMembuat role kustom baru\nrole:delete\nMenghapus role kustom\nrole:read\nMelihat daftar role dan hak akses\nrole:update\nMengubah role kustom dan hak akses\nORGANIZATION SETTINGS\n0/3\n\nManage tenant profile, branding, and global system configuration.\n\nSelect Module\nchat:manage\nMenangani chat tenant dengan orang tua dan pengajar\ntenant:read\nMelihat informasi profil bimbel/tenant\ntenant:update\nMengubah informasi profil bimbel/tenant\nGENERAL OPERATIONS\n0/26\n\nGeneral system operations and miscellaneous capabilities.\n\nSelect Module\nattendance:create\nMencatat presensi/kehadiran siswa\nattendance:read\nMelihat rekap presensi/kehadiran siswa\nattendance:update\nMengubah catatan presensi/kehadiran siswa\nbilling:read\nMelihat saldo wallet dan riwayat transaksi/mutasi\nbilling:refund\nMencatat refund manual transaksi paid\nbilling:withdraw\nMelakukan penarikan saldo/dana bimbel\nenrollment:create\nMendaftarkan siswa ke kelas\nenrollment:delete\nMembatalkan pendaftaran kelas siswa\nenrollment:read\nMelihat daftar pendaftaran kelas\nenrollment:update\nMengubah status pendaftaran siswa\nreport:create\nMembuat laporan evaluasi/nilai siswa\nreport:delete\nMenghapus laporan evaluasi/nilai siswa\nreport:read\nMelihat laporan evaluasi/nilai siswa\nreport:update\nMengubah laporan evaluasi/nilai siswa\nstudent:create\nMendaftarkan data siswa baru\nstudent:delete\nMenghapus data siswa\nstudent_note:create\nMembuat catatan siswa (akademik/perilaku/medis)\nstudent_note:delete\nMenghapus catatan siswa\nstudent_note:read\nMelihat catatan siswa\nstudent_note:update\nMengubah catatan siswa\nstudent:read\nMelihat daftar dan profil siswa\nstudent:update\nMengubah data profil siswa\nvoucher:create\nMembuat kode voucher diskon baru\nvoucher:delete\nMenghapus voucher diskon\nvoucher:read\nMelihat daftar voucher diskon\nvoucher:update\nMengubah informasi/status voucher diskon\nReset Form\nCreate Custom Role\nConfigured Tenant Roles (2)\n\nReview built-in system roles and organization custom access policies.\n\nAll Roles (2)\nCustom (0)\nSystem (2)\nCreator\n\nSystem Default Creator Role (Full Access)\n\nSystem Role\n49 permissions granted\ntenant:read\ntenant:update\nmember:invite\nmember:read\n+45 more\nTeacher\n\nSystem Default Teacher Role\n\nSystem Role\n15 permissions granted\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\n+11 more",
+    "unlabelled": [
+      ""
+    ],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/chat",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/chat",
+    "screenshot": "admin-1440-dashboard-tenant-chat.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Chat",
+      "Percakapan",
+      "Pilih percakapan",
+      "Chat dari laporan student"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nChat\nPercakapan\nMulai chat admin\n\nBelum ada percakapan. Percakapan baru akan tampil di sini.\n\nPilih percakapan\n\nTerhubung\n\nMuat ulang\nPilih percakapan untuk membaca pesan.\nChat dari laporan student\n\nPilih laporan untuk memulai percakapan dengan parent student.\n\nCari laporan\nCari\n\nKEL228 fixture progress\n\n28 Okt 2026\n\nMulai chat",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/settings",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/settings",
+    "screenshot": "admin-1440-dashboard-tenant-settings.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Pengaturan Tenant",
+      "Profil tenant",
+      "Lokasi tenant"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nPengaturan Tenant\n\nKelola profil dan lokasi tenant yang tampil pada katalog publik.\n\nProfil tenant\n\nNama, telepon, alamat profil, dan deskripsi yang dilihat calon pembeli.\n\nProfil tenant\nNama tenant\nTelepon\nAlamat\n\nAlamat di sini adalah alamat profil. Untuk lokasi pencarian katalog, gunakan bagian lokasi di bawah.\n\nTentang tenant\n\nDitampilkan pada katalog publik. Kosongkan untuk menghapus deskripsi.\n\nSimpan profil\nLokasi tenant\n\nLokasi menentukan apakah kelas tenant muncul pada pencarian katalog berbasis radius.\n\nAlamat tersimpan:\nHasil geocode:\nSynthetic fixture street\nKoordinat:\n-6.2, 106.8\nLokasi tenant\nAlamat lokasi\n\nIsi alamat saja untuk meminta sistem mencari koordinat, atau lengkapi koordinat di bawah bila sudah diketahui.\n\nLatitude (opsional)\nLongitude (opsional)\nSimpan lokasi",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/creator-requests",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/members#owner-account-request",
+    "screenshot": "admin-1440-dashboard-tenant-creator-requests.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Tenant Member Management",
+      "Owner Account Request",
+      "Remove admin2 Fixture from the organization?",
+      "Remove Teacher Fixture from the organization?",
+      "Remove admin2 Fixture from the organization?",
+      "Remove Teacher Fixture from the organization?",
+      "Pending Invitations"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nClasses\nSesi Saya\nLaporan\nEnrollments\nSchedule Requests\nVouchers\nTransaksi\nKeuangan\nChat\nMembers\nRoles & Permissions\nSettings\nCR\nCreator\nKeluar\n\nKEL228 Fixture School · Creator\n\nTenant Member Management\n\nView active team members, configure role permissions, and issue email invitations.\n\nInvite Member\nOwner Account Request\nRequest an owner account\nTarget email\nReason\nSubmit Owner Account Request\nStatus\n\nNo requests yet.\n\nMEMBER\tROLE\tPERMISSIONS\tSTATUS\tACTIONS\n\nadmin Fixture\nadmin@kel228.example.test\n\tCreator\t\ntenant:read\ntenant:update\nmember:invite\nmember:read\nmember:update\nmember:delete\nrole:create\nrole:read\nrole:update\nrole:delete\ncategory:create\ncategory:read\ncategory:update\ncategory:delete\nclass:create\nclass:read\nclass:update\nclass:delete\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nstudent:create\nstudent:read\nstudent:update\nstudent:delete\nenrollment:create\nenrollment:read\nenrollment:update\nenrollment:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\nbilling:read\nbilling:withdraw\nbilling:refund\nchat:manage\nvoucher:create\nvoucher:read\nvoucher:update\nvoucher:delete\n\tActive\t\nEdit Role\n\n\nadmin2 Fixture\nadmin2@kel228.example.test\n\tCreator\t\ntenant:read\ntenant:update\nmember:invite\nmember:read\nmember:update\nmember:delete\nrole:create\nrole:read\nrole:update\nrole:delete\ncategory:create\ncategory:read\ncategory:update\ncategory:delete\nclass:create\nclass:read\nclass:update\nclass:delete\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nstudent:create\nstudent:read\nstudent:update\nstudent:delete\nenrollment:create\nenrollment:read\nenrollment:update\nenrollment:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\nbilling:read\nbilling:withdraw\nbilling:refund\nchat:manage\nvoucher:create\nvoucher:read\nvoucher:update\nvoucher:delete\n\tActive\t\nEdit Role\nRemove\nadmin2 Fixture from the organization\n\n\nTeacher Fixture\nteacher@kel228.example.test\n\tTeacher\t\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\n\tActive\t\nEdit Role\nRemove\nTeacher Fixture from the organization\nPending Invitations\n\nNo pending invitations\n\nInvitations you send appear here until they are accepted, revoked or replaced.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant",
+    "screenshot": "admin-390-dashboard-tenant.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Welcome back, Creator",
+      "Penjualan Kelas",
+      "Organization Management"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nWelcome back, Creator\n\nHere is what is happening across your organization today.\n\nInvite Member\nTOTAL MEMBERS\n3\n\nActive team members in tenant\n\nManage total members\nACTIVE ROLES\n2\n\nConfigured tenant roles\n\nManage active roles\nPENDING INVITES\n0\n\nInvitations awaiting response\n\nManage pending invites\nPENJUALAN KELAS\n29 Sep 2026 – 28 Okt 2026 (UTC)\n\nBelum ada penjualan.\n\nTidak ada transaksi paid pada periode ini.\n\nOrganization Management\n\nQuickly navigate to common administrative workflows for your tenant organization.\n\nMember Directory\nView & invite team members\nTenant Settings\nOrganization profile & location",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/classes",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/classes",
+    "screenshot": "admin-390-dashboard-tenant-classes.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Class & Academic Management",
+      "Delete “KEL228 Group Lessons”?",
+      "Delete “KEL228 Private Lessons”?",
+      "Delete “KEL228 Group Lessons”?",
+      "Delete “KEL228 Private Lessons”?"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nClass & Academic Management\n\nConfigure subject categories, class pricing, student capacities, and recurring weekly timetables.\n\nCreate New Class\nClasses (2/2 published)\nCategories (1)\nSchedules (1)\nKEL228 Group Lessons\nKEL228 fixture\nGROUP\nPUBLISHED\nOpen for enrollment\nPrice\nRp 100.000\nCapacity\nPer schedule\nUnpublish\nVisible in /kelas and open for enrollment.\nEdit\nKEL228 Group Lessons\nDelete\nKEL228 Private Lessons\nKEL228 fixture\nPRIVATE\nPUBLISHED\nOpen for enrollment\nPrice\nRp 100.000\nCapacity\nPer schedule\nUnpublish\nVisible in /kelas and open for enrollment.\nEdit\nKEL228 Private Lessons\nDelete",
+    "unlabelled": [
+      ""
+    ],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/members",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/members",
+    "screenshot": "admin-390-dashboard-tenant-members.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Tenant Member Management",
+      "Owner Account Request",
+      "Remove admin2 Fixture from the organization?",
+      "Remove Teacher Fixture from the organization?",
+      "Remove admin2 Fixture from the organization?",
+      "Remove Teacher Fixture from the organization?",
+      "Pending Invitations"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nTenant Member Management\n\nView active team members, configure role permissions, and issue email invitations.\n\nInvite Member\nOwner Account Request\nRequest an owner account\nTarget email\nReason\nSubmit Owner Account Request\nStatus\n\nNo requests yet.\n\nadmin Fixture\n\nadmin@kel228.example.test\n\nActive\nRole:\nCreator\nPermissions:\ntenant:read\ntenant:update\nmember:invite\nmember:read\nmember:update\nmember:delete\nrole:create\nrole:read\nrole:update\nrole:delete\ncategory:create\ncategory:read\ncategory:update\ncategory:delete\nclass:create\nclass:read\nclass:update\nclass:delete\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nstudent:create\nstudent:read\nstudent:update\nstudent:delete\nenrollment:create\nenrollment:read\nenrollment:update\nenrollment:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\nbilling:read\nbilling:withdraw\nbilling:refund\nchat:manage\nvoucher:create\nvoucher:read\nvoucher:update\nvoucher:delete\nEdit Role\nadmin2 Fixture\n\nadmin2@kel228.example.test\n\nActive\nRole:\nCreator\nPermissions:\ntenant:read\ntenant:update\nmember:invite\nmember:read\nmember:update\nmember:delete\nrole:create\nrole:read\nrole:update\nrole:delete\ncategory:create\ncategory:read\ncategory:update\ncategory:delete\nclass:create\nclass:read\nclass:update\nclass:delete\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nstudent:create\nstudent:read\nstudent:update\nstudent:delete\nenrollment:create\nenrollment:read\nenrollment:update\nenrollment:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\nbilling:read\nbilling:withdraw\nbilling:refund\nchat:manage\nvoucher:create\nvoucher:read\nvoucher:update\nvoucher:delete\nEdit Role\nRemove\nadmin2 Fixture from the organization\nTeacher Fixture\n\nteacher@kel228.example.test\n\nActive\nRole:\nTeacher\nPermissions:\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\nEdit Role\nRemove\nTeacher Fixture from the organization\nPending Invitations\n\nNo pending invitations\n\nInvitations you send appear here until they are accepted, revoked or replaced.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/finance",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/finance",
+    "screenshot": "admin-390-dashboard-tenant-finance.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Keuangan",
+      "Saldo",
+      "Mutasi",
+      "Rekening pencairan",
+      "Penarikan"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nKeuangan\n\nSaldo, mutasi, rekening, dan pengajuan penarikan tenant.\n\nSaldo\n\nTersedia: Rp 0\n\nTertahan: Rp 0\n\nMutasi\n\nBelum ada mutasi.\n\nHalaman 1 dari 1\nRekening pencairan\n\nBelum ada rekening.\n\nTambah rekening\nKode bank\nNomor rekening\nNama pemilik\nSimpan rekening\nPenarikan\n\nTambahkan rekening utama sebelum mengajukan penarikan.\n\nBelum ada pengajuan.\n\nHalaman 1 dari 1",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/sessions",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/sessions",
+    "screenshot": "admin-390-dashboard-tenant-sessions.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Sesi Saya",
+      "Tidak ada sesi pada rentang ini."
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nSesi Saya\n\nLihat sesi Anda hari ini dan minggu ini, termasuk sesi reschedule, lalu catat kehadiran seluruh siswa dari halaman ini.\n\nRENTANG SESI\nHari ini\nMinggu ini\nKELAS\nSemua kelas\nKEL228 Group Lessons\nKEL228 Private Lessons\nTerapkan\nTidak ada sesi pada rentang ini.\n\nBelum ada sesi yang dijadwalkan untuk Anda pada rentang ini, termasuk sesi reschedule.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/reports",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/reports",
+    "screenshot": "admin-390-dashboard-tenant-reports.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Laporan Evaluasi",
+      "Buat laporan evaluasi",
+      "KEL228 fixture progress",
+      "Ubah laporan evaluasi",
+      "Hapus laporan ini?"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nLaporan Evaluasi\n\nTulis laporan evaluasi untuk siswa yang Anda ajar, lalu kelola dari halaman ini.\n\nBuat laporan\nCARI LAPORAN\nSISWA\nSemua siswa\nFixture Child 1 · KEL228 Group Lessons\nDARI TANGGAL\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nSAMPAI TANGGAL\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTerapkan\n\n1 laporan\n\nKEL228 fixture progress\n\nFixture Child 1 · KEL228 Group Lessons · 28 Oktober 2026\n\nNILAI: 85\n\nSynthetic progress notes\n\nUbah\nHapus",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/enrollments",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/enrollments",
+    "screenshot": "admin-390-dashboard-tenant-enrollments.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Enrollment & Pembayaran"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nEnrollment & Pembayaran\n\nPantau student yang terdaftar pada kelas tenant Anda, lengkap dengan status enrollment dan status pembayarannya.\n\nSTATUS ENROLLMENT\nSemua status\nMenunggu aktivasi\nAktif\nDitangguhkan\nSelesai\nDibatalkan\nTerapkan\n\n1 enrollment\n\nKEL228 Group Lessons\n\nFixture Child 1\n\nAKTIF\nJadwal\nSabtu, 10:00–11:00\nDibuat\n28 Okt 2026\nMenunggu transaksi\n\nEnrollment belum memiliki transaksi pembayaran yang dapat ditampilkan.\n\nNominal belum tersedia",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/schedule-requests",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/schedule-requests",
+    "screenshot": "admin-390-dashboard-tenant-schedule-requests.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Permintaan Jadwal Private"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nPermintaan Jadwal Private\n\nTinjau permintaan jadwal private dari parent. Setujui untuk menerbitkan tautan pembayaran, atau tolak dengan alasan yang dapat dikosongkan.\n\nSTATUS PERMINTAAN\nMenunggu peninjauan\nDisetujui\nDitolak\nRekomendasi ditolak\nDibatalkan\nTerapkan\n\n0 permintaan · filter status pending\n\nTidak ada permintaan jadwal pada status ini\n\nUbah filter status untuk melihat permintaan jadwal lain.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/transactions",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/transactions",
+    "screenshot": "admin-390-dashboard-tenant-transactions.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Transaksi",
+      "Tidak ada transaksi pada rentang ini."
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nTransaksi\n\nFilter transaksi berdasarkan status, tanggal (UTC), dan order ID, lalu unduh CSV untuk filter yang aktif.\n\nSTATUS\npending\npaid\nfailed\nexpired\ncancelled\nrefunded\ncreating\nCARI ORDER ID\nDARI TANGGAL (UTC)\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nSAMPAI TANGGAL (UTC)\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTerapkan\n\nStatus paid memakai tanggal bayar; status lain memakai tanggal buat. Kedua tanggal termasuk dalam rentang (UTC).\n\nTidak ada transaksi pada rentang ini.\n\nUbah status, pencarian order ID, atau rentang tanggal untuk melihat transaksi yang lain.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/vouchers",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/vouchers",
+    "screenshot": "admin-390-dashboard-tenant-vouchers.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Vouchers",
+      "Create voucher",
+      "Your vouchers (0)"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nVouchers\n\nCreate, edit, and deactivate tenant vouchers. Parents can apply eligible vouchers at initial group-class checkout. Discounts do not apply to renewals or private classes.\n\nCreate voucher\nCode *\n\nUnique per tenant, case-insensitive.\n\nDiscount type *\nPercentage (%)\nFixed amount (Rp)\nDiscount value *\nMinimum transaction (Rp)\nMaximum discount (Rp)\nMaximum uses\nValid from\nDate\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTime\n\nYour local time, including seconds. New dates start at 00:00:00.\n\nValid until\nDate\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTime\n\nYour local time, including seconds. New dates end at 23:59:59.\n\nCreate voucher\nYour vouchers (0)\n\nNo vouchers yet. Create one to offer a discount.\n\nPage 1 of 1",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/roles",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/roles",
+    "screenshot": "admin-390-dashboard-tenant-roles.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Roles & Permission Management",
+      "Create Custom Role",
+      "Configured Tenant Roles (2)"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nRoles & Permission Management\n\nDefine fine-grained custom roles and access policies for your organization team members.\n\nCreate Custom Role\nRole Profile Details\n\nSpecify a descriptive identifier and clear description for the custom role.\n\nRole Name *\nDescription\nAssign Permissions\n0 of 49 selected\n\nSelect the specific module capabilities to grant to users with this role.\n\nSelect All\nClear All\nTEAM & MEMBERS\n0/4\n\nManage organization team members, user accounts, and invitations.\n\nSelect Module\nmember:delete\nMenghapus anggota tim dari bimbel\nmember:invite\nMengundang anggota tim atau pengajar baru\nmember:read\nMelihat daftar anggota tim/pengajar bimbel\nmember:update\nMengubah peran atau status anggota tim\nCLASSES & SUBJECTS\n0/8\n\nConfigure academic subjects, course categories, and class offerings.\n\nSelect Module\ncategory:create\nMembuat kategori mata pelajaran baru\ncategory:delete\nMenghapus kategori mata pelajaran\ncategory:read\nMelihat daftar dan detail kategori\ncategory:update\nMengubah informasi kategori mata pelajaran\nclass:create\nMembuat kelas baru\nclass:delete\nMenghapus kelas\nclass:read\nMelihat daftar dan detail kelas\nclass:update\nMengubah informasi kelas\nSCHEDULES & SESSIONS\n0/4\n\nOversee class timetables, session rosters, and tutor assignments.\n\nSelect Module\nschedule:create\nMembuat jadwal pelajaran kelas\nschedule:delete\nMenghapus jadwal pelajaran kelas\nschedule:read\nMelihat jadwal pelajaran kelas\nschedule:update\nMengubah jadwal pelajaran kelas\nROLES & ACCESS CONTROL\n0/4\n\nDefine custom role permissions and access policies.\n\nSelect Module\nrole:create\nMembuat role kustom baru\nrole:delete\nMenghapus role kustom\nrole:read\nMelihat daftar role dan hak akses\nrole:update\nMengubah role kustom dan hak akses\nORGANIZATION SETTINGS\n0/3\n\nManage tenant profile, branding, and global system configuration.\n\nSelect Module\nchat:manage\nMenangani chat tenant dengan orang tua dan pengajar\ntenant:read\nMelihat informasi profil bimbel/tenant\ntenant:update\nMengubah informasi profil bimbel/tenant\nGENERAL OPERATIONS\n0/26\n\nGeneral system operations and miscellaneous capabilities.\n\nSelect Module\nattendance:create\nMencatat presensi/kehadiran siswa\nattendance:read\nMelihat rekap presensi/kehadiran siswa\nattendance:update\nMengubah catatan presensi/kehadiran siswa\nbilling:read\nMelihat saldo wallet dan riwayat transaksi/mutasi\nbilling:refund\nMencatat refund manual transaksi paid\nbilling:withdraw\nMelakukan penarikan saldo/dana bimbel\nenrollment:create\nMendaftarkan siswa ke kelas\nenrollment:delete\nMembatalkan pendaftaran kelas siswa\nenrollment:read\nMelihat daftar pendaftaran kelas\nenrollment:update\nMengubah status pendaftaran siswa\nreport:create\nMembuat laporan evaluasi/nilai siswa\nreport:delete\nMenghapus laporan evaluasi/nilai siswa\nreport:read\nMelihat laporan evaluasi/nilai siswa\nreport:update\nMengubah laporan evaluasi/nilai siswa\nstudent:create\nMendaftarkan data siswa baru\nstudent:delete\nMenghapus data siswa\nstudent_note:create\nMembuat catatan siswa (akademik/perilaku/medis)\nstudent_note:delete\nMenghapus catatan siswa\nstudent_note:read\nMelihat catatan siswa\nstudent_note:update\nMengubah catatan siswa\nstudent:read\nMelihat daftar dan profil siswa\nstudent:update\nMengubah data profil siswa\nvoucher:create\nMembuat kode voucher diskon baru\nvoucher:delete\nMenghapus voucher diskon\nvoucher:read\nMelihat daftar voucher diskon\nvoucher:update\nMengubah informasi/status voucher diskon\nReset Form\nCreate Custom Role\nConfigured Tenant Roles (2)\n\nReview built-in system roles and organization custom access policies.\n\nAll Roles (2)\nCustom (0)\nSystem (2)\nCreator\n\nSystem Default Creator Role (Full Access)\n\nSystem Role\n49 permissions granted\ntenant:read\ntenant:update\nmember:invite\nmember:read\n+45 more\nTeacher\n\nSystem Default Teacher Role\n\nSystem Role\n15 permissions granted\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\n+11 more",
+    "unlabelled": [
+      ""
+    ],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/chat",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/chat",
+    "screenshot": "admin-390-dashboard-tenant-chat.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Chat",
+      "Percakapan",
+      "Pilih percakapan",
+      "Chat dari laporan student"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nChat\nPercakapan\nMulai chat admin\n\nBelum ada percakapan. Percakapan baru akan tampil di sini.\n\nPilih percakapan\n\nTerhubung\n\nMuat ulang\nPilih percakapan untuk membaca pesan.\nChat dari laporan student\n\nPilih laporan untuk memulai percakapan dengan parent student.\n\nCari laporan\nCari\n\nKEL228 fixture progress\n\n28 Okt 2026\n\nMulai chat",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/settings",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/settings",
+    "screenshot": "admin-390-dashboard-tenant-settings.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Pengaturan Tenant",
+      "Profil tenant",
+      "Lokasi tenant"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nPengaturan Tenant\n\nKelola profil dan lokasi tenant yang tampil pada katalog publik.\n\nProfil tenant\n\nNama, telepon, alamat profil, dan deskripsi yang dilihat calon pembeli.\n\nProfil tenant\nNama tenant\nTelepon\nAlamat\n\nAlamat di sini adalah alamat profil. Untuk lokasi pencarian katalog, gunakan bagian lokasi di bawah.\n\nTentang tenant\n\nDitampilkan pada katalog publik. Kosongkan untuk menghapus deskripsi.\n\nSimpan profil\nLokasi tenant\n\nLokasi menentukan apakah kelas tenant muncul pada pencarian katalog berbasis radius.\n\nAlamat tersimpan:\nHasil geocode:\nSynthetic fixture street\nKoordinat:\n-6.2, 106.8\nLokasi tenant\nAlamat lokasi\n\nIsi alamat saja untuk meminta sistem mencari koordinat, atau lengkapi koordinat di bawah bila sudah diketahui.\n\nLatitude (opsional)\nLongitude (opsional)\nSimpan lokasi",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "admin",
+    "route": "/dashboard/tenant/creator-requests",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/members#owner-account-request",
+    "screenshot": "admin-390-dashboard-tenant-creator-requests.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Tenant Member Management",
+      "Owner Account Request",
+      "Remove admin2 Fixture from the organization?",
+      "Remove Teacher Fixture from the organization?",
+      "Remove admin2 Fixture from the organization?",
+      "Remove Teacher Fixture from the organization?",
+      "Pending Invitations"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Creator\n\nTenant Member Management\n\nView active team members, configure role permissions, and issue email invitations.\n\nInvite Member\nOwner Account Request\nRequest an owner account\nTarget email\nReason\nSubmit Owner Account Request\nStatus\n\nNo requests yet.\n\nadmin Fixture\n\nadmin@kel228.example.test\n\nActive\nRole:\nCreator\nPermissions:\ntenant:read\ntenant:update\nmember:invite\nmember:read\nmember:update\nmember:delete\nrole:create\nrole:read\nrole:update\nrole:delete\ncategory:create\ncategory:read\ncategory:update\ncategory:delete\nclass:create\nclass:read\nclass:update\nclass:delete\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nstudent:create\nstudent:read\nstudent:update\nstudent:delete\nenrollment:create\nenrollment:read\nenrollment:update\nenrollment:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\nbilling:read\nbilling:withdraw\nbilling:refund\nchat:manage\nvoucher:create\nvoucher:read\nvoucher:update\nvoucher:delete\nEdit Role\nadmin2 Fixture\n\nadmin2@kel228.example.test\n\nActive\nRole:\nCreator\nPermissions:\ntenant:read\ntenant:update\nmember:invite\nmember:read\nmember:update\nmember:delete\nrole:create\nrole:read\nrole:update\nrole:delete\ncategory:create\ncategory:read\ncategory:update\ncategory:delete\nclass:create\nclass:read\nclass:update\nclass:delete\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nstudent:create\nstudent:read\nstudent:update\nstudent:delete\nenrollment:create\nenrollment:read\nenrollment:update\nenrollment:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\nbilling:read\nbilling:withdraw\nbilling:refund\nchat:manage\nvoucher:create\nvoucher:read\nvoucher:update\nvoucher:delete\nEdit Role\nRemove\nadmin2 Fixture from the organization\nTeacher Fixture\n\nteacher@kel228.example.test\n\nActive\nRole:\nTeacher\nPermissions:\nschedule:create\nschedule:read\nschedule:update\nschedule:delete\nattendance:create\nattendance:read\nattendance:update\nstudent_note:create\nstudent_note:read\nstudent_note:update\nstudent_note:delete\nreport:create\nreport:read\nreport:update\nreport:delete\nEdit Role\nRemove\nTeacher Fixture from the organization\nPending Invitations\n\nNo pending invitations\n\nInvitations you send appear here until they are accepted, revoked or replaced.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant",
+    "screenshot": "teacher-1440-dashboard-tenant.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Welcome back, Teacher",
+      "Penjualan Kelas"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nWelcome back, Teacher\n\nHere is what is happening across your organization today.\n\nPENJUALAN KELAS\n30 hari terakhir\n\nAnda tidak memiliki akses ke ringkasan penjualan.\n\nRingkasan ini memerlukan izin billing:read. Hubungi pemilik tenant jika Anda membutuhkannya.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/classes",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/classes",
+    "screenshot": "teacher-1440-dashboard-tenant-classes.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Class & Academic Management"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nClass & Academic Management\n\nConfigure subject categories, class pricing, student capacities, and recurring weekly timetables.\n\nCreate New Class\nClasses (2/2 published)\nCategories (1)\nSchedules (1)\nCLASS NAME\tCATEGORY\tTYPE\tPUBLICATION\tPRICE\tCAPACITY\tACTIONS\nKEL228 Group Lessons\tKEL228 fixture\tGROUP\t\nPUBLISHED\nOpen for enrollment\n\tRp 100.000\tPer schedule\t\nUnpublish\nVisible in /kelas and open for enrollment.\nEdit\nKEL228 Group Lessons\n\nKEL228 Private Lessons\tKEL228 fixture\tPRIVATE\t\nPUBLISHED\nOpen for enrollment\n\tRp 100.000\tPer schedule\t\nUnpublish\nVisible in /kelas and open for enrollment.\nEdit\nKEL228 Private Lessons",
+    "unlabelled": [
+      ""
+    ],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/members",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/members",
+    "screenshot": "teacher-1440-dashboard-tenant-members.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Akses ditolak"
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke administrasi tenant ini."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nAkses ditolak\n\nAnda tidak memiliki akses ke administrasi tenant ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/finance",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/finance",
+    "screenshot": "teacher-1440-dashboard-tenant-finance.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Keuangan",
+      "Saldo",
+      "Mutasi"
+    ],
+    "alerts": [
+      "Anda tidak memiliki akses untuk melihat data ini.",
+      "Anda tidak memiliki akses untuk melihat data ini."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nKeuangan\n\nSaldo, mutasi, rekening, dan pengajuan penarikan tenant.\n\nSaldo\n\nAnda tidak memiliki akses untuk melihat data ini.\n\nMutasi\n\nAnda tidak memiliki akses untuk melihat data ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/sessions",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/sessions",
+    "screenshot": "teacher-1440-dashboard-tenant-sessions.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Sesi Saya",
+      "Tidak ada sesi pada rentang ini."
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nSesi Saya\n\nLihat sesi Anda hari ini dan minggu ini, termasuk sesi reschedule, lalu catat kehadiran seluruh siswa dari halaman ini.\n\nRENTANG SESI\nHari ini\nMinggu ini\nKELAS\nSemua kelas\nKEL228 Group Lessons\nKEL228 Private Lessons\nTerapkan\nTidak ada sesi pada rentang ini.\n\nBelum ada sesi yang dijadwalkan untuk Anda pada rentang ini, termasuk sesi reschedule.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/reports",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/reports",
+    "screenshot": "teacher-1440-dashboard-tenant-reports.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Laporan Evaluasi",
+      "Buat laporan evaluasi",
+      "KEL228 fixture progress",
+      "Ubah laporan evaluasi",
+      "Hapus laporan ini?"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nLaporan Evaluasi\n\nTulis laporan evaluasi untuk siswa yang Anda ajar, lalu kelola dari halaman ini.\n\nBuat laporan\nCARI LAPORAN\nSISWA\nSemua siswa\nFixture Child 1 · KEL228 Group Lessons\nDARI TANGGAL\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nSAMPAI TANGGAL\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTerapkan\n\n1 laporan\n\nKEL228 fixture progress\n\nFixture Child 1 · KEL228 Group Lessons · 28 Oktober 2026\n\nNILAI: 85\n\nSynthetic progress notes\n\nUbah\nHapus",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/enrollments",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/enrollments",
+    "screenshot": "teacher-1440-dashboard-tenant-enrollments.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Enrollment & Pembayaran",
+      "Anda tidak memiliki akses ke daftar enrollment."
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke daftar enrollment.Anda tidak memiliki izin melihat enrollment tenant ini. Hubungi administrator tenant untuk mendapatkan permission enrollment:read."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nEnrollment & Pembayaran\n\nPantau student yang terdaftar pada kelas tenant Anda, lengkap dengan status enrollment dan status pembayarannya.\n\nSTATUS ENROLLMENT\nSemua status\nMenunggu aktivasi\nAktif\nDitangguhkan\nSelesai\nDibatalkan\nTerapkan\n\nAKSES DITOLAK\n\nAnda tidak memiliki akses ke daftar enrollment.\n\nAnda tidak memiliki izin melihat enrollment tenant ini. Hubungi administrator tenant untuk mendapatkan permission enrollment:read.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/schedule-requests",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/schedule-requests",
+    "screenshot": "teacher-1440-dashboard-tenant-schedule-requests.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Permintaan Jadwal Private",
+      "Anda tidak memiliki akses ke daftar permintaan jadwal."
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke daftar permintaan jadwal.Anda tidak memiliki izin melihat permintaan jadwal tenant ini. Hubungi administrator tenant untuk mendapatkan permission enrollment:read."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nPermintaan Jadwal Private\n\nTinjau permintaan jadwal private dari parent. Setujui untuk menerbitkan tautan pembayaran, atau tolak dengan alasan yang dapat dikosongkan.\n\nSTATUS PERMINTAAN\nMenunggu peninjauan\nDisetujui\nDitolak\nRekomendasi ditolak\nDibatalkan\nTerapkan\n\nAKSES DITOLAK\n\nAnda tidak memiliki akses ke daftar permintaan jadwal.\n\nAnda tidak memiliki izin melihat permintaan jadwal tenant ini. Hubungi administrator tenant untuk mendapatkan permission enrollment:read.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/transactions",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/transactions",
+    "screenshot": "teacher-1440-dashboard-tenant-transactions.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Transaksi",
+      "Anda tidak memiliki akses ke daftar transaksi."
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke daftar transaksi.Anda tidak memiliki izin melihat daftar transaksi tenant ini. Hubungi administrator tenant untuk mendapatkan permission billing:read."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nTransaksi\n\nFilter transaksi berdasarkan status, tanggal (UTC), dan order ID, lalu unduh CSV untuk filter yang aktif.\n\nSTATUS\npending\npaid\nfailed\nexpired\ncancelled\nrefunded\ncreating\nCARI ORDER ID\nDARI TANGGAL (UTC)\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nSAMPAI TANGGAL (UTC)\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTerapkan\n\nStatus paid memakai tanggal bayar; status lain memakai tanggal buat. Kedua tanggal termasuk dalam rentang (UTC).\n\nAKSES DITOLAK\n\nAnda tidak memiliki akses ke daftar transaksi.\n\nAnda tidak memiliki izin melihat daftar transaksi tenant ini. Hubungi administrator tenant untuk mendapatkan permission billing:read.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/vouchers",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/vouchers",
+    "screenshot": "teacher-1440-dashboard-tenant-vouchers.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Vouchers"
+    ],
+    "alerts": [
+      "Anda tidak memiliki izin melihat voucher tenant ini. Hubungi administrator tenant untuk mendapatkan permission voucher:read."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nVouchers\n\nCreate, edit, and deactivate tenant vouchers. Parents can apply eligible vouchers at initial group-class checkout. Discounts do not apply to renewals or private classes.\n\nAnda tidak memiliki izin melihat voucher tenant ini. Hubungi administrator tenant untuk mendapatkan permission voucher:read.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/roles",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/roles",
+    "screenshot": "teacher-1440-dashboard-tenant-roles.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Akses ditolak"
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke administrasi tenant ini."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nAkses ditolak\n\nAnda tidak memiliki akses ke administrasi tenant ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/chat",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/chat",
+    "screenshot": "teacher-1440-dashboard-tenant-chat.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Chat",
+      "Percakapan",
+      "Pilih percakapan",
+      "Chat dari laporan student"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nChat\nPercakapan\nMulai chat admin\n\nBelum ada percakapan. Percakapan baru akan tampil di sini.\n\nPilih percakapan\n\nTerhubung\n\nMuat ulang\nPilih percakapan untuk membaca pesan.\nChat dari laporan student\n\nPilih laporan untuk memulai percakapan dengan parent student.\n\nCari laporan\nCari\n\nKEL228 fixture progress\n\n28 Okt 2026\n\nMulai chat",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/settings",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/settings",
+    "screenshot": "teacher-1440-dashboard-tenant-settings.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Akses ditolak"
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke administrasi tenant ini."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nAkses ditolak\n\nAnda tidak memiliki akses ke administrasi tenant ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/creator-requests",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/members#owner-account-request",
+    "screenshot": "teacher-1440-dashboard-tenant-creator-requests.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Akses ditolak"
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke administrasi tenant ini."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\nOverview\nSesi Saya\nLaporan\nTE\nTeacher\nKeluar\n\nKEL228 Fixture School · Teacher\n\nAkses ditolak\n\nAnda tidak memiliki akses ke administrasi tenant ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant",
+    "screenshot": "teacher-390-dashboard-tenant.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Welcome back, Teacher",
+      "Penjualan Kelas"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nWelcome back, Teacher\n\nHere is what is happening across your organization today.\n\nPENJUALAN KELAS\n30 hari terakhir\n\nAnda tidak memiliki akses ke ringkasan penjualan.\n\nRingkasan ini memerlukan izin billing:read. Hubungi pemilik tenant jika Anda membutuhkannya.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/classes",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/classes",
+    "screenshot": "teacher-390-dashboard-tenant-classes.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Class & Academic Management"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nClass & Academic Management\n\nConfigure subject categories, class pricing, student capacities, and recurring weekly timetables.\n\nCreate New Class\nClasses (2/2 published)\nCategories (1)\nSchedules (1)\nKEL228 Group Lessons\nKEL228 fixture\nGROUP\nPUBLISHED\nOpen for enrollment\nPrice\nRp 100.000\nCapacity\nPer schedule\nUnpublish\nVisible in /kelas and open for enrollment.\nEdit\nKEL228 Group Lessons\nKEL228 Private Lessons\nKEL228 fixture\nPRIVATE\nPUBLISHED\nOpen for enrollment\nPrice\nRp 100.000\nCapacity\nPer schedule\nUnpublish\nVisible in /kelas and open for enrollment.\nEdit\nKEL228 Private Lessons",
+    "unlabelled": [
+      ""
+    ],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/members",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/members",
+    "screenshot": "teacher-390-dashboard-tenant-members.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Akses ditolak"
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke administrasi tenant ini."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nAkses ditolak\n\nAnda tidak memiliki akses ke administrasi tenant ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/finance",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/finance",
+    "screenshot": "teacher-390-dashboard-tenant-finance.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Keuangan",
+      "Saldo",
+      "Mutasi"
+    ],
+    "alerts": [
+      "Anda tidak memiliki akses untuk melihat data ini.",
+      "Anda tidak memiliki akses untuk melihat data ini."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nKeuangan\n\nSaldo, mutasi, rekening, dan pengajuan penarikan tenant.\n\nSaldo\n\nAnda tidak memiliki akses untuk melihat data ini.\n\nMutasi\n\nAnda tidak memiliki akses untuk melihat data ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/sessions",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/sessions",
+    "screenshot": "teacher-390-dashboard-tenant-sessions.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Sesi Saya",
+      "Tidak ada sesi pada rentang ini."
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nSesi Saya\n\nLihat sesi Anda hari ini dan minggu ini, termasuk sesi reschedule, lalu catat kehadiran seluruh siswa dari halaman ini.\n\nRENTANG SESI\nHari ini\nMinggu ini\nKELAS\nSemua kelas\nKEL228 Group Lessons\nKEL228 Private Lessons\nTerapkan\nTidak ada sesi pada rentang ini.\n\nBelum ada sesi yang dijadwalkan untuk Anda pada rentang ini, termasuk sesi reschedule.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/reports",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/reports",
+    "screenshot": "teacher-390-dashboard-tenant-reports.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Laporan Evaluasi",
+      "Buat laporan evaluasi",
+      "KEL228 fixture progress",
+      "Ubah laporan evaluasi",
+      "Hapus laporan ini?"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nLaporan Evaluasi\n\nTulis laporan evaluasi untuk siswa yang Anda ajar, lalu kelola dari halaman ini.\n\nBuat laporan\nCARI LAPORAN\nSISWA\nSemua siswa\nFixture Child 1 · KEL228 Group Lessons\nDARI TANGGAL\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nSAMPAI TANGGAL\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTerapkan\n\n1 laporan\n\nKEL228 fixture progress\n\nFixture Child 1 · KEL228 Group Lessons · 28 Oktober 2026\n\nNILAI: 85\n\nSynthetic progress notes\n\nUbah\nHapus",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/enrollments",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/enrollments",
+    "screenshot": "teacher-390-dashboard-tenant-enrollments.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Enrollment & Pembayaran",
+      "Anda tidak memiliki akses ke daftar enrollment."
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke daftar enrollment.Anda tidak memiliki izin melihat enrollment tenant ini. Hubungi administrator tenant untuk mendapatkan permission enrollment:read."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nEnrollment & Pembayaran\n\nPantau student yang terdaftar pada kelas tenant Anda, lengkap dengan status enrollment dan status pembayarannya.\n\nSTATUS ENROLLMENT\nSemua status\nMenunggu aktivasi\nAktif\nDitangguhkan\nSelesai\nDibatalkan\nTerapkan\n\nAKSES DITOLAK\n\nAnda tidak memiliki akses ke daftar enrollment.\n\nAnda tidak memiliki izin melihat enrollment tenant ini. Hubungi administrator tenant untuk mendapatkan permission enrollment:read.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/schedule-requests",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/schedule-requests",
+    "screenshot": "teacher-390-dashboard-tenant-schedule-requests.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Permintaan Jadwal Private",
+      "Anda tidak memiliki akses ke daftar permintaan jadwal."
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke daftar permintaan jadwal.Anda tidak memiliki izin melihat permintaan jadwal tenant ini. Hubungi administrator tenant untuk mendapatkan permission enrollment:read."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nPermintaan Jadwal Private\n\nTinjau permintaan jadwal private dari parent. Setujui untuk menerbitkan tautan pembayaran, atau tolak dengan alasan yang dapat dikosongkan.\n\nSTATUS PERMINTAAN\nMenunggu peninjauan\nDisetujui\nDitolak\nRekomendasi ditolak\nDibatalkan\nTerapkan\n\nAKSES DITOLAK\n\nAnda tidak memiliki akses ke daftar permintaan jadwal.\n\nAnda tidak memiliki izin melihat permintaan jadwal tenant ini. Hubungi administrator tenant untuk mendapatkan permission enrollment:read.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/transactions",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/transactions",
+    "screenshot": "teacher-390-dashboard-tenant-transactions.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Transaksi",
+      "Anda tidak memiliki akses ke daftar transaksi."
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke daftar transaksi.Anda tidak memiliki izin melihat daftar transaksi tenant ini. Hubungi administrator tenant untuk mendapatkan permission billing:read."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nTransaksi\n\nFilter transaksi berdasarkan status, tanggal (UTC), dan order ID, lalu unduh CSV untuk filter yang aktif.\n\nSTATUS\npending\npaid\nfailed\nexpired\ncancelled\nrefunded\ncreating\nCARI ORDER ID\nDARI TANGGAL (UTC)\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nSAMPAI TANGGAL (UTC)\n/\n/\n▦\n×\nHari / bulan / tahun. Tempel YYYY-MM-DD atau DD/MM/YYYY. Alt+panah bawah membuka kalender.\nTerapkan\n\nStatus paid memakai tanggal bayar; status lain memakai tanggal buat. Kedua tanggal termasuk dalam rentang (UTC).\n\nAKSES DITOLAK\n\nAnda tidak memiliki akses ke daftar transaksi.\n\nAnda tidak memiliki izin melihat daftar transaksi tenant ini. Hubungi administrator tenant untuk mendapatkan permission billing:read.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/vouchers",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/vouchers",
+    "screenshot": "teacher-390-dashboard-tenant-vouchers.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Vouchers"
+    ],
+    "alerts": [
+      "Anda tidak memiliki izin melihat voucher tenant ini. Hubungi administrator tenant untuk mendapatkan permission voucher:read."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nVouchers\n\nCreate, edit, and deactivate tenant vouchers. Parents can apply eligible vouchers at initial group-class checkout. Discounts do not apply to renewals or private classes.\n\nAnda tidak memiliki izin melihat voucher tenant ini. Hubungi administrator tenant untuk mendapatkan permission voucher:read.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/roles",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/roles",
+    "screenshot": "teacher-390-dashboard-tenant-roles.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Akses ditolak"
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke administrasi tenant ini."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nAkses ditolak\n\nAnda tidak memiliki akses ke administrasi tenant ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/chat",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/chat",
+    "screenshot": "teacher-390-dashboard-tenant-chat.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Chat",
+      "Percakapan",
+      "Pilih percakapan",
+      "Chat dari laporan student"
+    ],
+    "alerts": [],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nChat\nPercakapan\nMulai chat admin\n\nBelum ada percakapan. Percakapan baru akan tampil di sini.\n\nPilih percakapan\n\nTerhubung\n\nMuat ulang\nPilih percakapan untuk membaca pesan.\nChat dari laporan student\n\nPilih laporan untuk memulai percakapan dengan parent student.\n\nCari laporan\nCari\n\nKEL228 fixture progress\n\n28 Okt 2026\n\nMulai chat",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/settings",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/settings",
+    "screenshot": "teacher-390-dashboard-tenant-settings.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Akses ditolak"
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke administrasi tenant ini."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nAkses ditolak\n\nAnda tidak memiliki akses ke administrasi tenant ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "teacher",
+    "route": "/dashboard/tenant/creator-requests",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/dashboard/tenant/members#owner-account-request",
+    "screenshot": "teacher-390-dashboard-tenant-creator-requests.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Akses ditolak"
+    ],
+    "alerts": [
+      "Akses ditolakAnda tidak memiliki akses ke administrasi tenant ini."
+    ],
+    "text": "K\nKelolaKelas\nTENANT PORTAL\n\nKEL228 Fixture School · Teacher\n\nAkses ditolak\n\nAnda tidak memiliki akses ke administrasi tenant ini.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "platform",
+    "route": "/platform",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/platform",
+    "screenshot": "platform-1440-platform.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Platform admin"
+    ],
+    "alerts": [],
+    "text": "Platform admin\n\nSecond factor verified.\n\nReview Owner Account Requests\nReview tenant withdrawals",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "platform",
+    "route": "/platform/creator-requests",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/platform/creator-requests",
+    "screenshot": "platform-1440-platform-creator-requests.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Pending Owner Account Requests"
+    ],
+    "alerts": [],
+    "text": "Platform admin\nPending Owner Account Requests\n\nNo pending Owner Account Requests.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "platform",
+    "route": "/platform/withdrawals",
+    "viewport": 1440,
+    "status": 200,
+    "url": "http://localhost:3300/platform/withdrawals",
+    "screenshot": "platform-1440-platform-withdrawals.png",
+    "width": 1440,
+    "scroll": 1440,
+    "headings": [
+      "Pending tenant withdrawals",
+      "Recent decisions"
+    ],
+    "alerts": [],
+    "text": "Platform admin\nPending tenant withdrawals\n\nRecord a manual transfer only after verifying its destination and amount. This page does not initiate a transfer.\n\nNo pending withdrawals.\n\nPage 1 of 1 · 0 pending\nRecent decisions\n\nNo decisions recorded yet.\n\nPage 1 of 1 · 0 decided",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "platform",
+    "route": "/platform",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/platform",
+    "screenshot": "platform-390-platform.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Platform admin"
+    ],
+    "alerts": [],
+    "text": "Platform admin\n\nSecond factor verified.\n\nReview Owner Account Requests\nReview tenant withdrawals",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "platform",
+    "route": "/platform/creator-requests",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/platform/creator-requests",
+    "screenshot": "platform-390-platform-creator-requests.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Pending Owner Account Requests"
+    ],
+    "alerts": [],
+    "text": "Platform admin\nPending Owner Account Requests\n\nNo pending Owner Account Requests.",
+    "unlabelled": [],
+    "errors": []
+  },
+  {
+    "persona": "platform",
+    "route": "/platform/withdrawals",
+    "viewport": 390,
+    "status": 200,
+    "url": "http://localhost:3300/platform/withdrawals",
+    "screenshot": "platform-390-platform-withdrawals.png",
+    "width": 390,
+    "scroll": 390,
+    "headings": [
+      "Pending tenant withdrawals",
+      "Recent decisions"
+    ],
+    "alerts": [],
+    "text": "Platform admin\nPending tenant withdrawals\n\nRecord a manual transfer only after verifying its destination and amount. This page does not initiate a transfer.\n\nNo pending withdrawals.\n\nPage 1 of 1 · 0 pending\nRecent decisions\n\nNo decisions recorded yet.\n\nPage 1 of 1 · 0 decided",
+    "unlabelled": [],
+    "errors": []
+  }
+]
