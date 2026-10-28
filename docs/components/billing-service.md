@@ -1,9 +1,11 @@
 # Billing service (`kelolakelas-billing-service`)
 
-**Observed (KEL-221):** initial invoices include subscription/period metadata and
-are incorrectly excluded from activation reconciliation on the current main
-baseline. A proposed identity-based correction and PostgreSQL regression pass;
-external settlement acceptance and merge remain pending. See
+**Implemented (KEL-221):** initial invoices include subscription/period metadata,
+but are distinguished from renewals by the existing transaction ID = enrollment ID
+invariant. Initial paid invoices now owe durable activation, and initial
+failed/expired invoices owe seat release; renewal exclusions remain intact.
+Billing PR #40 merged as `03fb0815e7bb8ceaf83135a0dfc1cf5b27a3a9e2`; real
+sandbox settlement, Academic activation and parent/tenant refresh pass. See
 [diagnosis](../evidence/kel221-initial-payment-activation.md) and
 [ADR 0080](../adr/0080-initial-invoice-reconciliation-identity.md).
 

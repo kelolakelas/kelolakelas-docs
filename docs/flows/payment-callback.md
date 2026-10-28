@@ -1,10 +1,12 @@
 # Duitku payment callback
 
-**Known initial-purchase gap (KEL-221):** the current main renewal discriminator
-also matches generated initial invoices, skipping activation intent/dispatch.
-The durable path described below exists, but those invoices do not reach it.
-The proposed correction is tested with isolated PostgreSQL; external sandbox
-settlement and merge are pending. See [diagnosis and limits](../evidence/kel221-initial-payment-activation.md).
+**Implemented (KEL-221):** generated initial invoices retain subscription/period
+metadata and use transaction ID = enrollment ID. `Transaction.IsRenewal` requires
+a different transaction ID as well as subscription/period metadata, so initial
+paid invoices now reach durable activation and initial failure/expiry releases
+the seat. Renewals retain their lifecycle path. Real provider-confirmed sandbox
+settlement followed by verified callback replay reaches persisted Academic
+`active`; parent/tenant normal refresh displays active. See [diagnosis and acceptance](../evidence/kel221-initial-payment-activation.md).
 
 ```mermaid
 sequenceDiagram

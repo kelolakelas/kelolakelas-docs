@@ -1,15 +1,16 @@
 # Operations
 
-## KEL-221 initial invoice diagnosis (proposal not rolled out)
+## KEL-221 initial invoice recovery
 
 When payment is paid but Academic enrollment remains pending, correlate the
-request, enrollment, transaction and activation job before remediation. Main
-currently misclassifies initial invoices with subscription/period metadata as
-renewals. The proposed fix has no automatic historical backfill. After verified
-rollout, a paid initial invoice without a job needs individually verified
-provider callback replay; a terminal job uses the existing internal re-drive
-endpoint. Do not reissue payment or bulk-update enrollment status. External
-sandbox acceptance remains blocked; see [evidence](evidence/kel221-initial-payment-activation.md).
+request, enrollment, transaction and activation job before remediation. Billing
+PR #40 fixes the initial/renewal discriminator without an automatic historical
+backfill or migration. After normal reviewed rollout, a paid initial invoice
+without a job needs individually verified provider settlement and callback
+replay; a terminal job uses the existing internal re-drive endpoint. Never
+reissue payment or bulk-update enrollment status. One synthetic invoice has
+real provider-confirmed sandbox settlement and persisted Academic/UI acceptance;
+this is not evidence of production rollout. See [evidence](evidence/kel221-initial-payment-activation.md).
 
 **Implemented (KEL-225):** authenticated existing Teacher invitation acceptance adds `POST /api/v1/invitations/accept` and nullable `tenant_invitations.accepted_member_id` (migration000017). The signed session is bound to the normalized stored email under lock; only active system Teacher accounts and the system Teacher target role are allowed. Existing active target roles are preserved; inactive/deleted collisions, wrong accounts, parents, expired/revoked/unmarked used tokens and arbitrary role grants fail closed. Successful replay returns the same active membership. Verification adds authoritative tenant/role names and existing-account mode; web login retains the invitation and directs the user to KEL-224 tenant selection after success. Apply migration→identity→gateway→web; roll back consumers first and retain replay markers. [ADR0081](adr/0081-existing-teacher-invitation-acceptance.md) and [evidence](evidence/kel225-existing-teacher-invitations.md).
 
