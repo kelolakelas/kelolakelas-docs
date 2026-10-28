@@ -1,5 +1,13 @@
 # Duitku payment callback
 
+**Implemented (KEL-221):** generated initial invoices retain subscription/period
+metadata and use transaction ID = enrollment ID. `Transaction.IsRenewal` requires
+a different transaction ID as well as subscription/period metadata, so initial
+paid invoices now reach durable activation and initial failure/expiry releases
+the seat. Renewals retain their lifecycle path. Real provider-confirmed sandbox
+settlement followed by verified callback replay reaches persisted Academic
+`active`; parent/tenant normal refresh displays active. See [diagnosis and acceptance](../evidence/kel221-initial-payment-activation.md).
+
 ```mermaid
 sequenceDiagram
   participant D as Duitku

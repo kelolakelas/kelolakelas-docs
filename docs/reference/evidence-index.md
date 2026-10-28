@@ -1,5 +1,13 @@
 # Evidence index
 
+**KEL-221:** [initial invoice diagnosis and real-flow acceptance](../evidence/kel221-initial-payment-activation.md),
+[ADR 0080](../adr/0080-initial-invoice-reconciliation-identity.md). Billing PR #40,
+merge `03fb0815e7bb8ceaf83135a0dfc1cf5b27a3a9e2`, fixes the initial/renewal guard.
+Real Duitku sandbox settlement → verified replay → persisted Academic active
+→ parent/tenant desktop/mobile refresh passes. Four concurrent paid replays
+preserve one job, two schedules and two sessions; PostgreSQL retry/re-drive/
+concurrent-first-settlement/ledger and renewal regressions pass.
+
 **KEL-228:** [34-route UI/UX audit](../evidence/kel228-ui-audit.md), [route matrix](../evidence/kel228/route-matrix.md),100 baseline browser visits, five personas, paired desktop/mobile evidence, three fixes, actual-stack journeys, focus/resize regression checks and explicit external coverage limits. Web PR134; no API change or new ADR.
 
 **KEL-225:** [existing Teacher invitation evidence](../evidence/kel225-existing-teacher-invitations.md), [ADR0081](../adr/0081-existing-teacher-invitation-acceptance.md). Actual PostgreSQL transaction/concurrency/rollback/ownership coverage, gateway session/header contracts, web error/login-return tests and production Chrome desktop/mobile A→B→A acceptance; unrelated downstream data and email delivery explicitly identified as doubles.

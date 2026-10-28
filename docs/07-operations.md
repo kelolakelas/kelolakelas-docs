@@ -1,5 +1,17 @@
 # Operations
 
+## KEL-221 initial invoice recovery
+
+When payment is paid but Academic enrollment remains pending, correlate the
+request, enrollment, transaction and activation job before remediation. Billing
+PR #40 fixes the initial/renewal discriminator without an automatic historical
+backfill or migration. After normal reviewed rollout, a paid initial invoice
+without a job needs individually verified provider settlement and callback
+replay; a terminal job uses the existing internal re-drive endpoint. Never
+reissue payment or bulk-update enrollment status. One synthetic invoice has
+real provider-confirmed sandbox settlement and persisted Academic/UI acceptance;
+this is not evidence of production rollout. See [evidence](evidence/kel221-initial-payment-activation.md).
+
 **Implemented (KEL-225):** authenticated existing Teacher invitation acceptance adds `POST /api/v1/invitations/accept` and nullable `tenant_invitations.accepted_member_id` (migration000017). The signed session is bound to the normalized stored email under lock; only active system Teacher accounts and the system Teacher target role are allowed. Existing active target roles are preserved; inactive/deleted collisions, wrong accounts, parents, expired/revoked/unmarked used tokens and arbitrary role grants fail closed. Successful replay returns the same active membership. Verification adds authoritative tenant/role names and existing-account mode; web login retains the invitation and directs the user to KEL-224 tenant selection after success. Apply migration→identity→gateway→web; roll back consumers first and retain replay markers. [ADR0081](adr/0081-existing-teacher-invitation-acceptance.md) and [evidence](evidence/kel225-existing-teacher-invitations.md).
 
 **Implemented health endpoints:** gateway `GET /health`, identity `GET /health`, academic `GET /health`, and billing `GET /health` return `{"status":"healthy","service":...}` without dependency probes. `GET /ready` returns JSON `status`, `service`, and `components`: required failures return 503 (`database` in each stateful service, `identity_grpc` in academic, `identity`/`academic`/`billing` in gateway); Redis failures in identity/gateway report `degraded` with HTTP 200 if required dependencies are healthy. Since KEL-122 chat is an optional gateway probe: it is skipped when `CHAT_SERVICE_URL` is empty and checked at `/health` when set. Probes share a one-second request deadline and do not write. Route registration and handlers: gateway `internal/delivery/http/{router,readiness}.go`; services `cmd/server/{main,readiness,health}.go` (KEL-40).
