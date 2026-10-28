@@ -1,5 +1,7 @@
 # Security and trust boundaries
 
+**Implemented (KEL-225):** authenticated existing Teacher invitation acceptance adds `POST /api/v1/invitations/accept` and nullable `tenant_invitations.accepted_member_id` (migration000017). The signed session is bound to the normalized stored email under lock; only active system Teacher accounts and the system Teacher target role are allowed. Existing active target roles are preserved; inactive/deleted collisions, wrong accounts, parents, expired/revoked/unmarked used tokens and arbitrary role grants fail closed. Successful replay returns the same active membership. Verification adds authoritative tenant/role names and existing-account mode; web login retains the invitation and directs the user to KEL-224 tenant selection after success. Apply migration→identity→gateway→web; roll back consumers first and retain replay markers. [ADR0081](adr/0081-existing-teacher-invitation-acceptance.md) and [evidence](evidence/kel225-existing-teacher-invitations.md).
+
 ## Implemented controls
 
 **Implemented (KEL-187):** the web app owns baseline response headers through `next.config.ts::headers()` and `lib/security-headers.ts`: nosniff, restricted cross-origin referrer, frame denial and report-only CSP. These do not replace backend authorization. Edge configuration is unknown and must preserve rather than duplicate/override app headers. See [ADR 0066](adr/0066-app-owned-security-headers.md) for local/production boundaries, inventory and direct 200/404 verification; web squash `afe2dcb636039b8faffd23834ed7c8d7b994ced0`.
@@ -69,3 +71,13 @@ can act through another tab's replacement cookies. HttpOnly cookies retain the
 existing JWT trust boundary. Previous copied JWTs retain their original tenant
 scope until expiry or existing revocation; switching is not global logout.
 [ADR 0078](adr/0078-own-membership-tenant-session-switch.md).
+
+
+## Private chat human attribution (KEL-226)
+
+**Implemented:** Academic captures JWT-verified parent/member identity alongside an already-authorized transition; missing/mismatched actor rolls back. Internal chat accepts only identifiers, fetches persisted proof, validates frozen room scope and rechecks after locking. No service mints/stores a user JWT. Billing's read contract requires internal credential and exact transaction/enrollment/tenant/parent/student/private-initial scope. Existing gateway header stripping prevents public credential forwarding. Diagnostics and worker logs omit checkout URLs/emails/message text. Existing live chat read/WS membership checks remain applicable. [ADR0082](adr/0082-durable-private-request-chat-events.md).
+
+
+## Scoped class editor reads (KEL-227)
+
+**Implemented:** new class detail requires class:read; class schedules additionally require schedule:read. Parent tokens are denied before a store call. Existing live identity and gateway session checks remain, and SQL includes tenant ownership/deletion predicates. Foreign IDs are404, outages503, no-store. No enrollment/payment/parent preload is added. Teacher choices are shared only within one open editor; choices do not authorize a mutation. [ADR0083](adr/0083-scoped-class-editor-reads.md).

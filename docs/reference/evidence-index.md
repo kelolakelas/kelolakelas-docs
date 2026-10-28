@@ -6,6 +6,10 @@
 real PostgreSQL retry/re-drive/concurrency regressions pass. External Duitku sandbox
 settlement is blocked; this revision is not yet the main baseline.
 
+**KEL-228:** [34-route UI/UX audit](../evidence/kel228-ui-audit.md), [route matrix](../evidence/kel228/route-matrix.md),100 baseline browser visits, five personas, paired desktop/mobile evidence, three fixes, actual-stack journeys, focus/resize regression checks and explicit external coverage limits. Web PR134; no API change or new ADR.
+
+**KEL-225:** [existing Teacher invitation evidence](../evidence/kel225-existing-teacher-invitations.md), [ADR0081](../adr/0081-existing-teacher-invitation-acceptance.md). Actual PostgreSQL transaction/concurrency/rollback/ownership coverage, gateway session/header contracts, web error/login-return tests and production Chrome desktop/mobile A→B→A acceptance; unrelated downstream data and email delivery explicitly identified as doubles.
+
 **KEL-223:** [before/after reproduction and acceptance](../evidence/kel223-chat-inbox-recovery.md),
 [ADR0079](../adr/0079-chat-inbox-pagination-and-live-revalidation.md). Real PostgreSQL
 105-room list/detail/persistence matrix, unavailable versus denied, parent/isolation
@@ -316,3 +320,17 @@ Web authenticated pending-only capped count, shared sidebar/mobile reconciliatio
 ## Shared date fields (KEL-219)
 
 Nine source inputs migrated to segmented calendar entry; local regression, timezone and real API/browser evidence: [inventory and screenshots](../evidence/kel219-shared-date-input.md), [ADR0077](../adr/0077-shared-calendar-date-input.md).
+
+
+## Private request lifecycle chat (KEL-226)
+
+Academic transactional human actor/event/outbox, scoped billing read and chat deduplicated same-room delivery: [ADR0082](../adr/0082-durable-private-request-chat-events.md), [runtime/PostgreSQL/browser evidence](../evidence/kel226-private-request-chat.md).
+
+KEL-226 verified main revisions: academic `09fd70a` (PR63), chat `2de8ce6` (PR8), billing `d8a89fb` (PR41); required PR gates passed and fresh fetch ancestry verified.
+
+
+## Selected class editor performance (KEL-227)
+
+[ADR0083](../adr/0083-scoped-class-editor-reads.md) records narrow tenant reads, pagination and editor-local teacher lifecycle. [Evidence](../evidence/kel227-class-editor-performance.md) records fresh task1 selection/dependencies, actual-stack distributions, query-count/authorization regressions and screenshots.
+
+KEL-227 verified main revisions: academic `c75c1c7` (PR64), gateway `d70421e` (PR47), web `6aefe74` (PR133), all required gates passed and fresh-fetch main ancestry verified.

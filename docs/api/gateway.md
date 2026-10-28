@@ -64,3 +64,6 @@ checker. A selection target in the JSON body must pass identity's live ownership
 check; downstream context headers continue naming the verified JWT tenant.
 The gateway never replaces that context with a body/header-selected tenant.
 [Identity contract](identity.md#own-tenant-sessions-kel-224).
+
+
+**Implemented (KEL-227):** protected GET `/api/v1/classes/:id` and `/api/v1/classes/:id/schedules` proxy to Academic with unchanged path/query, existing JWT/session validation, timeout/body bounds and forged tenant/internal-header stripping. Academic owns live operation permissions and tenant SQL scope. [ADR0083](../adr/0083-scoped-class-editor-reads.md).
