@@ -1,5 +1,7 @@
 # Evidence index
 
+**KEL-222:** [plural private enrollment schedules](../evidence/kel222-private-enrollment-schedules.md), [ADR0084](../adr/0084-private-enrollment-schedule-projection.md), real PostgreSQL scope/version/query-count/105-slot regression, actual gateway/production browser reads for paid and pending fixtures, and parent/tenant desktop/mobile evidence.
+
 **KEL-221:** [initial invoice diagnosis and real-flow acceptance](../evidence/kel221-initial-payment-activation.md),
 [ADR 0080](../adr/0080-initial-invoice-reconciliation-identity.md). Billing PR #40,
 merge `03fb0815e7bb8ceaf83135a0dfc1cf5b27a3a9e2`, fixes the initial/renewal guard.
