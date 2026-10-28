@@ -1,5 +1,7 @@
 # Academic schema
 
+**Implemented (KEL-222):** migration00001790900005 adds `idx_class_schedules_live_enrollment` on `class_schedules(enrollment_id)` where `deleted_at IS NULL AND enrollment_id IS NOT NULL`. No row/column changes. The additive enrollment read projection uses existing version ownership and validity fields; raw Enrollment JSON remains unchanged. [ADR0084](../adr/0084-private-enrollment-schedule-projection.md).
+
 ## Class editor invariants (KEL-198)
 
 **Implemented:** no migration. Existing `class_teachers` assignments are preloaded into additive `teacher_ids` reads and replaced under the class lock in the same transaction as class/category updates. Existing schedule capacity/location/tutor columns are copied or overridden into a new effective-date version; pending/active enrollment links move atomically. The schedule lock serializes with seat reservations; affected session locks protect history checks. Sold enrollment amounts, completed sessions and attendance rows are not rewritten. Unoccupied schedule deletion remains soft deletion. Evidence: academic `class_repository.go`, `schedule_change_guard.go`, `schedule_usecase.go`, `class_editor_postgres_test.go`.

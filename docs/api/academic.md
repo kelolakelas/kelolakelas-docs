@@ -1,5 +1,7 @@
 # Academic API
 
+**Implemented (KEL-222):** scoped enrollment list/detail add `private_schedules` for live private classes: version ID, ISO weekday/start/end, optional location and validity dates. A loaded empty collection is `[]`; read failure fails the endpoint. Group `schedule_id`/`schedule` are unchanged. Retained ended/current/future versions appear once in stable order; deleted rows are excluded. [Contract and lifecycle](../adr/0084-private-enrollment-schedule-projection.md).
+
 ## Complete class editing (KEL-198)
 
 **Implemented:** `PATCH /api/v1/classes/:id` accepts optional `category` (name/description, mutually exclusive with `category_id`), `is_published`, `enrollment_status` (`open|closed|full|archived`) and `teacher_ids`, alongside existing mutable attributes. Inline category creation additionally requires `category:create`. The class row is locked; category creation, Teacher replacement and class update commit together. Teacher IDs must be distinct active tenant memberships; identity failure is 503. Class reads add `teacher_ids`. Existing enrollment `gross_amount` is untouched.
