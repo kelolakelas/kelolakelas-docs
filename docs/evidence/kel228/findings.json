@@ -1,0 +1,21 @@
+[
+  {
+    "finding": "student recovery",
+    "last": "Keep Family",
+    "nickname": "Keep Nickname",
+    "dob": "2018-03-12"
+  },
+  {
+    "finding": "drawer focus",
+    "active": "<button type=\"button\" class=\"inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800\" aria-label=\"Close menu\">✕</button>"
+  },
+  {
+    "finding": "drawer Escape",
+    "stillOpen": true
+  },
+  {
+    "finding": "class resize",
+    "dialogVisible": false,
+    "draftInDOM": "Unsaved KEL228 draft"
+  }
+]

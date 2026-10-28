@@ -1,5 +1,7 @@
 # Evidence index
 
+**KEL-228:** [34-route UI/UX audit](../evidence/kel228-ui-audit.md), [route matrix](../evidence/kel228/route-matrix.md),100 baseline browser visits, five personas, paired desktop/mobile evidence, three fixes, actual-stack journeys, focus/resize regression checks and explicit external coverage limits. Web PR134; no API change or new ADR.
+
 **KEL-225:** [existing Teacher invitation evidence](../evidence/kel225-existing-teacher-invitations.md), [ADR0081](../adr/0081-existing-teacher-invitation-acceptance.md). Actual PostgreSQL transaction/concurrency/rollback/ownership coverage, gateway session/header contracts, web error/login-return tests and production Chrome desktop/mobile A→B→A acceptance; unrelated downstream data and email delivery explicitly identified as doubles.
 
 **KEL-223:** [before/after reproduction and acceptance](../evidence/kel223-chat-inbox-recovery.md),

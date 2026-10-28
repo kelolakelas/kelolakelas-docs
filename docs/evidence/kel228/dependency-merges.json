@@ -1,0 +1,233 @@
+[
+  {
+    "issue": "KEL-202",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/206",
+    "merged_at": "2026-10-16T12:46:02Z",
+    "merge_commit": "c905adc786b4677dfcd02db98ecdce2ca6480e2b",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-202",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/113",
+    "merged_at": "2026-10-16T12:45:59Z",
+    "merge_commit": "bb49374a95333c85803edacc863fe8a010439b5d",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-210",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/215",
+    "merged_at": "2026-10-18T06:38:02Z",
+    "merge_commit": "b933e50e78ba8a1bccb5e41348d689ee294fe9c0",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-210",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/119",
+    "merged_at": "2026-10-18T06:37:57Z",
+    "merge_commit": "316d2b26a58ef8b5de7a61006fc43718a734f07f",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-219",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/227",
+    "merged_at": "2026-10-24T17:54:18Z",
+    "merge_commit": "4fd5496da621c939097de8eecbdbf709357da07a",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-219",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/128",
+    "merged_at": "2026-10-24T17:54:11Z",
+    "merge_commit": "175f5709de7d5b0e82ab4f9d3eb694cfa674805a",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-220",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/228",
+    "merged_at": "2026-10-25T10:01:28Z",
+    "merge_commit": "30f19fe462db38c02dc1357be78d373f42442eca",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-220",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/224",
+    "merged_at": "2026-10-24T16:28:29Z",
+    "merge_commit": "64b5785dda928d29902759c7470c2e219dc23590",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-220",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/125",
+    "merged_at": "2026-10-24T16:28:25Z",
+    "merge_commit": "ca7df7700eb47318a2d256faf12e7735b20a602d",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-200",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/203",
+    "merged_at": "2026-10-16T12:02:32Z",
+    "merge_commit": "822b565b198f29219f4961e3644b578fd7190afa",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-200",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/110",
+    "merged_at": "2026-10-16T12:01:20Z",
+    "merge_commit": "23dec014c050b0b2e4b1570e937db6876e41a057",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-201",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/204",
+    "merged_at": "2026-10-16T12:16:35Z",
+    "merge_commit": "be9c3f03ffc67026aa62bae218e91ba0cc5b43d2",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-201",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/111",
+    "merged_at": "2026-10-16T12:15:49Z",
+    "merge_commit": "dad3659793ec0f76f960b330dc268e6f78b9eac1",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-175",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/174",
+    "merged_at": "2026-10-09T16:24:58Z",
+    "merge_commit": "c836b9b65f3cf5bf7665fe1b897c3aafa7f51061",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-175",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/86",
+    "merged_at": "2026-10-09T16:20:46Z",
+    "merge_commit": "c5a9a581b36c1817efe1d16b91859ed756fc2eaf",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-175",
+    "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/49",
+    "merged_at": "2026-10-09T16:20:38Z",
+    "merge_commit": "b42e49942cf72e36c49e9d404dd0ec3487ced10b",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-109",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/113",
+    "merged_at": "2026-09-28T08:37:25Z",
+    "merge_commit": "bbabe6cf60f5e2d9150041600a9beb11ed16aa3a",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-109",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/50",
+    "merged_at": "2026-09-28T08:34:04Z",
+    "merge_commit": "56e606cd443dd0c9eba7a4140bd3045765034975",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-227",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/235",
+    "merged_at": "2026-10-27T19:37:43Z",
+    "merge_commit": "fde0d5231534b2f04780f826f4b63a599f1e9160",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-227",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/133",
+    "merged_at": "2026-10-27T19:35:33Z",
+    "merge_commit": "6aefe7430591ba6f01918f6a1701800747b71dcc",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-227",
+    "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/47",
+    "merged_at": "2026-10-27T19:35:26Z",
+    "merge_commit": "d70421e3ba3c8f40d4df5599f72dd885a7059a6b",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-227",
+    "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/64",
+    "merged_at": "2026-10-27T19:35:17Z",
+    "merge_commit": "c75c1c75d893a56a0ee16846605805fdc49d70fd",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-198",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/201",
+    "merged_at": "2026-10-16T11:29:33Z",
+    "merge_commit": "65215506b15e226bf7cbe261fec0d0a949648001",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-198",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/108",
+    "merged_at": "2026-10-16T11:28:22Z",
+    "merge_commit": "3cf0b280bd06ce550f9c79aafdc7583b135f7d9d",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-198",
+    "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/57",
+    "merged_at": "2026-10-16T11:27:07Z",
+    "merge_commit": "7fd11396f4f21e1430c12641d80e77a58d351c1c",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-197",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/200",
+    "merged_at": "2026-10-16T09:14:20Z",
+    "merge_commit": "c858bcfe6e6402b50e300e2261e5324c8c44446e",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-197",
+    "url": "https://github.com/kelolakelas/kelolakelas-web/pull/107",
+    "merged_at": "2026-10-16T09:13:26Z",
+    "merge_commit": "fd3b1a41afa7237f60aa8e55fa733f40f79238d1",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-196",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/208",
+    "merged_at": "2026-10-16T16:37:56Z",
+    "merge_commit": "4b73b20f5518b45e04940ec84f95221f7ff6abe2",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-196",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/199",
+    "merged_at": "2026-10-16T08:54:24Z",
+    "merge_commit": "6f2bb57e3308b52c7b744a315588bcc40cd8d341",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-196",
+    "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/56",
+    "merged_at": "2026-10-16T08:54:19Z",
+    "merge_commit": "84fc0a9f1bec4c57593e404dbed5c38ae37488ab",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-107",
+    "url": "https://github.com/kelolakelas/kelolakelas-docs/pull/109",
+    "merged_at": "2026-09-28T03:02:28Z",
+    "merge_commit": "68afa0c1c625bf4d35277266ce4ba9cff49574f5",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-107",
+    "url": "https://github.com/kelolakelas/kelolakelas-api-gateway/pull/28",
+    "merged_at": "2026-09-28T02:56:50Z",
+    "merge_commit": "fef837a40edef676d86c7715a024e7b440f40c51",
+    "reachable": true
+  },
+  {
+    "issue": "KEL-107",
+    "url": "https://github.com/kelolakelas/kelolakelas-academic-service/pull/34",
+    "merged_at": "2026-09-28T02:55:48Z",
+    "merge_commit": "41a73e8c2e9223285863b6830cc10ad5912e2723",
+    "reachable": true
+  }
+]
