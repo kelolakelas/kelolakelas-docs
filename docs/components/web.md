@@ -1,5 +1,7 @@
 # Web (`kelolakelas-web`)
 
+**Implemented (KEL-229):** private create wizard and edit form expose a positive weekly slot limit, distinct from capacity. New drafts default to1; legacy edit keeps an optional blank value until configured. Group submissions omit it. Catalog and tenant review carry the field; parent/review explanations allow multiple proposals without promising automatic approval. Server422 errors remain authoritative for stale forms. [Validation](../evidence/kel229-private-slot-limit.md).
+
 **Implemented (KEL-222; extends KEL-70):** tenant enrollment desktop/mobile and parent history show all `private_schedules` with effective periods, including pending payment. Shared `enrollmentScheduleLabel` preserves server order, deduplicates version IDs and distinguishes explicit empty from unavailable projection. Tenant no longer scans `/api/v1/schedules`; group singular summaries retain their format. [Acceptance](../evidence/kel222-private-enrollment-schedules.md).
 
 **Implemented (KEL-228):** tenant mobile navigation and class editing use native modal dialogs through document portals. Keyboard focus, Escape and responsive visibility preserve the active interaction; desktop navigation closes the mobile drawer. Parent report detail links to the inbox because only staff can create report conversations; parents can reply to existing rooms. [34-route UI audit, three fixes and limits](../evidence/kel228-ui-audit.md).
