@@ -1,5 +1,7 @@
 # Academic schema
 
+**Implemented (KEL-229):** migration `00001790900006_private_slot_limit` adds nullable integer `classes.private_slot_limit` with CHECK: NULL or (`type='private'` and value>0). No backfill or changes to existing purchase/event rows. Down drops the column; roll back application readers/writers first. Only newly created private classes default to1. [ADR0085](../adr/0085-private-approved-slot-limit.md).
+
 **Implemented (KEL-222):** migration00001790900005 adds `idx_class_schedules_live_enrollment` on `class_schedules(enrollment_id)` where `deleted_at IS NULL AND enrollment_id IS NOT NULL`. No row/column changes. The additive enrollment read projection uses existing version ownership and validity fields; raw Enrollment JSON remains unchanged. [ADR0084](../adr/0084-private-enrollment-schedule-projection.md).
 
 ## Class editor invariants (KEL-198)

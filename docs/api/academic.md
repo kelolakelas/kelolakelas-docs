@@ -1,5 +1,11 @@
 # Academic API
 
+## Private approved-slot limit (KEL-229)
+
+**Implemented:** simple/composite create and update accept `private_slot_limit`; tenant class and public catalog reads return integer or NULL. Values must be positive PostgreSQL integers (1..2147483647); JSON fractions/strings are invalid. New private create omission defaults to1, update omission/null preserves the stored value, and legacy NULL is unbounded. Group non-null values are rejected; class type remains immutable. Invalid create is400, invalid semantic update is422 (malformed integer JSON is400).
+
+Bodyless approval, recommendations and parent acceptance enforce the current limit before new artifacts/events. Over-limit decisions return422 with a smaller-recommendation message; no truncation or subset-selection endpoint is introduced. Materialized retries reuse their original agreement. [ADR0085](../adr/0085-private-approved-slot-limit.md).
+
 **Implemented (KEL-222):** scoped enrollment list/detail add `private_schedules` for live private classes: version ID, ISO weekday/start/end, optional location and validity dates. A loaded empty collection is `[]`; read failure fails the endpoint. Group `schedule_id`/`schedule` are unchanged. Retained ended/current/future versions appear once in stable order; deleted rows are excluded. [Contract and lifecycle](../adr/0084-private-enrollment-schedule-projection.md).
 
 ## Complete class editing (KEL-198)
