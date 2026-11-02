@@ -1,5 +1,7 @@
 # Academic schema
 
+**Implemented (KEL-230):** migration1790900007 adds nullable JSONB `private_schedule_requests.approved_slots`, with a nonempty-array CHECK when non-NULL. Original `slots` never becomes the decision. First approval writes selection, enrollment, schedules, sessions, status and captured approval event atomically. Legacy existing purchases remain all-slot agreements. Down migration refuses to drop any persisted non-NULL decision. Roll back consumers first and retain decision data for retries. [ADR0087](../adr/0087-private-approved-slot-selection.md).
+
 **Implemented (KEL-229):** migration `00001790900006_private_slot_limit` adds nullable integer `classes.private_slot_limit` with CHECK: NULL or (`type='private'` and value>0). No backfill or changes to existing purchase/event rows. Down drops the column; roll back application readers/writers first. Only newly created private classes default to1. [ADR0085](../adr/0085-private-approved-slot-limit.md).
 
 **Implemented (KEL-222):** migration00001790900005 adds `idx_class_schedules_live_enrollment` on `class_schedules(enrollment_id)` where `deleted_at IS NULL AND enrollment_id IS NOT NULL`. No row/column changes. The additive enrollment read projection uses existing version ownership and validity fields; raw Enrollment JSON remains unchanged. [ADR0084](../adr/0084-private-enrollment-schedule-projection.md).

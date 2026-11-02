@@ -1,6 +1,8 @@
 # Academic and enrollment flow
 
-**Implemented (KEL-229):** parents may submit multiple valid slots even with limit1. Bodyless approval above the latest limit fails atomically; tenant can recommend a smaller timetable until KEL-230 provides subset selection. Recommendations are checked at offer and acceptance. Limits are per decision/enrollment, not sessions, history or global class quotas. Lowering a limit never rewrites materialized purchases or invoice retries. [ADR0085](../adr/0085-private-approved-slot-limit.md).
+**Implemented (KEL-230):** parents may propose three slots for limit1; tenant selects the second and only that slot becomes a schedule and its sessions. Approval locks request/class, validates proposal/cap snapshots and indexes, and atomically persists the immutable subset. Original proposals remain visible separately. Invoice generation follows materialization; same/bodyless recovery keeps the subset, different choice conflicts. Enrollment/payment displays derive from selected schedules; approval chat uses `approved_slots`, not discarded proposals. Unselected slots do not remain pending requests. Price remains the class price. [ADR0087](../adr/0087-private-approved-slot-selection.md).
+
+**Implemented (KEL-229):** recommendations are checked at offer and acceptance. Limits are per decision/enrollment, not sessions, history or global class quotas. Lowering a limit never rewrites materialized purchases or invoice retries. [ADR0085](../adr/0085-private-approved-slot-limit.md).
 
 **Implemented (KEL-199):** authorized tenant class rows provide a named deletion confirmation in both layouts. Cancel makes no request; confirm uses the existing `class:delete` API, refuses active enrollment conflicts and refreshes only on confirmed success. An uncertain network result keeps explicit failure feedback. No backend policy changed; see [web deletion flow](../components/web.md#class-deletion-kel-199).
 
