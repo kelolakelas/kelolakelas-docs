@@ -1,10 +1,16 @@
 # Academic API
 
+## Explicit private approval selection (KEL-230)
+
+**Implemented:** existing `POST /api/v1/schedule-requests/{id}/approve` accepts optional JSON `selected_slot_indexes` (distinct zero-based indexes), `proposal_snapshot` (complete ordered original slots), and `expected_private_slot_limit` (integer or NULL). Selection must contain 1..N original slots; arbitrary times, duplicates, empty and over-limit decisions are rejected. The server checks snapshot/current cap under request/class locks before creating artifacts. Malformed JSON is400, invalid selection422, stale snapshot/cap409 (`private_selection_stale`), and changed materialized selection409 (`private_selection_conflict`). Foreign tenants retain404; invalid status transitions409. Successful response remains enrollment plus payment, without price multiplication.
+
+Request reads retain `slots` and add optional `approved_slots`. Pending bounded classes require explicit selection even when all proposals fit (`private_selection_required`,422); legacy NULL-cap bodyless approval still takes all proposals. Bodyless materialized recovery reuses the saved agreement, including after cap changes. Same-choice retries canonicalize order and recover invoices; different choices never rewrite an agreement. Recommendations/parent consent remain unchanged. Gateway forwards the existing body unchanged. [Contract/rollout](../adr/0087-private-approved-slot-selection.md).
+
 ## Private approved-slot limit (KEL-229)
 
 **Implemented:** simple/composite create and update accept `private_slot_limit`; tenant class and public catalog reads return integer or NULL. Values must be positive PostgreSQL integers (1..2147483647); JSON fractions/strings are invalid. New private create omission defaults to1, update omission/null preserves the stored value, and legacy NULL is unbounded. Group non-null values are rejected; class type remains immutable. Invalid create is400, invalid semantic update is422 (malformed integer JSON is400).
 
-Bodyless approval, recommendations and parent acceptance enforce the current limit before new artifacts/events. Over-limit decisions return422 with a smaller-recommendation message; no truncation or subset-selection endpoint is introduced. Materialized retries reuse their original agreement. [ADR0085](../adr/0085-private-approved-slot-limit.md).
+Recommendations and parent acceptance enforce the current limit before new artifacts/events. KEL-230 extends the existing approval endpoint with explicit selection, superseding bounded bodyless first approval. Materialized retries reuse their original agreement. [ADR0085](../adr/0085-private-approved-slot-limit.md).
 
 **Implemented (KEL-222):** scoped enrollment list/detail add `private_schedules` for live private classes: version ID, ISO weekday/start/end, optional location and validity dates. A loaded empty collection is `[]`; read failure fails the endpoint. Group `schedule_id`/`schedule` are unchanged. Retained ended/current/future versions appear once in stable order; deleted rows are excluded. [Contract and lifecycle](../adr/0084-private-enrollment-schedule-projection.md).
 
