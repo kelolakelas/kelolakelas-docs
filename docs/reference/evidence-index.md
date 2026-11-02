@@ -1,5 +1,7 @@
 # Evidence index
 
+**KEL-231:** [acceptance evidence](../evidence/kel231-centered-modal-layout.md), [ADR0086](../adr/0086-centered-modal-layout.md); shared wrapper default plus global fallback covering 20 native templates, three overlay migrations, drawer opt-out, `ModalDialog`/`ClassCreationWizard` regressions and `test:modal-browser` Chrome geometry/focus/Escape/add-child acceptance. Delivery requires provider verification, not local tests alone.
+
 **KEL-229:** [validation/source snapshot](../evidence/kel229-private-slot-limit.md), [ADR0085](../adr/0085-private-approved-slot-limit.md); academic domain/class/catalog/request usecases, migration1790900006, `private_slot_limit{,_postgres}_test.go`; gateway exact forwarding `router_test.go`; web form/live-stack `PrivateSlotLimit.integration.test.tsx`. Delivery requires provider verification, not local tests alone.
 
 **KEL-222:** [plural private enrollment schedules](../evidence/kel222-private-enrollment-schedules.md), [ADR0084](../adr/0084-private-enrollment-schedule-projection.md), real PostgreSQL scope/version/query-count/105-slot regression, actual gateway/production browser reads for paid and pending fixtures, and parent/tenant desktop/mobile evidence.

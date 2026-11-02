@@ -1,5 +1,7 @@
 # Web (`kelolakelas-web`)
 
+**Implemented (KEL-231):** `components/ModalDialog.tsx` gains `layout`/`data-modal-layout` with centered default and drawer opt-out; `app/globals.css` centers unmarked native modal templates with bounded scroll-safe sizing. Early-access, role-edit and class-creation overlays now render through the shared wrapper; the mobile drawer stays left-anchored and the anchored date-picker popover stays non-centered. No submit/validation/business change. [ADR0086](../adr/0086-centered-modal-layout.md), [acceptance evidence](../evidence/kel231-centered-modal-layout.md).
+
 **Implemented (KEL-229):** private create wizard and edit form expose a positive weekly slot limit, distinct from capacity. New drafts default to1; legacy edit keeps an optional blank value until configured. Group submissions omit it. Catalog and tenant review carry the field; parent/review explanations allow multiple proposals without promising automatic approval. Server422 errors remain authoritative for stale forms. [Validation](../evidence/kel229-private-slot-limit.md).
 
 **Implemented (KEL-222; extends KEL-70):** tenant enrollment desktop/mobile and parent history show all `private_schedules` with effective periods, including pending payment. Shared `enrollmentScheduleLabel` preserves server order, deduplicates version IDs and distinguishes explicit empty from unavailable projection. Tenant no longer scans `/api/v1/schedules`; group singular summaries retain their format. [Acceptance](../evidence/kel222-private-enrollment-schedules.md).

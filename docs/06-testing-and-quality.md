@@ -55,3 +55,7 @@ Academic `TestClassDeletionPostgres` runs with `KEL196_TEST_DSN`, already suppli
 ## KEL-216 web verification (24 October 2026)
 
 **Observed:** web `864c8ab` passes 1,784 Vitest tests (8 unrelated integration tests skipped), TypeScript, ESLint, whitespace, production webpack build and production dependency audit (zero vulnerabilities). Existing academic checkout and billing invoice/provider regressions pass with the race detector. [Real-stack acceptance](evidence/2026-10-24-kel-216.md) covers the reported group class URL, unavailable billing followed by reload and same-key VA recovery, concurrent replay and PostgreSQL counts. Browser tab closure/cleared storage and cross-device recovery are outside the draft contract; backend checks remain authoritative.
+
+## KEL-231 web verification (02 November 2026)
+
+**Observed:** web branch `skinel123/kel-231-pusatkan-seluruh-modal-web-termasuk-tambah-anak-dari-detail` on `a3bc1db` passes the default suite (173 files passed, 4 skipped; 1910 tests passed, 10 existing opt-in skips), `npm run lint`, `npx tsc --noEmit`, production `npm run build -- --webpack`, `git diff --check` and `npm audit --omit=dev --audit-level=high` (zero vulnerabilities). `npm run test:modal-browser` passes 23 Chrome checks over 20 native templates at 2px tolerance across desktop/mobile/short-keyboard/zoom-200 viewports, plus live add-child validation-to-success, resize, expansion and removed-trigger acceptance. See [acceptance evidence](evidence/kel231-centered-modal-layout.md); GitHub must independently run the required `gate` before merge.

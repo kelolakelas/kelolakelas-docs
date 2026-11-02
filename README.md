@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**Implemented (KEL-231):** every web modal is centered on the viewport through the shared native wrapper plus a global fallback for independent dialogs; the mobile navigation drawer stays left-anchored and the anchored date-picker popover stays non-centered. Add-child, edit, wizard, role, early-access, approval and reschedule dialogs keep native focus/Escape/backdrop behavior with scroll-safe long content. [ADR0086](docs/adr/0086-centered-modal-layout.md), [acceptance evidence](docs/evidence/kel231-centered-modal-layout.md).
+
 **Implemented (KEL-229):** private class create/edit/read carries a per-enrollment weekly approved-slot limit. New private classes default to1; existing NULL classes retain their previous behavior. Pending decisions enforce the latest limit under row locks; materialized retries remain unchanged. [ADR0085](docs/adr/0085-private-approved-slot-limit.md), [validation snapshot](docs/evidence/kel229-private-slot-limit.md).
 
 **Implemented (KEL-228):** three proven UI fixes follow a34-route desktop/mobile audit: native mobile navigation, class-editor visibility across breakpoints and an authorized parent report-to-inbox entry. [Audit, screenshots and open coverage](docs/evidence/kel228-ui-audit.md).
