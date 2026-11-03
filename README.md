@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**Implemented (KEL-233):** parent private schedule-request slots and tenant resession reschedule times reuse the shared hour-to-minute `ScheduleTimeInput`; payloads, schemas, and styling palettes unchanged. [ADR0088](docs/adr/0088-parent-schedule-time-reuse.md), [acceptance evidence](docs/evidence/kel233-parent-time-autoadvance.md).
+
 **Implemented (KEL-232):** public login and both registration personas have reciprocal secondary links. The landing header's exact `Akses awal` link opens login directly; the other registration CTAs still open register. The obsolete early-access modal is removed. Authentication actions, invitation return targets and sessions are unchanged. [Navigation evidence](docs/evidence/kel232-auth-navigation.md).
 
 **Implemented (KEL-230):** tenant approval explicitly chooses a snapshot-qualified subset of parent proposals. Immutable `approved_slots` remain separate from original `slots`; only selected schedules/sessions, enrollment projections and approval chat are materialized, at the unchanged class price. [ADR0087](docs/adr/0087-private-approved-slot-selection.md), [acceptance evidence](docs/evidence/kel230-private-slot-selection.md).
