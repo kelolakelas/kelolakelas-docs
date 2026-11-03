@@ -1,5 +1,18 @@
 # Authentication, registration, and identity flow
 
+## Public entry navigation (KEL-232)
+
+**Implemented:** homepage header `Akses awal` goes to `/login` without a dialog.
+Login's secondary `Belum punya akun? Daftar` goes to `/register`; both parent and
+organization registration show `Sudah punya akun? Masuk` to `/login`. These links
+are independent of form submission/validation and use fixed internal destinations,
+not query or input values. They intentionally do not carry passwords or invitation
+tokens across forms. Existing invitation-specific entry/return paths, validated
+login `redirectTo`, persona-tab query behavior, registration action results,
+`/forgot-password`, `/platform/login` and session rules remain unchanged. The hero
+and notice registration CTAs still target `/register`. No backend/API changes.
+[Source snapshot and verification](../evidence/kel232-auth-navigation.md).
+
 ```mermaid
 sequenceDiagram
   participant U as User

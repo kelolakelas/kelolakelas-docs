@@ -1,5 +1,7 @@
 # Evidence index
 
+**KEL-232:** [public auth navigation source/acceptance snapshot](../evidence/kel232-auth-navigation.md); reciprocal secondary links for login and both register personas, landing login entry without modal, fixed internal targets, unchanged registration CTAs and authentication contracts. Vitest component/action regressions plus production Chromium keyboard/responsive checks; remaining modal regression retained.
+
 **KEL-230:** [source/acceptance snapshot](../evidence/kel230-private-slot-selection.md), [ADR0087](../adr/0087-private-approved-slot-selection.md); academic `private_slot_selection{,_test}.go`, `private_schedule_approval_postgres_test.go`, `private_selection_acceptance_test.go`, migration1790900007, handler/Swagger and chat capture; gateway `TestPrivateApprovalForwardsSnapshotSelection`; web `PrivateSelection.integration.test.tsx`, dialog/action tests and `scripts/verify-modal-layout.mjs`.
 
 **KEL-231:** [acceptance evidence](../evidence/kel231-centered-modal-layout.md), [ADR0086](../adr/0086-centered-modal-layout.md); shared wrapper default plus global fallback covering 20 native templates, three overlay migrations, drawer opt-out, `ModalDialog`/`ClassCreationWizard` regressions and `test:modal-browser` Chrome geometry/focus/Escape/add-child acceptance. Delivery requires provider verification, not local tests alone.

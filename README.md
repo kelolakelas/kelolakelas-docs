@@ -1,5 +1,7 @@
 # KelolaKelas current-state documentation
 
+**Implemented (KEL-232):** public login and both registration personas have reciprocal secondary links. The landing header's exact `Akses awal` link opens login directly; the other registration CTAs still open register. The obsolete early-access modal is removed. Authentication actions, invitation return targets and sessions are unchanged. [Navigation evidence](docs/evidence/kel232-auth-navigation.md).
+
 **Implemented (KEL-230):** tenant approval explicitly chooses a snapshot-qualified subset of parent proposals. Immutable `approved_slots` remain separate from original `slots`; only selected schedules/sessions, enrollment projections and approval chat are materialized, at the unchanged class price. [ADR0087](docs/adr/0087-private-approved-slot-selection.md), [acceptance evidence](docs/evidence/kel230-private-slot-selection.md).
 
 **Implemented (KEL-231):** every web modal is centered on the viewport through the shared native wrapper plus a global fallback for independent dialogs; the mobile navigation drawer stays left-anchored and the anchored date-picker popover stays non-centered. Add-child, edit, wizard, role, early-access, approval and reschedule dialogs keep native focus/Escape/backdrop behavior with scroll-safe long content. [ADR0086](docs/adr/0086-centered-modal-layout.md), [acceptance evidence](docs/evidence/kel231-centered-modal-layout.md).
