@@ -1,6 +1,7 @@
 # Evidence index
 
 **KEL-232:** [public auth navigation source/acceptance snapshot](../evidence/kel232-auth-navigation.md); reciprocal secondary links for login and both register personas, landing login entry without modal, fixed internal targets, unchanged registration CTAs and authentication contracts. Vitest component/action regressions plus production Chromium keyboard/responsive checks; remaining modal regression retained.
+**KEL-233:** [shared time-entry reuse evidence](../evidence/kel233-parent-time-autoadvance.md), [ADR0088](../adr/0088-parent-schedule-time-reuse.md); parent request start/end plus tenant reschedule start/end reuse `ScheduleTimeInput` with unchanged payloads/schemas; focused vitest suites passed, full-suite/build limits recorded.
 
 **KEL-230:** [source/acceptance snapshot](../evidence/kel230-private-slot-selection.md), [ADR0087](../adr/0087-private-approved-slot-selection.md); academic `private_slot_selection{,_test}.go`, `private_schedule_approval_postgres_test.go`, `private_selection_acceptance_test.go`, migration1790900007, handler/Swagger and chat capture; gateway `TestPrivateApprovalForwardsSnapshotSelection`; web `PrivateSelection.integration.test.tsx`, dialog/action tests and `scripts/verify-modal-layout.mjs`.
 

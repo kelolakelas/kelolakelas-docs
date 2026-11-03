@@ -368,7 +368,11 @@ Delivery: [web PR #111](https://github.com/kelolakelas/kelolakelas-web/pull/111)
 
 ## Public proposed slot styles (KEL-220)
 
-**Implemented:** `lib/schedule-field-styles.ts` provides schedule geometry/interaction tokens and separate tenant/public palette exports. Existing tenant imports re-export the same tokens from their previous module. Public `ScheduleRequestForm` uses `publicScheduleControlClass`, `publicScheduleDayControlClass` and `scheduleDayControlStyle` for weekday/native time; future public slot forms should reuse these exports. Normal/focus/error/disabled states share geometry; public remains light while tenant retains its dark palette. Slot errors describe the controls and pending disables the slot fieldset. Payload, weekday numbering and native time are preserved. See [acceptance and screenshots](../evidence/kel220-public-schedule-controls.md).
+**Implemented:** `lib/schedule-field-styles.ts` provides schedule geometry/interaction tokens and separate tenant/public palette exports. Existing tenant imports re-export the same tokens from their previous module. Public `ScheduleRequestForm` uses `publicScheduleControlClass`, `publicScheduleDayControlClass` and `scheduleDayControlStyle` for weekday styling; since KEL-233 its start/end slots reuse the shared `ScheduleTimeInput` (hour-to-minute advancement, text entry, numeric keyboard) instead of native time, keeping the public palette, `HH:MM` drafts, backend `HH:MM:SS` expansion, and validation unchanged. Normal/focus/error/disabled states share geometry; public remains light while tenant retains its dark palette. Slot errors describe the controls and pending disables the slot fieldset. Payload and weekday numbering are preserved. See [acceptance and screenshots](../evidence/kel220-public-schedule-controls.md) and [KEL-233 evidence](../evidence/kel233-parent-time-autoadvance.md).
+
+## Parent schedule time entry reuse (KEL-233)
+
+**Implemented:** the parent private schedule-request start/end slots and the tenant reschedule dialog's `new_start_time`/`new_end_time` reuse the shared `ScheduleTimeInput` instead of native time inputs. The same hour-to-minute selection, Tab/Shift+Tab, correction, paste, blur normalization, and range/order validation apply; payloads, schemas, styling palettes, and reschedule flow are unchanged. The tenant class editor keeps its KEL-210 behavior with no component change. See [ADR0088](../adr/0088-parent-schedule-time-reuse.md) and [acceptance evidence](../evidence/kel233-parent-time-autoadvance.md).
 
 ## Chat unread navigation badge (KEL-217)
 
