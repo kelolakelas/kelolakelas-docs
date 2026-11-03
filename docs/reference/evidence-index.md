@@ -1,5 +1,11 @@
 # Evidence index
 
+**KEL-234:** [publication feedback acceptance snapshot](../evidence/kel234-publication-feedback.md);
+the publish-success message is empty without replacing it with equivalent copy.
+Real action/component tests with a gateway double cover publish, server-record
+refresh, unpublish, prior-error clearing, validation, authorization/network
+failure and pending duplicate-submit protection.
+
 **KEL-232:** [public auth navigation source/acceptance snapshot](../evidence/kel232-auth-navigation.md); reciprocal secondary links for login and both register personas, landing login entry without modal, fixed internal targets, unchanged registration CTAs and authentication contracts. Vitest component/action regressions plus production Chromium keyboard/responsive checks; remaining modal regression retained.
 **KEL-233:** [shared time-entry reuse evidence](../evidence/kel233-parent-time-autoadvance.md), [ADR0088](../adr/0088-parent-schedule-time-reuse.md); parent request start/end plus tenant reschedule start/end reuse `ScheduleTimeInput` with unchanged payloads/schemas; focused vitest suites passed, full-suite/build limits recorded.
 
