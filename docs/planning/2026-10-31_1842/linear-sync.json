@@ -1,0 +1,61 @@
+{
+  "runId": "2026-10-31_1842",
+  "approval": { "date": "2026-11-02", "message": "setujui!", "scope": "all-six-issues-and-proposed-slot-semantics" },
+  "status": "verified",
+  "projects": {
+    "P-KEL-7": { "id": "0925b72f-fbab-4d82-b530-cac847cb5ec2", "action": "reused" },
+    "P-KEL-9": { "id": "8a1ae159-de9c-462a-a5aa-43528ab4c1bb", "action": "reused" },
+    "P-KEL-22": { "id": "66af01b4-f443-465d-9f4e-af651d2854db", "action": "reused" }
+  },
+  "issues": {
+    "private-approved-slot-limit": {
+      "identifier": "KEL-229",
+      "id": "89f1588f-1258-4225-b439-e254fb674b70",
+      "url": "https://linear.app/farid-zamani/issue/KEL-229/atur-batas-slot-jadwal-approved-per-enrollment-kelas-private",
+      "source": "issues/05-private-approved-slot-limit.md",
+      "verified": true
+    },
+    "private-approved-slot-selection": {
+      "identifier": "KEL-230",
+      "id": "0f9ff3ca-1a58-40ed-98a9-4e7ff6985c84",
+      "url": "https://linear.app/farid-zamani/issue/KEL-230/pilih-subset-usulan-jadwal-saat-tenant-menyetujui-kelas-private",
+      "source": "issues/06-private-approved-slot-selection.md",
+      "verified": true
+    },
+    "centered-modal-layout": {
+      "identifier": "KEL-231",
+      "id": "ab52f7b7-e339-4aa8-b90f-d2f86bcc5be2",
+      "url": "https://linear.app/farid-zamani/issue/KEL-231/pusatkan-seluruh-modal-web-termasuk-tambah-anak-dari-detail-kelas",
+      "source": "issues/03-centered-modal-layout.md",
+      "verified": true
+    },
+    "auth-entry-navigation": {
+      "identifier": "KEL-232",
+      "id": "a3648c9e-6c2f-4511-a2f4-d860f1347bb9",
+      "url": "https://linear.app/farid-zamani/issue/KEL-232/lengkapi-link-loginregister-dan-arahkan-akses-awal-ke-login",
+      "source": "issues/01-auth-entry-navigation.md",
+      "verified": true
+    },
+    "private-time-input-autoadvance": {
+      "identifier": "KEL-233",
+      "id": "a8c6f58f-c33e-4d49-803a-aaababfc8840",
+      "url": "https://linear.app/farid-zamani/issue/KEL-233/terapkan-perpindahan-jam-ke-menit-pada-input-jadwal-private-parent",
+      "source": "issues/04-private-time-input-autoadvance.md",
+      "verified": true
+    },
+    "publication-success-copy": {
+      "identifier": "KEL-234",
+      "id": "985ef4c5-5b94-49aa-9907-f5b431ebe8eb",
+      "url": "https://linear.app/farid-zamani/issue/KEL-234/hapus-wording-sukses-publikasi-kelas-tanpa-menyembunyikan-error",
+      "source": "issues/02-publication-success-copy.md",
+      "verified": true
+    }
+  },
+  "dependencies": [{ "issue": "KEL-230", "blockedBy": "KEL-229", "verified": true }],
+  "verification": {
+    "method": "fresh-get_issue-with-includeRelations-for-all-six",
+    "status": "Backlog",
+    "checked": ["titles", "semantic-descriptions", "eight-template-headings", "team", "projects", "priorities", "estimates", "labels", "native-dependency", "related-issues"],
+    "normalization": "Linear normalizes list markers and issue mentions; approved source Markdown is unchanged."
+  }
+}
