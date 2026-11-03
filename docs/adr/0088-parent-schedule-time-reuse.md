@@ -13,11 +13,15 @@ names reschedule as the related surface for the same input behavior only.
 
 ## Decision
 
-Reuse `ScheduleTimeInput` unchanged on both surfaces: parent request start/end
+Reuse `ScheduleTimeInput` on both surfaces: parent request start/end
 slots keep the public palette and controlled-draft contract, while reschedule
 `new_start_time`/`new_end_time` keep tenant styling, field names, action
 payload, and the `HH:MM`/`HH:MM:SS` schema. Payload formats, validation,
 timezone handling, durations, and reschedule flow are unchanged.
+
+Selection is best-effort: missing or throwing selection APIs leave ordinary
+manual text entry usable rather than raising an exception. This guard is shared
+with the existing tenant editor; it does not introduce another entry semantic.
 
 ## Consequences and alternatives
 
