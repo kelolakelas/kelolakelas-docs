@@ -379,7 +379,7 @@ Delivery: [web PR #111](https://github.com/kelolakelas/kelolakelas-web/pull/111)
 
 ## Parent schedule time entry reuse (KEL-233)
 
-**Implemented:** the parent private schedule-request start/end slots and the tenant reschedule dialog's `new_start_time`/`new_end_time` reuse the shared `ScheduleTimeInput` instead of native time inputs. The same hour-to-minute selection, Tab/Shift+Tab, correction, paste, blur normalization, and range/order validation apply; payloads, schemas, styling palettes, and reschedule flow are unchanged. The tenant class editor keeps its KEL-210 behavior with no component change. See [ADR0088](../adr/0088-parent-schedule-time-reuse.md) and [acceptance evidence](../evidence/kel233-parent-time-autoadvance.md).
+**Implemented:** the parent private schedule-request start/end slots and the tenant reschedule dialog's `new_start_time`/`new_end_time` reuse the shared `ScheduleTimeInput` instead of native time inputs. The same hour-to-minute selection, Tab/Shift+Tab, correction, paste, blur normalization, and range/order validation apply; payloads, schemas, styling palettes, and reschedule flow are unchanged. The tenant class editor keeps its KEL-210 behavior; the shared component now guards missing or throwing selection APIs so manual entry remains usable. See [ADR0088](../adr/0088-parent-schedule-time-reuse.md) and [acceptance evidence](../evidence/kel233-parent-time-autoadvance.md).
 
 ## Chat unread navigation badge (KEL-217)
 
